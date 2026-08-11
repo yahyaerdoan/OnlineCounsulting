@@ -1,0 +1,42 @@
+﻿@model CreateMessageDto
+
+<div class="col-lg-7 col-sm-12">
+    <div class="contact-form">
+        <div class="contact-form-info">
+            <div class="contact-title">
+                <h3 style="text-transform:capitalize" >Tell Us Something</h3>
+            </div>
+            <form asp-controller="Contact" asp-action="Create" method="post">
+                @Html.AntiForgeryToken()
+                <div class="contact-page-form">
+                    <div class="contact-input">
+                        <div class="contact-inner mt-1">
+                            <input type="text" class="form-control" placeholder="First Name *" id="first-name" asp-for="FirstName">
+                            <span asp-validation-for="FirstName" class="text-danger"></span>
+                        </div>
+                        <div class="contact-inner mt-1">
+                            <input type="text" class="form-control" placeholder="Last Name *" id="last-name" asp-for="LastName">
+                            <span asp-validation-for="LastName" class="text-danger"></span>
+                        </div>
+                        <div class="contact-inner">
+                            <input type="email" class="form-control" placeholder="Email *" id="email" asp-for="Email">
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+                        <div class="contact-inner">
+                            <input type="text" class="form-control" placeholder="Subject *" id="subject" asp-for="Subject">
+                            <span asp-validation-for="Subject" class="text-danger"></span>
+                        </div>
+                        <div class="contact-inner contact-message">
+                            <textarea placeholder="Message *" class="form-control" asp-for="Description"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="contact-submit-btn">
+                        @* //submit-btn *@
+                        <button class="btn btn btn-large rounded-2 px-4 py-2 fw-semibold" type="submit">Send Email</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

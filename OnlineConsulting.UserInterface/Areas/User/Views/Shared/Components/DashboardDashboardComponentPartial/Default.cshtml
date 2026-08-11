@@ -1,0 +1,147 @@
+﻿<div class="tab-pane fade show active" id="dashboard">
+    <div class="container py-4">
+        <h6 class="fw-bold mb-4">Welcome to Your Dashboard</h6>
+
+        <!-- Quick Stats -->
+        <div class="row text-center mb-5">
+            <div class="col-6 col-lg-2">
+                <div class="card shadow-sm border-0 p-3">
+                    <h6 class="text-muted small">Total Orders</h6>
+                    <h6 class="fw-bold text-primary">@ViewBag.TotalOrders</h6>
+                </div>
+            </div>
+            <div class="col-6 col-lg-2">
+                <div class="card shadow-sm border-0 p-3">
+                    <h6 class="text-muted small">Pending</h6>
+                    <h6 class="fw-bold text-warning">@ViewBag.PendingOrders</h6>
+                </div>
+            </div>
+            <div class="col-6 col-lg-2">
+                <div class="card shadow-sm border-0 p-3">
+                    <h6 class="text-muted small">Paid</h6>
+                    <h6 class="fw-bold text-success">@ViewBag.PaidOrders</h6>
+                </div>
+            </div>
+            <div class="col-6 col-lg-2">
+                <div class="card shadow-sm border-0 p-3">
+                    <h6 class="text-muted small">Cancelled</h6>
+                    <h6 class="fw-bold text-danger">@ViewBag.CancelledOrders</h6>
+                </div>
+            </div>
+            <div class="col-6 col-lg-2">
+                <div class="card shadow-sm border-0 p-3">
+                    <h6 class="text-muted small">Total Spent</h6>
+                    <h6 class="fw-bold text-dark">$@ViewBag.TotalSpent</h6>
+                </div>
+            </div>
+            <div class="col-6 col-lg-2">
+                <div class="card shadow-sm border-0 p-3">
+                    <h6 class="text-muted small">Wishlist</h6>
+                    <h6 class="fw-bold text-info">4</h6>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Dashboard Actions -->
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-bag-check fs-2 text-primary mb-2"></i>
+                        <h5>Recent Orders</h5>
+                        <p>View and track your latest orders.</p>
+                        <a href="@Url.Action("Order","Dashboard", new{ area="User" })" class="btn btn-sm btn rounded-2">View Orders</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-geo-alt fs-2 text-success mb-2"></i>
+                        <h5>Manage Addresses</h5>
+                        <p>Update your shipping & billing addresses.</p>
+                        <a href="@Url.Action("Address","Dashboard", new{ area="User" })" class="btn btn-sm btn rounded-2">Edit Addresses</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-person-gear fs-2 text-warning mb-2"></i>
+                        <h5>Account Settings</h5>
+                        <p>Update your profile, email & password.</p>
+                        <a href="@Url.Action("Account","Dashboard", new{ area="User" })" class="btn btn-sm btn rounded-2">Edit Profile</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-download fs-2 text-info mb-2"></i>
+                        <h5>Downloads</h5>
+                        <p>Access your digital purchases anytime.</p>
+                        <a href="@Url.Action("Download","Dashboard", new { area="User" })" class="btn btn-sm btn rounded-2">My Downloads</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-life-preserver fs-2 text-danger mb-2"></i>
+                        <h5>Support</h5>
+                        <p>Need help? Get in touch with us.</p>
+                        <a href="@Url.Action("Index","Contact", new{ area="" })" class="btn btn-sm btn rounded-2">Contact Support</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-calendar-check fs-2 text-secondary mb-2"></i>
+                        <h5>Book a Meeting</h5>
+                        <p>Schedule a call or consultation right from here.</p>
+                        <!-- Calendly button -->
+                        <button onclick="Calendly.initPopupWidget({url: 'https://calendly.com/mr-muhittiner/30min?hide_gdpr_banner=1'}); return false;"
+                                class="btn btn-sm btn rounded-2"
+                                style="font-weight:bold;">
+                            Book a Demo
+                        </button>
+                        @*     <button class="btn btn-sm btn rounded-2" data-bs-toggle="modal" data-bs-target="#calendlyModal">
+                            Open Calendly
+                        </button> *@
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+
+        <!-- Notification -->
+        <div class="alert alert-info d-flex justify-content-between align-items-center mt-5">
+            <span><i class="bi bi-info-circle me-2"></i>We’ve updated our terms of service. Please review them.</span>
+            <a href="#" class="btn btn-sm rounded-2">Review</a>
+        </div>
+    </div>
+</div>
+<!-- Calendly Modal -->
+<div class="modal fade" id="calendlyModal" tabindex="-1" aria-labelledby="calendlyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="calendlyModalLabel" style="color:#ff5951;">Schedule a Meeting</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="height: 650px;">
+                <iframe src="https://calendly.com/your-calendly-link"
+                        width="100%"
+                        height="100%"
+                        frameborder="0"
+                        scrolling="no"
+                        style="border: none;"
+                        allowtransparency="true">
+                </iframe>
+            </div>
+        </div>
+    </div>
+</div>

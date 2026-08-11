@@ -1,0 +1,96 @@
+﻿@model IQueryable<ResultServiceWithImageDto>
+
+<div class="most-popular-courses-area section-ptb p-3 m-3">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 m-auto">
+                <div class="section-title-two">
+                    <h4 style="text-transform:capitalize;">why choose us</h4>
+                    <h3 style="text-transform:capitalize;">Our Services</h3>
+                </div>
+            </div>
+        </div>
+        <div class="courses-tab-wrapper">
+            <!-- courses-wrapper start -->
+            <div class="courses-wrapper-tab-panel">
+                <!-- tab-contnt start -->
+                <div class="tab-content">
+
+                    <div class="tab-pane active" id="graphic">
+                        <div class="row ">
+                            <div class="courses-tab-active owl-carousel">
+
+                                <!-- single-courses -->
+                                @foreach (var item in Model)
+                                {
+                                    <div class="col-lg-12">
+                                        <!-- single-courses -->
+
+                                        <div class="single-popular-courses mt--30">
+                                            <div class="popular-courses-image">
+                                                <!-- Loop through ServiceImages -->
+                                                <a href="@Url.Action("Detail","Service", new { slug = item.Slug } )">
+                                                    <img src="@item.ServiceImages.FirstOrDefault()!.ImageUrl" alt="Service Image"
+                                                         style="width: 100%; height: auto; aspect-ratio: 1 / 1; object-fit: cover; display: block; border-radius: 5px 5px 0px 0px;" />
+                                                </a>
+                                            </div>
+                                            <div class="popular-courses-contnet">
+                                                <h5 style="height:43.19px;"><a href="@Url.Action("Detail","Service", new { slug = item.Slug} )">@item.Title</a></h5>
+                                                <div class="post_meta">
+                                                    <ul style="height:56px;">
+                                                        <li><a href="@Url.Action("Detail","Service", new { slug = item.Slug } )">@item.Category.Title</a></li>
+                                                        @if (item.DiscountRate > 0)
+                                                        {
+                                                            <li>
+                                                                <p style="text-decoration: line-through; color: gray;">@item.Price.ToUsd()</p>
+                                                            </li>
+                                                            <li>
+                                                                <p style="color: #ff5951; font-weight: bold;">@item.DiscountedPrice.ToUsd()</p>
+                                                            </li>
+                                                            <li>
+                                                                <p style="color: green; font-weight: bold;">@item.DiscountRate % off</p>
+                                                            </li>
+                                                        }
+                                                        else
+                                                        {
+                                                            <li>
+                                                                <p style="color: black; font-weight: bold;">@item.Price.ToUsd()</p>
+                                                            </li>
+                                                        }
+
+                                                    </ul>
+                                                </div>
+                                                <p style="height:75px;">
+                                                    @(item.Description.Length > 80 ? item.Description.Substring(0, 80) + "..." : item.Description)
+
+                                                </p>
+                                                <div style="margin-top:35px;" class="button-block">
+                                                    <a href="@Url.Action("AddToCart","Cart", new {slug = item.Slug })" class="botton-border" style="text-transform:capitalize;">Add To Cart</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!--// single-courses -->
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div><!--// tab-contnt start -->
+
+                <div class="row mt-5">
+                    <div class="col-lg-12 text-center">
+                        <a href="@Url.Action("Index", "Service")"
+                           class="btn btn btn-large rounded-2 px-4 py-2 fw-semibold"
+                           style="text-transform: capitalize; font-size: 1rem; transition: all 0.3s ease;">
+                            View All Services
+                        </a>
+                    </div>
+                </div>
+
+
+            </div>
+            <!--// courses-wrapper start -->
+        </div>
+    </div>
+</div>
+

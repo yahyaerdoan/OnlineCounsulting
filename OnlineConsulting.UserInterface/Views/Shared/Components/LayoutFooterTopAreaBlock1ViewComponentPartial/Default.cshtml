@@ -1,0 +1,22 @@
+﻿@model IQueryable<ResultFooterAboutDto>
+
+<div class="col-lg-4 col-md-6 mt--60">
+    <div class="footer-single-block">
+        <div class="footer-logo">
+            <a href="@Url.Action("Index", "Home")"
+               class="d-flex align-items-center text-decoration-none"
+               style="white-space: nowrap;">
+                <i class="fas fa-star"
+                   style="color: #FF5951; font-size: 20px; margin-right: 8px; flex-shrink: 0;"></i>
+                <partial name="_BrandLogo" model='new BrandLogoOptions { SecondWordColor = "#FFFFFF" }' />
+            </a>
+        </div>
+        @foreach (var item in Model)
+        {
+            <p class="footer-dec">
+                @item.Description
+            </p>
+        }
+        @await Component.InvokeAsync("LayoutFooterTopAreaBlock1SocialMediaViewComponentPartial")       
+    </div>
+</div>

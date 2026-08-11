@@ -1,0 +1,138 @@
+﻿@model AddressListPageViewModel
+@{
+    var index = 0;
+}
+
+<div class="container">
+    <h6 class="mb-4 text-secondary">My Saved Addresses</h6>
+
+    <div class="row g-4">
+        @foreach (var item in Model.UserAddressList)
+        {
+            <div class="col-md-6 col-lg-4">
+                <div class="card shadow-sm rounded p-3 h-100 position-relative">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="text-dark">@item.AddressName</h5>
+                        <div class="d-flex gap-2">
+                            <a href="#" class="text-primary" data-bs-toggle="modal" data-bs-target="#addressModal-@index">
+                                <i class="zmdi zmdi-edit fs-5"></i>
+                            </a>
+                            <a href="@Url.Action("Delete", "UserAddress", new { id = item.Id, area = "user" })" class="text-danger">
+                                <i class="zmdi zmdi-delete fs-5"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="text-muted small mb-2">
+                        @item.AddressLine<br />
+                        @item.City, @item.State, @item.Country - @item.Zipcode
+                    </div>
+                    @if (!string.IsNullOrEmpty(item.Notes))
+                    {
+                        <div class="text-secondary small">Note: @item.Notes</div>
+                    }
+                    @if (item.IsShippingAddress)
+                    {
+                        <span class="badge bg-success mt-2">Shipping Address</span>
+                    }
+                    @if (item.IsBillingAddress)
+                    {
+                        <span class="badge bg-primary mt-2">Billing Address</span>
+                    }
+                </div>
+            </div>
+
+            <!-- Address Update Modal -->
+            <div class="modal fade" id="addressModal-@index" tabindex="-1" aria-labelledby="addressModalLabel-@index" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content p-3">
+                        <div class="modal-header border-0 pb-0">
+                            <h5 class="modal-title text-primary" id="addressModalLabel-@index">Update Address - @item.AddressName</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+
+                        <form method="post" asp-action="Update" asp-area="user" asp-controller="UserAddress">
+                            <div class="modal-body">
+                                <input type="hidden" name="UpdateUserAddressDto.Id" value="@item.Id" />
+                                <input type="hidden" name="UpdateUserAddressDto.UserId" value="@item.UserId" />
+
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Address Name</label>
+                                        <input class="form-control" name="UpdateUserAddressDto.AddressName" value="@item.AddressName" required />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Company Name</label>
+                                        <input class="form-control" name="UpdateUserAddressDto.CompanyName" value="@item.CompanyName" />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Country</label>
+                                        <input class="form-control" name="UpdateUserAddressDto.Country" value="@item.Country" required />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">City</label>
+                                        <input class="form-control" name="UpdateUserAddressDto.City" value="@item.City" required />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">State</label>
+                                        <input class="form-control" name="UpdateUserAddressDto.State" value="@item.State" required />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Zip Code</label>
+                                        <input class="form-control" name="UpdateUserAddressDto.Zipcode" value="@item.Zipcode" required />
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label">Address Line</label>
+                                        <input class="form-control" name="UpdateUserAddressDto.AddressLine" value="@item.AddressLine" required />
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label">Notes</label>
+                                        <input class="form-control" name="UpdateUserAddressDto.Notes" value="@item.Notes" />
+                                    </div>
+                                    <div class="col-12 d-flex align-items-center">
+                                        <input type="checkbox" class="form-check-input me-2"
+                                               name="UpdateUserAddressDto.IsShippingAddress"
+                                               id="shippingCheck-@index"
+                                               value="true"
+                                               style="width: 1.25em; height: 1.25em; margin-right: 0.5rem;"
+                                        @(item.IsShippingAddress ? "checked" : "") />
+                                        <label class="form-check-label mb-0" for="shippingCheck-@index">Use this as shipping address</label>
+                                    </div>
+                                    <div class="col-12 d-flex align-items-center">
+                                        <input type="checkbox" class="form-check-input me-2"
+                                               name="UpdateUserAddressDto.IsBillingAddress"
+                                               id="billingCheck-@index"
+                                               value="true"
+                                               style="width: 1.25em; height: 1.25em; margin-right: 0.5rem;"
+                                        @(item.IsBillingAddress ? "checked" : "") />
+                                        <label class="form-check-label mb-0" for="bilingCheck-@index">Use this as billing address</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer border-0 pt-0">
+                                <button type="submit" class="btn btn-sm btn w-100 rounded-2 py-2">
+                                    <i class="fa fa-check me-2"></i>Save Changes
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            index++;
+        }
+    </div>
+</div>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const hash = window.location.hash;
+
+        if (hash) {
+            const tabTrigger = document.querySelector(`a[href="${hash}"]`);
+            if (tabTrigger) {
+                const tab = new bootstrap.Tab(tabTrigger);
+                tab.show();
+            }
+        }
+    });
+</script>

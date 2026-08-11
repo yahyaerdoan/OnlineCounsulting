@@ -1,0 +1,29 @@
+﻿<div class="page-header" style="display:@ViewData["Display"];">
+    <div class="page-block">
+        <div class="row align-items-center">
+            <div class="col-md-12">
+                <ul class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Dashboard", new{area="Admin"})">Home</a></li>
+                    <li class="breadcrumb-item" aria-current="page"><a href="@ViewData["SubPage1Url"]">@ViewData["SubPage1"]</a></li>
+                    @if (!string.IsNullOrEmpty((string)ViewData["SubPage2"]!))
+                    {
+                        <li class="breadcrumb-item" aria-current="page"><a href="@ViewData["SubPage2Url"]">@ViewData["SubPage2"]</a></li>
+                    }
+                    @if (!string.IsNullOrEmpty((string)ViewData["SubPage3"]!))
+                    {
+                        <li class="breadcrumb-item" aria-current="page"><a href="@ViewData["SubPage3Url"]">@ViewData["SubPage3"]</a></li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+@* 
+    ViewData["Display"] = "none";
+    ViewData["SubPage1"] = "SubPage1";
+    ViewData["SubPage2"] = "SubPage2";
+    ViewData["SubPage3"] = "SubPage3"; 
+    ViewData["SubPage1Url"] = "SubPage1Url"; 
+    ViewData["SubPage2Url"] = "SubPage2Url"; 
+    ViewData["SubPage3Url"] = "SubPage3Url";
+ *@

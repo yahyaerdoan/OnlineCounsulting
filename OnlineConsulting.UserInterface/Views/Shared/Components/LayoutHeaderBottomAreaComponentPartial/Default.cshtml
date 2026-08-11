@@ -1,0 +1,39 @@
+﻿<div class="header-bottom-area header-sticky header-sticky">
+    <div class="container">
+        <div class="row">
+
+            <div class="col-lg-3 col-md-5 col-6">
+
+                @await Component.InvokeAsync("LayoutHeaderBottomLogoAreaComponentPartial")
+
+            </div>
+
+            <div class="col-lg-9 col-md-7 col-6">
+
+                <div class="header-bottom-right">
+                   
+                    @await Component.InvokeAsync("LayoutHeaderBottomMainMenuComponentPartial")
+
+                    <div class="mini-wrap-sidebar">
+
+                       @*  @await Component.InvokeAsync("LayoutHeaderBottomMiniCartWrapComponentPartial") *@
+
+                        <div class="search-wrap">
+
+                            @await Component.InvokeAsync("LayoutHeaderBottomSearchWrapComponentPartial")
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="col">
+                <!-- mobile-menu start -->
+                <div class="mobile-menu d-block d-lg-none"></div>
+                <!-- mobile-menu end -->
+            </div>
+
+        </div>
+    </div>
+</div>

@@ -1,0 +1,64 @@
+﻿@model CreateTestimonialDto
+@{
+    ViewData["Title"] = "Create New Testimonial";
+    ViewData["SubPage1"] = "Testimonial List";
+    ViewData["SubPage1Url"] = Url.Action("Index", "Testimonial", new { area = "Admin" });
+    ViewData["SubPage2"] = "Create Testimonial";
+    ViewData["SubPage2Url"] = Url.Action("Create", "Testimonial", new { area = "Admin" });
+}
+<div class="col-12">
+    <div class="card p-3">
+        <div class="card-header">
+            <h5 class="mb-0">Create New Testimonial</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label" for="firstname">First Name</label>
+                            <input type="text" id="firstname" class="form-control" placeholder="Enter first name" asp-for="FirstName" />
+                            <span asp-validation-for="FirstName" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label" for="lastname">Last Name</label>
+                            <input type="text" id="lastname" class="form-control" placeholder="Enter last name" asp-for="LastName" />
+                            <span asp-validation-for="LastName" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label" for="title">Title</label>
+                            <input type="text" id="title" class="form-control" placeholder="Enter title" asp-for="Title" />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label" for="image">Image</label>
+                            <input class="form-control" id="image" type="file" asp-for="Image" />
+                            <div class="text-muted" style="font-size: x-small;">
+                                <span style="font-weight: bold;">*</span>Please ensure the image is <strong>122x122 pixels</strong> for the best results.
+                            </div>
+                            <span asp-validation-for="Image" accept=".png, .jpeg, .jpg, .gif" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="mb-3">
+                            <label class="form-label" for="descriptionTextarea">Descripton</label>
+                            <textarea class="form-control" id="descriptionTextarea" rows="3" placeholder="Enter description" asp-for="Description"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+                    </div>                   
+                    <div class="col-md-12 text-end mt-3">
+                        <div class="d-grid gap-2 mt-2 text-center">
+                            <button class="btn btn-outline-primary d-inline-flex text-center justify-content-center"> <i class="ti ti-bookmark me-1"></i>Save</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

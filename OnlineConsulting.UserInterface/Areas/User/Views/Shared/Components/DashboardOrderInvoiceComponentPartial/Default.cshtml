@@ -1,0 +1,134 @@
+﻿@model ResultOrderDetailDto
+
+@{
+    var count = 1;
+    var subTotal = Model?.OrderItems?.Sum(i => i.SubTotalPrice) ?? 0;
+    var taxTotal = Model?.OrderItems?.Sum(i => i.TaxAmount) ?? 0;
+    var shippingHandling = 0M; // Adjust if needed
+    var totalBeforeTax = subTotal + shippingHandling;
+    var grandTotal = totalBeforeTax + taxTotal;
+}
+
+<div style="background-color:#fff; color:#000; margin:0; padding:20px;">
+    <div style="max-width:800px;margin:auto;">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <!-- ✅ New Online Consulting logo instead of Amazon -->
+            <div class="d-flex align-items-center justify-content-center text-decoration-none" style="white-space: nowrap;">
+                <i class="fas fa-star" style="color: #FF5951; font-size: 15px; margin-right: 8px; flex-shrink: 0;"></i>
+                <partial name="_BrandLogo" model="new BrandLogoOptions { FontSize = 25 }" />
+            </div>
+
+            <!-- Removed the Amazon logo image -->
+
+            <h6 style="margin-top: 10px; font-weight: bold; color: #e47911;">
+                Final Details for Order #@Model?.Order.OrderNumber
+            </h6>
+        </div>
+
+
+        <p><strong>Order Placed: </strong>@Model?.Order.CreatedDate?.ToString("f", CultureInfo.CurrentCulture)</p>
+        <p><strong>Order Number: </strong>@Model?.Order.OrderNumber</p>
+        <p><strong>Order Total: </strong>@grandTotal.ToUsd()</p>
+
+        <h3 style="text-align:center; margin:30px 0 20px;">Shipped on April 20, 2025</h3>
+
+        <h4 style="margin-bottom:10px;">Service(s) Requested</h4>
+        <table style="width:100%;border-collapse:collapse;">
+            @foreach (var item in Model!.OrderItems)
+            {
+                var service = Model.Services.FirstOrDefault(s => s.Id == item.ServiceId);
+                <tr style="border-bottom:1px solid #ddd;">
+                    <td style="padding:8px 0;">
+                        @count of: <strong>@service?.Title</strong><br />
+                        Sold by: CESTFINI (seller profile)<br />
+                        Category: @service?.Category?.Title
+                    </td>
+                    <td style="text-align:right;vertical-align:top;">
+                        @item.UnitPrice.ToUsd()
+                    </td>
+                </tr>
+                count++;
+            }
+        </table>
+
+        <div style="display:flex; justify-content:space-between; margin-top:30px;">
+            <div style="width:48%;">
+                <h4>Shipping Address:</h4>
+                <p style="margin:0;">
+                    @ViewBag.CurrentUserFullName<br>
+                    @Model.ShippingAddress.AddressLine<br>
+                    @Model.ShippingAddress.City, @Model.ShippingAddress.State, @Model.ShippingAddress.Zipcode<br>
+                    @Model.ShippingAddress.Country
+                </p>
+            </div>
+            <div style="width:48%;">
+                <table style="width:100%; font-size:14px;">
+                    <tr>
+                        <td style="padding:4px 0;">Item(s) Subtotal:</td>
+                        <td style="text-align:right;">@subTotal.ToUsd()</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:4px 0;">Shipping & Handling:</td>
+                        <td style="text-align:right;">$0.00</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:4px 0;">Total before tax:</td>
+                        <td style="text-align:right;">@totalBeforeTax.ToUsd()</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:4px 0;">Estimated tax:</td>
+                        <td style="text-align:right;">@taxTotal.ToUsd()</td>
+                    </tr>
+                    <tr style="font-weight:bold;">
+                        <td style="padding:4px 0;">Total for This Shipment:</td>
+                        <td style="text-align:right;">@grandTotal.ToUsd()</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <p style="margin-top:20px;"><strong>Shipping Speed:</strong> Delivery in fewer trips to your address</p>
+
+        <h3 style="text-align:center; margin-top:40px;">Payment Information</h3>
+
+        <p><strong>Payment Method:</strong> Visa ending in 0096</p>
+
+        <h4>Billing Address:</h4>
+        <p style="margin:0;">
+            @ViewBag.CurrentUserFullName<br>
+            @Model.InvoiceAddress.AddressLine, @Model.InvoiceAddress.City, @Model.InvoiceAddress.State,  @Model.InvoiceAddress.Zipcode, @Model.InvoiceAddress.Country
+        </p>
+
+        <table style="width:100%; font-size:14px; margin-top:20px;">
+            <tr>
+                <td>Item(s) Subtotal:</td>
+                <td style="text-align:right;">@subTotal.ToUsd()</td>
+            </tr>
+            <tr>
+                <td>Shipping & Handling:</td>
+                <td style="text-align:right;">$0.00</td>
+            </tr>
+            <tr>
+                <td>Total before tax:</td>
+                <td style="text-align:right;">@totalBeforeTax.ToUsd()</td>
+            </tr>
+            <tr>
+                <td>Estimated tax to be collected:</td>
+                <td style="text-align:right;">@taxTotal.ToUsd()</td>
+            </tr>
+            <tr style="font-weight:bold;">
+                <td>Grand Total:</td>
+                <td style="text-align:right;">@grandTotal.ToUsd()</td>
+            </tr>
+        </table>
+
+        <p style="margin-top:20px;">Visa ending in 0096: April 20, 2025 — <strong>@grandTotal.ToUsd()</strong></p>
+
+        <p style="text-align:center; font-size:13px;color:#666;border-top:1px solid #ccc;margin-top:40px;padding-top:10px;">
+            To view the status of your order, return to <a href="#">Order Summary</a>.<br>
+            <strong>Please note:</strong> This is not a VAT invoice.<br>
+            <a href="#">Conditions of Use</a> | <a href="#">Privacy Notice</a><br>
+            © 1996–2025, Amazon.com, Inc. or its affiliates
+        </p>
+    </div>
+</div>

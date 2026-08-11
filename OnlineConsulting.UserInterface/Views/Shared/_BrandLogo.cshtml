@@ -1,0 +1,11 @@
+@using OnlineConsulting.UserInterface.Common
+@model BrandLogoOptions
+@{
+    var options = Model ?? new BrandLogoOptions();
+    var secondColorStyle = string.IsNullOrEmpty(options.SecondWordColor) ? "" : $" color: {options.SecondWordColor};";
+}
+<h5 class="m-0" style="display: flex; align-items: center;">
+    <strong style="font-family: 'Times New Roman', Times, serif; font-size: @(options.FontSize)px; color: #FF5951;">Online</strong>
+    <span style="margin: 0 2px;"></span>
+    <strong style="font-family: 'Times New Roman', Times, serif; font-size: @(options.FontSize)px;@secondColorStyle">Consulting</strong>
+</h5>

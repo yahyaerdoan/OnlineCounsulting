@@ -1,0 +1,41 @@
+﻿@model IQueryable<ResultTestimonialDto>
+<div class="testimonials-area grey-bg-image section-ptb">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 m-auto">
+                <!-- section-title -->
+                <div class="section-title-two">
+                    <h4 style="text-transform:capitalize">Testimonials</h4>
+                    <h3 style="text-transform:capitalize">Our Clients Say</h3>
+                </div><!--// section-title -->
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="testimonial-active owl-carousel" >
+                @foreach (var item in Model)
+                {
+                    <div class="col-lg-8 m-auto">
+                        <!-- testimonial-wrap -->
+                        <div class="testimonial-wrap text-center">
+                            <div class="testimonial-image">
+                                <img src="@item.ImageUrl" style="max-width: 122px; height: 122px; object-fit: cover; border-radius: 5px" alt="">
+                            </div>
+                            <div class="testimonial-info">
+                                <div class="autor-info">
+                                    <h4>@item.FirstName @item.LastName</h4>
+                                    <h6>@item.Title</h6>
+                                </div>
+                                <p>
+                                    @item.Description
+                                </p>
+                            </div>
+
+                        </div>
+                        <!--// testimonial-wrap -->
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

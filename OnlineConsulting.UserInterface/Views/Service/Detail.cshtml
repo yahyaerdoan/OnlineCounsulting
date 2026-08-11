@@ -1,0 +1,24 @@
+﻿@{
+    ViewData["Title"] = "Service Detail";
+    var Slug = ViewContext.RouteData.Values["slug"]?.ToString();
+}
+
+<main class="page-content">
+    <!-- Product Details Area -->
+    <div class="product-details-area section-ptb">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+
+                    @await Component.InvokeAsync("ServiceDetailViewComponentPartial", new { slug = Slug })
+
+                    @await Component.InvokeAsync("ServiceDetailDescriptionAreaSectionViewComponentPartial", new { slug = Slug })
+
+                    @await Component.InvokeAsync("ServiceDetailRelatedServiceAreaSectionViewComponentPartial", new { slug = Slug })
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Product Details Area -->
+</main>

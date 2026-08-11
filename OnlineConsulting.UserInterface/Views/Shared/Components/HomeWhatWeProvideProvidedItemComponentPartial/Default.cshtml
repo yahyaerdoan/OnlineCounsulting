@@ -1,0 +1,40 @@
+﻿@model IQueryable<ResultProvidedItemDto>
+
+<div class="col-lg-6">
+    <div class="provider-wrap">
+        <div class="row">
+            @foreach (var item in Model)
+            {
+                <div class="col-lg-6 col-md-6">
+                    <!-- single-provide -->
+                    <div class="single-provide">
+                        <div class="single-provide-icons">
+                            <img src="@item.ImgIcon.IconUrl" alt="provided item icon"
+                                 style="width: 20%; height: auto; aspect-ratio: 1 / 1; object-fit: cover; display: block;   border-radius:5px;">
+                        </div>
+                        <div class="single-provide-contented hover-highlight-provide">
+                            <h4>@item.Title</h4>
+                            <p>@item.Description</p>
+                        </div>
+                    </div>
+                    <!--// single-provide -->
+                </div>
+            }
+        </div>
+    </div>
+</div>
+<style>
+    .hover-highlight-provide h4,
+    .hover-highlight-provide p {
+        transition: color 0.0s, font-weight 0.0s;
+    }
+
+    .hover-highlight-provide:hover h4 {
+        color: #ff5951;
+    }
+
+    .hover-highlight-provide:hover p {
+        color: black;
+        font-weight: bold;
+    }
+</style>

@@ -1,0 +1,54 @@
+@using OnlineConsulting.UserInterface.Areas.User.ViewModels.UserViewModels
+@model UserAccountViewModel
+
+<div class="dashboard-upper-info bg-light rounded shadow-sm p-4 mb-4">
+    <div class="row gy-3 align-items-center">
+        <!-- Greeting -->
+        <div class="col-lg-3 col-md-6 text-center text-lg-start">
+            <div>
+                <h6 class="mb-1 text-muted small">Welcome back</h6>
+                <h5 class="fw-bold text-dark">@Model.User.FirstName @Model.User.LastName</h5>
+            </div>
+        </div>
+
+        <!-- Customer Support Email -->
+        <div class="col-lg-3 col-md-6 text-center text-lg-start">
+            <div>
+                <h6 class="mb-1 text-muted small">Need Assistance?</h6>
+                <a href="mailto:yahyaerdoan@gmail.com" class="text-decoration-none text">
+                    yahyaerdoan@gmail.com
+                </a>
+            </div>
+        </div>
+
+        <!-- Contact Page -->
+        <div class="col-lg-3 col-md-6 text-center text-lg-start">
+            <div>
+                <h6 class="mb-1 text-muted small">Support Page</h6>
+                <a href="@Url.Action("Index", "Contact", new { area = "" })" class="text-decoration-none text">
+                    Go to Contact Page
+                </a>
+            </div>
+        </div>
+
+        <!-- Cart Button -->
+
+        <div class="col-lg-3 col-md-6 text-center">
+            @if (ViewBag.TotalBasketItemsCount != null && ViewBag.TotalBasketItemsCount > 0)
+            {
+                <a href="@Url.Action("Index", "Cart", new { area = "" })" class="btn btn-sm btn rounded-2 px-4 py-2">
+                    <i class="fa fa-cart-plus me-2"></i>
+                    View Basket ( @ViewBag.TotalBasketItemsCount )
+                </a>
+            }
+            else
+            {
+                <a href="@Url.Action("Index", "Service", new { area = "" })" class="btn btn btn-sm rounded-2 px-4 py-2">
+                    <i class="fa fa-arrow-left me-2"></i>
+                    Continue Shopping
+                </a>
+            }
+        </div>
+
+    </div>
+</div>

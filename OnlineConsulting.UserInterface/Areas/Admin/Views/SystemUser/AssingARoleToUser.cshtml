@@ -1,0 +1,55 @@
+﻿@model List<AssingARoleToUserDto>
+@{
+    ViewData["Title"] = "Manage Role";
+    ViewData["SubPage1"] = "User List";
+    ViewData["SubPage1Url"] = Url.Action("Index", "SystemUser", new { area = "Admin" });
+    ViewData["SubPage2"] = "Manage User Role";
+    ViewData["SubPage2Url"] = Url.Action("AssingARoleToUser", "SystemUser", new { area = "Admin"});
+}
+
+<div class="col-12">
+    <div class="card p-3">
+        <div class="card-body">
+            <!-- Form Section -->
+            <div class="row">
+                <div class="col">
+                    <form method="post" asp-route-id="@ViewBag.UserId">
+                        <div class="row">
+                            <!-- Categories Section -->
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label class="form-label">Roles</label>
+                                    <div class="form-control" style="padding: 1rem;">
+                                        <div class="row">
+                                            @for (int i = 0; i < Model.Count(); i++)
+                                            {
+                                                <div class="col-md-2 d-flex align-items-center" style="gap: 0.5rem; margin-bottom: 0.5rem;">
+                                                    <div class="mb-3 form-check">
+                                                        <input type="checkbox" class="form-check-input" asp-for="@Model[i].Exist" />
+                                                        <label class="form-check-label">@Model[i].RoleName</label>
+                                                        <input type="hidden" asp-for="@Model[i].RoleName" />
+                                                        <input type="hidden" asp-for="@Model[i].Id" />
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                    @*    <span asp-validation-for="GalleryCategoryIds" class="text-danger"></span> *@
+                                </div>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <div class="col-md-12 text-end mt-3">
+                                <div class="d-grid gap-2 mt-2 text-center">
+                                    <button class="btn btn-outline-primary d-inline-flex text-center justify-content-center">
+                                        <i class="ti ti-bookmark me-1"></i>Update
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

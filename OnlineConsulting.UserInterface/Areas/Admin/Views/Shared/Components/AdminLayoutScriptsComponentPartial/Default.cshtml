@@ -1,0 +1,77 @@
+﻿<!-- [Page Specific JS] start -->
+@* <script src="~/templates/admin-sky-template/able-pro-vanila-bootstrap-9.5.0/dist/assets/js/plugins/apexcharts.min.js"></script>
+<script src="~/templates/admin-sky-template/able-pro-vanila-bootstrap-9.5.0/dist/assets/js/widgets/all-earnings-graph.js"></script>
+<script src="~/templates/admin-sky-template/able-pro-vanila-bootstrap-9.5.0/dist/assets/js/widgets/page-views-graph.js"></script>
+<script src="~/templates/admin-sky-template/able-pro-vanila-bootstrap-9.5.0/dist/assets/js/widgets/total-task-graph.js"></script>
+<script src="~/templates/admin-sky-template/able-pro-vanila-bootstrap-9.5.0/dist/assets/js/widgets/download-graph.js"></script>
+<script src="~/templates/admin-sky-template/able-pro-vanila-bootstrap-9.5.0/dist/assets/js/widgets/customer-rate-graph.js"></script>
+<script src="~/templates/admin-sky-template/able-pro-vanila-bootstrap-9.5.0/dist/assets/js/widgets/tasks-graph.js"></script>
+<script src="~/templates/admin-sky-template/able-pro-vanila-bootstrap-9.5.0/dist/assets/js/widgets/total-income-graph.js"></script>
+<!-- [Page Specific JS] end --> *@
+<!-- Required Js -->
+<script src="~/templates/admin-sky-template/able-pro-vanila-bootstrap-9.5.0/dist/assets/js/plugins/popper.min.js"></script>
+<script src="~/templates/admin-sky-template/able-pro-vanila-bootstrap-9.5.0/dist/assets/js/plugins/simplebar.min.js"></script>
+<script src="~/templates/admin-sky-template/able-pro-vanila-bootstrap-9.5.0/dist/assets/js/plugins/bootstrap.min.js"></script>
+
+
+<script src="~/templates/admin-sky-template/able-pro-vanila-bootstrap-9.5.0/dist/assets/js/plugins/i18next.min.js"></script>
+<script src="~/templates/admin-sky-template/able-pro-vanila-bootstrap-9.5.0/dist/assets/js/plugins/i18nextHttpBackend.min.js"></script>
+
+<script src="~/templates/admin-sky-template/able-pro-vanila-bootstrap-9.5.0/dist/assets/js/icon/custom-font.js"></script>
+<script src="~/templates/admin-sky-template/able-pro-vanila-bootstrap-9.5.0/dist/assets/js/script.js"></script>
+<script src="~/templates/admin-sky-template/able-pro-vanila-bootstrap-9.5.0/dist/assets/js/theme.js"></script>
+<script src="~/templates/admin-sky-template/able-pro-vanila-bootstrap-9.5.0/dist/assets/js/multi-lang.js"></script>
+<script src="~/templates/admin-sky-template/able-pro-vanila-bootstrap-9.5.0/dist/assets/js/plugins/feather.min.js"></script>
+<!-- Ntoast Notify Scripts Start -->
+@await Component.InvokeAsync("NToastNotify")
+<link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="~/toastr.js"></script>
+<!-- Ntoast Notify Scripts end -->
+<script>
+    layout_change('light');
+</script>
+
+<script>
+    change_box_container('false');
+</script>
+
+<script>
+    layout_caption_change('true');
+</script>
+
+<script>
+    layout_rtl_change('false');
+</script>
+
+<script>
+    preset_change('preset-1');
+</script>
+
+<script>
+    main_layout_change('vertical');
+</script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const toggleButton = document.getElementById("toggleFormButton");
+        const formContainer = document.getElementById("updateImageForm");
+
+        toggleButton.addEventListener("click", function (event) {
+            event.preventDefault(); // Varsayılan buton davranışını engeller
+            if (formContainer.style.display === "none" || !formContainer.style.display) {
+                formContainer.style.display = "block";
+            } else {
+                formContainer.style.display = "none";
+            }
+        });
+    });
+</script>
+<script src="~/summernote-0.9.0-dist/summernote-bs5.min.js"></script>
+<script>
+    $(function () {
+        $('#summernote-textarea').summernote({
+        placeholder: 'Enter description',
+        height: 200
+      });
+    })
+</script>

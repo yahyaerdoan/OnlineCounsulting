@@ -1,0 +1,95 @@
+﻿@model ResultServiceWithPagedDto
+@{
+    var pageCount = (int)Math.Ceiling((double)Model.TotalCount / Model.Size);
+
+}
+<div class="row">
+    @foreach (var item in Model.Services)
+    {
+        <div class="col-lg-4 col-md-6 col-12">
+            <!-- single-courses -->
+            <div class="single-popular-courses mt--30">
+                <div class="popular-courses-image">
+                    <a href="@Url.Action("Detail", "Service", new { slug = item.Slug })">
+                        <img src="@item.ServiceImages.Select(x => x.ImageUrl).FirstOrDefault()"
+                             style="width: 100%; height: auto; aspect-ratio: 1 / 1; object-fit: cover; display: block; border-radius: 5px 5px 0px 0px;"
+                             alt="Service Images">
+                    </a>
+                </div>
+                <div class="popular-courses-contnet">
+                    <h5 style="height:43.19px;" ><a href="@Url.Action("Detail","Service", new { slug = item.Slug })">@item.Title</a></h5>
+                    <div class="post_meta">
+                        <ul style="height:56px;">
+                            <li><a href="@Url.Action("Detail","Service", new { slug = item.Slug })">@item.Category.Title</a></li>
+                            @if (item.DiscountRate > 0)
+                            {
+                                <li>
+                                    <p style="text-decoration: line-through; color: gray;">@item.Price.ToUsd()</p>
+                                </li>
+                                <li>
+                                    <p style="color: #ff5951; font-weight: bold;">@item.DiscountedPrice.ToUsd()</p>
+                                </li>
+                                <li>
+                                    <p style="color: green; font-weight: bold;">@item.DiscountRate % Off</p>
+                                </li>
+                            }
+                            else
+                            {
+                                <li>
+                                    <p style="color: black; font-weight: bold;">@item.Price.ToUsd()</p>
+                                </li>
+                            }
+
+                        </ul>
+                    </div>
+                    <p style="height:75px;">
+                        @(item.Description.Length > 80 ? item.Description.Substring(0, 80) + "..." : item.Description)
+
+                    </p>
+                    <div style="margin-top:35px;" class="button-block">
+                        <a href="@Url.Action("AddToCart","Cart", new { slug = item.Slug })" class="botton-border" style="text-transform: capitalize">Add to Cart</a>
+                    </div>
+                </div>
+            </div>
+            <!--// single-courses -->
+        </div>
+    }
+</div>
+
+<!-- paginatoin-area Start -->
+<div class="paginatoin-area ">
+    <div class="row">
+        <div class="col-lg-12">
+            <ul class="pagination-box">
+                <!-- Önceki Sayfa Butonu: İlk sayfadaysa hiç gösterme -->
+                @if (Model.Page > 1)
+                {
+                    <li>
+                        <a href="@Url.Action("Index", "Service", new { page = Model.Page - 1, size = Model.Size })">
+                            <i class="zmdi zmdi-chevron-left"></i>
+                        </a>
+                    </li>
+                }
+
+                <!-- Sayfa Numaraları -->
+                @for (int index = 1; index <= pageCount; index++)
+                {
+                    <li class="@(index == Model.Page ? "active" : "")">
+                        <a href="@Url.Action("Index", "Service", new { page = index, size = Model.Size })">@index</a>
+                    </li>
+                }
+
+                <!-- Sonraki Sayfa Butonu: Son sayfadaysa hiç gösterme -->
+                @if (Model.Page < pageCount)
+                {
+                    <li>
+                        <a href="@Url.Action("Index", "Service", new { page = Model.Page + 1, size = Model.Size })">
+                            <i class="zmdi zmdi-chevron-right"></i>
+                        </a>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</div>
+<!--// paginatoin-area End -->

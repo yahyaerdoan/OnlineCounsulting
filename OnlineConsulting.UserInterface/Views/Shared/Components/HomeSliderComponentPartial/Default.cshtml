@@ -1,0 +1,31 @@
+﻿@model IQueryable<ResultSliderItemDto>
+
+<div class="hero-slider">
+    <div class="hero-slider-active owl-carousel">
+        @foreach (var item in Model)
+        {
+            <div class="singleSlide" data-black-overlay="1">
+                <div class="itemBg">
+                    <img src="@item.ImageUrl" alt="Slider item">
+                </div>
+                <!-- Hero Content One Start -->
+                <div class="container">
+                    <div class="hero-content-one">
+                        <div class="row">
+                            <div class="col">
+                                <div class="slider-text-info">
+                                    <h1>
+                                        <span style="color:beige">@item.Title </span> <br>
+                                        <span style="color:aliceblue; font-size:xx-large"> @item.Description</span>
+                                    </h1>
+                                    <a href="@Url.Action("Index", "AboutUs")" class="btn slider-btn"><span>About Us</span></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Hero Content One End -->
+            </div>
+        }
+    </div>
+</div>

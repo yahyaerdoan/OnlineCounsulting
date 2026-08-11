@@ -1,0 +1,139 @@
+﻿@model CreateUserAddressDto
+
+<div class="address-form shadow p-4 rounded bg-white">
+    <h6 class="mb-4 text-secondary">Create New Address</h6>
+
+    <form method="post" asp-action="Create" asp-area="user" asp-controller="useraddress" id="addressForm">
+        <div class="row g-3">
+            <!-- Address Identification -->
+            <div class="col-md-6">
+                <label class="form-label">Address Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" asp-for="AddressName" />
+                <span asp-validation-for="AddressName" class="text-danger small" data-valmsg-for="AddressName"></span>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Company Name</label>
+                <input type="text" class="form-control" asp-for="CompanyName" />
+                <span asp-validation-for="CompanyName" class="text-danger small" data-valmsg-for="CompanyName"></span>
+            </div>
+            <!-- Address -->
+            <div class="col-12">
+                <label class="form-label">Address Line <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" asp-for="AddressLine" />
+                <span asp-validation-for="AddressLine" class="text-danger small" data-valmsg-for="AddressLine"></span>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">City <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" asp-for="City" />
+                <span asp-validation-for="City" class="text-danger small" data-valmsg-for="City"></span>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Zip Code <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" asp-for="Zipcode" />
+                <span asp-validation-for="Zipcode" class="text-danger small" data-valmsg-for="Zipcode"></span>
+            </div>
+            <!-- Location -->
+            <div class="col-md-6">
+                <label class="form-label">State <span class="text-danger">*</span></label>
+                <select class="form-select" name="State">
+                    <option value="">-- Select State --</option>
+                    <option value="California">California</option>
+                    <option value="Texas">Texas</option>
+                    <option value="Illinois">Illinois</option>
+                    <option value="New York">New York</option>
+                    <option value="Florida">Florida</option>
+                </select>
+                <span class="text-danger small" data-valmsg-for="State"></span>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Country <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" asp-for="Country" />
+                <span asp-validation-for="Country" class="text-danger small" data-valmsg-for="Country"></span>
+            </div>
+            <div class="col-12">
+                <label class="form-label">Notes</label>
+                <input type="text" class="form-control" asp-for="Notes" />
+                <span asp-validation-for="Notes" class="text-danger small" data-valmsg-for="Notes"></span>
+            </div>
+            <!-- Shipping Checkbox -->
+            <div class="col-12 d-flex align-items-center">
+                <input type="checkbox" asp-for="IsShippingAddress" id="isShipping"
+                       style="width: 1.25em; height: 1.25em; margin-right: 0.5rem;" />
+                <label for="isShipping" class="mb-0">Use this as my shipping address</label>
+            </div>
+            <span asp-validation-for="IsShippingAddress" class="text-danger small d-block mt-1" data-valmsg-for="IsShippingAddress"></span>
+            <!-- Billing Checkbox -->
+            <div class="col-12 d-flex align-items-center">
+                <input type="checkbox" asp-for="IsBillingAddress" id="isBilling"
+                       style="width: 1.25em; height: 1.25em; margin-right: 0.5rem;" />
+                <label for="isShipping" class="mb-0">Use this as my billing address</label>
+            </div>
+            <span asp-validation-for="IsBillingAddress" class="text-danger small d-block mt-1" data-valmsg-for="IsBillingAddress"></span>
+        </div>
+        <!-- Submit -->
+        <div class="mt-4">
+            <button type="submit" class="btn btn-sm btn w-100 rounded-2 py-2 fs-0">
+                <i class="fa fa-save me-2"></i>Save Address
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const form = document.getElementById("addressForm");
+
+        const validationFields = [
+            { name: "AddressName", message: "Please enter an address name (e.g. Home, Office)." },
+            { name: "Country", message: "Country field cannot be empty." },
+            { name: "City", message: "Please enter a valid city name." },
+            { name: "State", message: "Please select a state." },
+            { name: "Zipcode", message: "Zip Code is required." },
+            { name: "AddressLine", message: "Address line must not be empty." }
+        ];
+
+        form.addEventListener("submit", function (e) {
+            let isValid = true;
+
+            validationFields.forEach(field => {
+                const input = document.querySelector(`[name="${field.name}"]`);
+                const error = document.querySelector(`[data-valmsg-for="${field.name}"]`);
+
+                if (input && (input.value.trim() === "" || (input.tagName === "SELECT" && input.selectedIndex === 0))) {
+                    isValid = false;
+                    if (error) error.textContent = field.message;
+                } else {
+                    if (error) error.textContent = "";
+                }
+            });
+
+            if (!isValid) {
+                e.preventDefault();
+                form.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+        });
+
+        // Real-time feedback
+        validationFields.forEach(field => {
+            const input = document.querySelector(`[name="${field.name}"]`);
+            const error = document.querySelector(`[data-valmsg-for="${field.name}"]`);
+
+            if (input) {
+                input.addEventListener("input", () => {
+                    if (input.value.trim() !== "" && !(input.tagName === "SELECT" && input.selectedIndex === 0)) {
+                        if (error) error.textContent = "";
+                    }
+                });
+
+                // For dropdown specifically
+                if (input.tagName === "SELECT") {
+                    input.addEventListener("change", () => {
+                        if (input.selectedIndex !== 0 && error) error.textContent = "";
+                    });
+                }
+            }
+        });
+    });
+</script>
+
+

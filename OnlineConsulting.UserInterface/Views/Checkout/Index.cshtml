@@ -1,0 +1,34 @@
+﻿@{
+    ViewData["Title"] = "Checkout";
+    ViewData["SubPage1"] = "Checkout";
+}
+
+<main class="page-content">
+
+    <div class="checkout-main-content section-ptb">
+        <div class="container">
+            <div class="row">
+                <div class="col">
+                    <div class="coupon-area">
+                        <!-- coupon-accordion-login start -->
+                        @* @await Component.InvokeAsync("CheckoutLoginComponentPartial") *@
+                        <!-- coupon-accordion-login end -->
+                        <!-- coupon-accordion start -->
+                       @*  @await Component.InvokeAsync("CheckoutCouponComponentPartial") *@
+                        <!-- coupon-accordion end -->
+                    </div>
+                </div>
+            </div>
+            <!-- checkout-details-wrapper start -->
+            <div class="checkout-details-wrapper">
+                <div class="row">
+                    @await Component.InvokeAsync("CheckoutBillingDetailsComponentPartial", new { cartId = @ViewBag.cartId })
+
+                    @await Component.InvokeAsync("CheckoutOrderComponentPartial")
+
+                </div>
+            </div>
+            <!-- checkout-details-wrapper end -->
+        </div>
+    </div>
+</main>

@@ -1,0 +1,217 @@
+@using OnlineConsulting.UserInterface.ViewComponents.CheckoutViewComponents.CheckoutBillingDetailsViewComponents
+@model CheckoutAddressViewModel
+@{
+    var shippingIndex = 1;
+    var billingIndex = 1;
+}
+
+<div class="col-lg-6 col-md-6">
+    <!-- SHIPPING CARD -->
+    <div class="billing-details-wrap mb-4">
+        <h4 class="shoping-checkboxt-title">Shipping Address</h4>
+        @if (Model?.ShippingAddress != null)
+        {
+            <div class="card shadow-sm rounded p-3">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h5 class="text-dark">@Model.ShippingAddress.AddressName</h5>
+                    <a href="#" class="text-primary" data-bs-toggle="modal" data-bs-target="#shippingModal">
+                        <i class="zmdi zmdi-edit fs-5"></i>
+                    </a>
+                </div>
+                <div class="text-muted small mb-2">
+                    @Model.ShippingAddress.AddressLine<br />
+                    @Model.ShippingAddress.City, @Model.ShippingAddress.State, @Model.ShippingAddress.Country - @Model.ShippingAddress.Zipcode
+                </div>
+                @if (!string.IsNullOrWhiteSpace(Model.ShippingAddress.Notes))
+                {
+                    <div class="text-secondary small">Note: @Model.ShippingAddress.Notes</div>
+                }
+                <span class="badge bg-success mt-2">Shipping Address</span>
+            </div>
+        }
+        else
+        {
+            <div class="card border border-dashed text-center p-4">
+                <p class="mb-0">No shipping address selected.</p>
+                <a href="@Url.Action("Address", "Dashboard", new { area = "user" })#createaddress"
+                class="btn btn btn-sm mt-2 rounded-2">Add Address</a>
+            </div>
+        }
+    </div>
+    <!-- BILLING CARD -->
+    <div class="billing-details-wrap mb-4">
+        <h4 class="shoping-checkboxt-title">Billing Address</h4>
+        @if (Model?.BillingAddress != null)
+        {
+            <div class="card shadow-sm rounded p-3">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h5 class="text-dark">@Model.BillingAddress.AddressName</h5>
+                    <a href="#" class="text-primary" data-bs-toggle="modal" data-bs-target="#billingModal">
+                        <i class="zmdi zmdi-edit fs-5"></i>
+                    </a>
+                </div>
+                <div class="text-muted small mb-2">
+                    @Model.BillingAddress.AddressLine<br />
+                    @Model.BillingAddress.City, @Model.BillingAddress.State, @Model.BillingAddress.Country - @Model.BillingAddress.Zipcode
+                </div>
+                @if (!string.IsNullOrWhiteSpace(Model.BillingAddress.Notes))
+                {
+                    <div class="text-secondary small">Note: @Model.BillingAddress.Notes</div>
+                }
+                <span class="badge bg-primary mt-2">Billing Address</span>
+            </div>
+        }
+        else
+        {
+            <div class="card border border-dashed text-center p-4">
+                <p class="mb-0">No billing address selected.</p>
+                <a href="@Url.Action("Address", "Dashboard", new { area = "user" })#createaddress"
+                class="btn btn btn-sm mt-2 rounded-2">Add Address</a>
+            </div>
+        }
+    </div>
+    <!-- SHIPPING MODAL (safe: only renders if address exists) -->
+    @if (Model?.ShippingAddress != null)
+    {
+        <!-- Modern & User-Friendly Shipping Address Modal -->
+        <div class="modal fade" id="shippingModal" tabindex="-1" aria-labelledby="shippingModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content p-4 rounded-3 shadow-sm">
+
+                    <!-- Modal Header -->
+                    <div class="modal-header border-0 pb-0">
+                        <h5 class="modal-title fw-semibold" id="shippingModalLabel">
+                            Select a Shipping Address
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <!-- Modal Body: Addresses List -->
+                    <div class="modal-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>#</th>
+                                        <th scope="col">Address Name</th>
+                                        <th scope="col" class="text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.AllAddresses)
+                                    {
+                                        <tr>
+                                            <td>@shippingIndex</td>
+                                            <td class="text-start">
+                                                @if(@item.Id == Model.ShippingAddress.Id)
+                                                {
+                                                    <small class="d-block text-success"><strong>@item.AddressName</strong></small>
+                                                }
+                                                else
+                                                {
+                                                    <small class="d-block">@item.AddressName</small>
+
+                                                }
+                                                <small class="text-muted">
+                                                    @item.AddressLine, @item.City, @item.State, @item.Zipcode, @item.Country
+                                                </small>
+                                            </td>
+                                            <td class="text-center">
+                                                <form method="post" asp-action="SetShippingAddress" asp-controller="checkout" class="d-inline">
+                                                    <input type="hidden" name="addressId" value="@item.Id" />
+                                                    <input type="hidden" name="oldAddressId" value="@Model.ShippingAddress.Id" />
+                                                    <input type="hidden" name="cartId" value="@ViewBag.cartId" />
+                                                    <button type="submit" class="btn btn-sm rounded-2">
+                                                        Set as Shipping
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                        shippingIndex++;
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Add New Address Link -->
+                        <div class="text-start mt-3">
+                            <a href="@Url.Action("Address", "Dashboard", new { area = "User" })#createaddress" class="btn btn-sm rounded-2">Add New Address</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- BILLING MODAL -->
+    @if (Model?.BillingAddress != null)
+    {
+        <!-- Modern & User-Friendly Billing Address Modal -->
+        <div class="modal fade" id="billingModal" tabindex="-1" aria-labelledby="billingModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content p-4 rounded-3 shadow-sm">
+
+                    <!-- Modal Header -->
+                    <div class="modal-header border-0 pb-0">
+                        <h5 class="modal-title fw-semibold" id="billingModalLabel">
+                            Select a Billing Address
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <!-- Modal Body: Addresses List -->
+                    <div class="modal-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>#</th>
+                                        <th scope="col">Address Name</th>
+                                        <th scope="col" class="text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.AllAddresses)
+                                    {
+                                        <tr>
+                                            <td> @billingIndex</td>
+                                            <td class="text-start">
+                                                @if (@item.Id == Model.BillingAddress.Id)
+                                                {
+                                                    <small class="d-block text-primary"><strong>@item.AddressName</strong></small>
+                                                }
+                                                else
+                                                {
+                                                    <small class="d-block">@item.AddressName</small>
+                                                }
+                                                <small class="text-muted">
+                                                    @item.AddressLine, @item.City, @item.State, @item.Zipcode, @item.Country
+                                                </small>
+                                            </td>
+                                            <td class="text-center">
+                                                <form method="post" asp-action="SetBillingAddress" asp-controller="checkout" class="d-inline">
+                                                    <input type="hidden" name="addressId" value="@item.Id" />
+                                                    <input type="hidden" name="oldAddressId" value="@Model.BillingAddress.Id" />
+                                                    <input type="hidden" name="cartId" value="@ViewBag.cartId" />
+                                                    <button type="submit" class="btn btn-sm rounded-2">
+                                                        Set as Billing
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                        billingIndex++;
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Add New Address Link -->
+                        <div class="text-start mt-3">
+                            <a href="@Url.Action("Address", "Dashboard", new { area = "User" })#createaddress" class="btn btn-sm rounded-2"> Add New Address</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>

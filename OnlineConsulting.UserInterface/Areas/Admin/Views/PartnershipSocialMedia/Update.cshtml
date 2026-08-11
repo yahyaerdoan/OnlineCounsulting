@@ -1,0 +1,64 @@
+﻿@model UpdatePartnershipSocialMediaDto
+@{
+    ViewData["Title"] = "Update Partnerships Social Media Account";
+    ViewData["SubPage1"] = "Partnership List";
+    ViewData["SubPage1Url"] = Url.Action("Index", "Partnership", new { area = "Admin" });
+    ViewData["SubPage2"] = "Partnerships Social Media Account List";
+    ViewData["SubPage2Url"] = Url.Action("Index", "PartnershipSocialMedia", new { area = "Admin", id = ViewBag.PartnershipId });
+    ViewData["SubPage3"] = "Update Partnership Social Media Account";
+}
+
+<div class="col-12">
+    <div class="card p-3">
+        <div class="card-header">
+            <h5 class="mb-0">@Model.Name</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col">
+                    <form method="post">
+                        <div class="row">
+                            <input type="hidden" asp-for="Id" />
+                            <input type="hidden" asp-for="PartnershipId" value="@ViewBag.PartnershipId" />
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Icon</label>
+                                    <select class="form-control" placeholder="Select Icon" asp-for="ClassIconId">
+                                        <option value="" disabled selected>Select an icon</option>
+                                        @foreach (var icon in (List<ResultClassIconDto>)ViewBag.GetClassIcons)
+                                        {
+                                            <option value="@icon.Id">@icon.Name</option>
+                                        }
+                                    </select>
+                                    <span asp-validation-for="ClassIconId" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Name</label>
+                                    <input type="text" class="form-control" placeholder="Enter last name" asp-for="Name" />
+                                    <span asp-validation-for="Name" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label class="form-label">Url</label>
+                                    <input type="text" class="form-control" placeholder="Enter web site url" asp-for="Url" />
+                                    <span asp-validation-for="Url" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-12 text-end mt-3">
+                                <div class="d-grid gap-2 mt-2 text-center">
+                                    <button class="btn btn-outline-primary d-inline-flex text-center justify-content-center"> <i class="ti ti-bookmark me-1"></i>Update</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>

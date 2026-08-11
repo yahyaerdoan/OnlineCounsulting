@@ -1,0 +1,136 @@
+﻿@model CreateServiceDto
+@{
+    ViewData["Title"] = "Create Service";
+    ViewData["SubPage1"] = "Service";
+    ViewData["SubPage1Url"] = Url.Action("Index", "Service", new { area = "Admin" });
+    ViewData["SubPage2"] = "Create Service";
+    ViewData["SubPage2Url"] = Url.Action("Create", "Service", new { area = "Admin" });
+}
+
+<div class="col-12">
+    <div class="card p-3">
+        <div class="card-header">
+            <h5 class="mb-0">Create New Service</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label" for="Servicecategory">Category</label>
+                            <select class="form-control" placeholder="Select Category" asp-for="CategoryId">
+                                <option value="" disabled selected>Select a category</option>
+                                @foreach (var category in (List<ResultCategoryDto>)ViewBag.GetCategories)
+                                {
+                                    <option value="@category.Id">@category.Title</option>
+                                }
+                            </select>
+                            <span asp-validation-for="CategoryId" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label" for="title">Title</label>
+                            <input type="text" class="form-control" id="title" placeholder="Enter title" asp-for="Title" />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label" for="price">Price</label>
+                            <input type="number" class="form-control" id="price" placeholder="Enter price" asp-for="Price" />
+                            <span asp-validation-for="Price" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label" for="discountrate">Discount Rate (%)</label>
+                            <input type="number" class="form-control" id="discountrate" placeholder="Enter discount rate" asp-for="DiscountRate" />
+                            <span asp-validation-for="DiscountRate" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label" for="discountedprice">Discounted Price</label>
+                            <input type="number" class="form-control" id="discountedprice" placeholder="Enter discounted price" asp-for="DiscountedPrice" disabled />
+                            <input type="hidden" id="discountedprice-hidden" name="DiscountedPrice" asp-for="DiscountedPrice" />
+                            <span asp-validation-for="DiscountedPrice" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label" for="taxrate">Tax Rate (%)</label>
+                            <input type="number" class="form-control" id="taxrate" placeholder="Enter tax rate" asp-for="TaxRate" />
+                            <span asp-validation-for="TaxRate" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label" for="featuredarea">Featured Area</label>
+                            <select class="form-control" id="featuredarea" asp-for="FeaturedArea">
+                                <option value="" disabled selected>Select an option</option>
+                                <option value="True">Yes</option>
+                                <option value="False">No</option>
+                            </select>
+                            <span asp-validation-for="FeaturedArea" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="mb-3">
+                            <label class="form-label" for="image">Service Image</label>
+                            <input class="form-control" id="image" type="file" asp-for="Images" accept=".png, .jpeg, .jpg, .gif" multiple />
+                            <div class="text-muted" style="font-size: x-small;">
+                                <span style="font-weight: bold;">*</span>Please ensure the image is <strong>370x240 pixels</strong> for the best results.
+                            </div>
+                            <span asp-validation-for="Images" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="mb-3">
+                            <label class="form-label" for="descripton">Descripton</label>
+                            <textarea class="form-control" id="descripton" rows="3" placeholder="Enter description" asp-for="Description"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="mb-3">
+                            <label class="form-label" for="summernote-textarea">Detailed Descripton</label>
+                            <textarea class="form-control" id="summernote-textarea" rows="3" placeholder="Enter detailed description" asp-for="DetailedDescription"></textarea>
+                            <span asp-validation-for="DetailedDescription" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-12 text-end mt-3">
+                        <div class="d-grid gap-2 mt-2 text-center">
+                            <button class="btn btn-outline-primary d-inline-flex text-center justify-content-center"> <i class="ti ti-bookmark me-1"></i>Save</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const priceInput = document.getElementById("price");
+        const discountRateInput = document.getElementById("discountrate");
+        const discountedPriceInput = document.getElementById("discountedprice");
+        const discountedPriceHiddenInput = document.getElementById("discountedprice-hidden");
+
+        function calculateDiscountedPrice() {
+            let price = parseFloat(priceInput.value) || 0;
+            let discountRate = parseFloat(discountRateInput.value) || 0;
+
+            if (price > 0 && discountRate >= 0 && discountRate <= 100) {
+                let discountedPrice = price - (price * discountRate / 100);
+                discountedPriceInput.value = discountedPrice.toFixed(2);
+                discountedPriceHiddenInput.value = discountedPrice.toFixed(2);
+            } else {
+                discountedPriceInput.value = "";
+                discountedPriceHiddenInput.value = "";
+            }
+        }
+
+        priceInput.addEventListener("input", calculateDiscountedPrice);
+        discountRateInput.addEventListener("input", calculateDiscountedPrice);
+    });
+</script>

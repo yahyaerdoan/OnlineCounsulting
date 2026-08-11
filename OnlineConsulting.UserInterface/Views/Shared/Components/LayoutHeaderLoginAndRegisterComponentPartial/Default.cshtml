@@ -1,0 +1,19 @@
+﻿@{
+    bool isLoggedIn = ViewBag.userFullName != null;
+}
+<!-- login-and-register -->
+<div class="login-and-register">
+    <ul>
+        @if (!isLoggedIn)
+        {
+            <li><a href="@Url.Action("Login", "Account",new {area=""})">Login</a></li>
+            <li><a href="@Url.Action("Register", "Account",new {area=""})">Register</a></li>
+        }
+        else
+        {
+            <li><a href="@Url.Action("Logout", "Account",new {area=""})">Logout</a></li>
+            <li><a href="@Url.Action("Index", "Dashboard",new {area="user"})">@ViewBag.userFullName</a></li>
+        }
+    </ul>
+</div>
+<!--// login-and-register -->

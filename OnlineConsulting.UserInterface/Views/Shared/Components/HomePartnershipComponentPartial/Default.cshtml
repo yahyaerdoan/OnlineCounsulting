@@ -1,0 +1,96 @@
+﻿@model IQueryable<ResultPartnershipDto>
+@{
+    var index = 0;
+}
+<div class="our-team-area section-ptb">
+    <div class="container">
+
+        <div class="row">
+            <div class="col-lg-8 m-auto">
+                <div class="section-title-two">
+                    <h4 style="text-transform:capitalize;">Our Partnerships</h4>
+                    <h3 style="text-transform:capitalize;">Partnerships</h3>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            @foreach (var item in Model)
+            {
+                <div class="col-lg-3 col-md-4 col-sm-6">
+
+                    <div class="single-team mt--30">
+                        <div class="single-team-image">
+                            <!-- Görsel boyutu ve dolgu ayarları -->
+                            <img data-bs-toggle="modal"
+                                 data-bs-target="#personModal-@index"
+                                 src="@item.ImageUrl"
+                                 alt=""
+                                 style="width: 100%; height: auto; aspect-ratio: 1 / 1; object-fit: cover; display: block; border-radius: 5px 5px 0px 0px;" />
+                        </div>
+                        <div class="single-team-info">
+                            <h5 style="text-transform:capitalize;">@item.FirstName @item.LastName</h5>
+                            <p style="text-transform:capitalize;">@item.Title</p>
+                        </div>
+                        <ul class="personsl-socail">
+                            @foreach (var socialMedia in item.PartnershipSocialMedias)
+                            {
+                                <li><a href="@socialMedia.Url" target="_blank"><i class="@socialMedia.ClassIcon.IconClass"></i></a></li>
+                            }
+                        </ul>
+                    </div>
+                    <!-- Modal -->
+                    <div class="modal fade" id="personModal-@index" tabindex="-1" aria-labelledby="personModalLabel-@index" aria-hidden="true">
+                        <div class="modal-dialog modal-lg modal-dialog-centered">
+                            <div class="modal-content rounded-4 shadow">
+                                <div class="modal-header border-bottom-0">
+                                    <h5 class="modal-title" id="personModalLabel-@index">About @item.FirstName  @item.LastName</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row g-4">
+                                        <div class="col-md-4">
+                                            <img src="@item.ImageUrl" alt="@item.FirstName @item.LastName"
+                                                 class="img-fluid rounded-3 shadow-sm w-100"
+                                                 style="aspect-ratio: 1 / 1; object-fit: cover;" />
+                                            <div class="mt-2">
+                                                <strong>Connect:</strong>
+                                                <div class="mt-2 d-flex flex-wrap gap-2">
+                                                    @foreach (var sm in item.PartnershipSocialMedias)
+                                                    {
+                                                        <a href="@sm.Url" target="_blank"
+                                                           class="btn btn btn-sm d-inline-flex align-items-center justify-content-center rounded-circle"
+                                                           style="width: 35px; height: 35px; padding:0px">
+                                                            <i class="@sm.ClassIcon.IconClass"></i>
+                                                        </a>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-8">
+                                            <h4 class="fw-semibold">@item.FirstName @item.LastName</h4>
+                                            <h6 class="text-muted">@item.Title</h6>
+                                            <p class="mt-3">@item.Description</p>
+                                            <ul class="list-group list-group-flush mb-3">
+                                                <li class="list-group-item"><strong>Company:</strong> @item.CompanyName</li>
+                                                <li class="list-group-item"><strong>Email:</strong> <a href="mailto:@item.Email">@item.Email</a></li>
+                                                <li class="list-group-item"><strong>Website:</strong> <a href="@item.WebsiteUrl" target="_blank">@item.WebsiteUrl</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer border-top-0">
+                                    <button type="button" class="btn btn btn-sm rounded-2" data-bs-dismiss="modal">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                index++;
+            }
+        </div>
+    </div>
+</div>
+@* 
+Modal id ve data-bs-target  Değerleri Benzersiz Olmalı:
+Modal başlıkları için aria-labelledby değerleri de benzersiz tanımlandı (personModalLabel1, personModalLabel2). *@

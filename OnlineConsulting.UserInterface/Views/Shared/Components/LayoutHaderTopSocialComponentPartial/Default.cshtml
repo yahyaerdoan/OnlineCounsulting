@@ -1,0 +1,12 @@
+﻿@model IQueryable<ResultAllSocialMediaAccountsWithIconDto>
+
+<!-- top-social -->
+<div class="top-social">
+    <ul>
+        @foreach (var item in Model)
+        {
+            <li><a href="@item.Url"><i class="@item.ClassIcon.IconClass"></i></a></li>
+        }
+    </ul>
+</div>
+<!--// top-social -->

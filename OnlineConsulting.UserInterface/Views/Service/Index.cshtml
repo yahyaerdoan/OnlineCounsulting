@@ -1,0 +1,13 @@
+﻿@{
+    ViewData["Title"] = "Our Services";
+    ViewData["SubPage1"] = "Services";
+}
+
+<main class="page-content">
+    <div class="most-popular-courses-area section-pb section-pt-90">
+        <div class="container">
+            @await Component.InvokeAsync("ServiceServiceListComponentPartial",
+            new { size = ViewBag.size, page = ViewBag.page })
+        </div>
+    </div>
+</main>

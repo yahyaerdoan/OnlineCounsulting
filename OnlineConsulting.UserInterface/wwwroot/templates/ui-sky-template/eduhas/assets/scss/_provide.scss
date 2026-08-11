@@ -1,0 +1,42 @@
+
+/*--
+    11. Provide Css
+--------------------------*/
+.provider-wrap {
+    & .single {
+        &-provide {
+            margin-top: 40px;
+            padding-right: 20px;
+            &-icons {
+                margin-bottom: 20px;
+            }
+            &-contented {
+                & h4 {
+                    font-weight: 600;
+                }
+            }
+        }
+    }
+}
+.provide-image {
+    position: relative;
+    &::before {
+        position: absolute;
+        content: "";
+        background: url("../images/icon/provider-shep.png");
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        height: 470px;
+        width: 80px;
+        @media #{$large-mobile}{
+            display: none;
+        }
+    }
+    @media #{$tablet-device}{
+        margin-top: 30px;
+    }
+    @media #{$large-mobile}{
+        margin-top: 30px;
+    }
+}

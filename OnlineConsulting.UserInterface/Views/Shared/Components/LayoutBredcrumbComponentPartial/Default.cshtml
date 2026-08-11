@@ -1,0 +1,133 @@
+﻿@model IQueryable<ResultBreadcrumbDto>
+@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+
+    // Set default ViewData if not provided
+    ViewData["Title"] = ViewData["Title"] ?? "Default Title";
+    ViewData["BreadcrumbDisplay"] = ViewData["BreadcrumbDisplay"] ?? "block";
+
+    // Dynamic subpage names based on the controller and action names
+    var subPage1Name = currentController switch
+    {
+        "AboutUs" => "About",
+        "Gallery" => "Gallery",
+        "Service" => "Services",
+        "Contact" => "Contact",
+        "Checkout" => "Checkout",
+        "Cart" => "Cart",
+        "Account" => "Account",
+        "Dashboard" => "Dashboard",
+        _ => null
+    };
+
+    // For any controller, determine subPage2Name dynamically based on action
+    var subPage2Name = currentController switch
+    {
+        "Account" => currentAction switch
+        {
+            "Login" => "Login",
+            "Register" => "Register",
+            _ => null
+        },
+
+        "Service" => currentAction switch
+        {
+            "Index" => "All Services",
+            "Detail" => "Service Detail",
+            _ => null
+        },
+
+        "ErrorPage" => currentAction switch
+        {
+            "Unauthorized" => "Unauthorized",
+            "NotFound" => "Not Found",
+            "NotAllowed" => "Not Allowed",
+            "Forbidden" => "Forbidden",
+            "InternalServerError" => "Internal Server Error",
+
+            _ => null
+        },
+        _ => null
+    };
+
+    // Determine the correct action for the Account controller
+    var subPage1Action = currentController switch
+    {
+        "Account" => currentAction == "Login" ? "Register" : "Login", // Swap between Login/Register
+        _ => "Index" // Default to "Index" for other controllers
+    };
+}
+
+<!-- Breadcrumb Section -->
+@foreach (var item in Model)
+{
+    <div class="breadcrumb-area"
+         data-bgimage="@item.ImageUrl"
+         data-black-overlay="4"
+         style="display:@ViewData["BreadcrumbDisplay"];">
+        <div class="container">
+            <div class="in-breadcrumb">
+                <div class="row">
+                    <div class="col">
+                        <!-- Title -->
+                        <h3>@ViewData["Title"]</h3>
+
+                        <!-- Breadcrumb List Start -->
+                        <ul class="breadcrumb-list">
+                            <!-- Home Link -->
+                            <li class="breadcrumb-item @(currentController == "Home" && currentAction == "Index" ? "active" : "")">
+                                <a href="@Url.Action("Index", "Home", new { area="" })">Home</a>
+                            </li>
+
+                            <!-- SubPage1 (Dynamic Name Based on Controller) -->
+                            @if (!string.IsNullOrEmpty(subPage1Name))
+                            {
+                                <li class="breadcrumb-item @(string.IsNullOrEmpty(subPage2Name) ? "active" : "")">
+                                    <a href="@Url.Action(subPage1Action, currentController)">@subPage1Name</a>
+                                </li>
+                            }
+
+                            <!-- SubPage2 (Dynamic Name Based on Action) -->
+                            @if (!string.IsNullOrEmpty(subPage2Name))
+                            {
+                                <li class="breadcrumb-item active">
+                                    <span>@subPage2Name</span>
+                                </li>
+                            }
+                        </ul>
+                        <!-- Breadcrumb List End -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+<!-- Breadcrumb List Styling -->
+<style>
+    .breadcrumb-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: flex;
+        gap: 10px;
+    }
+
+        .breadcrumb-list .breadcrumb-item a {
+            text-decoration: none;
+            color: inherit;
+            transition: color 0.3s;
+        }
+
+        .breadcrumb-list .breadcrumb-item.active a,
+        .breadcrumb-list .breadcrumb-item.active span {
+            color: #FF5951; /* Active color */
+            font-weight: bold;
+        }
+
+        .breadcrumb-list .breadcrumb-item a:hover {
+            color: #FF5951; /* Hover color */
+        }
+</style>

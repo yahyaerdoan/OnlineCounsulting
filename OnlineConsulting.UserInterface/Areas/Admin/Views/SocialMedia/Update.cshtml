@@ -1,0 +1,59 @@
+﻿@model UpdateSocialMediaDto
+@{
+    ViewData["Title"] = "Update Social Media Account";
+    ViewData["SubPage1"] = "Social Media List";
+    ViewData["SubPage1Url"] = Url.Action("Index", "SocialMedia", new { area = "Admin" });
+    ViewData["SubPage2"] = "Update Social Media Acoount";
+    ViewData["SubPage2Url"] = Url.Action("Update", "SocialMedia", new { area = "Admin", id = Model.Id });
+}
+
+<div class="col-12">
+    <div class="card p-3">
+        <div class="card-header">
+            <h5 class="mb-0">@Model.Name</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col">
+                    <form id="contactForm" method="post">
+                        <div class="row">
+                            <input type="hidden" asp-for="Id" />
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label" for="icon">Icon</label>
+                                    <select class="form-control"  id="icon" placeholder="Select Icon" asp-for="ClassIconId">
+                                        <option value="" disabled selected>Select an icon</option>
+                                        @foreach (var icon in (List<ResultClassIconDto>)ViewBag.GetClassIcons)
+                                        {
+                                            <option value="@icon.Id">@icon.Name</option>
+                                        }
+                                    </select>
+                                    <span asp-validation-for="ClassIconId" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label" for="name">Name</label>
+                                    <input type="text" id="name" class="form-control" placeholder="Enter account name" asp-for="Name" />
+                                    <span asp-validation-for="Name" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label class="form-label" for="media">Social Media Address Url</label>
+                                    <input type="text" id="media" class="form-control" placeholder="Enter social media address url" asp-for="Url" />
+                                    <span asp-validation-for="Url" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-12 text-end mt-3">
+                                <div class="d-grid gap-2 mt-2 text-center">
+                                    <button class="btn btn-outline-primary d-inline-flex text-center justify-content-center"> <i class="ti ti-bookmark me-1"></i>Update</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

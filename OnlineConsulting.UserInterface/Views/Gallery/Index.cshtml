@@ -1,0 +1,21 @@
+﻿@{
+    ViewData["Title"] = "Gallery";
+    ViewData["SubPage1"] = "Gallery";
+}
+
+<main class="page-content">
+    <!--Gallery Area Start-->
+    <div class="gallery-area section-pb section-pt">
+        <div class="container">
+
+                <!-- GalleryCategories start -->
+                @await Component.InvokeAsync("GalleryCategoriesComponentPartial")
+                <!-- GalleryCategories end -->
+                <!-- GalleryImages start -->
+                @await Component.InvokeAsync("GalleryImagesComponentPartial")
+                <!-- GalleryImages end -->
+            </div>
+        </div>
+ 
+    <!--Gallery Area End-->
+</main>

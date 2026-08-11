@@ -1,0 +1,13 @@
+﻿@model IQueryable<ResultContactDto>
+
+<!-- top-contact-info -->
+<div class="top-contact-info">
+    @foreach (var item in Model)
+    {
+        <ul>
+            <li><a href="tel: @item.Phone"><i class="zmdi zmdi-phone"></i> @item.Phone </a></li>
+            <li><a href="mailto: @item.Email"><i class="zmdi zmdi-email"></i> @item.Email</a></li>
+        </ul>
+    }
+</div>
+<!--// top-contact-info -->

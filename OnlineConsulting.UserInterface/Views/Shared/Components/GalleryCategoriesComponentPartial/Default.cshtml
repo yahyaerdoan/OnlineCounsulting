@@ -1,0 +1,19 @@
+﻿@model IQueryable<ResultGalleryCategoryDto>
+
+<div class="row">
+    <div class="col-12">
+        <div class="hp__portfolio__area gallery__masonry__activation ptb--110 text-center">
+            <div class="gallery__menu">
+
+                <div class="gallery__menu">
+                    <button data-filter="*" class="is-checked" style="text-transform:capitalize">ALL</button>
+                    @foreach (var item in Model)
+                    {
+                        <button style="text-transform:capitalize" data-filter=".@item.Id">@item.Name</button>
+                    }
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

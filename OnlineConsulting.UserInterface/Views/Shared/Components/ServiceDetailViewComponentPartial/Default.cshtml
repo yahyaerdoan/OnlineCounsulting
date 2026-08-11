@@ -1,0 +1,85 @@
+﻿@model ResultServiceWithImageDto
+
+<div class="product-details">
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="single-product-details-image">
+                @*  <img src="@Model.ServiceImages.Select(x=> x.ImageUrl).First()" style="width:569px; height:488px;" alt="569x488"> *@
+                <div id="carousel-@Model.Id" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-indicators">
+                        @if (Model.ServiceImages != null && Model.ServiceImages.Any())
+                        {
+                            int indicatorIndex = 0;
+                            foreach (var image in Model.ServiceImages)
+                            {
+                                <button type="button" data-bs-target="#carousel-@Model.Id" data-bs-slide-to="@indicatorIndex"
+                                        class="@(indicatorIndex == 0 ? "active" : "")" aria-current="true"></button>
+                                indicatorIndex++;
+                            }
+                        }
+                    </div>
+                    <div class="carousel-inner">
+                        @if (Model.ServiceImages != null && Model.ServiceImages.Any())
+                        {
+                            int imageIndex = 0;
+                            foreach (var image in Model.ServiceImages)
+                            {
+                                @*  <div class="carousel-item @(imageIndex == 0 ? "active" : "")">
+                                    <img class="img-fluid d-block w-100" src="@image.ImageUrl" alt="Slide @(imageIndex + 1)" />
+                                </div> *@
+                                <div class="carousel-item @(imageIndex == 0 ? "active" : "")">
+                                    <img class="img-fluid d-block w-100"
+                                         src="@image.ImageUrl"
+                                         alt="Slide @(imageIndex + 1)"
+                                         style="width: 100%; height: auto; aspect-ratio: 1 / 1; object-fit: cover; display: block; border-radius: 5px 5px 0px 0px;" />
+                                </div>
+
+                                imageIndex++;
+                            }
+                        }
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#carousel-@Model.Id" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#carousel-@Model.Id" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="product-details-info">
+                <h4>@Model.Title</h4>
+                <div class="product-price-rating">
+                    <div class="product-rating">
+                        <ul>
+                            <li><a href="#" style="pointer-events: none;"><i class="zmdi zmdi-star" style="padding-right:5px;"></i></a></li>
+                        </ul>
+                    </div>
+                    <div class="price-box">
+                        @if (Model.DiscountRate > 0)
+                        {
+                            <span class="old-price" style="text-decoration: line-through; color: gray; margin-left: 5px; margin-right:3px;">@Model.Price.ToUsd()</span>
+                            <span class="new-price" style="font-weight: bold; margin-left: 5px; margin-right:3px;">@Model.DiscountedPrice.ToUsd()</span>
+                            <span class="new-price" style="color: green; font-weight: bold; margin-left: 5px; margin-right:3px;">@Model.DiscountRate % Off</span>
+                        }
+                        else
+                        {
+                            <span class="new-price" style="font-weight: bold;">@Model.Price.ToUsd()</span>
+                        }
+                    </div>
+                </div>
+                <p>@Model.Description</p>
+                <p><strong>Category : </strong> <a href="#">@Model.Category.Title</a></p>
+                <div class="text-start mt-3">
+                    <a href="@Url.Action("AddToCart","Cart", new { slug = Model.Slug })"
+                       class="btn btn-large rounded-2 px-4 py-2 shadow-sm" style="text-transform: capitalize;">
+                        Add to Cart
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

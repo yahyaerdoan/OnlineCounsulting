@@ -1,0 +1,94 @@
+﻿@model UpdateProvidedItemDto
+@{
+    ViewData["Title"] = "Update  Provided Item";
+    ViewData["SubPage1"] = " Provided Item";
+    ViewData["SubPage1Url"] = Url.Action("Index", "ProvidedItem", new { area = "Admin" });
+    ViewData["SubPage2"] = "Update  Provided Item";
+    ViewData["SubPage2Url"] = Url.Action("Update", "ProvidedItem", new { area = "Admin", id = Model.Id });
+    var selectedIconId = Model.ImgIconId;
+}
+
+<div class="col-12">
+    <div class="card p-3">
+        <div class="card-header">
+            <h5 class="mb-0">@Model.Title</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col">
+                    <form id="contactForm" method="post">
+                        <div class="row">
+                            <input type="hidden" asp-for="Id" />
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label" for="dropdownIconButton">Provided Item Icon</label>
+                                    <!-- Dropdown trigger styled as form-control -->
+                                    <div class="dropdown">
+                                        <button class="form-select" type="button" id="dropdownIconButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                            Select an Icon
+                                            @* <i class="fa fa-chevron-down ms-2"></i> *@
+                                        </button>
+
+                                        <div class="dropdown-menu w-100 shadow-sm rounded-2" aria-labelledby="dropdownIconButton">
+                                            @foreach (var icon in (List<ResultImgIconDto>)ViewBag.GetImgIcons)
+                                            {
+                                                <label class="dropdown-item d-flex align-items-center gap-2">
+                                                    <input type="radio"
+                                                           name="ImgIconId"
+                                                           value="@icon.Id"
+                                                           class="form-check-input"
+                                                    @(icon.Id == selectedIconId ? "checked" : "") />
+                                                    <img src="@icon.IconUrl" alt="@icon.Name" style="width: 20px; height: 20px; border-radius: 4px;" />
+                                                    @icon.Name
+                                                </label>
+                                            }
+
+                                            @*  <div class="row row-cols-2 g-2">
+                                                @foreach (var icon in (List<ResultImgIconDto>)ViewBag.GetImgIcons)
+                                                {
+                                                    <div class="col">
+                                                        <label class="dropdown-item d-flex align-items-center gap-2 px-2 py-1 rounded-2">
+                                                            <input type="radio"
+                                                                   name="ImgIconId"
+                                                                   value="@icon.Id"
+                                                                   class="form-check-input"
+                                                            @(icon.Id == selectedIconId ? "checked" : "") />
+                                                            <img src="@icon.IconUrl"
+                                                                 alt="@icon.Name"
+                                                                 style="width: 20px; height: 20px; border-radius: 4px;" />
+                                                            <span style="word-wrap: break-word; white-space: normal;">@icon.Name</span>
+                                                        </label>
+                                                    </div>
+                                                }
+                                            </div> *@
+                                        </div>
+                                    </div>
+                                    <span asp-validation-for="ImgIconId" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label" for="ProvidedItemtitle">Title</label>
+                                    <input type="text" class="form-control" id="ProvidedItemtitle" placeholder="Enter title" asp-for="Title" />
+                                    <span asp-validation-for="Title" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label class="form-label" for="ProvidedItemdescription">Descripton</label>
+                                    <textarea class="form-control" id="ProvidedItemdescription" rows="3" placeholder="Enter description" asp-for="Description"></textarea>
+                                    <span asp-validation-for="Description" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-12 text-end mt-3">
+                                <div class="d-grid gap-2 mt-2 text-center">
+                                    <button class="btn btn-outline-primary d-inline-flex text-center justify-content-center"> <i class="ti ti-bookmark me-1"></i>Update</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

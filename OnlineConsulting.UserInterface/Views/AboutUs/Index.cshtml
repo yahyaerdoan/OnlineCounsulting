@@ -1,0 +1,23 @@
+﻿@{
+    ViewData["Title"] = "About Us";
+
+    ViewData["SubPage1"] = "About";
+}
+
+<main class="page-content">
+    <!-- About Us Area -->
+    @await Component.InvokeAsync("AboutUsAboutComponentPartial")
+    <!--// About Us Area -->
+    <!-- Our Services Area -->
+    @await Component.InvokeAsync("HomeOurServicesComponentPartial")
+    <!--// Our Services Area -->
+    <!-- Partnership Area -->
+    @await Component.InvokeAsync("HomePartnershipComponentPartial")
+    <!--// Partnership Area -->
+    <!-- How I Get Service Area -->
+    @await Component.InvokeAsync("HomeHowIGetServiceComponentPartial")
+    <!--//How I Get Service Area -->
+    <!-- Testimonials Area -->
+    @await Component.InvokeAsync("HomeTestimonialsComponentPartial")
+    <!--// Testimonials Area -->
+</main>

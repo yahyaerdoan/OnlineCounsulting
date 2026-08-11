@@ -1,0 +1,18 @@
+﻿<nav class="pc-sidebar">
+    <div class="navbar-wrapper">
+        <div class="m-header">
+            <a href="@Url.Action("Index", "Home", new { area = "" })" class="b-brand text-primary py-2 d-flex align-items-center text-decoration-none" style="white-space: nowrap;">
+                <!-- Star Icon -->
+                <i class="fas fa-star" style="color: #FF5951; font-size: 20px; margin-right: 8px; flex-shrink: 0;"></i>
+
+                <!-- Logo Text -->
+                <partial name="_BrandLogo" model="(BrandLogoOptions?)null" />
+            </a>
+        </div>
+
+        <div class="navbar-content">
+            @await Component.InvokeAsync("AdminLayoutSidebarProfileComponentPartial")
+            @await Component.InvokeAsync("AdminLayoutSidebarMenuComponentPartial")
+        </div>
+    </div>
+</nav>

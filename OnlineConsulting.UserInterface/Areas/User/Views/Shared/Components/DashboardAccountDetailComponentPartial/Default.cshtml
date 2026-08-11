@@ -1,0 +1,131 @@
+@using OnlineConsulting.UserInterface.Areas.User.ViewModels.UserViewModels
+@model UserAccountViewModel
+
+<div class="tab-pane fade show active" id="account-details">
+    <h6 class="mb-4 fw-bold">Account Details</h6>
+
+    <div class="login">
+        <div class="login-form-container">
+            <div class="row align-items-stretch">
+                <!-- Profile Image & Upload -->
+                <div class="col-lg-4 d-flex flex-column justify-content-between">
+                    <div class="text-center">
+                        <img id="toggleFormButton"
+                             src="@Model.User.ImageUrl"
+                             alt="user-image"
+                             class="wid-150 rounded img-fluid mb-2"
+                             style="width: 320px; height: 180px; border-radius: 8px; object-fit: cover; cursor: pointer;" />
+                        <div class="text-muted mb-3" style="font-size: small;">Click image to update</div>
+                    </div>
+
+                    <div id="updateImageForm" style="display: none;">
+                        <form method="post" enctype="multipart/form-data" asp-action="UpdateImageFile" asp-controller="Dashboard" asp-area="User">
+                            <input type="hidden" name="Id" value="@Model.User.Id" />
+                            <input class="form-control mb-2" type="file" name="image" accept=".png, .jpeg, .jpg, .gif" required />
+                            <small class="form-text text-muted mb-2">
+                                <strong>*</strong> Recommended size: <strong>122x122 px</strong>
+                            </small>
+                            <button class="btn btn-sm btn w-100 rounded-2 py-2 fs-0" type="submit">
+                                <i class="ti ti-upload me-1"></i>Upload Image
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Account Info & Password -->
+                <div class="col-lg-8 d-flex flex-column justify-content-between">
+                    <div class="account-login-form">
+                        <div class="account-input-box row">
+                            <input type="hidden" asp-for="User.Id" />
+                            <div class="col-lg-6 mb-3">
+                                <label>First Name</label>
+                                <input type="text" asp-for="User.FirstName" class="form-control" disabled />
+                            </div>
+                            <div class="col-lg-6 mb-3">
+                                <label>Last Name</label>
+                                <input type="text" asp-for="User.LastName" class="form-control" disabled />
+                            </div>
+                            <div class="col-lg-6 mb-3">
+                                <label>Email</label>
+                                <input type="email" asp-for="User.Email" class="form-control" disabled />
+                            </div>
+                            <div class="col-lg-6 mb-3">
+                                <label>Username</label>
+                                <input type="text" asp-for="User.Username" class="form-control" disabled />
+                            </div>
+                        </div>
+
+                        <!-- Change Password Form -->
+                        <form asp-controller="Dashboard" asp-action="ChangePassword" method="post" class="mt-3" id="changePasswordForm">
+                            <input type="hidden" name="ChangePassword.Id" value="@Model.User.Id" />
+
+                            <div class="mb-3">
+                                <label>Current Password</label>
+                                <input type="password" asp-for="ChangePassword.CurrentPassword" class="form-control" />
+                                <span asp-validation-for="ChangePassword.CurrentPassword" class="text-danger" data-valmsg-for="ChangePassword.CurrentPassword"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label>New Password</label>
+                                <input type="password" asp-for="ChangePassword.NewPassword" class="form-control" />
+                                <span asp-validation-for="ChangePassword.NewPassword" class="text-danger" data-valmsg-for="ChangePassword.NewPassword"></span>
+                            </div>
+
+                            <div class="mt-auto">
+                                <button class="btn btn-sm btn w-100 rounded-2 py-2 fs-0" type="submit">Update Password</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JS: Toggle image upload -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const toggleBtn = document.getElementById("toggleFormButton");
+        const form = document.getElementById("updateImageForm");
+
+        toggleBtn.addEventListener("click", function () {
+            form.style.display = (form.style.display === "block") ? "none" : "block";
+        });
+    });
+</script>
+
+                <!-- Client-side JS Validation -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const form = document.getElementById("changePasswordForm");
+
+        const currentPassword = form.querySelector("input[name='ChangePassword.CurrentPassword']");
+        const newPassword = form.querySelector("input[name='ChangePassword.NewPassword']");
+        const currentPasswordError = form.querySelector("[data-valmsg-for='ChangePassword.CurrentPassword']");
+        const newPasswordError = form.querySelector("[data-valmsg-for='ChangePassword.NewPassword']");
+
+        form.addEventListener("submit", function (e) {
+            let hasError = false;
+
+            // Clear old error messages
+            currentPasswordError.textContent = "";
+            newPasswordError.textContent = "";
+
+            // Validate current password
+            if (!currentPassword.value.trim()) {
+                currentPasswordError.textContent = "Please enter your current password.";
+                hasError = true;
+            }
+
+            // Validate new password
+            if (!newPassword.value.trim()) {
+                newPasswordError.textContent = "Please enter a new password.";
+                hasError = true;
+            }
+
+            if (hasError) {
+                e.preventDefault(); // Block form submit if errors exist
+            }
+        });
+    });
+</script>

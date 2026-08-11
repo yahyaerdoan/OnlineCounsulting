@@ -1,0 +1,17 @@
+﻿@{
+    ViewData["Title"] = "Contact Us";
+    ViewData["SubPage1"] = "Contact";
+}
+
+<main class="page-content section-ptb">
+    <div class="container">
+        <div class="row">
+            <!-- Message start -->
+            @await Component.InvokeAsync("ContactMessageComponentPartial")
+            <!-- Message end -->
+            <!-- Information start -->
+            @await Component.InvokeAsync("ContactInformationComponentPartial")
+            <!-- Information end -->
+        </div>
+    </div>
+</main>

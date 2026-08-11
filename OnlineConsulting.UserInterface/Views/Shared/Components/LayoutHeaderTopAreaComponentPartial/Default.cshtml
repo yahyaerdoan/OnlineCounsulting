@@ -1,0 +1,20 @@
+﻿<!-- header-top-area -->
+<div class="header-top-area py-2 border-bottom">
+    <div class="container">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+
+            <!-- Left: contact info -->
+            <div class="flex-grow-1">
+                @await Component.InvokeAsync("LayoutHeaderTopContactInfoComponentPartial")
+            </div>
+
+            <!-- Right: socials + auth links -->
+            <div class="d-flex flex-wrap align-items-center">
+                @await Component.InvokeAsync("LayoutHaderTopSocialComponentPartial")
+                @await Component.InvokeAsync("LayoutHeaderLoginAndRegisterComponentPartial")
+            </div>
+
+        </div>
+    </div>
+</div>
+<!-- // header-top-area -->

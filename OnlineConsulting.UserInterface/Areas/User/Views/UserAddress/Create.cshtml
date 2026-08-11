@@ -1,0 +1,31 @@
+﻿@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<main class="page-content section-ptb">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="account-dashboard">
+                    @await Component.InvokeAsync("DashboardUpperInfoComponentPartial")
+                    <div class="row">
+                        <div class="col-md-12 col-lg-2">
+                            <!-- Nav tabs -->
+                            @await Component.InvokeAsync("DashboardSidebarComponentPartial")
+                        </div>
+                        <div class="col-md-12 col-lg-10">
+                            <!-- Tab panes -->
+                            <div class="tab-content dashboard-content">
+                                @await Component.InvokeAsync("DashboardDashboardComponentPartial")
+                                @await Component.InvokeAsync("DashboardOrdersComponentPartial")
+                                @await Component.InvokeAsync("DashboardDownloadsComponentPartial")
+                                @await Component.InvokeAsync("DashboardAddressComponentPartial")
+                                @await Component.InvokeAsync("DashboardAccountDetailComponentPartial")
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>

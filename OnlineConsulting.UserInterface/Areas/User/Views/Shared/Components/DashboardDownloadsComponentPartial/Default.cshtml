@@ -1,0 +1,56 @@
+﻿@{
+    var index = 1;
+    var downloads = new List<dynamic>
+    {
+        new { Name = "Haven", Description = "Free Real Estate PSD Template", DownloadedOn = "May 10, 2018", Expires = "Never" },
+        new { Name = "Nevara", Description = "Modern E-commerce HTML Theme", DownloadedOn = "Sep 11, 2018", Expires = "Never" },
+        new { Name = "BizKit", Description = "Business Starter Kit PSD", DownloadedOn = "Jan 15, 2019", Expires = "1 Year" },
+        new { Name = "TravelMate", Description = "Travel Agency Landing Page", DownloadedOn = "Mar 02, 2019", Expires = "6 Months" },
+        new { Name = "EduPro", Description = "Education Course Template", DownloadedOn = "Jun 20, 2019", Expires = "Never" }
+    };
+}
+<div class="tab-pane fade show active" id="downloads">
+    <h6 class="fw-bold mb-4">My Downloads</h6>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th scope="col" class="text-start">#</th>
+                    <th scope="col" class="text-start">Service</th>
+                    <th scope="col" class="text-start">Downloaded On</th>
+                    <th scope="col" class="text-center">Expires</th>
+                    <th scope="col" class="text-center">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in downloads)
+                {
+                    <tr>
+                        <td>@index</td>
+                        <td>
+                            <div class="fw-semibold">@item.Name</div>
+                            <div class="text-muted small">@item.Description</div>
+                        </td>
+                        <td>@item.DownloadedOn</td>
+                        <td>
+                            <div class="d-flex justify-content-center align-items-center h-100">
+                                <span class="badge bg-success">@item.Expires</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex justify-content-center align-items-center gap-2 h-100">
+                                <a href="#" class="btn btn-sm btn rounded-2">
+                                    <i class="bi bi-eye me-1"></i>Look At
+                                </a>
+                                <a href="#" class="btn btn-sm btn rounded-2">
+                                    <i class="bi bi-download me-1"></i>Download
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    index++;
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

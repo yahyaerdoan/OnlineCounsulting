@@ -1,0 +1,14 @@
+﻿@model IQueryable<ResultGalleryItemWithCategoriesDto>
+<div class="row masonry__wrap">
+    <!--Single Gallery Image Start-->
+    @foreach (var item in Model)
+    {
+        <div class="col-md-4 col-sm-6 gallery__item @string.Join(" ", item.GalleryCategories.Select(x => x.Id.ToString()))">
+            <div class="single-gallery-img mb--30">
+                <a href="@item.ImageUrl" data-fancybox="images">
+                    <img src="@item.ImageUrl" alt="Gallery Image" style="height:400px; object-fit:cover">
+                </a>
+            </div>
+        </div>
+    }
+</div>

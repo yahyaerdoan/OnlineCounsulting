@@ -1,0 +1,73 @@
+﻿@model CreateGalleryItemDto
+@{
+    ViewData["Title"] = "Create New GalleryItem";
+    ViewData["SubPage1"] = "GalleryItem List";
+    ViewData["SubPage1Url"] = Url.Action("Index", "GalleryItem", new { area = "Admin" });
+    ViewData["SubPage2"] = "Create GalleryItem";
+    ViewData["SubPage2Url"] = Url.Action("Create", "GalleryItem", new { area = "Admin" });
+}
+
+<div class="col-12">
+    <div class="card p-3">
+        <div class="card-header">
+            <h5 class="mb-0">Create New GalleryItem</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                <div class="row">
+                    <!-- Image Upload Section -->
+                    <div class="col-md-12">
+                        <div class="mb-3">
+                            <label class="form-label" for="Image">Image</label>
+                            <input class="form-control" type="file" asp-for="Image" />
+                            <div class="text-muted" style="font-size: x-small;">
+                                <span style="font-weight: bold;">*</span>Please ensure the image is <strong>600x600 pixels</strong> for the best results.
+                            </div>
+                            <span asp-validation-for="Image" accept=".png, .jpeg, .jpg, .gif" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <!-- Categories Section -->
+                    <div class="col-md-12">
+                        <div class="mb-3">
+                            <label class="form-label">Categories</label>
+                            <div class="form-control" style="padding: 1rem;">
+                                <div class="row">
+                                    @foreach (var category in ViewBag.GetGalleryCategories)
+                                    {
+                                        <div class="col-md-2 d-flex align-items-center" style="gap: 0.5rem; margin-bottom: 0.5rem;">
+                                            <input type="checkbox"
+                                                   class="form-check-input"
+                                                   id="category_@category.Id"
+                                                   name="GalleryCategoryIds"
+                                                   value="@category.Id" />
+                                            <label class="form-check-label" for="category_@category.Id">
+                                                @category.Name
+                                            </label>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                            <span asp-validation-for="GalleryCategoryIds" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <!-- Description Section -->
+                    <div class="col-md-12">
+                        <div class="mb-3">
+                            <label class="form-label" for="description">Description</label>
+                            <textarea class="form-control" id="description" rows="3" placeholder="Enter description" asp-for="Description"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+                    </div>                   
+                    <!-- Submit Button -->
+                    <div class="col-md-12 text-end mt-3">
+                        <div class="d-grid gap-2 mt-2 text-center">
+                            <button class="btn btn-outline-primary d-inline-flex text-center justify-content-center">
+                                <i class="ti ti-bookmark me-1"></i>Save
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

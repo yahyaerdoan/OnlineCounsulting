@@ -1,0 +1,28 @@
+﻿@{
+    ViewData["Title"] = "Contact Us";
+}
+<main class="page-content section-ptb">
+    <div class="container">
+        <div class="row" id="contact-form-section">
+            <!-- Message start -->
+            @await Component.InvokeAsync("ContactMessageComponentPartial")
+
+            <!-- Message end -->
+            <!-- Information start -->
+            @await Component.InvokeAsync("ContactInformationComponentPartial")
+
+            <!-- Information end -->
+        </div>
+    </div>
+</main>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var formSection = document.getElementById("contact-form-section");
+        if (formSection) {
+            formSection.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+    });
+</script>
+

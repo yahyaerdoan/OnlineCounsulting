@@ -1,0 +1,72 @@
+﻿@model UpdateServiceImageDto
+@{
+    ViewData["Title"] = "Update Service Image";
+    ViewData["SubPage1"] = "Service Image";
+    ViewData["SubPage1Url"] = Url.Action("Index", "ServiceImage", new { area = "Admin" });
+    ViewData["SubPage2"] = "Update Service Image";
+    ViewData["SubPage2Url"] = Url.Action("Update", "ServiceImage", new { area = "Admin", id = Model.Id });
+}
+
+<div class="col-12">
+    <div class="card p-3">
+        <div class="text-center">
+            <h3 class="mb-2">@Model.ServiceId</h3>
+        </div>
+        <div class="row mt-4">
+            <div class="col-sm-auto text-center">
+                <div style="position: relative; display: inline-block;">
+                    <img src="@Model.ImageUrl"
+                         alt="user-image"
+                         class="wid-150 rounded img-fluid ms-2"
+                         style="width: 150px; height: auto; border-radius: 8px;" />
+                    <!-- Pencil Button -->
+                    <button id="toggleFormButton"
+                            style="position: absolute; top: 10px; right: 10px; background: none; border: none; padding: 0; cursor: pointer;">
+                        <i class="ti ti-pencil" style="font-size: 16px; color: #007bff;"></i>
+                    </button>
+                </div>
+                <div class="position-relative col-md-12 mt-2">
+                    <div class="mb-3" id="updateImageForm" style="display: none;">
+                        <form method="post" enctype="multipart/form-data" asp-action="UpdateImageFile" asp-controller="ServiceImage">
+                            <input type="hidden" asp-for="Id" />
+                             <input class="form-control" type="file" asp-for="Image" accept=".png, .jpeg, .jpg, .gif" required />
+                            <div style="text-align:left">
+                                <span asp-validation-for="Image" class="text-danger"></span>
+                            </div>
+                            <div class="d-grid gap-2 mt-3 text-center">
+                                <button class="btn btn-outline-primary d-inline-flex text-center justify-content-center"> <i class="ti ti-bookmark me-1"></i>Update</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <form id="contactForm" method="post">
+                    <div class="row">
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="ImageUrl" />
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <label class="form-label" for="Servicecategory">Service</label>
+                                <select class="form-control" id="Servicecategory" asp-for="ServiceId">
+                                    <option value="37720d4d-e824-4879-48ae-08dd2d3ec38b">Service 1</option>
+                                    <option value="37720d4d-e824-4879-48ae-08dd2d3ec38b">Service 2</option>
+                                    <option value="37720d4d-e824-4879-48ae-08dd2d3ec38b">Service 3</option>
+                                    <option value="37720d4d-e824-4879-48ae-08dd2d3ec38b">Service 4</option>
+                                </select>
+                                <span asp-validation-for="ServiceId" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-12 text-end mt-3">
+                            <div class="d-grid gap-2 mt-2 text-center">
+                                <button class="btn btn-outline-primary d-inline-flex text-center justify-content-center"> <i class="ti ti-bookmark me-1"></i>Update</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+

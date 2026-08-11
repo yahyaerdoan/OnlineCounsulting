@@ -1,0 +1,8 @@
+﻿@model IQueryable<ResultAllSocialMediaAccountsWithIconDto>
+
+<ul class="footer-social-link">
+    @foreach (var item in Model)
+    {
+        <li><a href="@item.Url"><i class="@item.ClassIcon.IconClass"></i></a></li>
+    }
+</ul>

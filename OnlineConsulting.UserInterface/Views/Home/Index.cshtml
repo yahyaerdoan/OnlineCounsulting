@@ -1,0 +1,44 @@
+﻿@{
+    ViewData["Title"] = "Home";
+
+    /* forbreadcrumb start */
+
+    ViewData["BreadcrumbDisplay"] = "none";
+    // ViewData["SubPage1"] = "SubPage1";
+    // ViewData["SubPage2"] = "SubPage2";
+    // ViewData["SubPage3"] = "SubPage3";
+
+    /* forbreadcrumb end */
+}
+
+<!-- Hero Slider start -->
+@await Component.InvokeAsync("HomeSliderComponentPartial")
+<!-- Hero Slider end -->
+
+<!-- Our  Categories Area -->
+@await Component.InvokeAsync("HomeCategoriesComponentPartial")
+<!--// Our  Categories Area -->
+
+<!-- What we provide Area -->
+@await Component.InvokeAsync("HomeWhatWeProvideComponentPartial")
+<!-- What we provide Area-->
+
+<!-- Partnership Area -->
+@await Component.InvokeAsync("HomePartnershipComponentPartial")
+<!--// Partnership Area -->
+
+<!-- How I Get Service Area -->
+@await Component.InvokeAsync("HomeHowIGetServiceComponentPartial")
+<!--//How I Get Service Area -->
+
+<!-- Our Services Area -->
+@await Component.InvokeAsync("HomeOurServicesComponentPartial")
+<!--// Our Services Area -->
+
+<!-- Project Count Area Start -->
+@await Component.InvokeAsync("HomeProjectCountComponentPartial")
+<!-- Project Count Area End -->
+
+<!-- Testimonials Area -->
+@await Component.InvokeAsync("HomeTestimonialsComponentPartial")
+<!--// Testimonials Area -->

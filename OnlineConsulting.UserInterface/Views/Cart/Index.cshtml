@@ -1,0 +1,121 @@
+﻿@model IQueryable<ResultBasketItemDto>
+@{
+    ViewData["Title"] = "Cart";
+    ViewData["SubPage1"] = "Cart";
+    int count = 1;
+    Guid cartId = Guid.Empty;
+}
+<style>
+    .remove-btn {
+        border: none;
+        background: none;
+        cursor: pointer;
+        transition: color 0.2s ease;
+    }
+        .remove-btn i {
+            font-size: 1.13rem; /* medium-large icon */
+        }
+        .remove-btn:hover i {
+            color: #ff5951; /* Bootstrap "danger" red */
+        }
+</style>
+<main class="page-content">
+    <div class="cart-main-content section-ptb">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <div class="cart-table">
+                        @if (Model != null && Model.Any())
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Count</th>
+                                            <th class="cart-product-name">Service Name</th>
+                                            <th class="plantmore-product-price">Unit Price</th>
+                                            <th class="plantmore-product-subtotal">Tax Rate (%)</th>
+                                            <th class="plantmore-product-subtotal">Tax Amount</th>
+                                            <th class="plantmore-product-subtotal">Subtotal</th>
+                                            <th class="plantmore-product-subtotal">Total Price</th>
+                                            <th class="plantmore-product-remove">Remove</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in Model)
+                                        {
+                                            <tr>
+                                                <td style="padding-left:2rem">@count</td>
+                                                <td class="plantmore-product-name">@item.Service.Title</td>
+                                                <td class="plantmore-product-price">@item.Price.ToUsd()</td>
+                                                <td class="product-subtotal">@item.TaxRate%</td>
+                                                <td class="product-subtotal">@item.TaxAmount.ToUsd()</td>
+                                                <td class="product-subtotal">@item.SubTotalPrice.ToUsd()</td>
+                                                <td class="product-subtotal">@item.TotalPrice.ToUsd()</td>
+                                                <td class="plantmore-product-remove">
+                                                    <form asp-action="RemoveBasketItem" asp-controller="Cart" method="post" style="display:inline">
+                                                        <input type="hidden" name="id" value="@item.Id" />
+                                                        <button class="remove-btn" type="submit" style="border:none; background:none; cursor:pointer;" title="Remove">
+                                                            <i class="zmdi zmdi-delete" style="padding-left:1.5rem"></i>
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                            count++;
+                                            cartId = item.BasketId;
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- Totals and coupon section -->
+                            <div class="row">
+                                <div class="col-md-4 ms-auto">
+                                    <div class="cart-page-total border rounded p-4 shadow-sm bg-white">
+                                        <h5 class="text-black mb-3">Cart Totals</h5>
+                                        <ul class="list-unstyled mb-4 small">
+                                            <li class="d-flex justify-content-between  fw-semibold">
+                                                <span>Subtotal</span>
+                                                <span>@Model.Sum(x => x.SubTotalPrice).ToUsd()</span>
+                                            </li>
+                                            <li class="d-flex justify-content-between  fw-semibold">
+                                                <span>Tax Total</span>
+                                                <span>@Model.Sum(x => x.TaxAmount).ToUsd()</span>
+                                            </li>
+                                            <li class="d-flex justify-content-between">
+                                                <span>Total</span>
+                                                <span>@Model.Sum(x => x.TotalPrice).ToUsd()</span>
+                                            </li>
+                                        </ul>
+                                        <!-- Butons -->
+                                        <div class="d-flex gap-2">
+                                                <a href="@Url.Action("Index", "Service")"
+                                                   class="btn btn d-flex flex-column flex-md-row align-items-center justify-content-center w-100 w-md-50"
+                                                   style="border-radius: 0.5rem;">
+                                                    <i class="fa fa-arrow-left mb-1 mb-md-0 me-0 me-md-1"></i>
+                                                    <span>Add More</span>
+                                                </a>
+
+                                                <a href="@Url.Action("Index", "Checkout", new { cartId = cartId })"
+                                                   class="btn btn d-flex flex-column flex-md-row align-items-center justify-content-center w-100 w-md-50"
+                                                   style="border-radius: 0.5rem;">
+                                                <i class="fa fa-credit-card mb-1 mb-md-0 me-0 me-md-1"></i>
+                                                    <span>Checkout</span>
+                                                </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center mt-4">
+                                <strong>Your cart is currently empty.</strong><br />
+                                <a href="@Url.Action("Index","Service")" class="btn btn- mt-3 rounded-2">Continue Shopping</a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>

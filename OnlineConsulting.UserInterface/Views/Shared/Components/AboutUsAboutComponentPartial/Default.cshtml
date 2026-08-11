@@ -1,0 +1,38 @@
+﻿@model ResultAboutUsDto
+
+<div class="about-us-area section-ptb">
+    <div class="container">
+        <div class="row align-items-center gy-5">
+            <!-- Text Content -->
+            <div class="col-lg-6">
+                <div class="about-us-contents">
+                    <h3 class="fw-bold mb-3" style="font-size: 2rem;">
+                        Welcome to <br />
+                        <span style="color: #ff5951;">@Model.Title</span>
+                    </h3>
+                    <p class="mb-4" style="text-align: justify;">
+                        @Model.Description
+                    </p>
+                    <a href="@Url.Action("Index","Service")"
+                       class="btn btn btn-sm rounded-2 px-4 py-2"
+                       style="text-transform: capitalize;">
+                        Get Service Now
+                    </a>
+                </div>
+            </div>
+            <!-- Video Content -->
+            <div class="col-lg-6">
+                <div class="about-us-video text-center text-lg-end">
+                    <div class="ratio ratio-16x9 rounded-2 shadow-sm overflow-hidden">
+                        <iframe src="@Model.VideoUrl"
+                                title="About Us Video"
+                                allowfullscreen
+                                frameborder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
+                        </iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

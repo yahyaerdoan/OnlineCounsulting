@@ -1,0 +1,60 @@
+﻿@model CreateAboutUsDto
+@{
+    ViewData["Title"] = "Create About Us";
+    ViewData["SubPage1"] = "About Us";
+    ViewData["SubPage1Url"] = Url.Action("Index", "AboutUs", new { area = "Admin" });
+    ViewData["SubPage2"] = "Create About Us";
+    ViewData["SubPage2Url"] = Url.Action("Create", "AboutUs", new { area = "Admin"});
+}
+
+<div class="col-12">
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Create New About Us</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label" for="aboutustitle">Title</label>
+                            <input type="text" class="form-control" id="aboutustitle" placeholder="Enter title" asp-for="Title" />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label" for="aboutusvideourl">Video Url</label>
+                            <input class="form-control" id="aboutusvideourl" type="text" placeholder="Enter video url path" asp-for="VideoUrl" />
+                            <span asp-validation-for="VideoUrl" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="mb-3">
+                            <label class="form-label" for="aboutuscoverimage">Cover Image</label>
+                            <input class="form-control" id="aboutuscoverimage" type="file" asp-for="Image" accept=".png, .jpeg, .jpg, .gif" />
+                            <div class="text-muted" style="font-size: x-small;">
+                                <span style="font-weight: bold;">*</span>Please ensure the image is <strong>470x340 pixels</strong> for the best results.
+                            </div>
+                            <span asp-validation-for="Image" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="mb-3">
+                            <label class="form-label" for="descriptionTextarea">Descripton</label>
+                            <textarea class="form-control" id="descriptionTextarea" rows="3" placeholder="Enter description" asp-for="Description"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+                    </div>
+               
+                    <div class="col-md-12 text-end mt-3">
+                        <div class="d-grid gap-2 mt-2 text-center">
+                            <button class="btn btn-outline-primary d-inline-flex text-center justify-content-center"> <i class="ti ti-bookmark me-1"></i>Save</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+

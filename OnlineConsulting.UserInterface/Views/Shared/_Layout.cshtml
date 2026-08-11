@@ -1,0 +1,82 @@
+﻿@using System.Text.Json.Nodes
+@{
+    var baseUrl = $"{Context.Request.Scheme}://{Context.Request.Host}";
+    var fullUrl = $"{baseUrl}{Context.Request.Path}{Context.Request.QueryString}";
+    var siteName = "Online Consulting";
+    var searchPath = "/search";
+    var fullSearchTarget = $"{baseUrl}{searchPath}?q={{search_term_string}}";
+
+    var websiteJsonLd = new JsonObject
+    {
+        ["@context"] = "https://schema.org",
+        ["@type"] = "WebSite",
+        ["name"] = siteName,
+        ["url"] = baseUrl,
+        ["potentialAction"] = new JsonObject
+        {
+            ["@type"] = "SearchAction",
+            ["target"] = fullSearchTarget,
+            ["query-input"] = "required name=search_term_string"
+        }
+    }.ToJsonString();
+    var title = ViewData["Title"]
+        ?? "Online Consulting | AI-Driven Business, IT & Marketing Solutions";
+
+    var description = ViewData["MetaDescription"]
+        ?? "Empowering businesses with AI-powered strategies, digital transformation, smart marketing, IT consulting, and data-driven solutions across tourism, education, and more.";
+
+    var keywords = ViewData["MetaKeywords"]
+        ?? "AI business consulting, digital transformation, automation, IT solutions, cybersecurity, cloud services, AI marketing, data analytics, tourism strategy, e-learning platforms, smart education tools";
+
+    // Dynamic OG Image
+    var imagePath = Url.Content("~/Resource/LocalStorage/WhatWeProvide-Images/whatweprovide.png");
+    var ogImageUrl = baseUrl + imagePath;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>@title</title>
+    <meta name="description" content="@description" />
+    <meta name="keywords" content="@keywords" />
+    <meta name="author" content="Online Consulting Team" />
+
+    <!-- Open Graph Tags -->
+    <meta property="og:title" content="@title" />
+    <meta property="og:description" content="@description" />
+    <meta property="og:image" content="@ogImageUrl" />
+    <meta property="og:url" content="@fullUrl" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
+    <!-- Canonical -->
+    <link rel="canonical" href="@fullUrl" />
+
+    @await Component.InvokeAsync("LayoutHeadViewComponentPartial")
+    @RenderSection("Styles", required: false)
+
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">@Html.Raw(websiteJsonLd)</script>
+
+</head>
+
+<body>
+    <div class="main-wrapper">
+        @await Component.InvokeAsync("LayoutHeaderAreaComponentPartial")
+        @await Component.InvokeAsync("LayoutBredcrumbComponentPartial")
+
+        @RenderBody()
+
+        @await Component.InvokeAsync("LayoutFooterAreaViewComponentPartial")
+    </div>
+
+    @await Component.InvokeAsync("LayoutJavaScriptViewComponentPartial")
+    <partial name="_ValidationScriptsPartial" />
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

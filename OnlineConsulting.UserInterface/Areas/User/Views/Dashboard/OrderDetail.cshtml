@@ -1,0 +1,8 @@
+﻿@model Guid
+
+@{
+    ViewData["Title"] = "Order Detail";
+    Layout = "~/Areas/User/Views/Shared/_Layout.cshtml";
+}
+
+@await Component.InvokeAsync("DashboardOrderDetailComponentPartial", new { orderId = Model })

@@ -1,0 +1,26 @@
+﻿@model IQueryable<ResultContactDto>
+
+<div class="col-lg-5 col-sm-12">
+    <div class="contact-infor">
+        <div class="contact-title">
+            <h3 style="text-transform:capitalize">Contact Us</h3>
+        </div>
+        @foreach (var item in Model)
+        {
+            <div class="contact-dec">
+                <p>@item.Description</p>
+            </div>
+            <div class="contact-address">
+                <ul>
+                    <li><i class="zmdi zmdi-home"></i> Address :  @item.Address</li>
+                    <li><i class="zmdi zmdi-email"></i> @item.Email</li>
+                    <li><i class="zmdi zmdi-phone"></i> @item.Phone</li>
+                </ul>
+            </div>
+            <div class="work-hours">
+                <h5><strong>Working hours</strong></h5>
+                <p>@item.WorkingHours</p>
+            </div>
+        }
+    </div>
+</div>

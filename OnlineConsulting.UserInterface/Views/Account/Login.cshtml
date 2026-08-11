@@ -1,0 +1,66 @@
+﻿@model LoginUserDto
+@{
+    ViewData["Title"] = "Login";
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString()?.ToLowerInvariant();
+}
+
+<main class="page-content">
+    <div class="register-page section-ptb">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-7 col-md-12 m-auto">
+                    <div class="login-register-wrapper">
+                        <!-- login-register-tab-list start -->
+                        <div class="login-register-tab-list nav">
+                            <a class="@(currentAction == "login" ? "active" : "")" href="@Url.Action("Login", "Account")">
+                                <h4>login</h4>
+                            </a>
+                            <a class="@(currentAction == "register" ? "active" : "")" href="@Url.Action("Register", "Account")">
+                                <h4>register</h4>
+                            </a>
+                        </div>
+                        <!-- login-register-tab-list end -->
+                        <div class="tab-content">
+                            <div id="lg1" class="tab-pane active">
+                                <div class="login-form-container">
+                                    <div class="login-register-form">
+                                        <form method="post">
+                                            <div class="login-input-box">
+                                                <input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl" />
+                                                <div class="form-group mb-3">
+                                                    <input asp-for="UserNameOrEmail" autocomplete="off" class="form-control mb-1" placeholder="Username or Email" type="text">
+                                                    <span asp-validation-for="UserNameOrEmail" class="text-danger"></span>
+                                                </div>
+
+                                                <div class="form-group mb-3">
+                                                    <input type="password" asp-for="Password" class="form-control mb-1" autocomplete="current-password" placeholder="Password">
+                                                    <span asp-validation-for="Password" class="text-danger"></span>
+                                                </div>
+                                            </div>
+                                            <div class="button-box">
+                                                <div class="login-toggle-btn d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-1 mt-3">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" style="margin-top:0.5em" asp-for="RememberMe" />
+                                                        <label class="form-check-label" asp-for="RememberMe">Remember me</label>
+                                                    </div>
+                                                    <a href="@Url.Action("ForgotPassword", "Account")" class="text-decoration-none">
+                                                        Forgot Password?
+                                                    </a>
+                                                </div>
+
+                                                <div class="button-box">
+                                                    <button class="login-btn btn rounded-2" type="submit"><span>Login</span></button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>

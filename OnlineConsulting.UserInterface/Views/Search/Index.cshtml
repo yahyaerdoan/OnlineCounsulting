@@ -1,0 +1,55 @@
+@using OnlineConsulting.DataTransferObject.Concretions.Dtos.ServiceDtos
+@model List<ResultServiceWithImageDto>
+@{
+    ViewData["Title"] = "Search Results";
+    ViewData["SubPage1"] = "Search";
+    string query = ViewBag.Query ?? "";
+}
+
+<main class="page-content">
+    <div class="most-popular-courses-area section-pb section-pt-90">
+        <div class="container">
+            <h4 class="mb-4">
+                @if (string.IsNullOrWhiteSpace(query))
+                {
+                    <text>Please enter a search term.</text>
+                }
+                else
+                {
+                    <text>@Model.Count result(s) found for "@query"</text>
+                }
+            </h4>
+
+            <div class="row">
+                @foreach (var item in Model)
+                {
+                    <div class="col-lg-4 col-md-6 col-12">
+                        <div class="single-popular-courses mt--30">
+                            <div class="popular-courses-image">
+                                <a href="@Url.Action("Detail", "Service", new { slug = item.Slug })">
+                                    <img src="@item.ServiceImages.Select(x => x.ImageUrl).FirstOrDefault()"
+                                         style="width: 100%; height: auto; aspect-ratio: 1 / 1; object-fit: cover; display: block; border-radius: 5px 5px 0px 0px;"
+                                         alt="Service Images">
+                                </a>
+                            </div>
+                            <div class="popular-courses-contnet">
+                                <h5 style="height:43.19px;"><a href="@Url.Action("Detail", "Service", new { slug = item.Slug })">@item.Title</a></h5>
+                                <p style="height:75px;">
+                                    @(item.Description.Length > 80 ? item.Description.Substring(0, 80) + "..." : item.Description)
+                                </p>
+                                <div style="margin-top:35px;" class="button-block">
+                                    <a href="@Url.Action("Detail", "Service", new { slug = item.Slug })" class="botton-border" style="text-transform: capitalize">View Details</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(query) && Model.Count == 0)
+            {
+                <p>No services matched your search. Try a different keyword.</p>
+            }
+        </div>
+    </div>
+</main>

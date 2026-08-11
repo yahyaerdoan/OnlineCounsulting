@@ -1,0 +1,47 @@
+﻿@model IQueryable<ResultHowIGetServiceDto>
+
+<div class="should-education-area section-ptb-160 should-bg" data-black-overlay="2">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 m-auto">
+                <div class="section-title">
+                    <h4 style="text-transform:capitalize;">How</h4>
+                    <h3 style="text-transform:capitalize;" class="text-white">How To Get Service</h3>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            @foreach (var item in Model)
+            {
+                <!-- single-choose-service -->
+                <div class="col-lg-4 col-md-6 col-12">
+                    <div class="single-choose-service text-start mt--30">
+                        <div class="service-icon">
+                            <img src="@item.ImgIcon.IconUrl" style="width:76px; height:82px; object-fit:fill; border-radius:5px;" alt="">
+                        </div>
+                        <div class="service-content hover-highlight">
+                            <h4>@item.Title</h4>
+                            <p>@item.Description</p>
+                        </div>
+                    </div>
+                </div>
+                <!--// single-choose-service -->
+            }
+        </div>
+    </div>
+</div>
+<style>
+    .hover-highlight h4,
+    .hover-highlight p {
+        transition: color 0.0s, font-weight 0.0s;
+    }
+
+    .hover-highlight:hover h4 {
+        color: #ff5951;
+    }
+
+    .hover-highlight:hover p {
+        color: floralwhite;
+        font-weight: bold;
+    }
+</style>

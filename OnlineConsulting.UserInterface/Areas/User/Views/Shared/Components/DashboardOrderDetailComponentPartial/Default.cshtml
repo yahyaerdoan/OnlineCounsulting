@@ -1,0 +1,121 @@
+﻿@model ResultOrderDetailDto
+
+<div class="order-details container py-5">
+    <!-- Header -->
+    @if (Model?.Order != null)
+    {
+        <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-4">
+            <div>
+                <h4 class="text-dark fw-bold mb-1">Service Placed</h4>
+                <div class="text-muted">@Model.Order.CreatedDate</div>
+                <div class="text-muted small">Order #: <strong>@Model.Order.OrderNumber</strong></div>
+
+            </div>
+            <a href="@Url.Action("Invoice", "Dashboard", new { area="User", id = Model.Order.Id })" class="btn btn rounded-2">See the Invoice</a>
+        </div>
+    }
+    else
+    {
+        <p>No order found.</p>
+    }
+    <!-- Shipping & Payment -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <h6 class="fw-semibold mb-2">Service Address</h6>
+            <address class="text-muted">
+                @Model?.ShippingAddress.AddressName<br />
+                @Model?.ShippingAddress.AddressLine<br />
+                @Model?.ShippingAddress.City, @Model?.ShippingAddress.State @Model?.ShippingAddress.Zipcode<br />
+                @Model?.ShippingAddress.Country
+            </address>
+        </div>
+        <div class="col-md-6">
+            <h6 class="fw-semibold mb-2">Payment Method</h6>
+            <p class="text-muted">Visa ending in <strong>0096</strong></p>
+        </div>
+    </div>
+    <!-- Order Summary -->
+    @{
+        var subTotal = Model?.OrderItems?.Sum(i => i.SubTotalPrice) ?? 0;
+        var taxTotal = Model?.OrderItems?.Sum(i => i.TaxAmount) ?? 0;
+        var shippingHandling = 0M; // Adjust if needed
+        var totalBeforeTax = subTotal + shippingHandling;
+        var grandTotal = totalBeforeTax + taxTotal;
+    }
+    <div class="bg-light rounded border p-4 mb-4">
+        <h6 class="fw-bold mb-3">Order Summary</h6>
+        <ul class="list-unstyled mb-0 small">
+            <li class="d-flex justify-content-between py-1 border-bottom">
+                <span>Item(s) Subtotal:</span>
+                <span>@subTotal.ToUsd()</span>
+            </li>
+            <li class="d-flex justify-content-between py-1 border-bottom">
+                <span>Shipping & Handling:</span>
+                <span>@shippingHandling.ToUsd()</span>
+            </li>
+            <li class="d-flex justify-content-between py-1 border-bottom">
+                <span>Total before tax:</span>
+                <span>@totalBeforeTax.ToUsd()</span>
+            </li>
+            <li class="d-flex justify-content-between py-1 border-bottom">
+                <span>Estimated tax:</span>
+                <span>@taxTotal.ToUsd()</span>
+            </li>
+            <li class="d-flex justify-content-between py-2 fw-bold">
+                <span>Grand Total:</span>
+                <span>@grandTotal.ToUsd()</span>
+            </li>
+        </ul>
+    </div>
+    <!-- Delivery Info -->
+    <div class="mb-4">
+        <p class="text-success fw-semibold mb-1">Delivered on April 17, 2025</p>
+        <p class="text-muted small">Package was left near your front door or porch.</p>
+        <a href="#" class="btn btn rounded-2">Track Package</a>
+    </div>
+    <!-- Ordered Items -->
+    @if (Model?.OrderItems != null && Model.OrderItems.Any())
+    {
+        foreach (var item in Model.OrderItems)
+        {
+            var service = Model.Services.FirstOrDefault(s => s.Id == item.ServiceId);
+            var title = service?.Title ?? "Service Title";
+            var imageUrl = service?.ServiceImages?.FirstOrDefault()?.ImageUrl ?? "default.jpg";
+
+            <div class="card shadow-sm border mb-4">
+                <div class="card-body">
+                    <div class="row g-4 align-items-center">
+                        <div class="col-md-2">
+                            <img src="@imageUrl" class="img-fluid rounded" alt="@title" />
+                        </div>
+                        <div class="col-md-10">
+                            <h6 class="fw-semibold mb-1">@title</h6>
+                            <div class="text-muted small mb-1">Sold by: Multiverse</div>
+
+                            <div class="d-flex flex-wrap text-muted small mb-2 gap-3 ps-3">
+                                <div>Quantity: @item.Quantity</div>
+                                <div>Unit Price: @item.UnitPrice.ToUsd()</div>
+                                <div>Tax: @item.TaxAmount.ToUsd() (@item.TaxRate%)</div>
+                                <div>Subtotal: @item.SubTotalPrice.ToUsd()</div>
+                            </div>
+
+                            <div class="fw-bold mb-3">Total: @item.TotalPrice.ToUsd()</div>
+
+                            <div class="d-flex gap-2 flex-wrap">
+                                <a href="#" class="btn btn-sm btn rounded-2">Buy it again</a>
+                                <a href="#" class="btn btn-sm btn rounded-2">Return or Replace</a>
+                                <a href="#" class="btn btn-sm btn rounded-2">Gift Receipt</a>
+                                <a href="#" class="btn btn-sm btn rounded-2">Leave Feedback</a>
+                                <a href="#" class="btn btn-sm btn rounded-2">Write Review</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <p>No order items found.</p>
+    }
+</div>

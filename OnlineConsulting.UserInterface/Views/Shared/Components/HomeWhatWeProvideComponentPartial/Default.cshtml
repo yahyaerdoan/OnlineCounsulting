@@ -1,0 +1,29 @@
+﻿@using System.Net
+@model IQueryable<ResultWhatWeProvideDto>
+
+<div class="what-provide-area section-ptb">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-10 m-auto">
+                <div class="section-title-three">
+                    <h4 style="text-transform:capitalize;">Why Choose Us</h4>
+                    @foreach (var item in Model)
+                    {
+                        <h3 style="text-transform:capitalize;">@item.Title</h3>
+                        <div class="text" style="text-align: justify; padding: 10px;">
+                            @Html.Raw(item.Description)
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="row align-items-center">
+            <!-- What we provide Provided Item Area -->
+            @await Component.InvokeAsync("HomeWhatWeProvideProvidedItemComponentPartial")
+            <!-- What we provide Area-->
+            <!-- What we provide Provide Image Area -->
+            @await Component.InvokeAsync("HomeWhatWeProvideProvideImageComponentPartial")
+            <!-- What we provide Area-->
+        </div>
+    </div>
+</div>

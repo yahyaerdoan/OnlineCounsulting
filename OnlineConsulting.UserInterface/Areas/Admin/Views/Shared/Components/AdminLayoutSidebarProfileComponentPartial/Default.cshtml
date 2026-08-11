@@ -1,0 +1,45 @@
+﻿@model ResultUserDto
+
+<div class="card pc-user-card">
+    <div class="card-body">
+        <div class="d-flex align-items-center">
+            <div class="flex-shrink-0">
+                <img src="@Model.ImageUrl"
+                     alt="user-image"
+                     style="width:45px; height:45px; border-radius:50%; object-fit:cover;" />
+
+            </div>
+            <div class="flex-grow-1 ms-3 me-2">
+                <h6 class="mb-0" data-i18n="@Model.FirstName @Model.LastName">@Model.FirstName @Model.LastName</h6>
+                <small data-i18n="@string.Join(", ", Model.Roles.Select(r => r.Name))">
+                    @string.Join(", ", Model.Roles.Select(r => r.Name))
+                </small>
+            </div>
+            <a class="btn btn-icon btn-link-secondary avtar" data-bs-toggle="collapse" href="#pc_sidebar_userlink">
+                <svg class="pc-icon">
+                    <use xlink:href="#custom-sort-outline"></use>
+                </svg>
+            </a>
+        </div>
+        <div class="collapse pc-user-links" id="pc_sidebar_userlink">
+            <div class="pt-3">
+                <a href="#!">
+                    <i class="ti ti-user"></i>
+                    <span data-i18n="My Account">My Account</span>
+                </a>
+                <a href="#!">
+                    <i class="ti ti-settings"></i>
+                    <span data-i18n="Settings">Settings</span>
+                </a>
+                <a href="#!">
+                    <i class="ti ti-lock"></i>
+                    <span data-i18n="Lock Screen">Lock Screen</span>
+                </a>
+                <a href="@Url.Action("Logout", "Account",new {area=""})">
+                    <i class="ti ti-power"></i>
+                    <span data-i18n="Logout">Logout</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

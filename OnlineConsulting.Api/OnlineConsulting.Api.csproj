@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>a6d4b8b0-6e0b-4b7e-9b6b-9b6f7b4e2f0a</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.10" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" GeneratePathProperty="true" />
+    <PackageReference Include="ResponseResultHandler.AspNetCore" Version="12.0.0" />
+    <PackageReference Include="Scrutor" Version="7.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
+  </ItemGroup>
+
+  <!-- The ASP.NET Core OpenApi XML-comment source generator self-registers DI services
+       that fail ServiceProvider validation even though AddOpenApi() is never called (only
+       WithOpenApi()-style transformers are used, for Swashbuckle). The generator ships both via the
+       Microsoft.AspNetCore.OpenApi package's analyzer and (in .NET 10) baked into the shared
+       framework's Microsoft.AspNetCore.App.SourceGenerators.dll, so remove both by filename. -->
+  <Target Name="DisableCompileTimeOpenApiXmlGenerator" BeforeTargets="CoreCompile">
+    <ItemGroup>
+      <Analyzer Remove="@(Analyzer)" Condition="'%(Analyzer.Filename)' == 'Microsoft.AspNetCore.OpenApi.SourceGenerators' or '%(Analyzer.Filename)' == 'Microsoft.AspNetCore.App.SourceGenerators'" />
+    </ItemGroup>
+  </Target>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OnlineConsulting.BusinessLogic\OnlineConsulting.BusinessLogic.csproj" />
+    <ProjectReference Include="..\OnlineConsulting.DataAccess\OnlineConsulting.DataAccess.csproj" />
+    <ProjectReference Include="..\OnlineConsulting.DataTransferObject\OnlineConsulting.DataTransferObject.csproj" />
+    <ProjectReference Include="..\OnlineConsulting.Entity\OnlineConsulting.Entity.csproj" />
+  </ItemGroup>
+
+</Project>

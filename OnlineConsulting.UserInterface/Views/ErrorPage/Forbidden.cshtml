@@ -1,0 +1,25 @@
+﻿@{
+    ViewData["Title"] = "Forbidden";
+}
+<!-- Page Conttent -->
+<main class="page-content section-ptb">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 m-auto text-center">
+                <div class="search-error-wrapper">
+                    <h1>403</h1>
+                    <h4>Access Forbidden</h4>
+                    <p class="home-link">Sorry, you don't have permission to access this page.</p>
+                    <form action="#" class="error-form">
+                        <div class="error-form-input">
+                            <input type="text" placeholder="Search..." class="error-input-text">
+                            <button type="submit" class="error-s-button"><i class="zmdi zmdi-search"></i></button>
+                        </div>
+                    </form>
+                    <a href="@Url.Action("Login", "Account")" class="home-bacck-button" style="text-transform: capitalize">Back to login page</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+<!--// Page Conttent -->

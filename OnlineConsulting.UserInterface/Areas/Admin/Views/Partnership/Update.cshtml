@@ -1,0 +1,113 @@
+﻿@model UpdatePartnershipDto
+@{
+    ViewData["Title"] = "Update Partnership";
+    ViewData["SubPage1"] = "Partnership List";
+    ViewData["SubPage1Url"] = Url.Action("Index", "Partnership", new { area = "Admin" });
+    ViewData["SubPage2"] = "Update Partnership";
+    ViewData["SubPage2Url"] = Url.Action("Update", "Partnership", new { area = "Admin", id = Model.Id });
+}
+
+<div class="col-12">
+    <div class="card p-3">
+        <div class="card-header">
+            <h5 class="mb-0">@Model.CompanyName</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-sm-auto text-center">
+                    <div style="position: relative; display: inline-block; text-align:center;">
+                        <img src="@Model.ImageUrl"
+                             alt="user-image"
+                             class="wid-150 rounded img-fluid"
+                             style="width: 320px; height: 180px; border-radius: 8px; object-fit:cover;" />
+                        <!-- Pencil Button -->
+                        <button id="toggleFormButton"
+                                style="position: absolute; top: 10px; right: 10px; background: none; border: none; padding: 0; cursor: pointer;">
+                            <i class="ti ti-pencil" style="font-size: 16px; color: #007bff;"></i>
+                        </button>
+                    </div>
+                    <div class="position-relative col-md-12 mt-2">
+                        <div class="mb-3" id="updateImageForm" style="display: none;">
+                            <form method="post" enctype="multipart/form-data" asp-action="UpdateImageFile" asp-controller="Partnership">
+                                <input type="hidden" asp-for="Id" />
+                                <input class="form-control" type="file" asp-for="Image" accept=".png, .jpeg, .jpg, .gif" required />
+                                <div class="text-muted" style="font-size: x-small;">
+                                    <span style="font-weight: bold;">*</span>Please ensure the image is <strong>370x240 pixels</strong> for the best results.
+                                </div>
+                                <div style="text-align:left">
+                                    <span asp-validation-for="Image" class="text-danger"></span>
+                                </div>
+                                <div class="d-grid gap-2 mt-3 text-center">
+                                    <button class="btn btn-outline-primary d-inline-flex text-center justify-content-center"> <i class="ti ti-bookmark me-1"></i>Update</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <form id="contactForm" method="post">
+                        <div class="row">
+                            <input type="hidden" asp-for="Id" />
+                            <input type="hidden" asp-for="ImageUrl" />
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label" for="firstname">First Name</label>
+                                    <input type="text" id="firstname" class="form-control" placeholder="Enter first name" asp-for="FirstName" />
+                                    <span asp-validation-for="FirstName" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label" for="lastname">Last Name</label>
+                                    <input type="text" id="lastname" class="form-control" placeholder="Enter last name" asp-for="LastName" />
+                                    <span asp-validation-for="LastName" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label" for="companyname">Company Name</label>
+                                    <input type="text" id="companyname" class="form-control" placeholder="Enter company name" asp-for="CompanyName" />
+                                    <span asp-validation-for="CompanyName" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label" for="websiteurl">Web site Url</label>
+                                    <input type="text" id="websiteurl" class="form-control" placeholder="Enter web site url" asp-for="WebsiteUrl" />
+                                    <span asp-validation-for="WebsiteUrl" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label" for="title">Title</label>
+                                    <input type="text" id="title" class="form-control" placeholder="Enter title" asp-for="Title" />
+                                    <span asp-validation-for="Title" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label" for="email">Email</label>
+                                    <input type="text" id="email" class="form-control" placeholder="Enter email" asp-for="Email" />
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label class="form-label" for="descriptionTextarea">Descripton</label>
+                                    <textarea class="form-control" id="descriptionTextarea" rows="3" placeholder="Enter description" asp-for="Description"></textarea>
+                                    <span asp-validation-for="Description" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-12 text-end mt-3">
+                                <div class="d-grid gap-2 mt-2 text-center">
+                                    <button class="btn btn-outline-primary d-inline-flex text-center justify-content-center"> <i class="ti ti-bookmark me-1"></i>Update</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

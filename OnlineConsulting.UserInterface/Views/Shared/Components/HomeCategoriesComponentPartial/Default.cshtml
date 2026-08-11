@@ -1,0 +1,52 @@
+﻿@model IQueryable<ResultCategoryDto>
+@{
+    var colorClasses = new[] { "malachite", "sunglow", "mariner", "brilliantrose", "shakespeare", "deyork" };
+    int i = 0;
+}
+
+<div class="our-course-categories-area section-ptb">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 m-auto">
+                <!-- section-title -->
+                <div class="section-title-three">
+                    <h4 style="text-transform:capitalize">Your Success Starts Here</h4>
+                    <h3 style="text-transform:capitalize;">Our Service Categories</h3>
+                    <p>
+                        Online Consulting offers a diverse range of services designed to empower businesses across multiple industries.
+                        Our expertise spans the following key service categories:
+                    </p>
+                </div><!--// section-title -->
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <div class="course-categories-wrap">
+                    @foreach (var item in Model)
+                    {
+                        var colorClass = colorClasses[i % colorClasses.Length];
+                        i++;
+                        <div class="coustom-col-2" style="max-width:30px;">
+                            <!-- single-course-categories -->
+                            <div class="single-course-categories @colorClass">
+                                <div class="item-inner">
+                                    <div class="cours-icon">
+                                        <img src="@item.ImgIcon.IconUrl"
+                                             style="border-radius:5px; max-width:50px; max-height:50px; object-fit:cover;" alt="">
+                                    </div>
+                                    <div class="cours-title">
+                                        <h5>@item.Title</h5>
+                                    </div>
+                                </div>
+                            </div>
+                            <!--// single-course-categories -->
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="all-course-btn">
+                <a href="@Url.Action("Index", "Service")" class="all-course" style="text-transform: capitalize">All Services</a>
+            </div>
+        </div>
+    </div>
+</div>

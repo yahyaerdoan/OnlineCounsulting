@@ -1,0 +1,158 @@
+/*--
+    12. About Css
+-------------------*/
+.section-inner-ptb {
+    padding: 180px 0;
+    @media #{$desktop-device}{
+        padding: 120px 0;
+    }
+    @media #{$tablet-device}{
+        padding: 100px 0;
+    }
+    @media #{$large-mobile}{
+        padding: 70px 0;
+    }
+    @media #{$small-mobile}{
+        padding: 60px 0;
+    }
+}
+.welcome-about-us {
+    background: #0d202c;
+    position: relative;
+    overflow: hidden;
+    & .start-now {
+        margin-top: 25px;
+        & .start-btn {
+            padding: 12px 45px;
+            background: $theme-color;
+            border-radius: 5px;
+            text-transform: uppercase;
+            font-weight: 500;
+            &:hover {
+                background: $dark-grey;
+                color: $white;
+            }
+        }
+    }
+}
+.welcome-video {
+    float: left;
+    height: 100%;
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 45%;
+    @media #{$tablet-device,$large-mobile}{
+        position: inherit;
+        width: 100%;
+        background-size: cover;
+    }
+    .video-inner {
+        background: url("../images/bg/welcome-bg.jpg") no-repeat 100% 0%;
+        height: 100%;
+        overflow: hidden;
+        padding: 0 25px;
+        position: relative;
+        text-align: center !important;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        
+        & a {
+            position: relative;
+            z-index: 1;
+        }
+        &::after{
+            background: rgba(0, 0, 0, 0.2);
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            height: 100%;
+            width: 100%;
+        }
+        @media #{$tablet-device}{
+            background-size: cover;
+            padding: 140px 0;
+        }
+        @media #{$large-mobile}{
+            background-size: cover;
+            padding: 100px 0;
+        }
+        @media #{$small-mobile}{
+            background-size: cover;
+            padding: 80px 0;
+        }
+    }
+}
+
+
+/*-- About Us Css */
+.about-us {
+    &-contents{
+        padding-right: 30px;
+        @media #{$large-mobile}{
+            padding-right: 0;
+        }
+        & h3 {
+            font-weight: 700;
+            margin-bottom: 15px;
+            & > span {
+                color: $theme-color;
+            }
+        }
+        & p {
+            font-size: 16px;
+        }
+        & .about-us-btn {
+            & > a {
+                margin-top: 40px;
+                letter-spacing: 1px;
+                padding: 10px 45px;
+                background: $theme-color;
+                display: inline-block;
+                border-radius: 5px;
+                color: $white;
+                text-transform: uppercase;
+                box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+                &:hover {
+                    background: $dark-grey;
+                    color: $white;
+                }
+                @media #{$large-mobile}{
+                    margin-top: 10px;
+                }
+            }
+        }
+        
+    }
+    &-image {
+        @media #{$tablet-device}{
+            text-align: left!important;
+        }
+        & a {
+            position: relative;
+            &::after {
+                position: absolute;
+                content: "";
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.3);
+                border-radius: 5px;
+            }
+            & span {
+                position: absolute;
+                top: 50%;
+                z-index: 9;
+                right: 50%;
+                transform: translateY(-50%) translateX(50%);
+            }
+        }
+        @media #{$large-mobile,$tablet-device}{
+            margin-top: 30px;
+        }
+    }
+    
+}
