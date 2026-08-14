@@ -1,19 +1,21 @@
+﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NToastNotify;
 using OnlineConsulting.BusinessLogic.Abstractions.IServiceManagers;
 using OnlineConsulting.DataTransferObject.Concretions.Dtos.ServiceDtos;
+using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
 using OnlineConsulting.UserInterface.NotificationServices.ToastrServices;
 
 namespace OnlineConsulting.UserInterface.Controllers;
 
 [AllowAnonymous]
-public class CartController(IServiceManager serviceManager, IToastNotification toastNotification) : Controller
+public class CartController(IServiceManager serviceManager, ISender sender, IToastNotification toastNotification) : Controller
 {
     [HttpGet]
     public async Task<IActionResult> Index()
     {
-        var userResult = await serviceManager.SystemUserService.GetCurrentUserAsync();
+        var userResult = await sender.Send(new GetCurrentUserQuery());
         if (!userResult.IsSuccessful || userResult.Data is null)
         {
             NToastService.Show(toastNotification, userResult.Title, userResult.Status);
@@ -53,7 +55,7 @@ public class CartController(IServiceManager serviceManager, IToastNotification t
     [HttpPost]
     public async Task<IActionResult> RemoveBasketItem(string id)
     {
-        var userResult = await serviceManager.SystemUserService.GetCurrentUserAsync();
+        var userResult = await sender.Send(new GetCurrentUserQuery());
         if (!userResult.IsSuccessful)
             return RedirectToAction("Login", "Account", new { returnUrl = Url.Action("Index", "Cart") });
 

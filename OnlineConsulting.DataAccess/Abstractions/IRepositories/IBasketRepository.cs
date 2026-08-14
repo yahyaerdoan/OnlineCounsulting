@@ -5,5 +5,5 @@ namespace OnlineConsulting.DataAccess.Abstractions.IRepositories;
 
 public interface IBasketRepository : IGenericRepository<Basket>
 {
-    Task<Basket?> GetBasketByUserIdAsync(string id, bool tracking = true, bool? status = true);
+    Task<Basket?> GetBasketByUserIdAsync(Guid id, bool tracking = true, bool? status = true);
 }

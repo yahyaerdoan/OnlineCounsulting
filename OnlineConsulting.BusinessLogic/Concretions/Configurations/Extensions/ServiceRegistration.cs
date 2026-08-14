@@ -1,5 +1,4 @@
-using FluentValidation;
-using FluentValidation.AspNetCore;
+﻿using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OnlineConsulting.BusinessLogic.Abstractions.IServices;
@@ -18,17 +17,11 @@ public static class ServiceRegistration
     public static void AddBusinessLogicServiceRegistration(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddScoped<ValidationFilter>();
-        services.AddFluentValidationAutoValidation(opt =>
-        {
-            opt.DisableDataAnnotationsValidation = true;
-        })
-                .AddFluentValidationClientsideAdapters()
-                .AddValidatorsFromAssemblyContaining<CreateAboutUsValidator>();
+        services.AddValidatorsFromAssemblyContaining<CreateAboutUsValidator>();
         services.AddStorageServices<LocalStorage>();
         services.Configure<AppSettingImageFolderPathOption>(configuration.GetSection(AppSettingImageFolderPathOption.FolderPath));
         services.Configure<AppSettingStripeOption>(configuration.GetSection(AppSettingStripeOption.StripeKeys));
         services.Configure<AppSettingRecaptchaOption>(configuration.GetSection(AppSettingRecaptchaOption.RecaptchaKeys));
-        services.Configure<JwtOption>(configuration.GetSection(JwtOption.Jwt));
         services.AddHttpClient<IAiContentService, AiContentManager>();
         services.AddHttpClient<IRecaptchaService, RecaptchaManager>();
     }

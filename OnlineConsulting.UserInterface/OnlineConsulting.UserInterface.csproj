@@ -497,6 +497,9 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="16.2.0" />
+    <!-- Pinned directly (nearest-wins) - must match FluentValidation.AspNetCore's supported major
+         version or MVC model validation throws TypeLoadException at runtime. -->
+    <PackageReference Include="FluentValidation" Version="12.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="10.0.10" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.10">
       <PrivateAssets>all</PrivateAssets>
@@ -506,9 +509,9 @@
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="10.0.2" />
     <PackageReference Include="NuGet.Packaging" Version="7.6.0" />
     <PackageReference Include="NuGet.Protocol" Version="7.6.0" />
+    <PackageReference Include="MediatR" Version="14.0.0" />
     <PackageReference Include="NToastNotify" Version="8.0.0" />
-    <PackageReference Include="ResponseResultHandler" Version="11.0.17" />
-    <PackageReference Include="Scrutor" Version="7.0.0" />
+    <PackageReference Include="ResponseResultHandler" Version="12.0.0" />
     <PackageReference Include="Stripe.net" Version="52.2.0" />
   </ItemGroup>
 
@@ -516,6 +519,11 @@
     <ProjectReference Include="..\OnlineConsulting.BusinessLogic\OnlineConsulting.BusinessLogic.csproj" />
     <ProjectReference Include="..\OnlineConsulting.DataAccess\OnlineConsulting.DataAccess.csproj" />
     <ProjectReference Include="..\OnlineConsulting.DataTransferObject\OnlineConsulting.DataTransferObject.csproj" />
+    <ProjectReference Include="..\OnlineConsulting.SharedKernel\OnlineConsulting.SharedKernel.csproj" />
+    <ProjectReference Include="..\Modules\Identity\OnlineConsulting.Modules.Identity.Domain\OnlineConsulting.Modules.Identity.Domain.csproj" />
+    <ProjectReference Include="..\Modules\Identity\OnlineConsulting.Modules.Identity.Application\OnlineConsulting.Modules.Identity.Application.csproj" />
+    <ProjectReference Include="..\Modules\Identity\OnlineConsulting.Modules.Identity.Infrastructure\OnlineConsulting.Modules.Identity.Infrastructure.csproj" />
+    <ProjectReference Include="..\OnlineConsulting.ServiceDefaults\OnlineConsulting.ServiceDefaults.csproj" />
   </ItemGroup>
 
   <ItemGroup>

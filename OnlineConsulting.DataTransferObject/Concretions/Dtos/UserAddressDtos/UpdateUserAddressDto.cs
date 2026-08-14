@@ -15,5 +15,5 @@ public class UpdateUserAddressDto : IDto
     public string? Notes { get; set; }
     public bool IsShippingAddress { get; set; }
     public bool IsBillingAddress { get; set; }
-    public string UserId { get; set; } = string.Empty;
+    public Guid UserId { get; set; }
 }

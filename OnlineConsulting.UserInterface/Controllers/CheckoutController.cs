@@ -1,3 +1,4 @@
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using NToastNotify;
@@ -5,11 +6,12 @@ using OnlineConsulting.BusinessLogic.Abstractions.IServiceManagers;
 using OnlineConsulting.BusinessLogic.Concretions.Configurations.AppSettingConfigurations.AppSettingOptions;
 using OnlineConsulting.DataTransferObject.Concretions.Dtos.OrderDtos;
 using OnlineConsulting.DataTransferObject.Concretions.Dtos.UserAddressDtos;
+using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
 using OnlineConsulting.UserInterface.NotificationServices.ToastrServices;
 
 namespace OnlineConsulting.UserInterface.Controllers;
 
-public class CheckoutController(IServiceManager serviceManager, IToastNotification toastNotification, IOptions<AppSettingStripeOption> stripeOptions) : Controller
+public class CheckoutController(IServiceManager serviceManager, ISender sender, IToastNotification toastNotification, IOptions<AppSettingStripeOption> stripeOptions) : Controller
 {
     [ApiExplorerSettings(IgnoreApi = true)]
     [HttpGet("/checkout/{cartId}")]
@@ -30,7 +32,7 @@ public class CheckoutController(IServiceManager serviceManager, IToastNotificati
     [HttpPost]
     public async Task<IActionResult> PlaceOrder(Guid cartId)
     {
-        var currentUserResult = await serviceManager.SystemUserService.GetCurrentUserAsync();
+        var currentUserResult = await sender.Send(new GetCurrentUserQuery());
         if (!currentUserResult.IsSuccessful || currentUserResult.Data is null)
         {
             NToastService.Show(toastNotification, currentUserResult.Title, currentUserResult.Status);

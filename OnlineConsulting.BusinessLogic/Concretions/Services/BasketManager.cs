@@ -1,7 +1,5 @@
-using AutoMapper;
+﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using ResultHandler.Implementations.Error;
-using ResultHandler.Implementations.Success;
 using OnlineConsulting.BusinessLogic.Abstractions.IServices;
 using OnlineConsulting.BusinessLogic.Concretions.GenericServices;
 using OnlineConsulting.DataAccess.Abstractions.IGenericRepositories;
@@ -9,22 +7,24 @@ using OnlineConsulting.DataAccess.Abstractions.IRepositories;
 using OnlineConsulting.DataTransferObject.Abstractions.IDtos;
 using OnlineConsulting.DataTransferObject.Concretions.Dtos.BasketDtos;
 using OnlineConsulting.Entity.Concretions.Entities;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.Core.Abstractions;
 using ResultHandler.Core.Enums;
+using ResultHandler.Implementations.Error;
+using ResultHandler.Implementations.Success;
 
 namespace OnlineConsulting.BusinessLogic.Concretions.Services;
 
-public class BasketManager(IMapper mapper, IGenericRepository<Basket> repository, IBasketItemRepository basketItemRepository, ISystemUserService systemUserService) : GenericService<Basket, IDto>(mapper, repository), IBasketService
+public class BasketManager(IMapper mapper, IGenericRepository<Basket> repository, IBasketItemRepository basketItemRepository, ICurrentUserAccessor currentUser) : GenericService<Basket, IDto>(mapper, repository), IBasketService
 {
     public async Task<IOperationResult<ResultBasketDto>> CreateBasketAsync()
     {
-        var userResult = await systemUserService.GetCurrentUserAsync();
-        if (!userResult.IsSuccessful)
+        if (currentUser.UserId is not { } rawUserId || !Guid.TryParse(rawUserId, out var userId))
         {
             return new ErrorDataResult<ResultBasketDto>($"You must log in to add services to your cart. Please log in and try again.", ResultStatus.BadRequest);
         }
 
-        var existingBasket = await _repository.GetWhere(b => b.UserId == userResult.Data.Id).FirstOrDefaultAsync();
+        var existingBasket = await _repository.GetWhere(b => b.UserId == userId).FirstOrDefaultAsync();
         if (existingBasket is not null)
         {
             var existingBasketDto = _mapper.Map<ResultBasketDto>(existingBasket);
@@ -33,7 +33,7 @@ public class BasketManager(IMapper mapper, IGenericRepository<Basket> repository
 
         var basketDto = new CreateBasketDto
         {
-            UserId = userResult.Data.Id,
+            UserId = userId,
             Quantity = 0,
             TotalPrice = 0,
             SubTotalPrice = 0

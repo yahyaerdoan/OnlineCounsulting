@@ -25,10 +25,10 @@
                                             {
                                                 <div class="col-md-2 d-flex align-items-center" style="gap: 0.5rem; margin-bottom: 0.5rem;">
                                                     <div class="mb-3 form-check">
-                                                        <input type="checkbox" class="form-check-input" asp-for="@Model[i].Exist" />
+                                                        <input type="checkbox" class="form-check-input" asp-for="@Model[i].IsAssigned" />
                                                         <label class="form-check-label">@Model[i].RoleName</label>
                                                         <input type="hidden" asp-for="@Model[i].RoleName" />
-                                                        <input type="hidden" asp-for="@Model[i].Id" />
+                                                        <input type="hidden" asp-for="@Model[i].RoleId" />
                                                     </div>
                                                 </div>
                                             }

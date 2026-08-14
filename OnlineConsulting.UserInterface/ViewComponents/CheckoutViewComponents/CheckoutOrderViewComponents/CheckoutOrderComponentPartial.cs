@@ -8,7 +8,7 @@ public class CheckoutOrderComponentPartial(IServiceManager serviceManager) : Vie
 {
     public async Task<IViewComponentResult> InvokeAsync(Guid cartId)
     {
-        var result = await serviceManager.BasketItemService.GetBasketItemsByUserIdAsync(cartId.ToString(), false, true);
+        var result = await serviceManager.BasketItemService.GetBasketItemsByUserIdAsync(cartId, false, true);
         return View(result.Data ?? Enumerable.Empty<ResultBasketItemDto>().AsQueryable());
     }
 }

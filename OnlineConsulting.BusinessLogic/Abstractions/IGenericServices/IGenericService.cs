@@ -1,6 +1,6 @@
-using ResultHandler.Core.Abstractions;
-using OnlineConsulting.DataTransferObject.Abstractions.IDtos;
+﻿using OnlineConsulting.DataTransferObject.Abstractions.IDtos;
 using OnlineConsulting.Entity.Concretions.BaseEntities;
+using ResultHandler.Core.Abstractions;
 using System.Linq.Expressions;
 
 namespace OnlineConsulting.BusinessLogic.Abstractions.IGenericServices;

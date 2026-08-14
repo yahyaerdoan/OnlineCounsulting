@@ -15,9 +15,10 @@
     <PackageReference Include="AutoMapper.Extensions.ExpressionMapping" Version="11.0.0" />
     <PackageReference Include="DnsClient" Version="1.8.0" />
     <PackageReference Include="FluentValidation" Version="12.1.1" />
-    <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.5.1" />
+    <PackageReference Include="MediatR" Version="14.0.0" />
     <PackageReference Include="OpenAI" Version="2.12.0" />
-    <PackageReference Include="ResponseResultHandler" Version="11.0.17" />
+    <PackageReference Include="ResponseResultHandler" Version="12.0.0" />
     <PackageReference Include="Stripe.net" Version="52.2.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.22.0" />
   </ItemGroup>
@@ -25,6 +26,9 @@
   <ItemGroup>
     <ProjectReference Include="..\OnlineConsulting.DataAccess\OnlineConsulting.DataAccess.csproj" />
     <ProjectReference Include="..\OnlineConsulting.DataTransferObject\OnlineConsulting.DataTransferObject.csproj" />
+    <ProjectReference Include="..\OnlineConsulting.SharedKernel\OnlineConsulting.SharedKernel.csproj" />
+    <ProjectReference Include="..\Modules\Identity\OnlineConsulting.Modules.Identity.Domain\OnlineConsulting.Modules.Identity.Domain.csproj" />
+    <ProjectReference Include="..\Modules\Identity\OnlineConsulting.Modules.Identity.Application\OnlineConsulting.Modules.Identity.Application.csproj" />
   </ItemGroup>
 
 </Project>

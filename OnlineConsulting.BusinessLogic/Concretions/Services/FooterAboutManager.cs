@@ -1,7 +1,5 @@
-using AutoMapper;
+﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
-using ResultHandler.Implementations.Error;
-using ResultHandler.Implementations.Success;
 using OnlineConsulting.BusinessLogic.Abstractions.IServices;
 using OnlineConsulting.BusinessLogic.Abstractions.IStorageServices.IStorages;
 using OnlineConsulting.BusinessLogic.Concretions.GenericServices;
@@ -11,6 +9,8 @@ using OnlineConsulting.DataTransferObject.Concretions.Dtos.FooterAboutDtos;
 using OnlineConsulting.Entity.Concretions.Entities;
 using ResultHandler.Core.Abstractions;
 using ResultHandler.Core.Enums;
+using ResultHandler.Implementations.Error;
+using ResultHandler.Implementations.Success;
 namespace OnlineConsulting.BusinessLogic.Concretions.Services;
 
 public class FooterAboutManager(IMapper mapper, IGenericRepository<FooterAbout> repository, IStorageService storageService) : GenericService<FooterAbout, IDto>(mapper, repository), IFooterAboutService

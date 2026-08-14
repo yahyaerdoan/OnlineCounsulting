@@ -1,7 +1,9 @@
+﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NToastNotify;
-using OnlineConsulting.BusinessLogic.Abstractions.IServiceManagers;
+using OnlineConsulting.Modules.Identity.Application.Features.Users.ChangePassword;
+using OnlineConsulting.Modules.Identity.Application.Features.Users.UpdateUserImage;
 using OnlineConsulting.UserInterface.Areas.User.ViewModels.UserViewModels;
 using OnlineConsulting.UserInterface.NotificationServices.ToastrServices;
 
@@ -10,7 +12,7 @@ namespace OnlineConsulting.UserInterface.Areas.User.Controllers;
 [Area("User")]
 [Route("User/{controller}/{action}/{id?}")]
 [Authorize(Policy = "RequireUserDashboardPolicy")]
-public class DashboardController(IServiceManager serviceManager, IToastNotification toastNotification) : Controller
+public class DashboardController(ISender sender, IToastNotification toastNotification) : Controller
 {
     public IActionResult Index() => View();
     public IActionResult Order() => View();
@@ -20,9 +22,9 @@ public class DashboardController(IServiceManager serviceManager, IToastNotificat
     public IActionResult Invoice(Guid id) => View(id);
     public IActionResult Download() => View();
     [HttpPost]
-    public async Task<IActionResult> UpdateImageFile([FromForm] string Id, [FromForm] IFormFile image)
+    public async Task<IActionResult> UpdateImageFile([FromForm] Guid Id, [FromForm] IFormFile image)
     {
-        var result = await serviceManager.SystemUserService.UpdateUserImageAsync(Id, image);
+        var result = await sender.Send(new UpdateUserImageCommand(Id, image));
 
         NToastService.Show(toastNotification, result.Title, result.Status);
         return RedirectToAction("Account", "Dashboard", new { area = "user" });
@@ -31,7 +33,7 @@ public class DashboardController(IServiceManager serviceManager, IToastNotificat
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ChangePassword(UserAccountViewModel model)
     {
-        var result = await serviceManager.SystemUserService.ChangePasswordAsync(model.ChangePassword);
+        var result = await sender.Send(new ChangePasswordCommand(model.ChangePassword.Id, model.ChangePassword.CurrentPassword, model.ChangePassword.NewPassword));
 
         NToastService.Show(toastNotification, result.Title, result.Status);
         return RedirectToAction("Account", "Dashboard", new { area = "user" });

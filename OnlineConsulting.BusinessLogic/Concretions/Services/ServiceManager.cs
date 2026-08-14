@@ -1,7 +1,5 @@
-using AutoMapper;
+﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using ResultHandler.Implementations.Error;
-using ResultHandler.Implementations.Success;
 using OnlineConsulting.BusinessLogic.Abstractions.IServices;
 using OnlineConsulting.BusinessLogic.Abstractions.IStorageServices.IStorages;
 using OnlineConsulting.BusinessLogic.Concretions.Configurations.Extensions;
@@ -15,6 +13,8 @@ using OnlineConsulting.Entity.Concretions.Entities;
 using ResultHandler.Core.Abstractions;
 using ResultHandler.Core.Enums;
 using ResultHandler.Facade;
+using ResultHandler.Implementations.Error;
+using ResultHandler.Implementations.Success;
 namespace OnlineConsulting.BusinessLogic.Concretions.Services;
 
 public class ServiceManager(IMapper mapper, IGenericRepository<Service> repository, IStorageService _storageService, IServiceImageService serviceImageService, IServiceRepository serviceRepository) : GenericService<Service, IDto>(mapper, repository), IServiceService

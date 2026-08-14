@@ -1,10 +1,6 @@
-using AutoMapper;
+﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
-using ResultHandler.Core.Abstractions;
-using ResultHandler.Core.Enums;
-using ResultHandler.Implementations.Error;
-using ResultHandler.Implementations.Success;
 using OnlineConsulting.BusinessLogic.Abstractions.IServices;
 using OnlineConsulting.BusinessLogic.Abstractions.IStorageServices.IStorages;
 using OnlineConsulting.BusinessLogic.Concretions.Configurations.AppSettingConfigurations.AppSettingOptions;
@@ -13,7 +9,10 @@ using OnlineConsulting.DataAccess.Abstractions.IGenericRepositories;
 using OnlineConsulting.DataTransferObject.Abstractions.IDtos;
 using OnlineConsulting.DataTransferObject.Concretions.Dtos.AboutUsDtos;
 using OnlineConsulting.Entity.Concretions.Entities;
-using System.Net;
+using ResultHandler.Core.Abstractions;
+using ResultHandler.Core.Enums;
+using ResultHandler.Implementations.Error;
+using ResultHandler.Implementations.Success;
 
 namespace OnlineConsulting.BusinessLogic.Concretions.Services;
 

@@ -2,7 +2,7 @@ namespace OnlineConsulting.DataTransferObject.Concretions.Dtos.UserDtos;
 
 public class ChangePasswordUserDto
 {
-    public string Id { get; set; } = string.Empty;
+    public Guid Id { get; set; }
     public string CurrentPassword { get; set; } = string.Empty;
     public string NewPassword { get; set; } = string.Empty;
 

@@ -1,7 +1,5 @@
-using AutoMapper;
+﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using ResultHandler.Implementations.Error;
-using ResultHandler.Implementations.Success;
 using OnlineConsulting.BusinessLogic.Abstractions.IServices;
 using OnlineConsulting.BusinessLogic.Concretions.GenericServices;
 using OnlineConsulting.DataAccess.Abstractions.IGenericRepositories;
@@ -9,12 +7,15 @@ using OnlineConsulting.DataAccess.Abstractions.IRepositories;
 using OnlineConsulting.DataTransferObject.Abstractions.IDtos;
 using OnlineConsulting.DataTransferObject.Concretions.Dtos.BasketItemDtos;
 using OnlineConsulting.Entity.Concretions.Entities;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.Core.Abstractions;
 using ResultHandler.Core.Enums;
+using ResultHandler.Implementations.Error;
+using ResultHandler.Implementations.Success;
 
 namespace OnlineConsulting.BusinessLogic.Concretions.Services;
 
-public class BasketItemManager(IMapper mapper, IGenericRepository<BasketItem> repository, IServiceRepository serviceRepository, IBasketRepository basketRepository, IBasketItemRepository basketItemRepository, ISystemUserService systemUserService, IBasketService basketService) : GenericService<BasketItem, IDto>(mapper, repository), IBasketItemService
+public class BasketItemManager(IMapper mapper, IGenericRepository<BasketItem> repository, IServiceRepository serviceRepository, IBasketRepository basketRepository, IBasketItemRepository basketItemRepository, ICurrentUserAccessor currentUser, IBasketService basketService) : GenericService<BasketItem, IDto>(mapper, repository), IBasketItemService
 {
     public async Task<IOperationResult> CreateBasketItemAsync(Guid serviceId, int quantity = 1)
     {
@@ -81,7 +82,7 @@ public class BasketItemManager(IMapper mapper, IGenericRepository<BasketItem> re
 
         return new SuccessResult("Basket item successfully added.", ResultStatus.Created);
     }
-    public async Task<IOperationResult> RemoveBasketItemAsync(string userId, Guid basketItemId)
+    public async Task<IOperationResult> RemoveBasketItemAsync(Guid userId, Guid basketItemId)
     {
         // 1. Get user's current basket
         var basket = await basketRepository.GetBasketByUserIdAsync(userId, tracking: false, status: true);
@@ -103,13 +104,11 @@ public class BasketItemManager(IMapper mapper, IGenericRepository<BasketItem> re
 
         return new SuccessResult("Basket item removed successfully.");
     }
-    public async Task<IOperationResult<IQueryable<ResultBasketItemDto>>> GetBasketItemsByUserIdAsync(string id, bool tracking = true, bool? status = true)
+    public async Task<IOperationResult<IQueryable<ResultBasketItemDto>>> GetBasketItemsByUserIdAsync(Guid id, bool tracking = true, bool? status = true)
     {
-        var userResult = await systemUserService.GetCurrentUserAsync();
-        if (!userResult.IsSuccessful || userResult.Data is null)
+        if (currentUser.UserId is not { } rawUserId || !Guid.TryParse(rawUserId, out var userId))
             return new ErrorDataResult<IQueryable<ResultBasketItemDto>>("User not found or not logged in.", ResultStatus.Unauthorized);
 
-        var userId = userResult.Data.Id;
         var basket = await basketRepository.GetBasketByUserIdAsync(userId, tracking, status);
 
         if (basket is null)
@@ -146,15 +145,10 @@ public class BasketItemManager(IMapper mapper, IGenericRepository<BasketItem> re
     }
     public async Task<IOperationResult<int>> GetTotalBasketItemsCountAsync(bool tracking = true, bool? status = true)
     {
-        var userResult = await systemUserService.GetCurrentUserAsync();
-
-        // Check if ResultData is null
-        if (userResult is null || userResult.Data is null || string.IsNullOrEmpty(userResult.Data.Id))
+        if (currentUser.UserId is not { } rawUserId || !Guid.TryParse(rawUserId, out var userId))
         {
             return new ErrorDataResult<int>("User not found or not logged in.", ResultStatus.Unauthorized);
         }
-
-        var userId = userResult.Data.Id;
 
         var basket = await basketRepository.GetBasketByUserIdAsync(userId, tracking, status);
         if (basket is null)

@@ -1,10 +1,12 @@
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.BusinessLogic.Abstractions.IServiceManagers;
 using OnlineConsulting.BusinessLogic.Concretions.Services;
+using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
 
 namespace OnlineConsulting.UserInterface.Areas.User.ViewComponents.DashboardViewComponents.DashboardDashboardViewComponents;
 
-public class DashboardDashboardComponentPartial(IServiceManager serviceManager) : ViewComponent
+public class DashboardDashboardComponentPartial(IServiceManager serviceManager, ISender sender) : ViewComponent
 {
     public async Task<IViewComponentResult> InvokeAsync()
     {
@@ -14,7 +16,7 @@ public class DashboardDashboardComponentPartial(IServiceManager serviceManager) 
         var cancelledOrderCount = 0;
         decimal totalSpent = 0;
 
-        var resultUser = await serviceManager.SystemUserService.GetCurrentUserAsync();
+        var resultUser = await sender.Send(new GetCurrentUserQuery());
         if (!resultUser.IsSuccessful || resultUser.Data is null)
             return Content(string.Empty);
 

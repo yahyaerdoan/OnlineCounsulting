@@ -26,8 +26,6 @@ public interface IServiceManager
     IWhatWeProvideService WhatWeProvideService { get; }
     IImgIconService ImgIconService { get; }
     IClassIconService ClassIconService { get; }
-    ISystemUserService SystemUserService { get; }
-    ISystemRoleService SystemRoleService { get; }
     IBasketItemService BasketItemService { get; }
     IBasketService BasketService { get; }
     IUserAddressService UserAddressService { get; }
@@ -35,5 +33,4 @@ public interface IServiceManager
     IOrderItemService OrderItemService { get; }
     IAiContentService AiContentService { get; }
     IStripeService StripeService { get; }
-    IFlightService FlightService { get; }
 }

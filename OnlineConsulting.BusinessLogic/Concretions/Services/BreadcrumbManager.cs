@@ -1,6 +1,4 @@
-using AutoMapper;
-using ResultHandler.Implementations.Error;
-using ResultHandler.Implementations.Success;
+﻿using AutoMapper;
 using OnlineConsulting.BusinessLogic.Abstractions.IServices;
 using OnlineConsulting.BusinessLogic.Abstractions.IStorageServices.IStorages;
 using OnlineConsulting.BusinessLogic.Concretions.GenericServices;
@@ -10,6 +8,8 @@ using OnlineConsulting.DataTransferObject.Concretions.Dtos.BreadcrumbDtos;
 using OnlineConsulting.Entity.Concretions.Entities;
 using ResultHandler.Core.Abstractions;
 using ResultHandler.Core.Enums;
+using ResultHandler.Implementations.Error;
+using ResultHandler.Implementations.Success;
 
 namespace OnlineConsulting.BusinessLogic.Concretions.Services;
 

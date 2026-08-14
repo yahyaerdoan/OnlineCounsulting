@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\OnlineConsulting.Entity\OnlineConsulting.Entity.csproj" />
+    <ProjectReference Include="..\OnlineConsulting.SharedKernel\OnlineConsulting.SharedKernel.csproj" />
   </ItemGroup>
 
 </Project>

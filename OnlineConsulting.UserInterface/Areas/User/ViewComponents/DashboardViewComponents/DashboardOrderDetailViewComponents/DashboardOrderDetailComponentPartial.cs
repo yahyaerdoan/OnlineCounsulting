@@ -1,11 +1,13 @@
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.BusinessLogic.Abstractions.IServiceManagers;
 using OnlineConsulting.DataTransferObject.Concretions.Dtos.OrderDtos;
+using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
 using System.Diagnostics;
 
 namespace OnlineConsulting.UserInterface.Areas.User.ViewComponents.DashboardViewComponents.DashboardOrderDetailViewComponents;
 
-public class DashboardOrderDetailComponentPartial(IServiceManager serviceManager) : ViewComponent
+public class DashboardOrderDetailComponentPartial(IServiceManager serviceManager, ISender sender) : ViewComponent
 {
     #region GetOrderDetailByIdAsync Step-by-Step Explanation
     //public async Task<IViewComponentResult> InvokeAsync(Guid orderId)
@@ -68,7 +70,7 @@ public class DashboardOrderDetailComponentPartial(IServiceManager serviceManager
     public async Task<IViewComponentResult> InvokeAsync(Guid orderId)
     {
         var stopwatch = Stopwatch.StartNew();
-        var userResult = await serviceManager.SystemUserService.GetCurrentUserAsync();
+        var userResult = await sender.Send(new GetCurrentUserQuery());
         if (!userResult.IsSuccessful)
             return View(new ResultOrderDetailDto());
 

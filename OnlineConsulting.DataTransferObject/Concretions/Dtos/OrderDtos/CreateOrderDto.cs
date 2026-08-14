@@ -8,7 +8,7 @@ public class CreateOrderDto : IDto
     public string OrderStatus { get; set; } = string.Empty;
     public string PaymentStatus { get; set; } = string.Empty;
 
-    public string UserId { get; set; } = string.Empty;
+    public Guid UserId { get; set; }
     public Guid ShippingAddressId { get; set; }
     public Guid InvoiceAddressId { get; set; }
 }

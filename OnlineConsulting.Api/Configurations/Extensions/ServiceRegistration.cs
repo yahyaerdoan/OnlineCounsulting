@@ -1,65 +1,35 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
-using Scrutor;
-using OnlineConsulting.BusinessLogic.Concretions.Configurations.AppSettingConfigurations.AppSettingOptions;
-using OnlineConsulting.DataAccess.Concretions.Contexts;
-using OnlineConsulting.Entity.Concretions.Entities;
-using System.Text;
+using OnlineConsulting.SharedKernel.DependencyInjection;
 
 namespace OnlineConsulting.Api.Configurations.Extensions;
 
 public static class ServiceRegistration
 {
-    public static void AddApiServiceRegistration(this IServiceCollection services, IConfiguration configuration)
+    public static void AddApiServiceRegistration(this IServiceCollection services, ConfigurationManager configuration)
     {
-        var assemblies = AppDomain.CurrentDomain.GetAssemblies()
-            .Where(a => a.FullName is not null && a.FullName.StartsWith("OnlineConsulting"))
-            .ToArray();
+        services.AddOnlineConsultingConventionServices();
 
-        services.Scan(scan => scan.FromAssemblies(assemblies).AddClasses(publicOnly: false)
-        .UsingRegistrationStrategy(RegistrationStrategy.Skip)
-        .AsMatchingInterface().AsImplementedInterfaces()
-        .WithScopedLifetime());
-
-        services.AddIdentity<User, Role>(options =>
-        {
-            options.Password.RequiredLength = 6;
-        })
-        .AddEntityFrameworkStores<OnlineConsultingDbContext>()
-        .AddDefaultTokenProviders();
-
-        var jwtOption = configuration.GetSection(JwtOption.Jwt).Get<JwtOption>() ?? new JwtOption();
-
-        services.AddAuthentication(options =>
-        {
-            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-        })
-        .AddJwtBearer(options =>
-        {
-            options.TokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateLifetime = true,
-                ValidateIssuerSigningKey = true,
-                ValidIssuer = jwtOption.Issuer,
-                ValidAudience = jwtOption.Audience,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOption.Key)),
-                ClockSkew = TimeSpan.Zero
-            };
-        });
-
+        // Identity/JWT bearer wiring lives in IdentityModule.AddIdentityModule() /
+        // AddIdentityModuleJwtBearer() (Program.cs) - Auth is a module like Categories, not
+        // registered inline here. Role/permission checks moved into AuthorizationAddingBehavior
+        // (per-command Roles arrays), so there's no policy to register here anymore - endpoints
+        // only call .RequireAuthorization() for "must be logged in."
         services.AddAuthorization();
+        services.AddCors();
+        services.AddSwagger();
+    }
 
+    private static void AddCors(this IServiceCollection services)
+    {
         services.AddCors(opt => opt.AddDefaultPolicy(policy => policy
             .WithOrigins("http://localhost:4200", "https://localhost:4200")
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials()));
+    }
 
+    private static void AddSwagger(this IServiceCollection services)
+    {
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen(c =>
         {
@@ -68,19 +38,23 @@ public static class ServiceRegistration
             var securityScheme = new OpenApiSecurityScheme
             {
                 Name = "Authorization",
-                Description = "Enter: Bearer {your JWT token}",
+                Description = "JWT access token (paste the raw token - \"Bearer \" is added automatically)",
                 In = ParameterLocation.Header,
-                Type = SecuritySchemeType.ApiKey,
-                Scheme = "Bearer"
+                Type = SecuritySchemeType.Http,
+                Scheme = "bearer",
+                BearerFormat = "JWT"
             };
             c.AddSecurityDefinition("Bearer", securityScheme);
-            c.AddSecurityRequirement(_ => new OpenApiSecurityRequirement
+            // AddSecurityRequirement's delegate receives the OpenApiDocument being generated -
+            // the reference must be bound to that document (hostDocument param), or Swashbuckle
+            // 10.x silently drops the requirement and no "security" ends up in swagger.json (root
+            // or per-operation), so the Authorize button never actually attaches the token to
+            // requests.
+            c.AddSecurityRequirement(document => new OpenApiSecurityRequirement
             {
-                {
-                    new OpenApiSecuritySchemeReference("Bearer"),
-                    new List<string>()
-                }
+                [new OpenApiSecuritySchemeReference("Bearer", document)] = []
             });
+            c.OperationFilter<AuthorizeOperationFilter>();
         });
     }
 }

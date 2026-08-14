@@ -4,7 +4,7 @@ namespace OnlineConsulting.DataTransferObject.Concretions.Dtos.UserAddressDtos;
 
 public class CreateUserAddressDto : IDto
 {
-    public string? UserId { get; set; }
+    public Guid? UserId { get; set; }
     public string AddressName { get; set; } = string.Empty;
     public string? CompanyName { get; set; }
     public string Country { get; set; } = string.Empty;

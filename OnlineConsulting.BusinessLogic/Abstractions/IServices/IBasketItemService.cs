@@ -9,8 +9,8 @@ namespace OnlineConsulting.BusinessLogic.Abstractions.IServices;
 public interface IBasketItemService : IGenericService<BasketItem, IDto>
 {
     Task<IOperationResult> CreateBasketItemAsync(Guid serviceId, int quantity = 1);
-    Task<IOperationResult> RemoveBasketItemAsync(string userId, Guid basketItemId);
-    Task<IOperationResult<IQueryable<ResultBasketItemDto>>> GetBasketItemsByUserIdAsync(string id, bool tracking = true, bool? status = true);
+    Task<IOperationResult> RemoveBasketItemAsync(Guid userId, Guid basketItemId);
+    Task<IOperationResult<IQueryable<ResultBasketItemDto>>> GetBasketItemsByUserIdAsync(Guid id, bool tracking = true, bool? status = true);
     Task<IOperationResult> ClearBasketItemsByIdAsync(Guid basketId);
     Task<IOperationResult<int>> GetTotalBasketItemsCountAsync(bool tracking = true, bool? status = true);
 }

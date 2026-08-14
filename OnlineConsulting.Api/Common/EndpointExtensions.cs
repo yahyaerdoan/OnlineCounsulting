@@ -2,9 +2,19 @@ namespace OnlineConsulting.Api.Common;
 
 public static class EndpointExtensions
 {
-    public static WebApplication MapEndpoint<TEndpoint>(this WebApplication app) where TEndpoint : IEndpoint, new()
+    /// <summary>Maps every <see cref="IEndpoint"/> found in this assembly - new endpoints register
+    /// themselves just by existing, so Program.cs never needs a per-endpoint line.</summary>
+    public static WebApplication MapEndpoints(this WebApplication app)
     {
-        new TEndpoint().MapEndpoint(app);
+        var endpointTypes = typeof(IEndpoint).Assembly.GetTypes()
+            .Where(type => type is { IsClass: true, IsAbstract: false } && typeof(IEndpoint).IsAssignableFrom(type));
+
+        foreach (var endpointType in endpointTypes)
+        {
+            var endpoint = (IEndpoint)Activator.CreateInstance(endpointType)!;
+            endpoint.MapEndpoint(app);
+        }
+
         return app;
     }
 }

@@ -26,16 +26,13 @@ public class ServiceManager(
     IWhatWeProvideService whatWeProvideService,
     IImgIconService imgIconService,
     IClassIconService classIconService,
-    ISystemUserService systemUserService,
-    ISystemRoleService systemRoleService,
     IBasketItemService basketItemService,
     IBasketService basketService,
     IUserAddressService userAddressService,
     IOrderService orderService,
     IOrderItemService orderItemService,
     IAiContentService aiContentService,
-    IStripeService stripeService,
-    IFlightService flightService) : IServiceManager
+    IStripeService stripeService) : IServiceManager
 {
     public IAboutUsService AboutUsService => aboutUsService;
     public IBreadcrumbService BreadcrumbService => breadcrumbService;
@@ -59,8 +56,6 @@ public class ServiceManager(
     public IGalleryCategoryService GalleryCategoryService => galleryCategoryService;
     public IImgIconService ImgIconService => imgIconService;
     public IClassIconService ClassIconService => classIconService;
-    public ISystemUserService SystemUserService => systemUserService;
-    public ISystemRoleService SystemRoleService => systemRoleService;
     public IBasketItemService BasketItemService => basketItemService;
     public IBasketService BasketService => basketService;
     public IUserAddressService UserAddressService => userAddressService;
@@ -68,5 +63,4 @@ public class ServiceManager(
     public IOrderItemService OrderItemService => orderItemService;
     public IAiContentService AiContentService => aiContentService;
     public IStripeService StripeService => stripeService;
-    public IFlightService FlightService => flightService;
 }

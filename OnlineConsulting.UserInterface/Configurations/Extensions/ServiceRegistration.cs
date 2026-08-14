@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using NToastNotify;
-using Scrutor;
+using OnlineConsulting.SharedKernel.DependencyInjection;
 using System.Globalization;
 
 namespace OnlineConsulting.UserInterface.Configurations.Extensions;
@@ -9,14 +9,7 @@ public static class ServiceRegistration
 {
     public static void AddUserInterfaceServiceRegistration(this IServiceCollection services, IConfiguration configuration)
     {
-        var assemblies = AppDomain.CurrentDomain.GetAssemblies()
-            .Where(a => a.FullName is not null && a.FullName.StartsWith("OnlineConsulting"))
-            .ToArray();
-
-        services.Scan(scan => scan.FromAssemblies(assemblies).AddClasses(publicOnly: false)
-        .UsingRegistrationStrategy(RegistrationStrategy.Skip)
-        .AsMatchingInterface().AsImplementedInterfaces()
-        .WithScopedLifetime());
+        services.AddOnlineConsultingConventionServices();
 
         services.AddRouting(options =>
         {

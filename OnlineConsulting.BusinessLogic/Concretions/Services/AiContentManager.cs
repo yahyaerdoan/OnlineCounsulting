@@ -1,9 +1,9 @@
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
+using OnlineConsulting.BusinessLogic.Abstractions.IServices;
 using ResultHandler.Core.Abstractions;
 using ResultHandler.Core.Enums;
 using ResultHandler.Implementations.Error;
 using ResultHandler.Implementations.Success;
-using OnlineConsulting.BusinessLogic.Abstractions.IServices;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;

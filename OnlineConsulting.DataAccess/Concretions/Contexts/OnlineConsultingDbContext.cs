@@ -1,13 +1,14 @@
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using OnlineConsulting.Entity.Concretions.BaseEntities;
 using OnlineConsulting.Entity.Concretions.Entities;
 namespace OnlineConsulting.DataAccess.Concretions.Contexts;
 
+// Plain DbContext, not IdentityDbContext<User,Role,string> anymore: Identity/User/Role now live
+// in the Identity module's own AppIdentityDbContext (separate schema, separate DbContext). Cross-module
+// references to a user are by UserId (string) column only, never EF navigation or DbSet<User>.
 public class OnlineConsultingDbContext(DbContextOptions<OnlineConsultingDbContext> options,
-    IHttpContextAccessor httpContextAccessor) : IdentityDbContext<User, Role, string>(options)
+    IHttpContextAccessor httpContextAccessor) : DbContext(options)
 {
     #region DbSets
     public DbSet<AboutUs>? AboutUs { get; set; }
@@ -28,7 +29,6 @@ public class OnlineConsultingDbContext(DbContextOptions<OnlineConsultingDbContex
     public DbSet<SliderItem>? SliderItems { get; set; }
     public DbSet<SocialMedia>? SocialMedias { get; set; }
     public DbSet<Testimonial>? Testimonials { get; set; }
-    public new DbSet<User>? Users { get; set; }
     public DbSet<WhatWeProvide>? WhatWeProvides { get; set; }
     public DbSet<GalleryItem>? GalleryItems { get; set; }
     public DbSet<GalleryCategory>? GalleryCategories { get; set; }
@@ -37,7 +37,6 @@ public class OnlineConsultingDbContext(DbContextOptions<OnlineConsultingDbContex
     public DbSet<UserAddress>? UserAddresses { get; set; }
     public DbSet<Order>? Orders { get; set; }
     public DbSet<OrderItem>? OrderItems { get; set; }
-    public DbSet<Flight>? Flights { get; set; }
 
     #endregion
 
@@ -175,7 +174,7 @@ public class OnlineConsultingDbContext(DbContextOptions<OnlineConsultingDbContex
     {
         var entries = ChangeTracker.Entries()
             .Where(e =>
-                (e.Entity is BaseEntity || e.Entity.GetType().Name == nameof(User)) &&
+                e.Entity is BaseEntity &&
                 (e.State == EntityState.Added || e.State == EntityState.Modified || e.State == EntityState.Deleted));
 
         var currentUser = httpContextAccessor.HttpContext?.User?.Identity?.Name ?? "Anonymous";
@@ -231,48 +230,6 @@ public class OnlineConsultingDbContext(DbContextOptions<OnlineConsultingDbContex
                         break;
 
                     case EntityState.Deleted:
-                        break;
-                }
-            }
-            else if (entry.Entity.GetType().Name == nameof(User))
-            {
-                var userType = entry.Entity.GetType();
-                var props = userType.GetProperties();
-
-                void TrySet(string name, object? value)
-                {
-                    var prop = props.FirstOrDefault(p => p.Name == name);
-                    if (prop?.CanWrite == true) prop.SetValue(entry.Entity, value);
-                }
-
-                switch (entry.State)
-                {
-                    case EntityState.Added:
-                        TrySet("Status", true);
-                        TrySet("CreatedDate", currentTime);
-                        TrySet("CreatedBy", currentUser);
-                        break;
-
-                    case EntityState.Modified:
-                        TrySet("UpdatedDate", currentTime);
-                        TrySet("UpdatedBy", currentUser);
-                        break;
-
-                    case EntityState.Deleted:
-                        var statusProp = props.FirstOrDefault(p => p.Name == "Status");
-                        var status = statusProp?.GetValue(entry.Entity) as bool?;
-
-                        if (status == true)
-                        {
-                            entry.State = EntityState.Modified;
-                            TrySet("Status", false);
-                            TrySet("DeletedDate", currentTime);
-                            TrySet("DeletedBy", currentUser);
-                        }
-                        else
-                        {
-                            entry.State = EntityState.Deleted;
-                        }
                         break;
                 }
             }

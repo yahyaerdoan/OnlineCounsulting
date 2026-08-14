@@ -1,19 +1,21 @@
+﻿using MediatR;
 using Microsoft.Extensions.Options;
+using OnlineConsulting.BusinessLogic.Abstractions.IServices;
+using OnlineConsulting.BusinessLogic.Concretions.Configurations.AppSettingConfigurations.AppSettingOptions;
+using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
 using ResultHandler.Core.Abstractions;
 using ResultHandler.Core.Enums;
 using ResultHandler.Implementations.Error;
 using ResultHandler.Implementations.Success;
-using OnlineConsulting.BusinessLogic.Abstractions.IServices;
-using OnlineConsulting.BusinessLogic.Concretions.Configurations.AppSettingConfigurations.AppSettingOptions;
 using Stripe;
 
 namespace OnlineConsulting.BusinessLogic.Concretions.Services;
 
-public class StripeService(ISystemUserService systemUserService, IOptions<AppSettingStripeOption> stripeOptions) : IStripeService
+public class StripeService(ISender sender, IOptions<AppSettingStripeOption> stripeOptions) : IStripeService
 {
     public async Task<IOperationResult<string>> CreatePaymentIntentAsync(decimal amount, string? description = null, string currency = "usd")
     {
-        var result = await systemUserService.GetCurrentUserAsync();
+        var result = await sender.Send(new GetCurrentUserQuery());
         if (!result.IsSuccessful || result.Data is null)
             return new ErrorDataResult<string>("User not found or not logged in.", ResultStatus.Unauthorized);
 

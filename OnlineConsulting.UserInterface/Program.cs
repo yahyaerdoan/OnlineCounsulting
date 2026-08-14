@@ -1,15 +1,15 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using OnlineConsulting.BusinessLogic.Concretions.Configurations.Extensions;
 using OnlineConsulting.BusinessLogic.Concretions.Filters.ValidationFilters;
 using OnlineConsulting.DataAccess.Concretions.Configurations.Extensions;
-using OnlineConsulting.DataAccess.Concretions.Contexts;
 using OnlineConsulting.DataTransferObject.Concretions.Configurations.Extensions;
-using OnlineConsulting.Entity.Concretions.Entities;
+using OnlineConsulting.Modules.Identity.Infrastructure;
 using OnlineConsulting.UserInterface.Configurations.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.AddServiceDefaults();
 
 //Add MVC + custom validation filter + global authorize policy
 builder.Services.AddControllersWithViews(options =>
@@ -27,8 +27,9 @@ builder.Services.AddControllersWithViews(options =>
     options.SuppressModelStateInvalidFilter = true;
 });
 
-//Add Identity with EF store
-builder.Services.AddIdentity<User, Role>().AddEntityFrameworkStores<OnlineConsultingDbContext>().AddDefaultTokenProviders();
+//Identity module: Identity (cookie scheme, its own default), AppIdentityDbContext, CQRS handlers.
+builder.Services.AddIdentityModule(builder.Configuration);
+builder.Services.AddHttpContextAccessor();
 
 //Register your custom DI layers
 builder.Services.AddUserInterfaceServiceRegistration(builder.Configuration);
@@ -43,6 +44,8 @@ builder.Services.AddAuthorizationBuilder()
     .AddPolicy("RequireUserDashboardPolicy", policy => policy.RequireRole("Super Admin", "Admin", "User"));
 
 var app = builder.Build();
+
+app.MapDefaultEndpoints();
 
 //Error handling for production
 if (!app.Environment.IsDevelopment())

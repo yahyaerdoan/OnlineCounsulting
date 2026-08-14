@@ -9,12 +9,12 @@ namespace OnlineConsulting.BusinessLogic.Abstractions.IServices;
 public interface IOrderService : IGenericService<Order, IDto>
 {
     Task<IOperationResult> CreateOrderFromBasketAsync(CreateOrderDto dto);
-    Task<IOperationResult<List<ResultOrderDto>>> GetOrdersByUserIdAsync(string userId);
-    Task<IOperationResult<ResultOrderDetailDto>> GetOrderDetailByIdAsync(Guid orderId, string userId, bool tracking = true, bool? status = true);
-    Task<IOperationResult<int>> GetTotalOrderCountAsync(string userId, bool tracking = true, bool? status = true);
-    Task<IOperationResult<int>> GetOrderCountByOrderStatusAsync(string userId, string orderStatus, bool tracking = true, bool? status = true);
-    Task<IOperationResult<int>> GetOrderCountByPaymentStatusAsync(string userId, string paymentStatus, bool tracking = true, bool? status = true);
-    Task<IOperationResult<decimal>> GetTotalSpentByUserIdAsync(string userId, bool tracking = true, bool? status = true);
+    Task<IOperationResult<List<ResultOrderDto>>> GetOrdersByUserIdAsync(Guid userId);
+    Task<IOperationResult<ResultOrderDetailDto>> GetOrderDetailByIdAsync(Guid orderId, Guid userId, bool tracking = true, bool? status = true);
+    Task<IOperationResult<int>> GetTotalOrderCountAsync(Guid userId, bool tracking = true, bool? status = true);
+    Task<IOperationResult<int>> GetOrderCountByOrderStatusAsync(Guid userId, string orderStatus, bool tracking = true, bool? status = true);
+    Task<IOperationResult<int>> GetOrderCountByPaymentStatusAsync(Guid userId, string paymentStatus, bool tracking = true, bool? status = true);
+    Task<IOperationResult<decimal>> GetTotalSpentByUserIdAsync(Guid userId, bool tracking = true, bool? status = true);
     Task<IOperationResult<IQueryable<TDto>>> GetAllOrderWithUsersAsync<TDto>(bool tracking = true, bool? status = true);
 }
 public interface IOrderNumberGenerator

@@ -1,5 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
-using ResultHandler.Core.Abstractions;
+﻿using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.BusinessLogic.Abstractions.IServiceManagers;
 using OnlineConsulting.DataTransferObject.Concretions.Dtos.AboutUsDtos;
 using System.Web;

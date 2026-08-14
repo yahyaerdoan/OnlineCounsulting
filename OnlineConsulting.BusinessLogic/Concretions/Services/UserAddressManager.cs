@@ -1,27 +1,27 @@
-using AutoMapper;
+﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using ResultHandler.Implementations.Error;
-using ResultHandler.Implementations.Success;
 using OnlineConsulting.BusinessLogic.Abstractions.IServices;
 using OnlineConsulting.BusinessLogic.Concretions.GenericServices;
 using OnlineConsulting.DataAccess.Abstractions.IGenericRepositories;
 using OnlineConsulting.DataTransferObject.Abstractions.IDtos;
 using OnlineConsulting.DataTransferObject.Concretions.Dtos.UserAddressDtos;
 using OnlineConsulting.Entity.Concretions.Entities;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.Core.Abstractions;
 using ResultHandler.Core.Enums;
+using ResultHandler.Implementations.Error;
+using ResultHandler.Implementations.Success;
 
 namespace OnlineConsulting.BusinessLogic.Concretions.Services;
 
-public class UserAddressManager(IMapper mapper, IGenericRepository<UserAddress> repository, ISystemUserService systemUserService) : GenericService<UserAddress, IDto>(mapper, repository), IUserAddressService
+public class UserAddressManager(IMapper mapper, IGenericRepository<UserAddress> repository, ICurrentUserAccessor currentUser) : GenericService<UserAddress, IDto>(mapper, repository), IUserAddressService
 {
     public async Task<IOperationResult> AddUserAddressAsync(CreateUserAddressDto dto)
     {
-        var userResult = await systemUserService.GetCurrentUserAsync();
-        if (!userResult.IsSuccessful || userResult.Data is null)
+        if (currentUser.UserId is not { } rawUserId || !Guid.TryParse(rawUserId, out var userId))
             return new ErrorResult("User not found or not logged in.", ResultStatus.Unauthorized);
 
-        dto.UserId = userResult.Data.Id;
+        dto.UserId = userId;
 
         if (dto.IsShippingAddress)
         {
@@ -88,11 +88,8 @@ public class UserAddressManager(IMapper mapper, IGenericRepository<UserAddress> 
     }
     public async Task<IOperationResult<IQueryable<ResultUserAddressDto>>> GetAddressesAsync(bool tracking = true, bool? status = true)
     {
-        var userResult = await systemUserService.GetCurrentUserAsync();
-        if (!userResult.IsSuccessful || userResult.Data is null)
+        if (currentUser.UserId is not { } rawUserId || !Guid.TryParse(rawUserId, out var userId))
             return new ErrorDataResult<IQueryable<ResultUserAddressDto>>("User not found or not logged in.", ResultStatus.Unauthorized);
-
-        var userId = userResult.Data.Id;
 
         var result = await GetWhereAsync<ResultUserAddressDto>(x => x.UserId == userId, tracking, status);
 
@@ -100,11 +97,8 @@ public class UserAddressManager(IMapper mapper, IGenericRepository<UserAddress> 
     }
     public async Task<IOperationResult<ResultUserAddressDto>> GetShippingAddressAsync(bool tracking = true, bool? status = true)
     {
-        var userResult = await systemUserService.GetCurrentUserAsync();
-        if (!userResult.IsSuccessful || userResult.Data is null)
+        if (currentUser.UserId is not { } rawUserId || !Guid.TryParse(rawUserId, out var userId))
             return new ErrorDataResult<ResultUserAddressDto>("User not found or not logged in.", ResultStatus.Unauthorized);
-
-        var userId = userResult.Data.Id;
 
         var result = await GetFirstOrDefaultAsync<ResultUserAddressDto>(x => x.IsShippingAddress && x.UserId == userId, tracking);
 
@@ -112,11 +106,8 @@ public class UserAddressManager(IMapper mapper, IGenericRepository<UserAddress> 
     }
     public async Task<IOperationResult<ResultUserAddressDto>> GetBillingAddressAsync(bool tracking = true, bool? status = true)
     {
-        var userResult = await systemUserService.GetCurrentUserAsync();
-        if (!userResult.IsSuccessful || userResult.Data is null)
+        if (currentUser.UserId is not { } rawUserId || !Guid.TryParse(rawUserId, out var userId))
             return new ErrorDataResult<ResultUserAddressDto>("User not found or not logged in.", ResultStatus.Unauthorized);
-
-        var userId = userResult.Data.Id;
 
         var result = await GetFirstOrDefaultAsync<ResultUserAddressDto>(x => x.IsBillingAddress && x.UserId == userId, tracking);
 

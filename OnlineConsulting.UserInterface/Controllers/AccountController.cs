@@ -1,18 +1,18 @@
+﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NToastNotify;
-using ResultHandler.Core.Enums;
-using ResultHandler.Implementations.Error;
-using OnlineConsulting.BusinessLogic.Abstractions.IServiceManagers;
 using OnlineConsulting.BusinessLogic.Abstractions.IServices;
-using OnlineConsulting.BusinessLogic.Concretions.Services;
 using OnlineConsulting.DataTransferObject.Concretions.Dtos.UserDtos;
+using OnlineConsulting.Modules.Identity.Application.Features.Auth.LoginCookie;
+using OnlineConsulting.Modules.Identity.Application.Features.Auth.Logout;
+using OnlineConsulting.Modules.Identity.Application.Features.Auth.Register;
 using OnlineConsulting.UserInterface.NotificationServices.ToastrServices;
 
 namespace OnlineConsulting.UserInterface.Controllers;
 
 [AllowAnonymous]
-public class AccountController(IServiceManager serviceManager, IToastNotification toastNotification, IRecaptchaService recaptchaService) : Controller
+public class AccountController(ISender sender, IToastNotification toastNotification, IRecaptchaService recaptchaService) : Controller
 {
     [HttpGet]
     public IActionResult Register() => View();
@@ -22,26 +22,23 @@ public class AccountController(IServiceManager serviceManager, IToastNotificatio
         var recaptchaResponse = Request.Form["g-recaptcha-response"].ToString();
         if (!await recaptchaService.VerifyAsync(recaptchaResponse))
         {
-            NToastService.Show(toastNotification, "reCAPTCHA verification failed. Please try again.", ResultStatus.BadRequest);
+            NToastService.Show(toastNotification, "reCAPTCHA verification failed. Please try again.", ResultHandler.Core.Enums.ResultStatus.BadRequest);
             return View(createUserDto);
         }
 
-        var result = await serviceManager.SystemUserService.CreateUserAsync(createUserDto);
+        var result = await sender.Send(new RegisterCommand(
+            createUserDto.FirstName, createUserDto.LastName, createUserDto.UserName, createUserDto.Email, createUserDto.Password));
 
         NToastService.Show(toastNotification, result.Title, result.Status);
 
-        if (result is ErrorDataResult<List<ValidationRule>> ruleResult && ruleResult.Data is not null)
-            AddValidationRulesToModelState(ruleResult.Data);
+        if (!result.IsSuccessful)
+        {
+            foreach (var error in result.Errors)
+                ModelState.AddModelError(string.Empty, error);
+            return View(createUserDto);
+        }
 
-        if (result.IsSuccessful)
-            return RedirectToAction("Login");
-
-        return View(createUserDto);
-    }
-    private void AddValidationRulesToModelState(List<ValidationRule> rules)
-    {
-        foreach (var rule in rules)
-            ModelState.AddModelError(rule.FieldName ?? string.Empty, rule.Description);
+        return RedirectToAction("Login");
     }
     [HttpGet]
     public IActionResult Login(string? returnUrl = null)
@@ -57,9 +54,13 @@ public class AccountController(IServiceManager serviceManager, IToastNotificatio
     [HttpPost]
     public async Task<IActionResult> Login(LoginUserDto loginUserDto, string? returnUrl)
     {
-        var result = await serviceManager.SystemUserService.LoginUserAsync(loginUserDto);
+        var result = await sender.Send(new LoginCookieCommand(loginUserDto.UserNameOrEmail, loginUserDto.Password, loginUserDto.RememberMe));
 
-        NToastService.Show(toastNotification, result.Title, result.Status, result.IsSuccessful ? "Welcome back!" : null);
+        // Error-factory results (Result.BadRequest/Forbidden/...) put the actionable message in
+        // Detail and leave Title as a generic HTTP-status label ("Bad Request") - show Detail when
+        // there is one so the toast doesn't just say "Bad Request" with no explanation.
+        var message = result.IsSuccessful ? result.Title : (result.Detail ?? result.Title);
+        NToastService.Show(toastNotification, message, result.Status, result.IsSuccessful ? "Welcome back!" : null);
 
         if (result.IsSuccessful)
         {
@@ -81,7 +82,7 @@ public class AccountController(IServiceManager serviceManager, IToastNotificatio
     [HttpGet]
     public async Task<IActionResult> Logout()
     {
-        var result = await serviceManager.SystemUserService.LogoutUser();
+        var result = await sender.Send(new LogoutCommand());
         NToastService.Show(toastNotification, result.Title, result.Status, "Goodbye!");
         return RedirectToAction("Index", "Home", new { area = "" });
     }

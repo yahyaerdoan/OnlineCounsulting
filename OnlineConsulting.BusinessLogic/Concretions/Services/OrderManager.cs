@@ -1,7 +1,6 @@
-using AutoMapper;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using ResultHandler.Implementations.Error;
-using ResultHandler.Implementations.Success;
 using OnlineConsulting.BusinessLogic.Abstractions.IServices;
 using OnlineConsulting.BusinessLogic.Concretions.GenericServices;
 using OnlineConsulting.DataAccess.Abstractions.IGenericRepositories;
@@ -12,12 +11,15 @@ using OnlineConsulting.DataTransferObject.Concretions.Dtos.OrderItemDtos;
 using OnlineConsulting.DataTransferObject.Concretions.Dtos.ServiceDtos;
 using OnlineConsulting.DataTransferObject.Concretions.Dtos.UserAddressDtos;
 using OnlineConsulting.Entity.Concretions.Entities;
+using OnlineConsulting.Modules.Identity.Domain;
 using ResultHandler.Core.Abstractions;
 using ResultHandler.Core.Enums;
+using ResultHandler.Implementations.Error;
+using ResultHandler.Implementations.Success;
 
 namespace OnlineConsulting.BusinessLogic.Concretions.Services;
 
-public class OrderManager(IMapper mapper, IGenericRepository<Order> repository, IOrderRepository orderRepository, IOrderNumberGenerator orderNumberGenerator, IBasketItemService basketItemService, IOrderItemService orderItemService, IBasketService basketService, IUserAddressService userAddressService) : GenericService<Order, IDto>(mapper, repository), IOrderService
+public class OrderManager(IMapper mapper, IGenericRepository<Order> repository, IOrderRepository orderRepository, IOrderNumberGenerator orderNumberGenerator, IBasketItemService basketItemService, IOrderItemService orderItemService, IBasketService basketService, IUserAddressService userAddressService, UserManager<User> userManager) : GenericService<Order, IDto>(mapper, repository), IOrderService
 {
     public async Task<IOperationResult> CreateOrderFromBasketAsync(CreateOrderDto dto)
     {
@@ -67,14 +69,36 @@ public class OrderManager(IMapper mapper, IGenericRepository<Order> repository, 
 
     public async Task<IOperationResult<IQueryable<TDto>>> GetAllOrderWithUsersAsync<TDto>(bool tracking = true, bool? status = true)
     {
-        var result = orderRepository.GetAllOrderWithUsers(tracking, status)
-              .Select(order => _mapper.Map<TDto>(order));
-        if (result is null || !await result.AnyAsync())
+        var orders = await orderRepository.GetAllOrderWithUsers(tracking, status).ToListAsync();
+        if (orders.Count == 0)
             return new ErrorDataResult<IQueryable<TDto>>("No orders found.", ResultStatus.NotFound);
-        return new SuccessDataResult<IQueryable<TDto>>(result, "Orders retrieved successfully.", ResultStatus.Ok);
+
+        var mapped = orders.Select(order => _mapper.Map<TDto>(order)).ToList();
+
+        // Order (this DbContext) and User (Identity module's own DbContext) can't be EF-joined
+        // anymore, so backfill display names with a second lookup when the caller asked for
+        // ResultOrderDto specifically.
+        if (mapped is List<ResultOrderDto> resultOrders)
+        {
+            var userIds = orders.Select(o => o.UserId).Distinct().ToList();
+            var usersById = await userManager.Users
+                .Where(u => userIds.Contains(u.Id))
+                .ToDictionaryAsync(u => u.Id);
+
+            foreach (var (order, dto) in orders.Zip(resultOrders))
+            {
+                if (usersById.TryGetValue(order.UserId, out var user))
+                {
+                    dto.UserFirstName = user.FirstName;
+                    dto.UserLastName = user.LastName;
+                }
+            }
+        }
+
+        return new SuccessDataResult<IQueryable<TDto>>(mapped.AsQueryable(), "Orders retrieved successfully.", ResultStatus.Ok);
     }
 
-    public async Task<IOperationResult<int>> GetOrderCountByOrderStatusAsync(string userId, string orderStatus, bool tracking = true, bool? status = true)
+    public async Task<IOperationResult<int>> GetOrderCountByOrderStatusAsync(Guid userId, string orderStatus, bool tracking = true, bool? status = true)
     {
         var orderStatusCount = await orderRepository.GetOrderCountByOrderStatusAsync(userId, orderStatus, tracking, status);
         if (orderStatusCount == 0)
@@ -82,7 +106,7 @@ public class OrderManager(IMapper mapper, IGenericRepository<Order> repository, 
         return new SuccessDataResult<int>(orderStatusCount, "Order count by status retrieved successfully.", ResultStatus.Ok);
     }
 
-    public async Task<IOperationResult<int>> GetOrderCountByPaymentStatusAsync(string userId, string paymentStatus, bool tracking = true, bool? status = true)
+    public async Task<IOperationResult<int>> GetOrderCountByPaymentStatusAsync(Guid userId, string paymentStatus, bool tracking = true, bool? status = true)
     {
         var paymentStatusCount = await orderRepository.GetOrderCountByPaymentStatusAsync(userId, paymentStatus, tracking, status);
         if (paymentStatusCount == 0)
@@ -90,7 +114,7 @@ public class OrderManager(IMapper mapper, IGenericRepository<Order> repository, 
         return new SuccessDataResult<int>(paymentStatusCount, "Order count by payment status retrieved successfully.", ResultStatus.Ok);
     }
 
-    public async Task<IOperationResult<ResultOrderDetailDto>> GetOrderDetailByIdAsync(Guid orderId, string userId, bool tracking = true, bool? status = true)
+    public async Task<IOperationResult<ResultOrderDetailDto>> GetOrderDetailByIdAsync(Guid orderId, Guid userId, bool tracking = true, bool? status = true)
     {
         var order = await orderRepository.GetOrderAndOrderItemDetailByIdAsync(orderId, userId, tracking, status);
         if (order is null)
@@ -115,7 +139,7 @@ public class OrderManager(IMapper mapper, IGenericRepository<Order> repository, 
         return new SuccessDataResult<ResultOrderDetailDto>(model, "Order Detail retrieved successfully", ResultStatus.Ok);
     }
 
-    public async Task<IOperationResult<List<ResultOrderDto>>> GetOrdersByUserIdAsync(string userId)
+    public async Task<IOperationResult<List<ResultOrderDto>>> GetOrdersByUserIdAsync(Guid userId)
     {
         var queryResult = await GetWhereAsync<ResultOrderDto>(order => order.UserId == userId);
 
@@ -127,7 +151,7 @@ public class OrderManager(IMapper mapper, IGenericRepository<Order> repository, 
         return new SuccessDataResult<List<ResultOrderDto>>(orderList, "Orders retrieved successfully.", ResultStatus.Ok);
     }
 
-    public async Task<IOperationResult<int>> GetTotalOrderCountAsync(string userId, bool tracking = true, bool? status = true)
+    public async Task<IOperationResult<int>> GetTotalOrderCountAsync(Guid userId, bool tracking = true, bool? status = true)
     {
         var totalCount = await orderRepository.GetTotalOrderCountAsync(userId, tracking, status);
         if (totalCount == 0)
@@ -135,7 +159,7 @@ public class OrderManager(IMapper mapper, IGenericRepository<Order> repository, 
         return new SuccessDataResult<int>(totalCount, "Total order count retrieved successfully.", ResultStatus.Ok);
     }
 
-    public async Task<IOperationResult<decimal>> GetTotalSpentByUserIdAsync(string userId, bool tracking = true, bool? status = true)
+    public async Task<IOperationResult<decimal>> GetTotalSpentByUserIdAsync(Guid userId, bool tracking = true, bool? status = true)
     {
         var totalSpent = await orderRepository.GetTotalSpentByUserIdAsync(userId, tracking, status);
         if (totalSpent == 0)

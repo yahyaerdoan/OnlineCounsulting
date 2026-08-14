@@ -1,5 +1,4 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
+﻿using Microsoft.EntityFrameworkCore;
 using OnlineConsulting.DataAccess.Abstractions.IGenericRepositories;
 using OnlineConsulting.DataAccess.Concretions.Contexts;
 using OnlineConsulting.Entity.Concretions.BaseEntities;

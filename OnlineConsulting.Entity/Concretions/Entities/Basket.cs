@@ -4,11 +4,11 @@ namespace OnlineConsulting.Entity.Concretions.Entities;
 
 public class Basket : BaseEntity
 {
-    public string UserId { get; set; } = string.Empty;
+    public Guid UserId { get; set; }
     public int Quantity { get; set; }
     public decimal SubTotalPrice { get; set; }
     public decimal TotalPrice { get; set; }
 
-    public User User { get; set; } = null!;
+    // No User navigation: User lives in a separate module/DbContext (Auth).
     public ICollection<BasketItem> BasketItems { get; set; } = [];
 }

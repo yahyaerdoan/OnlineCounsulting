@@ -8,7 +8,7 @@ namespace OnlineConsulting.DataAccess.Concretions.Repositories;
 
 public class OrderRepository(OnlineConsultingDbContext context) : GenericRepository<Order>(context), IOrderRepository
 {
-    public async Task<Order?> GetOrderAndOrderItemDetailByIdAsync(Guid orderId, string userId, bool tracking = true, bool? status = true)
+    public async Task<Order?> GetOrderAndOrderItemDetailByIdAsync(Guid orderId, Guid userId, bool tracking = true, bool? status = true)
     {
         IQueryable<Order> query = Entity;
 
@@ -35,7 +35,7 @@ public class OrderRepository(OnlineConsultingDbContext context) : GenericReposit
         return await query.FirstOrDefaultAsync();
     }
 
-    public Task<int> GetOrderCountByOrderStatusAsync(string userId, string orderStatus, bool tracking = true, bool? status = true)
+    public Task<int> GetOrderCountByOrderStatusAsync(Guid userId, string orderStatus, bool tracking = true, bool? status = true)
     {
         var query = Entity.Where(o => o.UserId == userId && o.OrderStatus == orderStatus);
         if (status.HasValue)
@@ -47,7 +47,7 @@ public class OrderRepository(OnlineConsultingDbContext context) : GenericReposit
         return query.CountAsync();
     }
 
-    public Task<int> GetOrderCountByPaymentStatusAsync(string userId, string paymentStatus, bool tracking = true, bool? status = true)
+    public Task<int> GetOrderCountByPaymentStatusAsync(Guid userId, string paymentStatus, bool tracking = true, bool? status = true)
     {
         var query = Entity.Where(o => o.UserId == userId && o.PaymentStatus == paymentStatus);
         if (status.HasValue)
@@ -59,7 +59,7 @@ public class OrderRepository(OnlineConsultingDbContext context) : GenericReposit
         return query.CountAsync();
     }
 
-    public Task<int> GetTotalOrderCountAsync(string userId, bool tracking = true, bool? status = true)
+    public Task<int> GetTotalOrderCountAsync(Guid userId, bool tracking = true, bool? status = true)
     {
         var query = Entity.Where(o => o.UserId == userId);
         if (status.HasValue)
@@ -71,7 +71,7 @@ public class OrderRepository(OnlineConsultingDbContext context) : GenericReposit
         return query.CountAsync();
     }
 
-    public Task<decimal> GetTotalSpentByUserIdAsync(string userId, bool tracking = true, bool? status = true)
+    public Task<decimal> GetTotalSpentByUserIdAsync(Guid userId, bool tracking = true, bool? status = true)
     {
         var query = Entity
             .Where(o => o.UserId == userId).SelectMany(o => o.OrderItems.Select(oi => new
@@ -90,7 +90,9 @@ public class OrderRepository(OnlineConsultingDbContext context) : GenericReposit
 
     public IQueryable<Order> GetAllOrderWithUsers(bool traking = true, bool? status = true)
     {
-        var query = Entity.Include(s => s.User).AsQueryable();
+        // No .Include(s => s.User): User lives in the Identity module's own DbContext now.
+        // OrderManager.GetAllOrderWithUsersAsync backfills user names via UserManager<User>.
+        var query = Entity.AsQueryable();
         if (status.HasValue)
             query = query.Where(e => e.Status == status);
 

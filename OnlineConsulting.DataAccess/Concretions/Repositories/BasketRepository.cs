@@ -8,7 +8,7 @@ namespace OnlineConsulting.DataAccess.Concretions.Repositories;
 
 public class BasketRepository(OnlineConsultingDbContext context) : GenericRepository<Basket>(context), IBasketRepository
 {
-    public async Task<Basket?> GetBasketByUserIdAsync(string id, bool tracking = true, bool? status = true)
+    public async Task<Basket?> GetBasketByUserIdAsync(Guid id, bool tracking = true, bool? status = true)
     {
         IQueryable<Basket> query = Entity;
 

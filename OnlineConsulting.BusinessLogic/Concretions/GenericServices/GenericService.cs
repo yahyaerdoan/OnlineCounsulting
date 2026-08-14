@@ -1,14 +1,14 @@
-using AutoMapper;
+﻿using AutoMapper;
 using AutoMapper.Extensions.ExpressionMapping;
 using Microsoft.EntityFrameworkCore;
-using ResultHandler.Core.Abstractions;
-using ResultHandler.Core.Enums;
-using ResultHandler.Implementations.Error;
-using ResultHandler.Implementations.Success;
 using OnlineConsulting.BusinessLogic.Abstractions.IGenericServices;
 using OnlineConsulting.DataAccess.Abstractions.IGenericRepositories;
 using OnlineConsulting.DataTransferObject.Abstractions.IDtos;
 using OnlineConsulting.Entity.Concretions.BaseEntities;
+using ResultHandler.Core.Abstractions;
+using ResultHandler.Core.Enums;
+using ResultHandler.Implementations.Error;
+using ResultHandler.Implementations.Success;
 using System.Linq.Expressions;
 
 namespace OnlineConsulting.BusinessLogic.Concretions.GenericServices;

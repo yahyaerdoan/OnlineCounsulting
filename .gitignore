@@ -361,3 +361,9 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Claude Code local config/session data - not for sharing via GitHub
+.claude/
+
+# Local architecture/migration working log - internal notes, not for GitHub
+ARCHITECTURE_MIGRATION.md
