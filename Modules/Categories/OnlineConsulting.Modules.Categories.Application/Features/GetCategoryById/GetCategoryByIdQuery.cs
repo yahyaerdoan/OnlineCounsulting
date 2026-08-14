@@ -1,5 +1,6 @@
 using MediatR;
 using OnlineConsulting.Modules.Categories.Application.Contracts;
+using OnlineConsulting.Modules.Categories.Application.Features.Constants;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
@@ -15,7 +16,7 @@ public class GetCategoryByIdHandler(ICategoryRepository repository)
         var category = await repository.GetAsync(c => c.Id == request.Id, cancellationToken: cancellationToken);
 
         return category is null
-            ? Result.NotFound<CategoryResponse>($"Category {request.Id} was not found.")
+            ? Result.NotFound<CategoryResponse>(string.Format(CategoryMessages.CategoryNotFoundFormat, request.Id))
             : Result.Success(CategoryResponse.FromDomain(category), "Category retrieved successfully.");
     }
 }

@@ -23,7 +23,7 @@ public class GetRoleByIdHandler(RoleManager<Role> roleManager) : IRequestHandler
     {
         var role = await roleManager.FindByIdAsync(request.RoleId.ToString());
         if (role is null)
-            return Result.NotFound<RoleResponse>("No role data found.");
+            return Result.NotFound<RoleResponse>(RoleMessages.NoRoleDataFound);
 
         return Result.Success(new RoleResponse { Id = role.Id, Name = role.Name ?? string.Empty, Description = role.Description }, "Role data retrieved successfully.");
     }

@@ -2,6 +2,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using OnlineConsulting.Modules.Identity.Domain;
+using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -13,8 +14,6 @@ public record RegisterCommand(string FirstName, string LastName, string UserName
 
 public class RegisterHandler(UserManager<User> userManager, RoleManager<Role> roleManager) : IRequestHandler<RegisterCommand, OperationResult>
 {
-    private const string DefaultRoleName = "User";
-
     public async Task<OperationResult> Handle(RegisterCommand request, CancellationToken cancellationToken)
     {
         var user = new User
@@ -31,10 +30,10 @@ public class RegisterHandler(UserManager<User> userManager, RoleManager<Role> ro
         if (!createResult.Succeeded)
             return Result.Invalid([.. createResult.Errors.Select(e => e.Description)]);
 
-        if (!await roleManager.RoleExistsAsync(DefaultRoleName))
-            await roleManager.CreateAsync(new Role { Name = DefaultRoleName });
+        if (!await roleManager.RoleExistsAsync(GlobalOperationClaims.User))
+            await roleManager.CreateAsync(new Role { Name = GlobalOperationClaims.User });
 
-        var roleResult = await userManager.AddToRoleAsync(user, DefaultRoleName);
+        var roleResult = await userManager.AddToRoleAsync(user, GlobalOperationClaims.User);
         if (!roleResult.Succeeded)
             return Result.InternalServerError($"{string.Join("; ", roleResult.Errors.Select(e => e.Description))} errors occurred while assigning the default role. Please try again later.");
 

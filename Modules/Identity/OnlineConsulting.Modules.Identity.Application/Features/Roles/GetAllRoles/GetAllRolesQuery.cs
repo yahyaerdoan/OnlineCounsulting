@@ -24,7 +24,7 @@ public class GetAllRolesHandler(RoleManager<Role> roleManager) : IRequestHandler
     {
         var roles = await roleManager.Roles.AsNoTracking().ToListAsync(cancellationToken);
         if (roles.Count == 0)
-            return Result.NotFound<List<RoleResponse>>("No role data found.");
+            return Result.NotFound<List<RoleResponse>>(RoleMessages.NoRoleDataFound);
 
         var roleResponses = roles.Select(r => new RoleResponse { Id = r.Id, Name = r.Name ?? string.Empty, Description = r.Description }).ToList();
         return Result.Success(roleResponses, "Role data retrieved successfully.");

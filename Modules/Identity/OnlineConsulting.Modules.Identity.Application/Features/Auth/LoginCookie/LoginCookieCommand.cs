@@ -1,6 +1,8 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using OnlineConsulting.Modules.Identity.Application.Features.Auth.Constants;
+using OnlineConsulting.Modules.Identity.Application.Features.Auth.Rules;
 using OnlineConsulting.Modules.Identity.Domain;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -17,7 +19,7 @@ public class LoginCookieHandler(UserManager<User> userManager, SignInManager<Use
             ?? await userManager.Users.FirstOrDefaultAsync(u => u.Email == request.UserNameOrEmail, cancellationToken);
 
         if (user is null)
-            return Result.BadRequest("Invalid credentials. Please check your username and password.");
+            return AuthBusinessRules.InvalidCredentials();
 
         var signInResult = await signInManager.PasswordSignInAsync(user, request.Password, request.RememberMe, lockoutOnFailure: true);
 
@@ -25,7 +27,7 @@ public class LoginCookieHandler(UserManager<User> userManager, SignInManager<Use
             return await LockoutMessageAsync(userManager, user);
 
         if (!signInResult.Succeeded)
-            return Result.BadRequest("Invalid credentials. Please check your username and password.");
+            return AuthBusinessRules.InvalidCredentials();
 
         return Result.Success($"Welcome back, {user.FirstName} {user.LastName}!");
     }
@@ -37,7 +39,7 @@ public class LoginCookieHandler(UserManager<User> userManager, SignInManager<Use
 
         var message = remaining is { TotalSeconds: > 0 }
             ? $"Your account is locked. Try again in {remaining.Value.Minutes} minute(s)."
-            : "Your account is currently locked. Please try again later.";
+            : AuthMessages.AccountLocked;
 
         return Result.Forbidden(message);
     }

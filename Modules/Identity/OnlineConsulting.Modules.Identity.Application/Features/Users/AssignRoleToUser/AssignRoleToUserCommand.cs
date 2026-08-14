@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.AspNetCore.Identity;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Constants;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Contracts;
+using OnlineConsulting.Modules.Identity.Application.Features.Users.Rules;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
 using ResultHandler.Core.Base;
@@ -24,7 +25,7 @@ public class AssignRoleToUserHandler(UserManager<User> userManager) : IRequestHa
     {
         var user = await userManager.FindByIdAsync(request.UserId.ToString());
         if (user is null)
-            return Result.BadRequest("The user could not be found. Please ensure the provided data is correct and try again.");
+            return UserBusinessRules.UserNotFoundOrInvalidData();
 
         foreach (var assignment in request.RoleAssignments)
         {

@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Identity;
+using OnlineConsulting.Modules.Identity.Application.Features.Users.Rules;
 using OnlineConsulting.Modules.Identity.Domain;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -15,7 +16,7 @@ public class ChangePasswordHandler(UserManager<User> userManager) : IRequestHand
         var user = await userManager.FindByIdAsync(request.UserId.ToString());
 
         if (user is null)
-            return Result.NotFound("User not found.");
+            return UserBusinessRules.UserNotFound();
 
         var result = await userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
 

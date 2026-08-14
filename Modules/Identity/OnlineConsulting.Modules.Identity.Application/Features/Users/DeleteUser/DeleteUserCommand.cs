@@ -2,6 +2,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Constants;
+using OnlineConsulting.Modules.Identity.Application.Features.Users.Rules;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
 using ResultHandler.Core.Base;
@@ -22,7 +23,7 @@ public class DeleteUserHandler(UserManager<User> userManager) : IRequestHandler<
     {
         var user = await userManager.FindByIdAsync(request.UserId.ToString());
         if (user is null)
-            return Result.NotFound("No user data found.");
+            return UserBusinessRules.NoUserDataFound();
 
         var result = await userManager.DeleteAsync(user);
 

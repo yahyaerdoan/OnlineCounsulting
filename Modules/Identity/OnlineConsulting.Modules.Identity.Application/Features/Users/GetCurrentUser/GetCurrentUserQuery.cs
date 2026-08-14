@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using OnlineConsulting.Modules.Identity.Application.Features.Users.Constants;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Contracts;
 using OnlineConsulting.Modules.Identity.Domain;
 using ResultHandler.Core.Base;
@@ -22,11 +23,11 @@ public class GetCurrentUserHandler(IHttpContextAccessor httpContextAccessor, Use
 
         var username = identity.Name ?? httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Name)?.Value;
         if (string.IsNullOrEmpty(username))
-            return Result.NotFound<UserResponse>("User not found.");
+            return Result.NotFound<UserResponse>(UserMessages.UserNotFound);
 
         var user = await userManager.FindByNameAsync(username);
         if (user is null)
-            return Result.BadRequest<UserResponse>("The user could not be found. Please ensure the provided data is correct and try again.");
+            return Result.BadRequest<UserResponse>(UserMessages.UserNotFoundOrInvalidData);
 
         var roles = await userManager.GetRolesAsync(user);
         var response = new UserResponse

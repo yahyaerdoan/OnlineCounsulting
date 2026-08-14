@@ -34,6 +34,9 @@
   </Target>
 
   <ItemGroup>
+    <ProjectReference Include="..\Modules\Commerce\OnlineConsulting.Modules.Commerce.Domain\OnlineConsulting.Modules.Commerce.Domain.csproj" />
+    <ProjectReference Include="..\Modules\Commerce\OnlineConsulting.Modules.Commerce.Application\OnlineConsulting.Modules.Commerce.Application.csproj" />
+    <ProjectReference Include="..\Modules\Commerce\OnlineConsulting.Modules.Commerce.Infrastructure\OnlineConsulting.Modules.Commerce.Infrastructure.csproj" />
     <ProjectReference Include="..\Modules\Categories\OnlineConsulting.Modules.Categories.Domain\OnlineConsulting.Modules.Categories.Domain.csproj" />
     <ProjectReference Include="..\Modules\Categories\OnlineConsulting.Modules.Categories.Application\OnlineConsulting.Modules.Categories.Application.csproj" />
     <ProjectReference Include="..\Modules\Categories\OnlineConsulting.Modules.Categories.Infrastructure\OnlineConsulting.Modules.Categories.Infrastructure.csproj" />

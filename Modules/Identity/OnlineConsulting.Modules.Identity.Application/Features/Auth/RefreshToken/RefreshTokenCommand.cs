@@ -28,6 +28,6 @@ public class RefreshTokenHandler(UserManager<User> userManager, ITokenService to
         var (accessToken, accessTokenExpiresAt) = tokenService.CreateAccessToken(user, [.. roles]);
         var (newRefreshToken, _) = await refreshTokenService.IssueAsync(user, cancellationToken);
 
-        return Result.Success(new AuthTokensResponse(accessToken, newRefreshToken, accessTokenExpiresAt), "Token refreshed successfully.");
+        return Result.Success(new AuthTokensResponse(user.Id, accessToken, newRefreshToken, accessTokenExpiresAt), "Token refreshed successfully.");
     }
 }

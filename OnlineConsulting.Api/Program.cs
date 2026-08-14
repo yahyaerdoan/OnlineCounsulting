@@ -5,6 +5,7 @@ using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Api.Configurations.Extensions;
 using OnlineConsulting.Modules.Categories.Infrastructure;
+using OnlineConsulting.Modules.Commerce.Infrastructure;
 using OnlineConsulting.Modules.Identity.Infrastructure;
 using OnlineConsulting.ServiceDefaults;
 using OnlineConsulting.SharedKernel.Tenancy;
@@ -25,6 +26,7 @@ builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(Authorization
 // DbContext - see ARCHITECTURE_MIGRATION.md for why the generic TransactionScope-based
 // TransactionAddingBehavior from Core.ApplicationLayer isn't used (MSDTC).
 builder.Services.AddCategoriesModule(builder.Configuration);
+builder.Services.AddCommerceModule(builder.Configuration);
 builder.Services.AddIdentityModule(builder.Configuration).AddIdentityModuleJwtBearer(builder.Configuration);
 
 builder.Services.AddApiServiceRegistration(builder.Configuration);

@@ -1,6 +1,7 @@
 using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Categories.Application.Features.Constants;
+using OnlineConsulting.Modules.Categories.Application.Features.Rules;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -21,7 +22,7 @@ public class UpdateCategoryHandler(ICategoryRepository repository) : IRequestHan
     {
         var category = await repository.GetAsync(c => c.Id == request.Id, cancellationToken: cancellationToken);
         if (category is null)
-            return Result.NotFound($"Category {request.Id} was not found.");
+            return CategoryBusinessRules.CategoryNotFound(request.Id);
 
         category.Title = request.Title;
         category.Description = request.Description;

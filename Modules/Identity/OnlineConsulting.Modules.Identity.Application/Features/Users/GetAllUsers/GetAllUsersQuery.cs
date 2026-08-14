@@ -24,7 +24,7 @@ public class GetAllUsersHandler(UserManager<User> userManager) : IRequestHandler
     {
         var users = await userManager.Users.ToListAsync(cancellationToken);
         if (users.Count == 0)
-            return Result.NotFound<List<UserResponse>>("No user data found.");
+            return Result.NotFound<List<UserResponse>>(UserMessages.NoUserDataFound);
 
         var userResponses = new List<UserResponse>();
         foreach (var user in users)
