@@ -32,6 +32,9 @@ public class CreateOrderFromBasketHandler(
     IOrderRepository orderRepository,
     IOrderItemRepository orderItemRepository) : IRequestHandler<CreateOrderFromBasketCommand, OperationDataResult<Guid>>
 {
+    private const string OrderNumberPrefix = "ORD-";
+    private const int OrderNumberRandomSegmentLength = 8;
+
     public async Task<OperationDataResult<Guid>> Handle(CreateOrderFromBasketCommand request, CancellationToken cancellationToken)
     {
         var basket = await basketRepository.GetAsync(b => b.UserId == request.UserId, cancellationToken: cancellationToken);
@@ -66,7 +69,7 @@ public class CreateOrderFromBasketHandler(
         var order = new Order
         {
             Id = Guid.NewGuid(),
-            OrderNumber = OrderNumberGenerator.Generate(),
+            OrderNumber = $"{OrderNumberPrefix}{Guid.NewGuid().ToString()[..OrderNumberRandomSegmentLength].ToUpperInvariant()}",
             OrderStatus = OrderStatuses.Pending,
             PaymentStatus = PaymentStatuses.Paid,
             UserId = userId,

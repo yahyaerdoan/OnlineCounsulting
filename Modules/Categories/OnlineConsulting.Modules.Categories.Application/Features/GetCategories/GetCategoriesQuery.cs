@@ -1,3 +1,4 @@
+using Core.ApplicationLayer.Requests.Page;
 using Core.PersistenceLayer.Pagings.Paging;
 using MediatR;
 using OnlineConsulting.Modules.Categories.Application.Contracts;
@@ -6,14 +7,14 @@ using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Categories.Application.Features.GetCategories;
 
-public record GetCategoriesQuery(int Index = 0, int Size = 10) : IRequest<OperationDataResult<Paginate<CategoryResponse>>>;
+public record GetCategoriesQuery(PageRequest PageRequest) : IRequest<OperationDataResult<Paginate<CategoryResponse>>>;
 
 public class GetCategoriesHandler(ICategoryRepository repository)
     : IRequestHandler<GetCategoriesQuery, OperationDataResult<Paginate<CategoryResponse>>>
 {
     public async Task<OperationDataResult<Paginate<CategoryResponse>>> Handle(GetCategoriesQuery request, CancellationToken cancellationToken)
     {
-        var categories = await repository.GetListAsync(index: request.Index, size: request.Size, cancellationToken: cancellationToken);
+        var categories = await repository.GetListAsync(index: request.PageRequest.PageIndex, size: request.PageRequest.PageSize, cancellationToken: cancellationToken);
 
         var response = new Paginate<CategoryResponse>
         {

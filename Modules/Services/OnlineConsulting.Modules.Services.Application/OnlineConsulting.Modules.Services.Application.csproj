@@ -10,11 +10,14 @@
     <PackageReference Include="Core.ApplicationLayer" Version="1.0.15-beta.15" />
     <PackageReference Include="Core.PersistenceLayer" Version="1.0.15-beta.15" />
     <PackageReference Include="FluentValidation" Version="12.1.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.11" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.10" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.10" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.10" />
-    <PackageReference Include="Scrutor" Version="7.0.0" />
+    <PackageReference Include="Hateoas" Version="1.0.0" />
+    <PackageReference Include="MediatR" Version="14.2.0" />
+    <PackageReference Include="ResponseResultHandler" Version="12.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OnlineConsulting.Modules.Services.Domain\OnlineConsulting.Modules.Services.Domain.csproj" />
+    <ProjectReference Include="..\..\..\OnlineConsulting.SharedKernel\OnlineConsulting.SharedKernel.csproj" />
   </ItemGroup>
 
 </Project>

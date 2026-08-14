@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Categories.Application.Features.GetCategories;
 using ResultHandler.AspNetCore.Extensions;
@@ -17,9 +17,9 @@ public class GetCategories : IEndpoint
             .WithDescription("Returns the current tenant's categories, paginated.");
     }
 
-    private static async Task<IResult> Handle([AsParameters] GetCategoriesQuery query, ISender sender, LinkGenerator linkGenerator, HttpContext httpContext)
+    private static async Task<IResult> Handle(ISender sender, LinkGenerator linkGenerator, HttpContext httpContext, int? index = null, int? size = null)
     {
-        var result = await sender.Send(query);
+        var result = await sender.Send(new GetCategoriesQuery(PageRequestFactory.Create(index, size)));
         return result
             .OnSuccess(page =>
             {
