@@ -4,12 +4,12 @@ using Microsoft.AspNetCore.Mvc;
 using NToastNotify;
 using OnlineConsulting.DataTransferObject.Concretions.Dtos.SystemRoleDtos;
 using OnlineConsulting.DataTransferObject.Concretions.Dtos.UserDtos;
-using OnlineConsulting.Modules.Identity.Application.Features.Users.Contracts;
+using OnlineConsulting.Modules.Identity.Application.Features.Roles.GetAllRoles;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.AssignRoleToUser;
+using OnlineConsulting.Modules.Identity.Application.Features.Users.Contracts;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.DeleteUser;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.GetAllUsers;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.GetUserRoles;
-using OnlineConsulting.Modules.Identity.Application.Features.Roles.GetAllRoles;
 using OnlineConsulting.UserInterface.NotificationServices.ToastrServices;
 
 namespace OnlineConsulting.UserInterface.Areas.Admin.Controllers;

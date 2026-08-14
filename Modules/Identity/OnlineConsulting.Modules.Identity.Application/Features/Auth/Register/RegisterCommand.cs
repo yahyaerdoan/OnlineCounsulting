@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
+using MediatR;
 using Microsoft.AspNetCore.Identity;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Tenancy;
@@ -8,7 +9,7 @@ using ResultHandler.Facade;
 namespace OnlineConsulting.Modules.Identity.Application.Features.Auth.Register;
 
 public record RegisterCommand(string FirstName, string LastName, string UserName, string Email, string Password)
-    : IRequest<OperationResult>;
+    : IRequest<OperationResult>, ITransactionAddRequest;
 
 public class RegisterHandler(UserManager<User> userManager, RoleManager<Role> roleManager) : IRequestHandler<RegisterCommand, OperationResult>
 {
@@ -35,9 +36,7 @@ public class RegisterHandler(UserManager<User> userManager, RoleManager<Role> ro
 
         var roleResult = await userManager.AddToRoleAsync(user, DefaultRoleName);
         if (!roleResult.Succeeded)
-            return Result.Failure("Partial failure",
-                $"User created, but role assignment failed: {string.Join("; ", roleResult.Errors.Select(e => e.Description))}",
-                ResultHandler.Core.Enums.ResultStatus.InternalServerError);
+            return Result.InternalServerError($"{string.Join("; ", roleResult.Errors.Select(e => e.Description))} errors occurred while assigning the default role. Please try again later.");
 
         return Result.Created("The user has been successfully created.");
     }

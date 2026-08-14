@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 
 namespace OnlineConsulting.SharedKernel.Tenancy;
 
@@ -11,9 +11,9 @@ public class TenantProvider(IHttpContextAccessor httpContextAccessor) : ITenantP
         get
         {
             var claimValue = httpContextAccessor.HttpContext?.User.FindFirst(TenantClaimType)?.Value;
+
             if (string.IsNullOrEmpty(claimValue) || !Guid.TryParse(claimValue, out var tenantId))
-                throw new InvalidOperationException(
-                    "Tenant could not be resolved from the current request. Missing or invalid 'tenant_id' claim.");
+                throw new InvalidOperationException("Tenant could not be resolved from the current request. Missing or invalid 'tenant_id' claim.");
 
             return tenantId;
         }

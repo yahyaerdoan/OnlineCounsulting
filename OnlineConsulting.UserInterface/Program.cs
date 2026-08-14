@@ -1,10 +1,11 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using OnlineConsulting.BusinessLogic.Concretions.Configurations.Extensions;
 using OnlineConsulting.BusinessLogic.Concretions.Filters.ValidationFilters;
 using OnlineConsulting.DataAccess.Concretions.Configurations.Extensions;
 using OnlineConsulting.DataTransferObject.Concretions.Configurations.Extensions;
 using OnlineConsulting.Modules.Identity.Infrastructure;
+using OnlineConsulting.ServiceDefaults;
 using OnlineConsulting.UserInterface.Configurations.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);

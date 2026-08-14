@@ -1,9 +1,11 @@
 ﻿using FluentValidation;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OnlineConsulting.Modules.Categories.Application;
 using OnlineConsulting.Modules.Categories.Infrastructure.Persistence;
+using OnlineConsulting.Modules.Categories.Infrastructure.Pipelines;
 using OnlineConsulting.Modules.Categories.Infrastructure.Repositories;
 using OnlineConsulting.SharedKernel.Tenancy;
 
@@ -22,8 +24,9 @@ public static class CategoriesModule
 
         services.AddScoped<ICategoryRepository, CategoryRepository>();
 
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(ICategoryRepository).Assembly));
-        services.AddValidatorsFromAssembly(typeof(ICategoryRepository).Assembly);
+        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
+        services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CategoriesTransactionAddingBehavior<,>));
 
         return services;
     }
