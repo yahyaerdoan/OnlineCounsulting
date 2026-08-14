@@ -1,5 +1,6 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Concretions;
 using Core.ApplicationLayer.Pipelines.Validations.Concretions;
+using Core.CrossCuttingConcernLayer.ExceptionHandlings.Extensions;
 using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Api.Configurations.Extensions;
@@ -31,6 +32,8 @@ builder.Services.AddApiServiceRegistration(builder.Configuration);
 var app = builder.Build();
 
 app.MapDefaultEndpoints();
+
+app.UseConfigureCustomExceptionMiddleware();
 
 if (app.Environment.IsDevelopment())
 {

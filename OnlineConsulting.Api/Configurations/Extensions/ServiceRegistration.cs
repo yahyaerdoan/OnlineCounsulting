@@ -1,3 +1,5 @@
+using Core.CrossCuttingConcernLayer.Loggings.Serilogs.Loggers;
+using Core.CrossCuttingConcernLayer.Loggings.Serilogs.Services;
 using Microsoft.OpenApi;
 using OnlineConsulting.SharedKernel.DependencyInjection;
 
@@ -17,6 +19,10 @@ public static class ServiceRegistration
         services.AddAuthorization();
         services.AddCors();
         services.AddSwagger();
+
+        // Backs ExceptionMiddleware (Program.cs), which logs every unhandled exception before
+        // mapping it to a ProblemDetails response.
+        services.AddSingleton<BaseLoggerService, FileLogger>();
     }
 
     private static void AddCors(this IServiceCollection services)
