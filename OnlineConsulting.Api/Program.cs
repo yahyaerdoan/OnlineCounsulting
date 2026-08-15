@@ -1,4 +1,5 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Concretions;
+using Core.ApplicationLayer.Pipelines.Cachings.Concretions.CacheBehaviors;
 using Core.ApplicationLayer.Pipelines.Validations.Concretions;
 using Core.CrossCuttingConcernLayer.ExceptionHandlings.Extensions;
 using MediatR;
@@ -6,6 +7,7 @@ using OnlineConsulting.Api.Common;
 using OnlineConsulting.Api.Configurations.Extensions;
 using OnlineConsulting.Modules.Categories.Infrastructure;
 using OnlineConsulting.Modules.Commerce.Infrastructure;
+using OnlineConsulting.Modules.FeatureFlags.Infrastructure;
 using OnlineConsulting.Modules.Identity.Infrastructure;
 using OnlineConsulting.Modules.Inquiries.Infrastructure;
 using OnlineConsulting.Modules.Media.Infrastructure;
@@ -27,9 +29,22 @@ builder.Services.AddScoped<ITenantProvider, TenantProvider>();
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationAddingBehavior<,>));
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(AuthorizationAddingBehavior<,>));
 
+// Falls back to in-process caching when no Redis connection is configured (same pattern as the
+// MetroMiles reference project), so ICacheAddRequest/ICacheRemoveRequest work today without
+// standing up Redis, and can move to a real distributed cache later with only a config change.
+var redisConnection = builder.Configuration.GetConnectionString("Redis");
+if (string.IsNullOrWhiteSpace(redisConnection))
+    builder.Services.AddDistributedMemoryCache();
+else
+    builder.Services.AddStackExchangeRedisCache(options => options.Configuration = redisConnection);
+
+builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CacheAddingBehavior<,>));
+builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CacheRemovingBehavior<,>));
+
 // Module registrations must precede AddApiServiceRegistration's Scrutor convention scan, so RegistrationStrategy.Skip sees each module's repositories already registered and doesn't double-register them.
 builder.Services.AddCategoriesModule(builder.Configuration);
 builder.Services.AddCommerceModule(builder.Configuration);
+builder.Services.AddFeatureFlagsModule(builder.Configuration);
 builder.Services.AddIdentityModule(builder.Configuration).AddIdentityModuleJwtBearer(builder.Configuration);
 builder.Services.AddServicesModule(builder.Configuration);
 builder.Services.AddInquiriesModule(builder.Configuration);
