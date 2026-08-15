@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Commerce.Application.Common;
@@ -9,6 +9,7 @@ using OnlineConsulting.Modules.Commerce.Application.Features.Baskets.Contracts;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Contracts;
 using OnlineConsulting.Modules.Commerce.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
+using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -25,12 +26,8 @@ public record CreateOrderFromBasketCommand(Guid UserId) : IRequest<OperationData
     public string[] Roles => [GlobalOperationClaims.User];
 }
 
-public class CreateOrderFromBasketHandler(
-    IBasketRepository basketRepository,
-    IBasketItemRepository basketItemRepository,
-    IUserAddressRepository userAddressRepository,
-    IOrderRepository orderRepository,
-    IOrderItemRepository orderItemRepository) : IRequestHandler<CreateOrderFromBasketCommand, OperationDataResult<Guid>>
+public class CreateOrderFromBasketHandler(IBasketRepository basketRepository, IBasketItemRepository basketItemRepository, IUserAddressRepository userAddressRepository, IOrderRepository orderRepository, IOrderItemRepository orderItemRepository)
+    : IRequestHandler<CreateOrderFromBasketCommand, OperationDataResult<Guid>>
 {
     private const string OrderNumberPrefix = "ORD-";
     private const int OrderNumberRandomSegmentLength = 8;
@@ -41,7 +38,7 @@ public class CreateOrderFromBasketHandler(
         if (basket is null)
             return Result.BadRequest<Guid>(BasketMessages.BasketNotFoundOrEmpty);
 
-        var basketItems = await basketItemRepository.GetListAsync(i => i.BasketId == basket.Id, size: int.MaxValue, cancellationToken: cancellationToken);
+        var basketItems = await basketItemRepository.GetListAsync(i => i.BasketId == basket.Id, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
         if (basketItems.Items.Count == 0)
             return Result.BadRequest<Guid>(BasketMessages.BasketNotFoundOrEmpty);
 

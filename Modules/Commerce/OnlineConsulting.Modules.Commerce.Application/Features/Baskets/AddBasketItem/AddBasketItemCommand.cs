@@ -3,6 +3,7 @@ using MediatR;
 using OnlineConsulting.Modules.Commerce.Application.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Baskets.Contracts;
 using OnlineConsulting.Modules.Commerce.Domain;
+using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
@@ -62,7 +63,7 @@ public class AddBasketItemHandler(IBasketRepository basketRepository, IBasketIte
 
     private async Task UpdateBasketTotalsAsync(Basket basket, CancellationToken cancellationToken)
     {
-        var items = await basketItemRepository.GetListAsync(i => i.BasketId == basket.Id, size: int.MaxValue, cancellationToken: cancellationToken);
+        var items = await basketItemRepository.GetListAsync(i => i.BasketId == basket.Id, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
         (basket.Quantity, basket.SubTotalPrice, basket.TotalPrice) = BasketTotalsCalculator.Calculate(items.Items);
         await basketRepository.UpdateAsync(basket);
     }

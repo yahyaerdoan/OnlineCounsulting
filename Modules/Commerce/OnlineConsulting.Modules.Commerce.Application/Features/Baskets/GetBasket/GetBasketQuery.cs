@@ -2,6 +2,7 @@ using MediatR;
 using OnlineConsulting.Modules.Commerce.Application.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Baskets.Constants;
 using OnlineConsulting.Modules.Commerce.Application.Features.Baskets.Contracts;
+using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
@@ -22,7 +23,7 @@ public class GetBasketHandler(IBasketRepository basketRepository, IBasketItemRep
         if (basket is null)
             return Result.NotFound<BasketResponse>(BasketMessages.BasketNotFound);
 
-        var items = await basketItemRepository.GetListAsync(i => i.BasketId == basket.Id, size: int.MaxValue, cancellationToken: cancellationToken);
+        var items = await basketItemRepository.GetListAsync(i => i.BasketId == basket.Id, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
 
         return Result.Success(BasketResponse.FromDomain(basket, items.Items), "Basket retrieved successfully.");
     }

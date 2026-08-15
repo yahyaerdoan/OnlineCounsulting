@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Modules.Services.Application.Contracts;
+using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
@@ -11,7 +12,7 @@ public class GetFeaturedServicesHandler(IServiceRepository repository) : IReques
 {
     public async Task<OperationDataResult<List<ServiceResponse>>> Handle(GetFeaturedServicesQuery request, CancellationToken cancellationToken)
     {
-        var services = await repository.GetListAsync(s => s.FeaturedArea, size: int.MaxValue, cancellationToken: cancellationToken);
+        var services = await repository.GetListAsync(s => s.FeaturedArea, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
 
         List<ServiceResponse> response = [.. services.Items.Select(ServiceResponse.FromDomain)];
 

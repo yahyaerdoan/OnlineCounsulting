@@ -1,5 +1,6 @@
 using MediatR;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Contracts;
+using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
@@ -12,12 +13,12 @@ public class GetOrderStatsHandler(IOrderRepository orderRepository, IOrderItemRe
 {
     public async Task<OperationDataResult<OrderStatsResponse>> Handle(GetOrderStatsQuery request, CancellationToken cancellationToken)
     {
-        var orders = await orderRepository.GetListAsync(o => o.UserId == request.UserId, size: int.MaxValue, cancellationToken: cancellationToken);
+        var orders = await orderRepository.GetListAsync(o => o.UserId == request.UserId, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
         if (orders.Items.Count == 0)
             return Result.Success(new OrderStatsResponse(0, 0), "No orders found for this user.");
 
         var orderIds = orders.Items.Select(o => o.Id).ToList();
-        var items = await orderItemRepository.GetListAsync(i => orderIds.Contains(i.OrderId), size: int.MaxValue, cancellationToken: cancellationToken);
+        var items = await orderItemRepository.GetListAsync(i => orderIds.Contains(i.OrderId), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
         var totalSpent = items.Items.Sum(i => i.TotalPrice);
 
         return Result.Success(new OrderStatsResponse(orders.Items.Count, totalSpent), "Order stats retrieved successfully.");

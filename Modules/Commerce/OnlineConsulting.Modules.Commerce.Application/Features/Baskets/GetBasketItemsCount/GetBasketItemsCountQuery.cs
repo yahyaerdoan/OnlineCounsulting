@@ -1,6 +1,7 @@
 using MediatR;
 using OnlineConsulting.Modules.Commerce.Application.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Baskets.Contracts;
+using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
@@ -18,7 +19,7 @@ public class GetBasketItemsCountHandler(IBasketRepository basketRepository, IBas
         if (basket is null)
             return Result.Success(0, "No basket yet.");
 
-        var items = await basketItemRepository.GetListAsync(i => i.BasketId == basket.Id, size: int.MaxValue, cancellationToken: cancellationToken);
+        var items = await basketItemRepository.GetListAsync(i => i.BasketId == basket.Id, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
 
         return Result.Success(items.Count, "Basket item count retrieved successfully.");
     }

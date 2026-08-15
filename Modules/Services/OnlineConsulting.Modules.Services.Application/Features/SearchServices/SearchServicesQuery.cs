@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Modules.Services.Application.Contracts;
+using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
@@ -14,7 +15,7 @@ public class SearchServicesHandler(IServiceRepository repository) : IRequestHand
         if (string.IsNullOrWhiteSpace(request.Query))
             return Result.Success(new List<ServiceResponse>(), "No search query provided.");
 
-        var services = await repository.GetListAsync(s => s.Title.Contains(request.Query) || s.Description.Contains(request.Query), size: int.MaxValue, cancellationToken: cancellationToken);
+        var services = await repository.GetListAsync(s => s.Title.Contains(request.Query) || s.Description.Contains(request.Query), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
 
         List<ServiceResponse> response = [.. services.Items.Select(ServiceResponse.FromDomain)];
 

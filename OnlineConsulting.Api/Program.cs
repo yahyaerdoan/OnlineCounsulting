@@ -7,7 +7,9 @@ using OnlineConsulting.Api.Configurations.Extensions;
 using OnlineConsulting.Modules.Categories.Infrastructure;
 using OnlineConsulting.Modules.Commerce.Infrastructure;
 using OnlineConsulting.Modules.Identity.Infrastructure;
+using OnlineConsulting.Modules.Inquiries.Infrastructure;
 using OnlineConsulting.Modules.Services.Infrastructure;
+using OnlineConsulting.Notifications;
 using OnlineConsulting.ServiceDefaults;
 using OnlineConsulting.SharedKernel.Tenancy;
 
@@ -30,6 +32,8 @@ builder.Services.AddCategoriesModule(builder.Configuration);
 builder.Services.AddCommerceModule(builder.Configuration);
 builder.Services.AddIdentityModule(builder.Configuration).AddIdentityModuleJwtBearer(builder.Configuration);
 builder.Services.AddServicesModule(builder.Configuration);
+builder.Services.AddInquiriesModule(builder.Configuration);
+builder.Services.AddNotificationsInfrastructure(builder.Configuration);
 
 builder.Services.AddApiServiceRegistration(builder.Configuration);
 

@@ -3,6 +3,7 @@ using MediatR;
 using OnlineConsulting.Modules.Commerce.Application.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Baskets.Contracts;
 using OnlineConsulting.Modules.Commerce.Domain;
+using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
@@ -23,7 +24,7 @@ public class MergeGuestBasketHandler(IBasketRepository basketRepository, IBasket
         if (guestBasket is null)
             return Result.Success("No guest basket to merge.");
 
-        var guestItems = await basketItemRepository.GetListAsync(i => i.BasketId == guestBasket.Id, size: int.MaxValue, cancellationToken: cancellationToken);
+        var guestItems = await basketItemRepository.GetListAsync(i => i.BasketId == guestBasket.Id, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
 
         var userBasket = await basketRepository.GetAsync(b => b.UserId == request.UserId, cancellationToken: cancellationToken);
         if (userBasket is null)
@@ -32,7 +33,7 @@ public class MergeGuestBasketHandler(IBasketRepository basketRepository, IBasket
             await basketRepository.AddAsync(userBasket);
         }
 
-        var userItems = await basketItemRepository.GetListAsync(i => i.BasketId == userBasket.Id, size: int.MaxValue, cancellationToken: cancellationToken);
+        var userItems = await basketItemRepository.GetListAsync(i => i.BasketId == userBasket.Id, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
         var userItemsByService = userItems.Items.ToDictionary(i => i.ServiceId);
 
         // Two separate sessions' quantities are combined (additive), unlike AddBasketItem's
@@ -69,7 +70,7 @@ public class MergeGuestBasketHandler(IBasketRepository basketRepository, IBasket
 
         await basketRepository.DeleteAsync(guestBasket);
 
-        var mergedItems = await basketItemRepository.GetListAsync(i => i.BasketId == userBasket.Id, size: int.MaxValue, cancellationToken: cancellationToken);
+        var mergedItems = await basketItemRepository.GetListAsync(i => i.BasketId == userBasket.Id, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
         (userBasket.Quantity, userBasket.SubTotalPrice, userBasket.TotalPrice) = BasketTotalsCalculator.Calculate(mergedItems.Items);
         await basketRepository.UpdateAsync(userBasket);
 

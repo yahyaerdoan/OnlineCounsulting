@@ -46,6 +46,10 @@
     <ProjectReference Include="..\Modules\Services\OnlineConsulting.Modules.Services.Domain\OnlineConsulting.Modules.Services.Domain.csproj" />
     <ProjectReference Include="..\Modules\Services\OnlineConsulting.Modules.Services.Application\OnlineConsulting.Modules.Services.Application.csproj" />
     <ProjectReference Include="..\Modules\Services\OnlineConsulting.Modules.Services.Infrastructure\OnlineConsulting.Modules.Services.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Inquiries\OnlineConsulting.Modules.Inquiries.Domain\OnlineConsulting.Modules.Inquiries.Domain.csproj" />
+    <ProjectReference Include="..\Modules\Inquiries\OnlineConsulting.Modules.Inquiries.Application\OnlineConsulting.Modules.Inquiries.Application.csproj" />
+    <ProjectReference Include="..\Modules\Inquiries\OnlineConsulting.Modules.Inquiries.Infrastructure\OnlineConsulting.Modules.Inquiries.Infrastructure.csproj" />
+    <ProjectReference Include="..\OnlineConsulting.Notifications\OnlineConsulting.Notifications.csproj" />
     <ProjectReference Include="..\OnlineConsulting.SharedKernel\OnlineConsulting.SharedKernel.csproj" />
     <ProjectReference Include="..\OnlineConsulting.ServiceDefaults\OnlineConsulting.ServiceDefaults.csproj" />
   </ItemGroup>
