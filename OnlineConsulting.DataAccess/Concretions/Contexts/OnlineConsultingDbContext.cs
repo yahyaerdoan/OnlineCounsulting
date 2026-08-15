@@ -10,7 +10,6 @@ public class OnlineConsultingDbContext(DbContextOptions<OnlineConsultingDbContex
 {
     #region DbSets
     public DbSet<AboutUs>? AboutUs { get; set; }
-    public DbSet<Book>? Books { get; set; }
     public DbSet<Category>? Categories { get; set; }
     public DbSet<Contact>? Contacts { get; set; }
     public DbSet<FooterAbout>? FooterAbouts { get; set; }
@@ -45,7 +44,6 @@ public class OnlineConsultingDbContext(DbContextOptions<OnlineConsultingDbContex
         modelBuilder.Entity<BasketItem>().HasIndex(x => x.ServiceId);
         modelBuilder.Entity<BasketItem>().HasIndex(x => x.BasketId);
         modelBuilder.Entity<Basket>().HasIndex(x => x.UserId);
-        modelBuilder.Entity<Book>().HasIndex(x => x.ServiceId);
         modelBuilder.Entity<HowIGetService>().HasIndex(x => x.ImgIconId);
         modelBuilder.Entity<Category>().HasIndex(x => x.ImgIconId);
         modelBuilder.Entity<Order>().HasIndex(x => x.ShippingAddressId);
@@ -103,10 +101,6 @@ public class OnlineConsultingDbContext(DbContextOptions<OnlineConsultingDbContex
             .HasOne(sm => sm.ImgIcon)
             .WithMany(ci => ci.ProvidedItems)
             .HasForeignKey(sm => sm.ImgIconId);
-
-        modelBuilder.Entity<Book>()
-            .Property(b => b.TotalPrice)
-            .HasColumnType("decimal(18,2)");
 
         modelBuilder.Entity<Service>()
             .Property(s => s.Price)

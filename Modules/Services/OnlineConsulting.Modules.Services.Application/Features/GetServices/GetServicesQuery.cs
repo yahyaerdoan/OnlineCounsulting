@@ -18,7 +18,7 @@ public class GetServicesHandler(IServiceRepository repository)
 
         var response = new Paginate<ServiceResponse>
         {
-            Items = [.. services.Items.Select(ServiceResponse.FromDomain)],
+            Items = [.. services.Items.Select(s => ServiceResponse.FromDomain(s))],
             Index = services.Index,
             Size = services.Size,
             Count = services.Count,

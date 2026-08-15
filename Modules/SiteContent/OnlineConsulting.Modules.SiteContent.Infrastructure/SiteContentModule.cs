@@ -28,6 +28,13 @@ public static class SiteContentModule
         services.AddScoped<IPageBannerRepository, PageBannerRepository>();
         services.AddScoped<IHeroSlideRepository, HeroSlideRepository>();
         services.AddScoped<ITestimonialRepository, TestimonialRepository>();
+        services.AddScoped<IPartnershipRepository, PartnershipRepository>();
+        services.AddScoped<IPartnershipSocialLinkRepository, PartnershipSocialLinkRepository>();
+        services.AddScoped<IGalleryCategoryRepository, GalleryCategoryRepository>();
+        services.AddScoped<IGalleryItemRepository, GalleryItemRepository>();
+        services.AddScoped<IGalleryItemCategoryRepository, GalleryItemCategoryRepository>();
+        services.AddScoped<IServiceProcessStepRepository, ServiceProcessStepRepository>();
+        services.AddScoped<IServiceOfferingRepository, ServiceOfferingRepository>();
 
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
         services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);

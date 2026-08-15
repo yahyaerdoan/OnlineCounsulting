@@ -7,6 +7,7 @@ namespace OnlineConsulting.Modules.Services.Infrastructure.Persistence;
 public class ServicesDbContext(DbContextOptions<ServicesDbContext> options, ITenantProvider tenantProvider) : DbContext(options)
 {
     public DbSet<Service> Services => Set<Service>();
+    public DbSet<ServiceMediaItem> ServiceMediaItems => Set<ServiceMediaItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -24,6 +25,13 @@ public class ServicesDbContext(DbContextOptions<ServicesDbContext> options, ITen
             builder.HasIndex(s => s.CategoryId);
             builder.HasIndex(s => new { s.TenantId, s.Slug }).IsUnique().HasFilter("[DeletedDate] IS NULL");
             builder.HasQueryFilter(s => s.TenantId == tenantProvider.TenantId && s.DeletedDate == null);
+        });
+
+        modelBuilder.Entity<ServiceMediaItem>(builder =>
+        {
+            builder.Property(m => m.RowVersion).IsRowVersion();
+            builder.HasIndex(m => m.ServiceId);
+            builder.HasQueryFilter(m => m.TenantId == tenantProvider.TenantId && m.DeletedDate == null);
         });
 
         base.OnModelCreating(modelBuilder);

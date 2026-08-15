@@ -23,6 +23,7 @@ public static class ServicesModule
             .AddInterceptors(serviceProvider.GetRequiredService<TenantSaveChangesInterceptor>()));
 
         services.AddScoped<IServiceRepository, ServiceRepository>();
+        services.AddScoped<IServiceMediaItemRepository, ServiceMediaItemRepository>();
 
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
         services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);

@@ -20,7 +20,10 @@ public class ServiceResponse : LinkedResponse
     public required bool RequiresPrepayment { get; init; }
     public Guid? CoverMediaAssetId { get; init; }
 
-    public static ServiceResponse FromDomain(Service service) => new()
+    /// <summary>The extended photo/video gallery - empty for list-view queries (GetServices, SearchServices, etc.) to avoid an N+1 join per row, populated only by GetServiceById/GetServiceBySlug where a single service's full detail is being fetched.</summary>
+    public List<ServiceMediaItemResponse> MediaItems { get; init; } = [];
+
+    public static ServiceResponse FromDomain(Service service, List<ServiceMediaItemResponse>? mediaItems = null) => new()
     {
         Id = service.Id,
         CategoryId = service.CategoryId,
@@ -35,5 +38,6 @@ public class ServiceResponse : LinkedResponse
         DiscountedPrice = service.DiscountedPrice,
         RequiresPrepayment = service.RequiresPrepayment,
         CoverMediaAssetId = service.CoverMediaAssetId,
+        MediaItems = mediaItems ?? [],
     };
 }

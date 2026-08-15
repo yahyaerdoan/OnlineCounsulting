@@ -6,7 +6,6 @@ public interface IServiceManager
 {
     IAboutUsService AboutUsService { get; }
     IBreadcrumbService BreadcrumbService { get; }
-    IBookService BookService { get; }
     ICategoryService CategoryService { get; }
     IContactService ContactService { get; }
     IFooterAboutService FooterAboutService { get; }

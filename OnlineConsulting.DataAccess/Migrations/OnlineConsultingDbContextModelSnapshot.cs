@@ -169,67 +169,6 @@ namespace OnlineConsulting.DataAccess.Migrations
                     b.ToTable("BasketItem");
                 });
 
-            modelBuilder.Entity("OnlineConsulting.Entity.Concretions.Entities.Book", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("BookingDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("BookingStatus")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("CreatedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("DeletedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("DeletedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Notes")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PaymentStatus")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("ScheduledDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Guid>("ServiceId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<bool>("Status")
-                        .HasColumnType("bit");
-
-                    b.Property<decimal>("TotalPrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("UpdatedDate")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ServiceId");
-
-                    b.ToTable("Books");
-                });
-
             modelBuilder.Entity("OnlineConsulting.Entity.Concretions.Entities.Breadcrumb", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1341,17 +1280,6 @@ namespace OnlineConsulting.DataAccess.Migrations
                         .IsRequired();
 
                     b.Navigation("Basket");
-
-                    b.Navigation("Service");
-                });
-
-            modelBuilder.Entity("OnlineConsulting.Entity.Concretions.Entities.Book", b =>
-                {
-                    b.HasOne("OnlineConsulting.Entity.Concretions.Entities.Service", "Service")
-                        .WithMany()
-                        .HasForeignKey("ServiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
 
                     b.Navigation("Service");
                 });

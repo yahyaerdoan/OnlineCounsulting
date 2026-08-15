@@ -17,7 +17,7 @@ public class SearchServicesHandler(IServiceRepository repository) : IRequestHand
 
         var services = await repository.GetListAsync(s => s.Title.Contains(request.Query) || s.Description.Contains(request.Query), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
 
-        List<ServiceResponse> response = [.. services.Items.Select(ServiceResponse.FromDomain)];
+        List<ServiceResponse> response = [.. services.Items.Select(s => ServiceResponse.FromDomain(s))];
 
         return Result.Success(response, response.Count == 0 ? "No services matched the search query." : "Services retrieved successfully.");
     }

@@ -14,7 +14,7 @@ public class GetFeaturedServicesHandler(IServiceRepository repository) : IReques
     {
         var services = await repository.GetListAsync(s => s.FeaturedArea, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
 
-        List<ServiceResponse> response = [.. services.Items.Select(ServiceResponse.FromDomain)];
+        List<ServiceResponse> response = [.. services.Items.Select(s => ServiceResponse.FromDomain(s))];
 
         return Result.Success(response, "Featured services retrieved successfully.");
     }

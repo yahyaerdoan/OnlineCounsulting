@@ -6,7 +6,6 @@ namespace OnlineConsulting.BusinessLogic.Concretions.ServiceManagers;
 public class ServiceManager(
     IAboutUsService aboutUsService,
     IBreadcrumbService breadcrumbService,
-    IBookService bookService,
     ICategoryService categoryService,
     IContactService contactService,
     IFooterAboutService footerAboutService,
@@ -36,7 +35,6 @@ public class ServiceManager(
 {
     public IAboutUsService AboutUsService => aboutUsService;
     public IBreadcrumbService BreadcrumbService => breadcrumbService;
-    public IBookService BookService => bookService;
     public ICategoryService CategoryService => categoryService;
     public IContactService ContactService => contactService;
     public IFooterAboutService FooterAboutService => footerAboutService;
