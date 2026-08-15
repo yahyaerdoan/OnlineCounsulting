@@ -16,4 +16,7 @@ public class Service : TenantEntity<Guid>
     public int DiscountRate { get; set; }
     public int TaxRate { get; set; }
     public decimal DiscountedPrice { get; set; }
+
+    /// <summary>When true, a Scheduling appointment for this service must reach PendingPayment/Confirmed via a paid Commerce order before the tenant confirms it. False (default) keeps booking payment-free until a real payment gateway exists.</summary>
+    public bool RequiresPrepayment { get; set; }
 }

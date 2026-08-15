@@ -10,7 +10,7 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Services.Application.Features.UpdateService;
 
-public record UpdateServiceCommand(Guid Id, Guid CategoryId, string Title, string Description, string DetailedDescription, decimal Price, bool FeaturedArea, int DiscountRate, int TaxRate)
+public record UpdateServiceCommand(Guid Id, Guid CategoryId, string Title, string Description, string DetailedDescription, decimal Price, bool FeaturedArea, int DiscountRate, int TaxRate, bool RequiresPrepayment)
     : IRequest<OperationResult>, ISecureAddRequest
 {
     [JsonIgnore]
@@ -40,6 +40,7 @@ public class UpdateServiceHandler(IServiceRepository repository) : IRequestHandl
         service.DiscountRate = request.DiscountRate;
         service.TaxRate = request.TaxRate;
         service.DiscountedPrice = ServicePriceCalculator.CalculateDiscountedPrice(request.Price, request.DiscountRate);
+        service.RequiresPrepayment = request.RequiresPrepayment;
 
         await repository.UpdateAsync(service);
 

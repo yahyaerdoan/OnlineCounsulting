@@ -17,6 +17,7 @@ public class ServiceResponse : LinkedResponse
     public required int DiscountRate { get; init; }
     public required int TaxRate { get; init; }
     public required decimal DiscountedPrice { get; init; }
+    public required bool RequiresPrepayment { get; init; }
 
     public static ServiceResponse FromDomain(Service service) => new()
     {
@@ -31,5 +32,6 @@ public class ServiceResponse : LinkedResponse
         DiscountRate = service.DiscountRate,
         TaxRate = service.TaxRate,
         DiscountedPrice = service.DiscountedPrice,
+        RequiresPrepayment = service.RequiresPrepayment,
     };
 }
