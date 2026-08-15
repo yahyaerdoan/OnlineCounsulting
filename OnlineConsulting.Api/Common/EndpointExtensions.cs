@@ -1,4 +1,4 @@
-namespace OnlineConsulting.Api.Common;
+﻿namespace OnlineConsulting.Api.Common;
 
 public static class EndpointExtensions
 {
@@ -11,7 +11,8 @@ public static class EndpointExtensions
 
         foreach (var endpointType in endpointTypes)
         {
-            var endpoint = (IEndpoint)Activator.CreateInstance(endpointType)!;
+            var endpoint = Activator.CreateInstance(endpointType) as IEndpoint
+                ?? throw new InvalidOperationException($"{endpointType.Name} could not be instantiated as an IEndpoint.");
             endpoint.MapEndpoint(app);
         }
 

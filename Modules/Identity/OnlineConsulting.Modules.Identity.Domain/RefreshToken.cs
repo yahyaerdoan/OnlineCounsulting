@@ -2,8 +2,7 @@ using Core.PersistenceLayer.Repositories.Entities;
 
 namespace OnlineConsulting.Modules.Identity.Domain;
 
-// One active row per user - IssueAsync overwrites the existing row instead of inserting a new
-// one, which is what gives rotation (the previous token stops matching TokenHash and is rejected).
+/// <summary>One active row per user; IssueAsync overwrites it in place, which is what gives token rotation.</summary>
 public class RefreshToken : Entity<Guid>
 {
     public required Guid UserId { get; set; }

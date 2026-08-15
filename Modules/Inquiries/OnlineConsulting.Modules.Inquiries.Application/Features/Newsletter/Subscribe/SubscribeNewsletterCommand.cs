@@ -1,15 +1,13 @@
 ﻿using MediatR;
 using OnlineConsulting.Modules.Inquiries.Application.Common.Templates;
 using OnlineConsulting.Modules.Inquiries.Domain;
+using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.Subscribe;
 
-// Public. Not ITransactionAddRequest - see SubmitMessageCommand for why enqueueing before the
-// repository call is enough. Idempotent: re-subscribing an already-subscribed email is a no-op
-// success rather than a duplicate row + a second confirmation email.
 public record SubscribeNewsletterCommand(string Email) : IRequest<OperationResult>;
 
 public class SubscribeNewsletterHandler(INewsletterSubscriberRepository repository, IEmailOutboxWriter outboxWriter, IEmailTemplate<NewsletterSubscribedEmailModel> template)
@@ -24,8 +22,8 @@ public class SubscribeNewsletterHandler(INewsletterSubscriberRepository reposito
         var subscriber = new NewsletterSubscriber { Id = Guid.NewGuid(), Email = request.Email };
 
         var model = new NewsletterSubscribedEmailModel(request.Email);
-        outboxWriter.Enqueue(request.Email, template.Subject(model), template.Build(model),
-            sourceReference: $"NewsletterSubscriber:{subscriber.Id}");
+
+        outboxWriter.Enqueue(request.Email, template.Subject(model), template.Build(model), sourceReference: $"NewsletterSubscriber:{subscriber.Id}");
 
         await repository.AddAsync(subscriber);
 

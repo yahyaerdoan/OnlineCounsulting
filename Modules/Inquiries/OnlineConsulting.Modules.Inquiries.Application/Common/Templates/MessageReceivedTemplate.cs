@@ -5,7 +5,7 @@ namespace OnlineConsulting.Modules.Inquiries.Application.Common.Templates;
 
 public record MessageReceivedEmailModel(string FirstName, string Subject);
 
-// Confirmation sent to whoever submitted the contact form.
+/// <summary>Confirmation sent to whoever submitted a contact form.</summary>
 public class MessageReceivedTemplate : IEmailTemplate<MessageReceivedEmailModel>
 {
     public string Subject(MessageReceivedEmailModel model) => "We received your message";

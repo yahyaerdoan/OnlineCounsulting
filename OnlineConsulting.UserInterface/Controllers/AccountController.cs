@@ -56,15 +56,12 @@ public class AccountController(ISender sender, IToastNotification toastNotificat
     {
         var result = await sender.Send(new LoginCookieCommand(loginUserDto.UserNameOrEmail, loginUserDto.Password, loginUserDto.RememberMe));
 
-        // Error-factory results (Result.BadRequest/Forbidden/...) put the actionable message in
-        // Detail and leave Title as a generic HTTP-status label ("Bad Request") - show Detail when
-        // there is one so the toast doesn't just say "Bad Request" with no explanation.
+        // Error-factory results put the actionable message in Detail, so prefer it over the generic Title.
         var message = result.IsSuccessful ? result.Title : (result.Detail ?? result.Title);
         NToastService.Show(toastNotification, message, result.Status, result.IsSuccessful ? "Welcome back!" : null);
 
         if (result.IsSuccessful)
         {
-            //Fallback to user dashboard if no valid ReturnUrl
             if (string.IsNullOrWhiteSpace(returnUrl))
             {
                 return RedirectToAction("Index", "Dashboard", new { area = "user" });

@@ -19,20 +19,17 @@ public class BasketItemManager(IMapper mapper, IGenericRepository<BasketItem> re
 {
     public async Task<IOperationResult> CreateBasketItemAsync(Guid serviceId, int quantity = 1)
     {
-        // Step 1: Get or create user's basket
         var basketResult = await basketService.CreateBasketAsync();
         if (!basketResult.IsSuccessful || basketResult.Data is null)
             return new ErrorResult("You need to be logged in to add this item to your cart.", ResultStatus.BadRequest);
 
         var basketId = basketResult.Data.Id;
 
-        // Step 2: Check if basket item already exists
         var existingBasketItem = await _repository
             .GetSingleAsync(bi => bi.BasketId == basketId && bi.ServiceId == serviceId, false, null);
 
         if (existingBasketItem is not null)
         {
-            // Update existing quantity
             existingBasketItem.Status = true;
             existingBasketItem.Quantity = quantity;
             existingBasketItem.SubTotalPrice = existingBasketItem.Quantity * existingBasketItem.Price;
@@ -47,19 +44,16 @@ public class BasketItemManager(IMapper mapper, IGenericRepository<BasketItem> re
             return new SuccessResult("Basket item successfully added.", ResultStatus.Created);
         }
 
-        // Step 3: Get service details if item is new
         var service = await serviceRepository.GetByIdAsync(serviceId.ToString(), false, true);
         if (service is null)
             return new ErrorResult("Service not found.", ResultStatus.BadRequest);
 
-        // Step 3a: Calculate Basket Item details
         var price = service.DiscountedPrice;
         var taxRate = (int)service.TaxRate;
         var subTotalPrice = price * quantity;
         var taxAmount = (subTotalPrice * taxRate) / 100;
         var totalPrice = subTotalPrice + taxAmount;
 
-        // Step 4: Create BasketItemDto
         var basketItemDto = new CreateBasketItemDto
         {
             BasketId = basketId,
@@ -72,7 +66,6 @@ public class BasketItemManager(IMapper mapper, IGenericRepository<BasketItem> re
             TotalPrice = totalPrice
         };
 
-        // Step 4: Map and save
         var basketItemEntity = _mapper.Map<BasketItem>(basketItemDto);
 
         await _repository.AddAsync(basketItemEntity);
@@ -84,19 +77,16 @@ public class BasketItemManager(IMapper mapper, IGenericRepository<BasketItem> re
     }
     public async Task<IOperationResult> RemoveBasketItemAsync(Guid userId, Guid basketItemId)
     {
-        // 1. Get user's current basket
         var basket = await basketRepository.GetBasketByUserIdAsync(userId, tracking: false, status: true);
         if (basket is null)
             return new ErrorResult("Basket not found.", ResultStatus.NotFound);
 
-        // 2. Find the basket item inside that basket
         var basketItem = await _repository.Entity
             .FirstOrDefaultAsync(bi => bi.Id == basketItemId && bi.BasketId == basket.Id);
 
         if (basketItem is null)
             return new ErrorResult("Basket item not found or doesn't belong to the user.", ResultStatus.NotFound);
 
-        // 3. Remove item
         await _repository.RemoveAsync(basketItem);
         await _repository.SaveAsync();
 
@@ -128,7 +118,7 @@ public class BasketItemManager(IMapper mapper, IGenericRepository<BasketItem> re
 
         return new SuccessDataResult<IQueryable<ResultBasketItemDto>>(basketItemsDto, "Basket items retrieved successfully.", ResultStatus.Ok);
     }
-    //TODO: Check this code from generic service, to use it or not
+    /// <summary>TODO: decide whether to reuse the generic service's remove logic here instead.</summary>
     public async Task<IOperationResult> ClearBasketItemsByIdAsync(Guid basketId)
     {
         var items = await _repository.GetWhere(bi => bi.BasketId == basketId).ToListAsync();
@@ -136,7 +126,7 @@ public class BasketItemManager(IMapper mapper, IGenericRepository<BasketItem> re
         if (items.Count == 0)
             return new ErrorResult("No basket items found.", ResultStatus.NotFound);
 
-        var removed = _repository.RemoveRange(items, false); // or true for soft delete
+        var removed = _repository.RemoveRange(items, false); // false = hard delete; true would soft-delete instead
         var saved = await _repository.SaveAsync();
 
         return removed && saved > 0

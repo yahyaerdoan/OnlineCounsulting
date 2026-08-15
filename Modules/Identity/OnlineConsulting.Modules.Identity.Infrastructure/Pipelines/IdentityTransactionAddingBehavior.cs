@@ -6,9 +6,7 @@ using ResultHandler.Core.Abstractions;
 
 namespace OnlineConsulting.Modules.Identity.Infrastructure.Pipelines;
 
-// EfTransactionAddingBehavior<,,TContext> can't be registered as an open generic directly (DI's
-// AddTransient(typeof(IPipelineBehavior<,>), typeof(Impl<,,>)) requires every type parameter left
-// open) - this closes TContext to this module's own DbContext so TRequest/TResponse can stay open.
+/// <summary>Closes EfTransactionAddingBehavior's TContext to this module's DbContext so it can be registered as an open generic.</summary>
 public class IdentityTransactionAddingBehavior<TRequest, TResponse>(AppIdentityDbContext context) : EfTransactionAddingBehavior<TRequest, TResponse, AppIdentityDbContext>(context)
     where TRequest : IRequest<TResponse>, ITransactionAddRequest
     where TResponse : IOperationResult;

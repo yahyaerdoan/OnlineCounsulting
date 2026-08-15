@@ -8,7 +8,7 @@ public class ServiceDetailRelatedServiceAreaSectionViewComponentPartial(IService
 {
     public async Task<IViewComponentResult> InvokeAsync(string slug)
     {
-        // First get the service by slug (don't use ID at all)
+        // Look up by slug, not ID - callers only have the slug here.
         var serviceResult = await serviceManager.ServiceService.GetServiceBySlugAsync<ResultServiceWithImageDto>(slug, false, true);
 
         if (!serviceResult.IsSuccessful || serviceResult.Data is null)
@@ -16,11 +16,9 @@ public class ServiceDetailRelatedServiceAreaSectionViewComponentPartial(IService
 
         var currentService = serviceResult.Data;
 
-        // Get related services by category ID
         var relatedServicesResult = await serviceManager.ServiceService
             .GetServicesWithImagesByCategoryIdAsync<ResultServiceWithImageDto>(currentService.CategoryId.ToString(), false, true);
 
-        // Exclude current service from list
         var filteredServices = (relatedServicesResult.Data ?? [])
             .Where(x => x.Id != currentService.Id)
             .ToList();

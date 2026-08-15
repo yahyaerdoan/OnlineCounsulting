@@ -47,7 +47,6 @@ public class WhatWeProvideManager(IMapper mapper, IGenericRepository<WhatWeProvi
 
         var whatWeProvide = whatWeProvideResult.Data;
 
-        // Validate image before processing
         if (image is null || image.Length == 0)
         {
             return new ErrorResult("No image was provided. Please select a valid image file to update the photo.", ResultStatus.BadRequest);
@@ -55,13 +54,11 @@ public class WhatWeProvideManager(IMapper mapper, IGenericRepository<WhatWeProvi
 
         var allowedMimeTypes = new HashSet<string> { "image/jpeg", "image/jpg", "image/png", "image/gif" };
 
-        // Check MIME type validity
         if (!allowedMimeTypes.Contains(image.ContentType))
         {
             return new ErrorResult("Invalid image format. Please upload an image in JPEG, JPG, PNG, or GIF format.", ResultStatus.BadRequest);
         }
 
-        // Delete the existing image only if a valid new image is provided
         if (!string.IsNullOrEmpty(whatWeProvide.ImageUrl))
         {
             var rootPath = Directory.GetCurrentDirectory();
@@ -73,7 +70,6 @@ public class WhatWeProvideManager(IMapper mapper, IGenericRepository<WhatWeProvi
             }
         }
 
-        // Upload the new image
         var uploadedImageRoute = await storageService.UploadAsync(imageFolderPathOption.Value.WhatWeProvideImagesPath, image);
 
         if (!string.IsNullOrEmpty(uploadedImageRoute.Data.FullPath))
@@ -85,7 +81,6 @@ public class WhatWeProvideManager(IMapper mapper, IGenericRepository<WhatWeProvi
             return new ErrorResult("The image could not be uploaded. Please try again with a valid file.", ResultStatus.BadRequest);
         }
 
-        // Update entity with new CoverImage
         var result = await UpdateAsync(whatWeProvide);
         return result.IsSuccessful
             ? new SuccessResult("The what we provide image has been successfully updated.")

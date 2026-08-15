@@ -15,6 +15,6 @@ public class ResultGalleryCategoryDto : IDto
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
 
-    // Navigation property for many-to-many relationship
+    /// <summary>Many-to-many join rows linking this category to gallery items.</summary>
     public ICollection<GalleryItemCategory> GalleryCategories { get; set; } = [];
 }

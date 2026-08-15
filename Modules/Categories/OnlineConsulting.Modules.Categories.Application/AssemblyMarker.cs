@@ -1,6 +1,4 @@
 namespace OnlineConsulting.Modules.Categories.Application;
 
-// Points MediatR/FluentValidation assembly scanning at this project - a dedicated marker instead
-// of piggybacking on a business type like ICategoryRepository, so the scan doesn't silently break
-// if that type moves, renames, or gets deleted.
+/// <summary>Dedicated marker type for MediatR/FluentValidation assembly scanning so the scan doesn't break if a business type moves or is deleted.</summary>
 public sealed class AssemblyMarker;

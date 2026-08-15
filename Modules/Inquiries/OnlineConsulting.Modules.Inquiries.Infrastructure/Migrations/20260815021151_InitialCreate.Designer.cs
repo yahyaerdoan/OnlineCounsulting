@@ -12,7 +12,7 @@ using OnlineConsulting.Modules.Inquiries.Infrastructure.Persistence;
 namespace OnlineConsulting.Modules.Inquiries.Infrastructure.Migrations
 {
     [DbContext(typeof(InquiriesDbContext))]
-    [Migration("20260814223840_InitialCreate")]
+    [Migration("20260815021151_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -176,6 +176,10 @@ namespace OnlineConsulting.Modules.Inquiries.Infrastructure.Migrations
                     b.Property<int>("Attempts")
                         .HasColumnType("int");
 
+                    b.Property<string>("Cc")
+                        .HasMaxLength(320)
+                        .HasColumnType("nvarchar(320)");
+
                     b.Property<DateTimeOffset>("CreatedDate")
                         .HasColumnType("datetimeoffset");
 
@@ -200,6 +204,10 @@ namespace OnlineConsulting.Modules.Inquiries.Infrastructure.Migrations
 
                     b.Property<DateTimeOffset?>("SentAt")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("SourceReference")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("Status")
                         .IsRequired()

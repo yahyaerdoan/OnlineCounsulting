@@ -1,7 +1,8 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using OnlineConsulting.Modules.Identity.Application.Features.Roles.Constants;
+using OnlineConsulting.Modules.Identity.Application.Features.Roles.Rules;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
 using ResultHandler.Core.Base;
@@ -22,7 +23,7 @@ public class DeleteRoleHandler(RoleManager<Role> roleManager) : IRequestHandler<
     {
         var role = await roleManager.FindByIdAsync(request.RoleId.ToString());
         if (role is null)
-            return Result.NotFound(RoleMessages.NoRoleDataFound);
+            return RoleBusinessRules.NoRoleDataFound();
 
         var result = await roleManager.DeleteAsync(role);
 

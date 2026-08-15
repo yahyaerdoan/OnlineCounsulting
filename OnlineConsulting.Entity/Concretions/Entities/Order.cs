@@ -15,9 +15,8 @@ public class Order : BaseEntity
 
     public UserAddress ShippingAddress { get; set; } = null!;
     public UserAddress InvoiceAddress { get; set; } = null!;
-    // No User navigation: User lives in a separate module/DbContext (Auth). Cross-module
-    // references are by UserId only, never EF navigation.
 
+    /// <summary>No User navigation: User lives in a separate module/DbContext (Auth), referenced by UserId only.</summary>
     public ICollection<OrderItem> OrderItems { get; set; } = [];
 
     [NotMapped]

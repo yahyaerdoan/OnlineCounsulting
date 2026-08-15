@@ -9,8 +9,7 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Inquiries.Application.Features.Contact.UpdateContact;
 
-// Upsert - Contact is a singleton per tenant, so there's no separate CreateContact slice; the
-// first admin to set it creates the one row, everyone after that updates it.
+/// <summary>Upsert for the single per-tenant Contact row; there is no separate CreateContact slice.</summary>
 public record UpdateContactCommand(string Email, string Phone, string Address, string Description, string WorkingHours)
     : IRequest<OperationResult>, ISecureAddRequest
 {
@@ -22,8 +21,7 @@ public class UpdateContactHandler(ICompanyContactRepository repository) : IReque
 {
     public async Task<OperationResult> Handle(UpdateContactCommand request, CancellationToken cancellationToken)
     {
-        // GetAsync requires a predicate; GetListAsync's is optional, so this reads as "there's at
-        // most one row, get up to one" instead of the harder-to-read "predicate that's always true."
+        // GetListAsync is used instead of GetAsync because its predicate is optional, unlike GetAsync's required one.
         var existingContacts = await repository.GetListAsync(size: RepositoryQuerySize.SingleItem, cancellationToken: cancellationToken);
         var contact = existingContacts.Items.FirstOrDefault();
 

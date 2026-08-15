@@ -5,14 +5,14 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using OnlineConsulting.Modules.Categories.Infrastructure.Persistence;
+using OnlineConsulting.Modules.Services.Infrastructure.Persistence;
 
 #nullable disable
 
-namespace OnlineConsulting.Modules.Categories.Infrastructure.Migrations
+namespace OnlineConsulting.Modules.Services.Infrastructure.Migrations
 {
-    [DbContext(typeof(CategoriesDbContext))]
-    [Migration("20260811040323_InitialCreate")]
+    [DbContext(typeof(ServicesDbContext))]
+    [Migration("20260815020756_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -20,16 +20,19 @@ namespace OnlineConsulting.Modules.Categories.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasDefaultSchema("categories")
+                .HasDefaultSchema("Services")
                 .HasAnnotation("ProductVersion", "10.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("OnlineConsulting.Modules.Categories.Domain.Category", b =>
+            modelBuilder.Entity("OnlineConsulting.Modules.Services.Domain.Service", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CategoryId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTimeOffset>("CreatedDate")
@@ -43,13 +46,35 @@ namespace OnlineConsulting.Modules.Categories.Infrastructure.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
-                    b.Property<Guid>("ImgIconId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("DetailedDescription")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<int>("DiscountRate")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("DiscountedPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("FeaturedArea")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(220)
+                        .HasColumnType("nvarchar(220)");
+
+                    b.Property<int>("TaxRate")
+                        .HasColumnType("int");
 
                     b.Property<Guid>("TenantId")
                         .HasColumnType("uniqueidentifier");
@@ -64,7 +89,13 @@ namespace OnlineConsulting.Modules.Categories.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories", "categories");
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("TenantId", "Slug")
+                        .IsUnique()
+                        .HasFilter("[DeletedDate] IS NULL");
+
+                    b.ToTable("Services", "Services");
                 });
 #pragma warning restore 612, 618
         }

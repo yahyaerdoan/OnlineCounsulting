@@ -21,7 +21,6 @@ public class AiContentManager(IConfiguration configuration, HttpClient httpClien
         if (string.IsNullOrWhiteSpace(apiKey))
             return new ErrorDataResult<(string slug, string description)>("OpenAI:ApiKey is not configured.", ResultStatus.InternalServerError);
 
-        //Build robust prompt
         var payload = new
         {
             model = "gpt-4o",
@@ -51,19 +50,16 @@ public class AiContentManager(IConfiguration configuration, HttpClient httpClien
             }
         };
 
-        //Build request
         var request = new HttpRequestMessage(HttpMethod.Post, "https://api.openai.com/v1/chat/completions");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
         request.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
 
-        //Send & ensure success
         var response = await _httpClient.SendAsync(request);
         if (!response.IsSuccessStatusCode)
             return new ErrorDataResult<(string slug, string description)>("The OpenAI request failed.", ResultStatus.BadGateway);
 
         var jsonResponse = await response.Content.ReadAsStringAsync();
 
-        //Extract raw model reply
         using var doc = JsonDocument.Parse(jsonResponse);
         var rawContent = doc.RootElement
             .GetProperty("choices")[0]
@@ -74,7 +70,6 @@ public class AiContentManager(IConfiguration configuration, HttpClient httpClien
         if (string.IsNullOrWhiteSpace(rawContent))
             return new ErrorDataResult<(string slug, string description)>("OpenAI returned empty content.", ResultStatus.BadGateway);
 
-        //Clean up code fences, escaped quotes, stray backticks
         var cleanJson = rawContent.Trim();
 
         if (cleanJson.StartsWith("```"))
@@ -87,15 +82,13 @@ public class AiContentManager(IConfiguration configuration, HttpClient httpClien
                 cleanJson = cleanJson[..^3];
         }
 
-        //Remove accidental extra wrapping quotes
         cleanJson = cleanJson.Trim();
         if (cleanJson.StartsWith('"') && cleanJson.EndsWith('"'))
             cleanJson = cleanJson.Trim('"');
 
-        //Replace escaped quotes if any
         cleanJson = cleanJson.Replace("\\\"", "\"");
 
-        //Safe parse using JsonDocument (no DTO risk)
+        // Parsed with JsonDocument instead of a strongly-typed DTO to avoid deserialization risk from an untrusted LLM response.
         string slug;
         string description;
 

@@ -12,13 +12,11 @@ public class OrderRepository(OnlineConsultingDbContext context) : GenericReposit
     {
         IQueryable<Order> query = Entity;
 
-        // Apply filters early
         query = query.Where(o => o.Id == orderId && o.UserId == userId);
 
         if (status.HasValue)
             query = query.Where(o => o.Status == status.Value);
 
-        // Include necessary navigation properties
         query = query
             .Include(o => o.OrderItems)
                 .ThenInclude(oi => oi.Service)
@@ -90,8 +88,7 @@ public class OrderRepository(OnlineConsultingDbContext context) : GenericReposit
 
     public IQueryable<Order> GetAllOrderWithUsers(bool traking = true, bool? status = true)
     {
-        // No .Include(s => s.User): User lives in the Identity module's own DbContext now.
-        // OrderManager.GetAllOrderWithUsersAsync backfills user names via UserManager<User>.
+        // No .Include(s => s.User): User lives in the Identity module's own DbContext; OrderManager backfills names via UserManager<User>.
         var query = Entity.AsQueryable();
         if (status.HasValue)
             query = query.Where(e => e.Status == status);

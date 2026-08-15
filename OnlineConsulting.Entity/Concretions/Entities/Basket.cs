@@ -9,6 +9,6 @@ public class Basket : BaseEntity
     public decimal SubTotalPrice { get; set; }
     public decimal TotalPrice { get; set; }
 
-    // No User navigation: User lives in a separate module/DbContext (Auth).
+    /// <summary>No User navigation here: User lives in a separate module/DbContext (Auth).</summary>
     public ICollection<BasketItem> BasketItems { get; set; } = [];
 }

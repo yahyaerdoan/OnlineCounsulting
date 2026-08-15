@@ -17,7 +17,7 @@ public class UserAddress : BaseEntity
     public bool IsBillingAddress { get; set; }
     public Guid UserId { get; set; }
 
-    // No User navigation: User lives in a separate module/DbContext (Auth).
+    /// <summary>No User navigation here: User lives in a separate module/DbContext (Auth).</summary>
     public ICollection<Order> OrderInvoiceAddress { get; set; } = [];
     public ICollection<Order> OrderShippingAddress { get; set; } = [];
 

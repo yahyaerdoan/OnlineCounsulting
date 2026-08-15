@@ -9,12 +9,7 @@ using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Baskets.AddBasketItem;
 
-// Price/TaxRate are supplied by the caller rather than looked up from the catalog - the legacy
-// Service entity hasn't been migrated into a module yet, and Commerce doesn't take a dependency on
-// the old shared DbContext. Once a Catalog module exists, this should revalidate price server-side
-// against it instead of trusting the caller.
-// Deliberately not ISecureAddRequest - adding to a basket must work for anonymous guests too
-// (UserId is null, GuestId carries the cookie-issued id instead). Checkout is what requires login.
+/// <summary>Deliberately not ISecureAddRequest since adding to a basket must work for anonymous guests, identified by GuestId instead of UserId.</summary>
 public record AddBasketItemCommand(Guid? UserId, Guid? GuestId, Guid ServiceId, int Quantity, decimal Price, int TaxRate)
     : IRequest<OperationResult>, ITransactionAddRequest;
 

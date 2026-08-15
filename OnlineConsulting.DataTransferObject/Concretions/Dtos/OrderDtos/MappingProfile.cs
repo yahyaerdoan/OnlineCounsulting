@@ -13,7 +13,6 @@ internal class MappingProfile : Profile
         CreateMap<Order, ResultOrderDto>().ReverseMap();
         CreateMap<Order, UpdateOrderDto>().ReverseMap();
 
-        // Mapping from ResultBasketItemDto to CreateOrderItemDto
         CreateMap<ResultBasketItemDto, CreateOrderItemDto>()
             .ForMember(dest => dest.UnitPrice, opt => opt.MapFrom(src => src.Price)).ReverseMap();
     }

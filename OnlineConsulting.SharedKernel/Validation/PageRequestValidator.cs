@@ -3,10 +3,7 @@ using FluentValidation;
 
 namespace OnlineConsulting.SharedKernel.Validation;
 
-// Shared via SetValidator() from each paged query's own validator - PageRequest itself is never
-// sent as a MediatR request, so it isn't picked up by the validation pipeline on its own. Caps
-// PageSize so a caller can't request an unbounded page (e.g. 1_000_000) and force the whole table
-// through the query.
+/// <summary>Shared via SetValidator() from each paged query's own validator; caps PageSize so a caller can't force the whole table through the query.</summary>
 public class PageRequestValidator : AbstractValidator<PageRequest>
 {
     public const int MaxPageSize = 100;

@@ -78,7 +78,6 @@ public class TestimonialManager(IMapper mapper, IGenericRepository<Testimonial> 
 
         var testimonial = testimonialResult.Data;
 
-        // Validate image before processing
         if (image is null || image.Length == 0)
         {
             return new ErrorResult("No image was provided. Please select a valid image file to update the photo.", ResultStatus.BadRequest);
@@ -86,13 +85,11 @@ public class TestimonialManager(IMapper mapper, IGenericRepository<Testimonial> 
 
         var allowedMimeTypes = new HashSet<string> { "image/jpeg", "image/jpg", "image/png", "image/gif" };
 
-        // Check MIME type validity
         if (!allowedMimeTypes.Contains(image.ContentType))
         {
             return new ErrorResult("Invalid image format. Please upload an image in JPEG, JPG, PNG, or GIF format.", ResultStatus.BadRequest);
         }
 
-        // Delete the existing image only if a valid new image is provided
         if (testimonial.ImageUrl != "/resource/localstorage/defaultimages/default-testimonial.png")
         {
             if (!string.IsNullOrEmpty(testimonial.ImageUrl))
@@ -106,7 +103,6 @@ public class TestimonialManager(IMapper mapper, IGenericRepository<Testimonial> 
                 }
             }
         }
-        // Upload the new image
         var uploadedImageRoute = await storageService.UploadAsync("Resource/LocalStorage/Testimonial-Images", image);
 
         if (!string.IsNullOrEmpty(uploadedImageRoute.Data.FullPath))
@@ -118,7 +114,6 @@ public class TestimonialManager(IMapper mapper, IGenericRepository<Testimonial> 
             return new ErrorResult("The image could not be uploaded. Please try again with a valid file.", ResultStatus.BadRequest);
         }
 
-        // Update entity with new CoverImage
         var result = await UpdateAsync(testimonial);
         return result.IsSuccessful
             ? new SuccessResult("The cover image has been successfully updated.")

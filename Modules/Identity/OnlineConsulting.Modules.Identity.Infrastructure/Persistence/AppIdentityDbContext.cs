@@ -1,6 +1,7 @@
 ﻿using Core.SecurityLayer.Identity;
 using Microsoft.EntityFrameworkCore;
 using OnlineConsulting.Modules.Identity.Domain;
+using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Identity.Infrastructure.Persistence;
@@ -8,14 +9,15 @@ namespace OnlineConsulting.Modules.Identity.Infrastructure.Persistence;
 public class AppIdentityDbContext(DbContextOptions<AppIdentityDbContext> options) : BaseIdentityDbContext<User, Role, Guid>(options)
 {
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<OutboxEmail> OutboxEmails => Set<OutboxEmail>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // Own schema, same approach as CategoriesDbContext.
-        modelBuilder.HasDefaultSchema("identity");
+        modelBuilder.HasDefaultSchema("Identity");
 
-        // No tenant onboarding yet - defaults to the placeholder tenant.
         modelBuilder.Entity<User>().Property(u => u.TenantId).HasDefaultValue(TenantDefaults.DefaultTenantId);
+
+        modelBuilder.ConfigureOutboxEmail();
 
         base.OnModelCreating(modelBuilder);
     }

@@ -75,9 +75,7 @@ public class OrderManager(IMapper mapper, IGenericRepository<Order> repository, 
 
         var mapped = orders.Select(order => _mapper.Map<TDto>(order)).ToList();
 
-        // Order (this DbContext) and User (Identity module's own DbContext) can't be EF-joined
-        // anymore, so backfill display names with a second lookup when the caller asked for
-        // ResultOrderDto specifically.
+        // Order and User now live in separate DbContexts and can't be EF-joined, so backfill display names with a second lookup when the caller asked for ResultOrderDto.
         if (mapped is List<ResultOrderDto> resultOrders)
         {
             var userIds = orders.Select(o => o.UserId).Distinct().ToList();
@@ -120,7 +118,6 @@ public class OrderManager(IMapper mapper, IGenericRepository<Order> repository, 
         if (order is null)
             return new ErrorDataResult<ResultOrderDetailDto>("Order Detail not found.", ResultStatus.NotFound);
 
-        // Map order and items to DTOs
         var orderDto = _mapper.Map<ResultOrderDto>(order);
         var orderItemDtos = _mapper.Map<List<ResultOrderItemDto>>(order.OrderItems);
         var shippingAddress = _mapper.Map<ResultUserAddressDto>(order.ShippingAddress);

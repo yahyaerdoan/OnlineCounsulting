@@ -11,17 +11,12 @@ public static class ServiceRegistration
     {
         services.AddOnlineConsultingConventionServices();
 
-        // Identity/JWT bearer wiring lives in IdentityModule.AddIdentityModule() /
-        // AddIdentityModuleJwtBearer() (Program.cs) - Auth is a module like Categories, not
-        // registered inline here. Role/permission checks moved into AuthorizationAddingBehavior
-        // (per-command Roles arrays), so there's no policy to register here anymore - endpoints
-        // only call .RequireAuthorization() for "must be logged in."
+        // Identity/JWT wiring and role/permission policies live in IdentityModule and AuthorizationAddingBehavior, so this only needs "must be logged in".
         services.AddAuthorization();
         services.AddCors();
         services.AddSwagger();
 
-        // Backs ExceptionMiddleware (Program.cs), which logs every unhandled exception before
-        // mapping it to a ProblemDetails response.
+        // Backs ExceptionMiddleware (Program.cs), which logs every unhandled exception before mapping it to a ProblemDetails response.
         services.AddSingleton<BaseLoggerService, FileLogger>();
     }
 
@@ -51,11 +46,7 @@ public static class ServiceRegistration
                 BearerFormat = "JWT"
             };
             c.AddSecurityDefinition("Bearer", securityScheme);
-            // AddSecurityRequirement's delegate receives the OpenApiDocument being generated -
-            // the reference must be bound to that document (hostDocument param), or Swashbuckle
-            // 10.x silently drops the requirement and no "security" ends up in swagger.json (root
-            // or per-operation), so the Authorize button never actually attaches the token to
-            // requests.
+            // Must bind the reference to the generated OpenApiDocument (hostDocument param), or Swashbuckle 10.x silently drops the requirement and the Authorize button stops attaching tokens.
             c.AddSecurityRequirement(document => new OpenApiSecurityRequirement
             {
                 [new OpenApiSecuritySchemeReference("Bearer", document)] = []

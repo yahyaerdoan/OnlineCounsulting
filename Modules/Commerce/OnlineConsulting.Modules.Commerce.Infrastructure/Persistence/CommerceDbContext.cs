@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using OnlineConsulting.Modules.Commerce.Domain;
+using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Commerce.Infrastructure.Persistence;
@@ -11,6 +12,7 @@ public class CommerceDbContext(DbContextOptions<CommerceDbContext> options, ITen
     public DbSet<BasketItem> BasketItems => Set<BasketItem>();
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
+    public DbSet<OutboxEmail> OutboxEmails => Set<OutboxEmail>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -72,6 +74,8 @@ public class CommerceDbContext(DbContextOptions<CommerceDbContext> options, ITen
             builder.HasIndex(i => i.OrderId);
             builder.HasQueryFilter(i => i.TenantId == tenantProvider.TenantId && i.DeletedDate == null);
         });
+
+        modelBuilder.ConfigureOutboxEmail();
 
         base.OnModelCreating(modelBuilder);
     }

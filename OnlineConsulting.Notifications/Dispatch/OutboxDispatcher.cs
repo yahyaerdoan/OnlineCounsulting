@@ -11,13 +11,7 @@ using Polly.Retry;
 
 namespace OnlineConsulting.Notifications.Dispatch;
 
-// Two retry layers, deliberately different scales:
-//  - _sendPipeline (Polly, seconds): absorbs a single transient blip in the same dispatch pass
-//    (a dropped connection, a momentary DNS hiccup) without burning an outbox Attempts slot.
-//  - Attempts/NextAttemptAt on the row itself (minutes-to-an-hour, exponential, capped): survives
-//    an outage that outlives one dispatch pass entirely - the row is durable in the DB regardless,
-//    so the process can restart, the network can come back an hour later, nothing is lost until
-//    MaxAttempts is exhausted and the row is marked Failed for manual/alerted follow-up.
+/// <summary>Dispatches due outbox emails using two retry layers: fast in-process Polly retries and slower durable Attempts/NextAttemptAt backoff on the row itself.</summary>
 public class OutboxDispatcher(
     IServiceScopeFactory scopeFactory,
     IOptions<OutboxDispatcherOptions> options,

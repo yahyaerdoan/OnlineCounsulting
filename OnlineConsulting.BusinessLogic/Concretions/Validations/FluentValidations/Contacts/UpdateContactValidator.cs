@@ -9,12 +9,12 @@ internal class UpdateContactValidator : AbstractValidator<UpdateContactDto>
     public UpdateContactValidator()
     {
         RuleFor(x => x.Email)
-            .Cascade(CascadeMode.Stop) // Stops further validations if the first rule fails
-            .NotEmpty().WithMessage("Email cannot be empty!") // Ensures the field is not empty
-            .NotNull().WithMessage("Email is required!") // Ensures the field is not null
-            .EmailAddress().WithMessage("Invalid email address format!") // Ensures a valid email format
-            .MaximumLength(255).WithMessage("Email cannot exceed 255 characters!") // Limits the email length
-            .Must(BeAValidDomain).WithMessage("Email must have a valid domain."); // Optional: Custom domain check
+            .Cascade(CascadeMode.Stop)
+            .NotEmpty().WithMessage("Email cannot be empty!")
+            .NotNull().WithMessage("Email is required!")
+            .EmailAddress().WithMessage("Invalid email address format!")
+            .MaximumLength(255).WithMessage("Email cannot exceed 255 characters!")
+            .Must(BeAValidDomain).WithMessage("Email must have a valid domain.");
 
         RuleFor(x => x.Phone)
            .NotEmpty().WithMessage("Phone cannot be empty!")
@@ -33,10 +33,10 @@ internal class UpdateContactValidator : AbstractValidator<UpdateContactDto>
             .MinimumLength(5).WithMessage("Working Hours must be over 5 characters!");
     }
 
-    // Optional: Custom validation method for domain-specific checks
+    /// <summary>Checks whether the email's domain is in the allowed list.</summary>
     private bool BeAValidDomain(string email)
     {
-        var validDomains = new[] { "gmail.com", "yahoo.com", "outlook.com" }; // Define valid domains
+        var validDomains = new[] { "gmail.com", "yahoo.com", "outlook.com" };
         var domain = email.Split('@').LastOrDefault();
         return domain is not null && validDomains.Contains(domain);
     }

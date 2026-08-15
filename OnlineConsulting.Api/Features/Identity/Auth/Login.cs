@@ -24,8 +24,7 @@ public class Login : IEndpoint
         if (!result.IsSuccessful || result.Data is null)
             return result.ToEnvelopedResult(httpContext);
 
-        // If this browser shopped as a guest before logging in, fold that basket into the user's
-        // own basket - the guest cookie is only meaningful while unauthenticated.
+        // Guest cookie is only meaningful while unauthenticated, so fold any guest basket into the user's basket now.
         if (guestIdAccessor.TryGetGuestId() is { } guestId)
         {
             await sender.Send(new MergeGuestBasketCommand(result.Data.UserId, guestId));

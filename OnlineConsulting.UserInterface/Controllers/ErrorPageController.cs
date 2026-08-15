@@ -17,7 +17,7 @@ public class ErrorPageController : Controller
     [HttpGet]
     public IActionResult InternalServerError() => View();
 
-    //Target of app.UseStatusCodePagesWithReExecute("/errorpage/{0}")
+    /// <summary>Target of app.UseStatusCodePagesWithReExecute("/errorpage/{0}").</summary>
     [HttpGet("errorpage/{statusCode:int}")]
     public IActionResult ByStatusCode(int statusCode) => statusCode switch
     {

@@ -4,9 +4,7 @@ namespace OnlineConsulting.SharedKernel.Notifications;
 
 public static class OutboxEmailModelBuilderExtensions
 {
-    // Fixed schema/table regardless of which module's DbContext calls this - that's what lets
-    // Inquiries (or any future module) write an outbox row through its own DbContext/transaction
-    // while the dispatcher's separate, dedicated DbContext reads the exact same physical table.
+    /// <summary>Maps OutboxEmail to the same fixed schema/table for every DbContext that calls this.</summary>
     public static void ConfigureOutboxEmail(this ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<OutboxEmail>(builder =>

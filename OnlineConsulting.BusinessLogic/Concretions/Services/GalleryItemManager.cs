@@ -44,10 +44,7 @@ public class GalleryItemManager(IMapper mapper, IGenericRepository<GalleryItem> 
     }
     public async Task<IOperationResult<IQueryable<ResultGalleryItemWithCategoriesDto>>> GetAllGalleryItemsAsync<ResultGalleryItemWithCategoriesDto>(bool tracking = true, bool? status = true)
     {
-        // Repository üzerinden veriyi sorguluyoruz.
         var galleryItemsQuery = galleryItemRepository.GetAllGalleryItemWithCategories(tracking, status);
-
-        // Verinin varlığını kontrol ediyoruz.
 
         if (!await galleryItemsQuery.AnyAsync())
             return new ErrorDataResult<IQueryable<ResultGalleryItemWithCategoriesDto>>("No Gallery Item data found.", ResultStatus.NotFound);
@@ -58,10 +55,7 @@ public class GalleryItemManager(IMapper mapper, IGenericRepository<GalleryItem> 
     }
     public IOperationResult<UpdateGalleryItemWithCategoryDto> GetByIdGalleryItem<UpdateGalleryItemWithCategoryDto>(string id, bool tracking = true, bool? status = true)
     {
-        // Repository üzerinden veriyi sorguluyoruz.
         var galleryItem = galleryItemRepository.GetByIdGalleryItemWithCategories(id, false);
-
-        // Verinin varlığını kontrol ediyoruz.
 
         if (galleryItem is null)
             return new ErrorDataResult<UpdateGalleryItemWithCategoryDto>("No Gallery Item data found.", ResultStatus.NotFound);
@@ -100,13 +94,11 @@ public class GalleryItemManager(IMapper mapper, IGenericRepository<GalleryItem> 
         if (galleryItem is null)
             return new ErrorResult("Gallery Item not found.", ResultStatus.NotFound);
 
-        // Eski ilişkileri veritabanından temizle
         if (galleryItem.GalleryCategories is not null && galleryItem.GalleryCategories.Count != 0)
         {
-            await galleryItemRepository.RemoveGalleryItemsCategory(galleryItem); //geleriye ait kategorileri sil
+            await galleryItemRepository.RemoveGalleryItemsCategory(galleryItem);
         }
 
-        // Yeni kategorileri ekle
         galleryItem.GalleryCategories = [.. dto.GalleryCategoryIds
             .Select(id => new GalleryItemCategory
             {
@@ -114,7 +106,6 @@ public class GalleryItemManager(IMapper mapper, IGenericRepository<GalleryItem> 
             })];
 
         galleryItem.Description = dto.Description;
-        // Güncelleme işlemi
         _repository.Entity.Update(galleryItem);
         await SaveAsync();
 
@@ -132,7 +123,6 @@ public class GalleryItemManager(IMapper mapper, IGenericRepository<GalleryItem> 
 
         var galleryItem = galleryItemResult.Data;
 
-        // Validate image before processing
         if (image is null || image.Length == 0)
         {
             return new ErrorResult("No image was provided. Please select a valid image file to update the photo.", ResultStatus.BadRequest);
@@ -140,13 +130,11 @@ public class GalleryItemManager(IMapper mapper, IGenericRepository<GalleryItem> 
 
         var allowedMimeTypes = new HashSet<string> { "image/jpeg", "image/jpg", "image/png", "image/gif" };
 
-        // Check MIME type validity
         if (!allowedMimeTypes.Contains(image.ContentType))
         {
             return new ErrorResult("Invalid image format. Please upload an image in JPEG, JPG, PNG, or GIF format.", ResultStatus.BadRequest);
         }
 
-        // Delete the existing image only if a valid new image is provided
         if (!string.IsNullOrEmpty(galleryItem.ImageUrl))
         {
             var rootPath = Directory.GetCurrentDirectory();
@@ -158,7 +146,6 @@ public class GalleryItemManager(IMapper mapper, IGenericRepository<GalleryItem> 
             }
         }
 
-        // Upload the new image
         var uploadedImageRoute = await storageService.UploadAsync("Resource/LocalStorage/GalleryItem-Images", image);
 
         if (!string.IsNullOrEmpty(uploadedImageRoute.Data.FullPath))
@@ -170,7 +157,6 @@ public class GalleryItemManager(IMapper mapper, IGenericRepository<GalleryItem> 
             return new ErrorResult("The image could not be uploaded. Please try again with a valid file.", ResultStatus.BadRequest);
         }
 
-        // Update entity with new CoverImage
         var result = await UpdateAsync(galleryItem);
         return result.IsSuccessful
             ? new SuccessResult("The cover image has been successfully updated.")

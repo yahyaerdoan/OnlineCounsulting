@@ -4,8 +4,7 @@ namespace OnlineConsulting.Modules.Services.Domain;
 
 public class Service : TenantEntity<Guid>
 {
-    // Plain id, no navigation - Category lives in the Categories module's own DbContext, modules
-    // never reference each other's entities directly, only by id.
+    /// <summary>Plain id, no navigation, since modules never reference each other's entities directly, only by id.</summary>
     public required Guid CategoryId { get; set; }
 
     public required string Title { get; set; }

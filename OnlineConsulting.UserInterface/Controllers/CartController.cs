@@ -31,7 +31,6 @@ public class CartController(IServiceManager serviceManager, ISender sender, IToa
     [HttpGet("/cart/add/{slug}")]
     public async Task<IActionResult> AddToCart(string slug)
     {
-        // Slug ile servisi getir
         var serviceResult = await serviceManager.ServiceService.GetServiceBySlugAsync<ResultServiceWithImageDto>(slug, false, true);
 
         if (!serviceResult.IsSuccessful || serviceResult.Data is null)
@@ -40,7 +39,6 @@ public class CartController(IServiceManager serviceManager, ISender sender, IToa
             return RedirectToAction("Index", "Home");
         }
 
-        // ID'yi al ve sepete ekle
         var serviceId = serviceResult.Data.Id;
         var result = await serviceManager.BasketItemService.CreateBasketItemAsync(serviceId);
         if (!result.IsSuccessful)

@@ -23,7 +23,7 @@ public class CreateOrderFromBasket : IEndpoint
         if (!currentUser.IsSuccessful || currentUser.Data is null)
             return currentUser.ToEnvelopedResult(httpContext);
 
-        var result = await sender.Send(new CreateOrderFromBasketCommand(currentUser.Data.Id));
+        var result = await sender.Send(new CreateOrderFromBasketCommand(currentUser.Data.Id, currentUser.Data.Email));
         return result.ToEnvelopedResult(httpContext);
     }
 }

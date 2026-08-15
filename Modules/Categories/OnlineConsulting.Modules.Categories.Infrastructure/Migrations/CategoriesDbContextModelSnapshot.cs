@@ -17,7 +17,7 @@ namespace OnlineConsulting.Modules.Categories.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasDefaultSchema("categories")
+                .HasDefaultSchema("Categories")
                 .HasAnnotation("ProductVersion", "10.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
@@ -61,7 +61,7 @@ namespace OnlineConsulting.Modules.Categories.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories", "categories");
+                    b.ToTable("Categories", "Categories");
                 });
 #pragma warning restore 612, 618
         }

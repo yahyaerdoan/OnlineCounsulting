@@ -21,8 +21,7 @@ public class CreateUserAddressHandler(IUserAddressRepository repository) : IRequ
 {
     public async Task<OperationDataResult<Guid>> Handle(CreateUserAddressCommand request, CancellationToken cancellationToken)
     {
-        // A user has at most one shipping and one billing address - making this one the new
-        // default means unsetting whichever address currently holds that flag.
+        // A user has at most one shipping and one billing address, so setting this one unsets the old holder of that flag.
         if (request.IsShippingAddress)
         {
             var oldShipping = await repository.GetAsync(a => a.UserId == request.UserId && a.IsShippingAddress, cancellationToken: cancellationToken);

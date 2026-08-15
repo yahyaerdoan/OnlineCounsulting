@@ -9,8 +9,7 @@ using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Baskets.ClearBasket;
 
-// Used both as a direct "empty my cart" endpoint and internally by checkout (Orders group) once a
-// basket has been converted into an order. Not ISecureAddRequest - see AddBasketItemCommand.
+/// <summary>Used both as a direct "empty my cart" endpoint and internally by checkout once a basket has been converted into an order.</summary>
 public record ClearBasketCommand(Guid? UserId, Guid? GuestId) : IRequest<OperationResult>, ITransactionAddRequest;
 
 public class ClearBasketHandler(IBasketRepository basketRepository, IBasketItemRepository basketItemRepository)

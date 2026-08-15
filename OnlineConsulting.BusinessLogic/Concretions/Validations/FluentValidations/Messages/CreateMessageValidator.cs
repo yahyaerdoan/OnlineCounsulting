@@ -33,10 +33,10 @@ internal class CreateMessageValidator : AbstractValidator<CreateMessageDto>
             .NotEmpty().WithMessage("Don't forget to write your message.");
     }
 
-    // Optional: Custom validation method for domain-specific checks
+    /// <summary>Checks whether the email's domain is in the allowed list.</summary>
     private bool BeAValidDomain(string email)
     {
-        var validDomains = new[] { "gmail.com", "yahoo.com", "outlook.com" }; // Define valid domains
+        var validDomains = new[] { "gmail.com", "yahoo.com", "outlook.com" };
         var domain = email.Split('@').LastOrDefault();
         return domain is not null && validDomains.Contains(domain);
     }

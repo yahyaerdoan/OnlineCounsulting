@@ -18,7 +18,6 @@ public class AdminLayoutSidebarProfileComponentPartial(ISender sender) : ViewCom
         var user = userResult.Data.ToResultUserDto();
         var userRole = await sender.Send(new GetUserRolesQuery(userResult.Data.Id));
 
-        // Manually map roles to correct DTO
         user.Roles = [.. (userRole.Data ?? [])
             .Select(role => new ResultSystemRoleDto
             {

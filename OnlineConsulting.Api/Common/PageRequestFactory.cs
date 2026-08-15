@@ -2,10 +2,7 @@ using Core.ApplicationLayer.Requests.Page;
 
 namespace OnlineConsulting.Api.Common;
 
-// The only place index/size defaults should live is PageRequest itself (Core.Packages -
-// PageIndex defaults to 0, PageSize to 10) - endpoints take nullable query params and only
-// override a property when the caller actually supplied one, instead of re-declaring "0"/"10" as
-// method defaults in every paged endpoint (which can drift from PageRequest's own defaults).
+/// <summary>Only overrides PageRequest's own PageIndex/PageSize defaults when the caller actually supplied a value, so paged endpoints never redeclare and risk drifting from those defaults.</summary>
 public static class PageRequestFactory
 {
     public static PageRequest Create(int? index, int? size)

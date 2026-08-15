@@ -5,7 +5,7 @@ namespace OnlineConsulting.Modules.Inquiries.Application.Common.Templates;
 
 public record NewInquiryNotificationEmailModel(string FirstName, string LastName, string Email, string Subject, string Description);
 
-// Notification sent to the admin inbox when a new contact form arrives.
+/// <summary>Admin notification for a new contact-form submission.</summary>
 public class NewInquiryNotificationTemplate : IEmailTemplate<NewInquiryNotificationEmailModel>
 {
     public string Subject(NewInquiryNotificationEmailModel model) => $"New inquiry: {model.Subject}";

@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using OnlineConsulting.Modules.Identity.Application;
+using OnlineConsulting.Modules.Identity.Application.Common.Templates;
 using OnlineConsulting.Modules.Identity.Application.Features.Auth.Contracts;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Contracts;
 using OnlineConsulting.Modules.Identity.Domain;
@@ -17,6 +18,8 @@ using OnlineConsulting.Modules.Identity.Infrastructure.Pipelines;
 using OnlineConsulting.Modules.Identity.Infrastructure.Repositories;
 using OnlineConsulting.Modules.Identity.Infrastructure.Security;
 using OnlineConsulting.Modules.Identity.Infrastructure.Storage;
+using OnlineConsulting.SharedKernel.Notifications;
+using OnlineConsulting.SharedKernel.Notifications.Templates;
 using System.Text;
 
 namespace OnlineConsulting.Modules.Identity.Infrastructure;
@@ -41,6 +44,12 @@ public static class IdentityModule
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<IRefreshTokenService, RefreshTokenService>();
         services.AddScoped<IUserImageStorage, UserImageStorage>();
+
+        services.AddScoped<IEmailOutboxWriter, EmailOutboxWriter>();
+        services.AddScoped<IEmailTemplate<ConfirmEmailEmailModel>, ConfirmEmailTemplate>();
+        services.AddScoped<IEmailTemplate<WelcomeEmailModel>, WelcomeTemplate>();
+        services.AddScoped<IEmailTemplate<PolicyNoticeEmailModel>, PolicyNoticeTemplate>();
+        services.Configure<AuthEmailOptions>(configuration.GetSection("Auth"));
 
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
         services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);

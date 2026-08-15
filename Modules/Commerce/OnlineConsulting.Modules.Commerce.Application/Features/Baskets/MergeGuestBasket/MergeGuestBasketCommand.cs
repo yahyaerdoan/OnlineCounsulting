@@ -9,10 +9,7 @@ using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Baskets.MergeGuestBasket;
 
-// Called from the Api layer right after a successful login (not ISecureAddRequest - it runs in
-// the same request that just authenticated the user, before any Commerce-side auth check would
-// see the new token). If there's no guest basket, this is a no-op success - most logins won't
-// have shopped as a guest first.
+/// <summary>Called right after login, before any Commerce-side auth check would see the new token, so this is deliberately not ISecureAddRequest.</summary>
 public record MergeGuestBasketCommand(Guid UserId, Guid GuestId) : IRequest<OperationResult>, ITransactionAddRequest;
 
 public class MergeGuestBasketHandler(IBasketRepository basketRepository, IBasketItemRepository basketItemRepository)
@@ -36,9 +33,7 @@ public class MergeGuestBasketHandler(IBasketRepository basketRepository, IBasket
         var userItems = await basketItemRepository.GetListAsync(i => i.BasketId == userBasket.Id, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
         var userItemsByService = userItems.Items.ToDictionary(i => i.ServiceId);
 
-        // Two separate sessions' quantities are combined (additive), unlike AddBasketItem's
-        // same-session "re-adding overwrites quantity" behavior - merging a guest cart isn't the
-        // same action as the user deliberately re-entering a quantity.
+        // Quantities are combined (additive) here, unlike AddBasketItem's same-session "re-adding overwrites quantity" behavior.
         foreach (var guestItem in guestItems.Items)
         {
             if (userItemsByService.TryGetValue(guestItem.ServiceId, out var existingItem))

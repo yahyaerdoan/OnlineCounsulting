@@ -3,7 +3,7 @@ using OnlineConsulting.Modules.Categories.Domain;
 
 namespace OnlineConsulting.Modules.Categories.Application.Contracts;
 
-// Records can't inherit a plain class (LinkedResponse) - so a class with required init properties instead of a positional record.
+/// <summary>Category response as a class with required init properties, since records can't inherit the plain LinkedResponse class.</summary>
 public class CategoryResponse : LinkedResponse
 {
     public required Guid Id { get; init; }

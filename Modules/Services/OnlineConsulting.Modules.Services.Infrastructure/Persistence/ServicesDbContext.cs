@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using OnlineConsulting.Modules.Services.Domain;
 using OnlineConsulting.SharedKernel.Tenancy;
 
@@ -22,10 +22,6 @@ public class ServicesDbContext(DbContextOptions<ServicesDbContext> options, ITen
             builder.Property(s => s.DiscountedPrice).HasColumnType("decimal(18,2)");
             builder.Property(s => s.RowVersion).IsRowVersion();
             builder.HasIndex(s => s.CategoryId);
-            // Filtered so a soft-deleted service's slug can be reused - an unfiltered unique index
-            // would still see the deleted row and reject the new one even though the app-level
-            // uniqueness check (which goes through the query filter, so it never sees soft-deleted
-            // rows) already let it through.
             builder.HasIndex(s => new { s.TenantId, s.Slug }).IsUnique().HasFilter("[DeletedDate] IS NULL");
             builder.HasQueryFilter(s => s.TenantId == tenantProvider.TenantId && s.DeletedDate == null);
         });

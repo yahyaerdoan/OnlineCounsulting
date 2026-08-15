@@ -3,7 +3,7 @@ using OnlineConsulting.Modules.Services.Domain;
 
 namespace OnlineConsulting.Modules.Services.Application.Contracts;
 
-// Records can't inherit a plain class (LinkedResponse) - so a class with required init properties instead of a positional record.
+/// <summary>A class with required init properties instead of a positional record, since records can't inherit LinkedResponse.</summary>
 public class ServiceResponse : LinkedResponse
 {
     public required Guid Id { get; init; }

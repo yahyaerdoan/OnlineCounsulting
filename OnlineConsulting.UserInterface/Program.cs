@@ -12,12 +12,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
-//Add MVC + custom validation filter + global authorize policy
 builder.Services.AddControllersWithViews(options =>
 {
     options.Filters.Add<ValidationFilter>();
-    //Don't let non-nullable reference types generate an implicit [Required] with the
-    //framework's default "The {0} field is required." message - let FluentValidation own it.
+    // Suppress the framework's implicit [Required] on non-nullable reference types so FluentValidation owns validation messages.
     options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
 
     var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
@@ -32,13 +30,11 @@ builder.Services.AddControllersWithViews(options =>
 builder.Services.AddIdentityModule(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
 
-//Register your custom DI layers
 builder.Services.AddUserInterfaceServiceRegistration(builder.Configuration);
 builder.Services.AddBusinessLogicServiceRegistration(builder.Configuration);
 builder.Services.AddDataAccesssServiceRegistration(builder.Configuration);
 builder.Services.AddDataTransferObjectServiceRegistration(builder.Configuration);
 
-//Custom authorization policies
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("RequireAdminOrSuperAdminPolicy", policy => policy.RequireRole("Admin", "Super Admin"))
     .AddPolicy("RequireSuperAdminPolicy", policy => policy.RequireRole("Super Admin"))
@@ -48,7 +44,6 @@ var app = builder.Build();
 
 app.MapDefaultEndpoints();
 
-//Error handling for production
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -63,13 +58,11 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
-//Authentication & Authorization
 app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseAntiforgery();
 
-//Short inline middleware: store LastVisitedUrl
 app.Use(async (context, next) =>
 {
     var path = context.Request.Path.Value?.ToLower();
@@ -86,13 +79,11 @@ app.Use(async (context, next) =>
     await next();
 });
 
-//Your toast notification service
 app.UseNToastNotify();
 
 //Legacy static entry point some browsers/tools still request
 app.MapGet("/index.html", () => Results.Redirect("/"));
 
-//Routing: areas + default route
 app.MapControllerRoute(
 name: "areas",
 pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");

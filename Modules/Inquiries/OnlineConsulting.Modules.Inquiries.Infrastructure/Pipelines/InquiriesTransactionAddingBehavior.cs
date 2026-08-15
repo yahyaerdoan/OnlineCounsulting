@@ -6,10 +6,7 @@ using ResultHandler.Core.Abstractions;
 
 namespace OnlineConsulting.Modules.Inquiries.Infrastructure.Pipelines;
 
-// See Identity's IdentityTransactionAddingBehavior for why this thin per-module subclass exists.
-// Not currently used by any Inquiries handler (Submit/Subscribe rely on enqueue-before-AddAsync
-// ordering instead, see SubmitMessageCommand) - registered for the next handler that genuinely
-// needs more than one SaveChanges call.
+/// <summary>Not currently used by any handler; registered ahead of time for the next one that needs more than one SaveChanges call.</summary>
 public class InquiriesTransactionAddingBehavior<TRequest, TResponse>(InquiriesDbContext context) : EfTransactionAddingBehavior<TRequest, TResponse, InquiriesDbContext>(context)
     where TRequest : IRequest<TResponse>, ITransactionAddRequest
     where TResponse : IOperationResult;

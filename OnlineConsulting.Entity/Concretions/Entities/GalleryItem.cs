@@ -8,7 +8,7 @@ public class GalleryItem : BaseEntity
     public string ImageUrl { get; set; } = string.Empty;
     public string? Description { get; set; }
 
-    // Navigation property for many-to-many relationship
+    /// <summary>Navigation property for the many-to-many relationship with gallery categories.</summary>
     public ICollection<GalleryItemCategory> GalleryCategories { get; set; } = [];
     [NotMapped]
     public List<string> GalleryCategoryIds { get; set; } = [];

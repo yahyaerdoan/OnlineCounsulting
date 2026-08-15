@@ -1,4 +1,3 @@
-using OnlineConsulting.Modules.Inquiries.Application;
 using OnlineConsulting.Modules.Inquiries.Infrastructure.Persistence;
 using OnlineConsulting.SharedKernel.Notifications;
 

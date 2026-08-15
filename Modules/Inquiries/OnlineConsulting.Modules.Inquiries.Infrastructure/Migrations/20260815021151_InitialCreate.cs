@@ -86,8 +86,10 @@ namespace OnlineConsulting.Modules.Inquiries.Infrastructure.Migrations
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     To = table.Column<string>(type: "nvarchar(320)", maxLength: 320, nullable: false),
+                    Cc = table.Column<string>(type: "nvarchar(320)", maxLength: 320, nullable: true),
                     Subject = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
                     HtmlBody = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    SourceReference = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
                     Status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     Attempts = table.Column<int>(type: "int", nullable: false),
                     NextAttemptAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),

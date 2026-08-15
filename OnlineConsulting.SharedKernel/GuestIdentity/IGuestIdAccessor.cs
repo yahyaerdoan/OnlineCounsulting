@@ -2,14 +2,11 @@ namespace OnlineConsulting.SharedKernel.GuestIdentity;
 
 public interface IGuestIdAccessor
 {
-    // Reads the guest id cookie if present; otherwise issues a new one and writes it to the
-    // response. Callers only need this for anonymous flows - an authenticated caller should use
-    // ICurrentUserAccessor instead.
+    /// <summary>Reads the guest id cookie if present, otherwise issues and writes a new one; for anonymous flows only.</summary>
     Guid GetOrCreateGuestId();
 
     Guid? TryGetGuestId();
 
-    // Called after a successful login once the guest basket (if any) has been merged into the
-    // user's own basket - the guest id no longer refers to anything worth keeping.
+    /// <summary>Called after login once the guest basket has been merged into the user's own basket.</summary>
     void ClearGuestId();
 }

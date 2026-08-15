@@ -8,8 +8,7 @@ using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Baskets.GetBasket;
 
-// UserId is set for a logged-in caller, GuestId for an anonymous one - exactly one is non-null,
-// resolved at the Api layer (see BasketOwnerResolver).
+/// <summary>Exactly one of UserId/GuestId is non-null, resolved at the Api layer (see BasketOwnerResolver).</summary>
 public record GetBasketQuery(Guid? UserId, Guid? GuestId) : IRequest<OperationDataResult<BasketResponse>>;
 
 public class GetBasketHandler(IBasketRepository basketRepository, IBasketItemRepository basketItemRepository)

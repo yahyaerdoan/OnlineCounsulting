@@ -10,9 +10,7 @@ public class GenericRepository<T>(OnlineConsultingDbContext context) : IGenericR
 {
     protected readonly OnlineConsultingDbContext _context = context;
     public DbSet<T> Entity => _context.Set<T>();
-    // Rastgele Guid yerine zaman sıralı (UUID v7) Id üretir; SQL Server'da clustered index
-    // üzerindeki sayfa bölünmesi/fragmentasyonu önler. AutoMapper'ın Create...Dto -> Entity
-    // eşlemesi Id'yi hep Guid.Empty bırakır, burada onu doldururuz.
+    /// <summary>Fills in a sequential (UUID v7) Id since AutoMapper always leaves Create...Dto -> Entity mappings at Guid.Empty.</summary>
     protected static void EnsureSequentialId(T entity)
     {
         if (entity.Id == Guid.Empty)
@@ -63,14 +61,11 @@ public class GenericRepository<T>(OnlineConsultingDbContext context) : IGenericR
         if (!tracking)
             query = query.AsNoTracking();
 
-        // Get entity or null if not found
         var entity = await query.SingleOrDefaultAsync(expression);
 
-        // Explicitly handle null scenario first
         if (entity is null)
             return null;
 
-        // Then safely check Status property (if applicable)
         if (status.HasValue && entity.Status != status.Value)
             return null;
 
@@ -126,14 +121,10 @@ public class GenericRepository<T>(OnlineConsultingDbContext context) : IGenericR
 
     public async Task<bool> UpdateAsync(T entity)
     {
-        // Asenkron operasyon simülasyonu
         await Task.Yield();
 
-        // Check if the entity is already tracked
         var trackedEntity = _context.ChangeTracker.Entries<T>().FirstOrDefault(e => e.Entity.Id == entity.Id);
-        // Detach the already tracked entity
         trackedEntity?.State = EntityState.Detached;
-        // Attach the entity and mark it as modified
         _context.Attach(entity);
         _context.Entry(entity).State = EntityState.Modified;
 
@@ -144,11 +135,8 @@ public class GenericRepository<T>(OnlineConsultingDbContext context) : IGenericR
 
         foreach (var data in datas)
         {
-            // Check if the entity is already tracked
             var trackedEntity = _context.ChangeTracker.Entries<T>().FirstOrDefault(e => e.Entity.Id == data.Id);
-            // Detach the already tracked entity
             trackedEntity?.State = EntityState.Detached;
-            // Attach the entity and mark it as modified
             _context.Attach(data);
             _context.Entry(data).State = EntityState.Modified;
         }

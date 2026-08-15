@@ -6,9 +6,7 @@ using ResultHandler.Core.Abstractions;
 
 namespace OnlineConsulting.Modules.Commerce.Infrastructure.Pipelines;
 
-// See Identity's IdentityTransactionAddingBehavior for why this thin per-module subclass exists -
-// closes EfTransactionAddingBehavior's TContext to this module's own DbContext so it can still be
-// registered as an open generic (TRequest/TResponse) against IPipelineBehavior<,>.
+/// <summary>Thin per-module subclass closing EfTransactionAddingBehavior's TContext to this module's DbContext so it can register as an open generic.</summary>
 public class CommerceTransactionAddingBehavior<TRequest, TResponse>(CommerceDbContext context) : EfTransactionAddingBehavior<TRequest, TResponse, CommerceDbContext>(context)
     where TRequest : IRequest<TResponse>, ITransactionAddRequest
     where TResponse : IOperationResult;

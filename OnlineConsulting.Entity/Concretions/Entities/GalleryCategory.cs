@@ -9,7 +9,7 @@ public class GalleryCategory : BaseEntity
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
 
-    // Navigation property for many-to-many relationship
+    /// <summary>Navigation property for the many-to-many relationship with gallery items.</summary>
     public ICollection<GalleryItemCategory> GalleryCategories { get; set; } = [];
 
     [NotMapped]

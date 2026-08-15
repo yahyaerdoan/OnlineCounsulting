@@ -6,8 +6,7 @@ public class BasketItem : TenantEntity<Guid>
 {
     public required Guid BasketId { get; set; }
 
-    // Plain id, no navigation - Service lives in the not-yet-migrated legacy catalog, and modules
-    // never reference each other's entities directly, only by id.
+    /// <summary>Plain id, no navigation - Service lives in the not-yet-migrated legacy catalog, and modules only reference each other by id.</summary>
     public required Guid ServiceId { get; set; }
 
     public required int Quantity { get; set; }

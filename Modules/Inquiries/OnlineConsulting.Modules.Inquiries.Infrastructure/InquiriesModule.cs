@@ -8,6 +8,7 @@ using OnlineConsulting.Modules.Inquiries.Application.Common.Templates;
 using OnlineConsulting.Modules.Inquiries.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Inquiries.Infrastructure.Pipelines;
 using OnlineConsulting.Modules.Inquiries.Infrastructure.Repositories;
+using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
 using OnlineConsulting.SharedKernel.Tenancy;
 

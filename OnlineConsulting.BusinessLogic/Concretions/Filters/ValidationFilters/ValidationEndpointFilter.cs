@@ -13,7 +13,6 @@ public class ValidationEndpointFilter<TDto>(IServiceProvider serviceProvider) : 
         if (model is null)
             return Results.BadRequest("Model binding failed.");
 
-        // Resolve validator
         var validator = serviceProvider.GetService<IValidator<TDto>>();
         if (validator is null)
             return Results.Problem("Validator not found for model type.");

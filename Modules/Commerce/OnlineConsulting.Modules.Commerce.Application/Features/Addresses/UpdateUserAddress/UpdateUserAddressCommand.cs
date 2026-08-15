@@ -24,8 +24,7 @@ public class UpdateUserAddressHandler(IUserAddressRepository repository) : IRequ
         if (address is null)
             return Result.NotFound($"Address {request.Id} was not found.");
 
-        // See CreateUserAddressCommand for why claiming shipping/billing here means unsetting
-        // whichever other address currently holds that flag.
+        // See CreateUserAddressCommand for why claiming shipping/billing here unsets whichever other address holds that flag.
         if (request.IsShippingAddress && !address.IsShippingAddress)
         {
             var oldShipping = await repository.GetAsync(a => a.UserId == request.UserId && a.IsShippingAddress, cancellationToken: cancellationToken);

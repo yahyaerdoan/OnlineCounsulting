@@ -8,7 +8,7 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Categories.Application.Features.UpdateCategory;
 
-// See CreateCategoryCommand for why this doesn't opt into ITransactionAddRequest.
+/// <summary>See CreateCategoryCommand for why this doesn't opt into ITransactionAddRequest.</summary>
 public record UpdateCategoryCommand(Guid Id, string Title, string Description, Guid ImgIconId)
     : IRequest<OperationResult>, ISecureAddRequest
 {

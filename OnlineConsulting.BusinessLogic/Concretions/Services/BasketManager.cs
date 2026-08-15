@@ -56,18 +56,15 @@ public class BasketManager(IMapper mapper, IGenericRepository<Basket> repository
     }
     public async Task UpdateBasketTotalsAsync(Guid basketId)
     {
-        // Get all basket items for the current basket
         var basketItems = await basketItemRepository.GetWhere(bi => bi.BasketId == basketId).ToListAsync();
 
         if (basketItems is null || basketItems.Count == 0)
             return;
 
-        // Calculate totals
         var totalQuantity = basketItems.Sum(bi => bi.Quantity);
         var subTotal = basketItems.Sum(bi => bi.SubTotalPrice);
         var totalPrice = basketItems.Sum(bi => bi.TotalPrice);
 
-        // Retrieve the Basket entity to update
         var basket = await _repository.GetSingleAsync(b => b.Id == basketId);
         if (basket is null)
             return;

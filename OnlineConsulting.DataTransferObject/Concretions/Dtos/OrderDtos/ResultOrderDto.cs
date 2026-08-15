@@ -6,8 +6,7 @@ public class ResultOrderDto : IDto
 {
     public Guid Id { get; set; }
     public Guid UserId { get; set; }
-    // Populated by OrderManager via a lookup against the Identity module (UserManager<User>) -
-    // Order and User live in separate DbContexts now, so no EF navigation is possible here.
+    /// <summary>Populated by OrderManager via a lookup against the Identity module since Order and User live in separate DbContexts.</summary>
     public string UserFirstName { get; set; } = string.Empty;
     public string UserLastName { get; set; } = string.Empty;
     public string OrderNumber { get; set; } = string.Empty;

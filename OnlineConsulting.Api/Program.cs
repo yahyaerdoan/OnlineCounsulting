@@ -22,12 +22,7 @@ builder.Services.AddScoped<ITenantProvider, TenantProvider>();
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationAddingBehavior<,>));
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(AuthorizationAddingBehavior<,>));
 
-// Module registrations go before AddApiServiceRegistration's Scrutor convention scan, so its
-// RegistrationStrategy.Skip sees each module's repositories already registered and doesn't
-// double-register them. Each module also registers its own EF-based transaction behavior here
-// (IdentityTransactionAddingBehavior/CategoriesTransactionAddingBehavior), closed over its own
-// DbContext - see ARCHITECTURE_MIGRATION.md for why the generic TransactionScope-based
-// TransactionAddingBehavior from Core.ApplicationLayer isn't used (MSDTC).
+// Module registrations must precede AddApiServiceRegistration's Scrutor convention scan, so RegistrationStrategy.Skip sees each module's repositories already registered and doesn't double-register them.
 builder.Services.AddCategoriesModule(builder.Configuration);
 builder.Services.AddCommerceModule(builder.Configuration);
 builder.Services.AddIdentityModule(builder.Configuration).AddIdentityModuleJwtBearer(builder.Configuration);

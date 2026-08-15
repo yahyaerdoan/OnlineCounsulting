@@ -1,7 +1,6 @@
 namespace OnlineConsulting.SharedKernel.Notifications.Templates;
 
-// Shared wrapper so every template gets the same fonts/spacing/footer without repeating inline
-// styles per template (every module's templates call this, never inline their own <div>/<style>).
+/// <summary>Wraps an email body in the shared font/spacing/footer used by every template.</summary>
 public static class EmailLayout
 {
     public static string Wrap(string bodyHtml) => $"""

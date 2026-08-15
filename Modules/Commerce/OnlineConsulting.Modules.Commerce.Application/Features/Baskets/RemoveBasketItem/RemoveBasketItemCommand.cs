@@ -9,7 +9,7 @@ using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Baskets.RemoveBasketItem;
 
-// Not ISecureAddRequest - see AddBasketItemCommand.
+/// <summary>Not ISecureAddRequest - see AddBasketItemCommand.</summary>
 public record RemoveBasketItemCommand(Guid? UserId, Guid? GuestId, Guid BasketItemId) : IRequest<OperationResult>, ITransactionAddRequest;
 
 public class RemoveBasketItemHandler(IBasketRepository basketRepository, IBasketItemRepository basketItemRepository)

@@ -4,9 +4,7 @@ using OnlineConsulting.Entity.Concretions.BaseEntities;
 using OnlineConsulting.Entity.Concretions.Entities;
 namespace OnlineConsulting.DataAccess.Concretions.Contexts;
 
-// Plain DbContext, not IdentityDbContext<User,Role,string> anymore: Identity/User/Role now live
-// in the Identity module's own AppIdentityDbContext (separate schema, separate DbContext). Cross-module
-// references to a user are by UserId (string) column only, never EF navigation or DbSet<User>.
+/// <summary>Plain DbContext for this module; Identity/User/Role now live in the Identity module's own AppIdentityDbContext, so a user is referenced only by UserId, never EF navigation.</summary>
 public class OnlineConsultingDbContext(DbContextOptions<OnlineConsultingDbContext> options,
     IHttpContextAccessor httpContextAccessor) : DbContext(options)
 {
@@ -43,8 +41,7 @@ public class OnlineConsultingDbContext(DbContextOptions<OnlineConsultingDbContex
     #region OnModelCreating
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // FK kolonlarında join/filtre performansı için index. EF Core, navigation property'ler
-        // üzerinden convention ile bunu zaten örtük olarak oluşturuyor; burada niyeti açık tutuyoruz.
+        // EF Core already creates these indexes implicitly via convention; kept explicit to state the intent.
         modelBuilder.Entity<BasketItem>().HasIndex(x => x.ServiceId);
         modelBuilder.Entity<BasketItem>().HasIndex(x => x.BasketId);
         modelBuilder.Entity<Basket>().HasIndex(x => x.UserId);
@@ -136,7 +133,6 @@ public class OnlineConsultingDbContext(DbContextOptions<OnlineConsultingDbContex
             .WithMany(c => c.GalleryCategories)
             .HasForeignKey(sc => sc.GalleryCategoriesId);
 
-        // ✅ OrderItem ilişkileri
         modelBuilder.Entity<OrderItem>()
             .HasOne(oi => oi.Order)
             .WithMany(o => o.OrderItems)
@@ -147,7 +143,6 @@ public class OnlineConsultingDbContext(DbContextOptions<OnlineConsultingDbContex
             .WithMany(s => s.OrderItems)
             .HasForeignKey(oi => oi.ServiceId);
 
-        // ✅ OrderItem decimal alanların precision ayarı
         modelBuilder.Entity<OrderItem>()
             .Property(oi => oi.UnitPrice)
             .HasColumnType("decimal(18,2)");
@@ -164,7 +159,7 @@ public class OnlineConsultingDbContext(DbContextOptions<OnlineConsultingDbContex
             .Property(oi => oi.TotalPrice)
             .HasColumnType("decimal(18,2)");
 
-        base.OnModelCreating(modelBuilder); // En sona alınması daha sağlıklı
+        base.OnModelCreating(modelBuilder); // must run last
     }
 
     #endregion
