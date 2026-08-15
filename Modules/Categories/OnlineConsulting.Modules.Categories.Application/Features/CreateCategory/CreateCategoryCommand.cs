@@ -8,7 +8,7 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Categories.Application.Features.CreateCategory;
 
-public record CreateCategoryCommand(string Title, string Description, Guid ImgIconId) : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
+public record CreateCategoryCommand(string Title, string Description, string Icon, string? IconColor = null) : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
     [JsonIgnore]
     public string[] Roles => [CategoriesOperationClaims.Admin, CategoriesOperationClaims.Write, CategoriesOperationClaims.Add];
@@ -23,7 +23,8 @@ public class CreateCategoryHandler(ICategoryRepository repository) : IRequestHan
             Id = Guid.NewGuid(),
             Title = request.Title,
             Description = request.Description,
-            ImgIconId = request.ImgIconId,
+            Icon = request.Icon,
+            IconColor = request.IconColor,
         };
 
         await repository.AddAsync(category);

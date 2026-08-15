@@ -19,4 +19,7 @@ public class Service : TenantEntity<Guid>
 
     /// <summary>When true, a Scheduling appointment for this service must reach PendingPayment/Confirmed via a paid Commerce order before the tenant confirms it. False (default) keeps booking payment-free until a real payment gateway exists.</summary>
     public bool RequiresPrepayment { get; set; }
+
+    /// <summary>Plain id, no navigation - MediaAsset lives in the Media module. Null means no cover photo uploaded yet.</summary>
+    public Guid? CoverMediaAssetId { get; set; }
 }

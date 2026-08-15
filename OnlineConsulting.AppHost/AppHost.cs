@@ -1,4 +1,4 @@
-﻿ var builder = DistributedApplication.CreateBuilder(args);
+﻿var builder = DistributedApplication.CreateBuilder(args);
 
 var api = builder.AddProject<Projects.OnlineConsulting_Api>("api");
 

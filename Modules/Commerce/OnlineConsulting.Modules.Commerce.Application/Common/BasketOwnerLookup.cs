@@ -1,5 +1,5 @@
-﻿using System.Linq.Expressions;
-using OnlineConsulting.Modules.Commerce.Domain;
+﻿using OnlineConsulting.Modules.Commerce.Domain;
+using System.Linq.Expressions;
 
 namespace OnlineConsulting.Modules.Commerce.Application.Common;
 

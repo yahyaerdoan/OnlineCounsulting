@@ -1,5 +1,4 @@
-using Hateoas;
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Services.Application.Features.GetServiceBySlug;
 using ResultHandler.AspNetCore.Extensions;

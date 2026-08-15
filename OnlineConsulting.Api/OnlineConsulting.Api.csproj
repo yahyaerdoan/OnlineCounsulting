@@ -49,11 +49,18 @@
     <ProjectReference Include="..\Modules\Inquiries\OnlineConsulting.Modules.Inquiries.Domain\OnlineConsulting.Modules.Inquiries.Domain.csproj" />
     <ProjectReference Include="..\Modules\Inquiries\OnlineConsulting.Modules.Inquiries.Application\OnlineConsulting.Modules.Inquiries.Application.csproj" />
     <ProjectReference Include="..\Modules\Inquiries\OnlineConsulting.Modules.Inquiries.Infrastructure\OnlineConsulting.Modules.Inquiries.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\SiteContent\OnlineConsulting.Modules.SiteContent.Domain\OnlineConsulting.Modules.SiteContent.Domain.csproj" />
+    <ProjectReference Include="..\Modules\SiteContent\OnlineConsulting.Modules.SiteContent.Application\OnlineConsulting.Modules.SiteContent.Application.csproj" />
+    <ProjectReference Include="..\Modules\SiteContent\OnlineConsulting.Modules.SiteContent.Infrastructure\OnlineConsulting.Modules.SiteContent.Infrastructure.csproj" />
     <ProjectReference Include="..\Modules\Scheduling\OnlineConsulting.Modules.Scheduling.Domain\OnlineConsulting.Modules.Scheduling.Domain.csproj" />
     <ProjectReference Include="..\Modules\Scheduling\OnlineConsulting.Modules.Scheduling.Application\OnlineConsulting.Modules.Scheduling.Application.csproj" />
     <ProjectReference Include="..\Modules\Scheduling\OnlineConsulting.Modules.Scheduling.Infrastructure\OnlineConsulting.Modules.Scheduling.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Media\OnlineConsulting.Modules.Media.Domain\OnlineConsulting.Modules.Media.Domain.csproj" />
+    <ProjectReference Include="..\Modules\Media\OnlineConsulting.Modules.Media.Application\OnlineConsulting.Modules.Media.Application.csproj" />
+    <ProjectReference Include="..\Modules\Media\OnlineConsulting.Modules.Media.Infrastructure\OnlineConsulting.Modules.Media.Infrastructure.csproj" />
     <ProjectReference Include="..\OnlineConsulting.Notifications\OnlineConsulting.Notifications.csproj" />
     <ProjectReference Include="..\OnlineConsulting.Payments\OnlineConsulting.Payments.csproj" />
+    <ProjectReference Include="..\OnlineConsulting.Storage\OnlineConsulting.Storage.csproj" />
     <ProjectReference Include="..\OnlineConsulting.SharedKernel\OnlineConsulting.SharedKernel.csproj" />
     <ProjectReference Include="..\OnlineConsulting.ServiceDefaults\OnlineConsulting.ServiceDefaults.csproj" />
   </ItemGroup>

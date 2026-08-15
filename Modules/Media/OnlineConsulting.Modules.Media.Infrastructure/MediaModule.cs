@@ -1,0 +1,33 @@
+using FluentValidation;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using OnlineConsulting.Modules.Media.Application;
+using OnlineConsulting.Modules.Media.Infrastructure.Persistence;
+using OnlineConsulting.Modules.Media.Infrastructure.Pipelines;
+using OnlineConsulting.Modules.Media.Infrastructure.Repositories;
+using OnlineConsulting.SharedKernel.Tenancy;
+
+namespace OnlineConsulting.Modules.Media.Infrastructure;
+
+public static class MediaModule
+{
+    public static IServiceCollection AddMediaModule(this IServiceCollection services, IConfiguration configuration)
+    {
+        var connectionString = configuration.GetSection("OnlineConsultingDbConnections:DevelopmentDbConnection").Value;
+
+        services.AddScoped<TenantSaveChangesInterceptor>();
+
+        services.AddDbContext<MediaDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
+            .AddInterceptors(serviceProvider.GetRequiredService<TenantSaveChangesInterceptor>()));
+
+        services.AddScoped<IMediaAssetRepository, MediaAssetRepository>();
+
+        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
+        services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(MediaTransactionAddingBehavior<,>));
+
+        return services;
+    }
+}

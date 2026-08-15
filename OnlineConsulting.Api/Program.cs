@@ -8,12 +8,15 @@ using OnlineConsulting.Modules.Categories.Infrastructure;
 using OnlineConsulting.Modules.Commerce.Infrastructure;
 using OnlineConsulting.Modules.Identity.Infrastructure;
 using OnlineConsulting.Modules.Inquiries.Infrastructure;
+using OnlineConsulting.Modules.Media.Infrastructure;
 using OnlineConsulting.Modules.Scheduling.Infrastructure;
 using OnlineConsulting.Modules.Services.Infrastructure;
+using OnlineConsulting.Modules.SiteContent.Infrastructure;
 using OnlineConsulting.Notifications;
 using OnlineConsulting.Payments;
 using OnlineConsulting.ServiceDefaults;
 using OnlineConsulting.SharedKernel.Tenancy;
+using OnlineConsulting.Storage;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,6 +34,17 @@ builder.Services.AddIdentityModule(builder.Configuration).AddIdentityModuleJwtBe
 builder.Services.AddServicesModule(builder.Configuration);
 builder.Services.AddInquiriesModule(builder.Configuration);
 builder.Services.AddSchedulingModule(builder.Configuration);
+builder.Services.AddSiteContentModule(builder.Configuration);
+builder.Services.AddMediaModule(builder.Configuration);
+builder.Services.AddStorageInfrastructure(builder.Configuration);
+
+// The local storage root is host-specific (varies per machine/deployment), so it's resolved from
+// the host environment rather than hardcoded in appsettings.json.
+builder.Services.PostConfigure<StorageOptions>(options =>
+{
+    if (string.IsNullOrEmpty(options.Local.RootPath))
+        options.Local.RootPath = Path.Combine(builder.Environment.WebRootPath, "media");
+});
 builder.Services.AddNotificationsInfrastructure(builder.Configuration);
 builder.Services.AddPaymentsInfrastructure(builder.Configuration);
 

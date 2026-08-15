@@ -18,6 +18,7 @@ public class ServiceResponse : LinkedResponse
     public required int TaxRate { get; init; }
     public required decimal DiscountedPrice { get; init; }
     public required bool RequiresPrepayment { get; init; }
+    public Guid? CoverMediaAssetId { get; init; }
 
     public static ServiceResponse FromDomain(Service service) => new()
     {
@@ -33,5 +34,6 @@ public class ServiceResponse : LinkedResponse
         TaxRate = service.TaxRate,
         DiscountedPrice = service.DiscountedPrice,
         RequiresPrepayment = service.RequiresPrepayment,
+        CoverMediaAssetId = service.CoverMediaAssetId,
     };
 }

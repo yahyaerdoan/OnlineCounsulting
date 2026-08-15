@@ -40,8 +40,14 @@ namespace OnlineConsulting.Modules.Categories.Infrastructure.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
-                    b.Property<Guid>("ImgIconId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("Icon")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("IconColor")
+                        .HasMaxLength(7)
+                        .HasColumnType("nvarchar(7)");
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()

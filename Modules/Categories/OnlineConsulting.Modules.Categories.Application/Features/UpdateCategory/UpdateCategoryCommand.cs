@@ -9,7 +9,7 @@ using System.Text.Json.Serialization;
 namespace OnlineConsulting.Modules.Categories.Application.Features.UpdateCategory;
 
 /// <summary>See CreateCategoryCommand for why this doesn't opt into ITransactionAddRequest.</summary>
-public record UpdateCategoryCommand(Guid Id, string Title, string Description, Guid ImgIconId)
+public record UpdateCategoryCommand(Guid Id, string Title, string Description, string Icon, string? IconColor = null)
     : IRequest<OperationResult>, ISecureAddRequest
 {
     [JsonIgnore]
@@ -26,7 +26,8 @@ public class UpdateCategoryHandler(ICategoryRepository repository) : IRequestHan
 
         category.Title = request.Title;
         category.Description = request.Description;
-        category.ImgIconId = request.ImgIconId;
+        category.Icon = request.Icon;
+        category.IconColor = request.IconColor;
 
         await repository.UpdateAsync(category);
 

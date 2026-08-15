@@ -1,5 +1,5 @@
+﻿using OnlineConsulting.SharedKernel.Notifications.Templates;
 using System.Net;
-using OnlineConsulting.SharedKernel.Notifications.Templates;
 
 namespace OnlineConsulting.Modules.Inquiries.Application.Common.Templates;
 

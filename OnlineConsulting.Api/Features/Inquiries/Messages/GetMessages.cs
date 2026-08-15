@@ -1,5 +1,4 @@
-using Core.ApplicationLayer.Requests.Page;
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Messages.GetMessages;
 using ResultHandler.AspNetCore.Extensions;
