@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -12,10 +12,8 @@ using Polly.Retry;
 namespace OnlineConsulting.Notifications.Dispatch;
 
 /// <summary>Dispatches due outbox emails using two retry layers: fast in-process Polly retries and slower durable Attempts/NextAttemptAt backoff on the row itself.</summary>
-public class OutboxDispatcher(
-    IServiceScopeFactory scopeFactory,
-    IOptions<OutboxDispatcherOptions> options,
-    ILogger<OutboxDispatcher> logger) : BackgroundService
+public class OutboxDispatcher(IServiceScopeFactory scopeFactory, IOptions<OutboxDispatcherOptions> options, ILogger<OutboxDispatcher> logger)
+    : BackgroundService
 {
     private readonly ResiliencePipeline _sendPipeline = new ResiliencePipelineBuilder()
         .AddRetry(new RetryStrategyOptions

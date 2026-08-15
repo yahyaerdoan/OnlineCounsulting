@@ -53,6 +53,7 @@
     <ProjectReference Include="..\Modules\Scheduling\OnlineConsulting.Modules.Scheduling.Application\OnlineConsulting.Modules.Scheduling.Application.csproj" />
     <ProjectReference Include="..\Modules\Scheduling\OnlineConsulting.Modules.Scheduling.Infrastructure\OnlineConsulting.Modules.Scheduling.Infrastructure.csproj" />
     <ProjectReference Include="..\OnlineConsulting.Notifications\OnlineConsulting.Notifications.csproj" />
+    <ProjectReference Include="..\OnlineConsulting.Payments\OnlineConsulting.Payments.csproj" />
     <ProjectReference Include="..\OnlineConsulting.SharedKernel\OnlineConsulting.SharedKernel.csproj" />
     <ProjectReference Include="..\OnlineConsulting.ServiceDefaults\OnlineConsulting.ServiceDefaults.csproj" />
   </ItemGroup>

@@ -8,6 +8,10 @@ public class Order : TenantEntity<Guid>
     public required string OrderStatus { get; set; }
     public required string PaymentStatus { get; set; }
 
+    /// <summary>Which IPaymentGateway processed this order (PaymentProviderNames.*) - a refund must route back to the provider that actually took the payment, not whichever provider is active when the refund happens.</summary>
+    public string? PaymentProvider { get; set; }
+    public string? ProviderPaymentId { get; set; }
+
     /// <summary>Plain id, no navigation - User lives in the Identity module's own DbContext.</summary>
     public required Guid UserId { get; set; }
 

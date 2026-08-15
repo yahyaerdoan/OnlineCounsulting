@@ -59,6 +59,8 @@ public class CommerceDbContext(DbContextOptions<CommerceDbContext> options, ITen
             builder.Property(o => o.OrderNumber).HasMaxLength(50).IsRequired();
             builder.Property(o => o.OrderStatus).HasMaxLength(50).IsRequired();
             builder.Property(o => o.PaymentStatus).HasMaxLength(50).IsRequired();
+            builder.Property(o => o.PaymentProvider).HasMaxLength(50);
+            builder.Property(o => o.ProviderPaymentId).HasMaxLength(200);
             builder.Property(o => o.RowVersion).IsRowVersion();
             builder.HasIndex(o => o.UserId);
             builder.HasQueryFilter(o => o.TenantId == tenantProvider.TenantId && o.DeletedDate == null);

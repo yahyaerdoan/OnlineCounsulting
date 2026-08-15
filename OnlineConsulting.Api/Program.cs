@@ -11,6 +11,7 @@ using OnlineConsulting.Modules.Inquiries.Infrastructure;
 using OnlineConsulting.Modules.Scheduling.Infrastructure;
 using OnlineConsulting.Modules.Services.Infrastructure;
 using OnlineConsulting.Notifications;
+using OnlineConsulting.Payments;
 using OnlineConsulting.ServiceDefaults;
 using OnlineConsulting.SharedKernel.Tenancy;
 
@@ -31,6 +32,7 @@ builder.Services.AddServicesModule(builder.Configuration);
 builder.Services.AddInquiriesModule(builder.Configuration);
 builder.Services.AddSchedulingModule(builder.Configuration);
 builder.Services.AddNotificationsInfrastructure(builder.Configuration);
+builder.Services.AddPaymentsInfrastructure(builder.Configuration);
 
 builder.Services.AddApiServiceRegistration(builder.Configuration);
 
