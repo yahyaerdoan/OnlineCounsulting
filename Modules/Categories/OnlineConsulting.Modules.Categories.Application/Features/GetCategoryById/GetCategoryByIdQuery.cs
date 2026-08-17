@@ -1,5 +1,6 @@
 using MediatR;
 using OnlineConsulting.Modules.Categories.Application.Contracts;
+using OnlineConsulting.Modules.Categories.Application.Abstractions;
 using OnlineConsulting.Modules.Categories.Application.Features.Constants;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;

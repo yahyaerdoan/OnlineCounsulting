@@ -1,28 +1,20 @@
 using NToastNotify;
+using OnlineConsulting.UserInterface.Infrastructure.Api;
 using ResultHandler.Core.Enums;
 using ResultHandler.Mapping;
 namespace OnlineConsulting.UserInterface.NotificationServices.ToastrServices;
 
 public static class NToastService
 {
-    /// <summary>
-    /// Shows a toast whose color/icon is derived from <paramref name="status"/> (Ok/Created → success,
-    /// Unauthorized → warning, NotFound/BadRequest/Forbidden/InternalServerError → error; any other
-    /// <see cref="ResultStatus"/> falls back to its HTTP status-code class, e.g. 4xx → warning, 5xx → error).
-    /// </summary>
-    /// <param name="message">Toast body text — typically <c>result.Title</c> from an <see cref="ResultHandler.Core.Abstractions.IOperationResult"/>.</param>
-    /// <param name="status">Drives the toast type and, unless overridden, its default title.</param>
-    /// <param name="title">
-    /// Optional toast headline override (e.g. "Welcome back!", "Goodbye!"). Pass <see langword="null"/>
-    /// (the default) to use the automatic title for <paramref name="status"/>.
-    /// </param>
-    /// <example>
-    /// <code>
-    /// NToastService.Show(toastNotification, result.Title, result.Status);
-    /// NToastService.Show(toastNotification, result.Title, result.Status, "Welcome back!");
-    /// NToastService.Show(toastNotification, result.Title, result.Status, result.IsSuccessful ? "Welcome back!" : null);
-    /// </code>
-    /// </example>
+    /// <summary>Shows a success/failure toast for an <see cref="ApiEnvelope"/> result.</summary>
+    public static void ShowResult(this IToastNotification toastNotification, ApiEnvelope result) =>
+        Show(toastNotification, result.DisplayMessage, result.IsSuccessful ? ResultStatus.Ok : ResultStatus.BadRequest);
+
+    /// <summary>Shows a success/failure toast for an <see cref="ApiEnvelope{T}"/> result.</summary>
+    public static void ShowResult<T>(this IToastNotification toastNotification, ApiEnvelope<T> result) =>
+        Show(toastNotification, result.DisplayMessage, result.IsSuccessful ? ResultStatus.Ok : ResultStatus.BadRequest);
+
+    /// <summary>Shows a toast whose color/icon is derived from <paramref name="status"/>.</summary>
     public static void Show(IToastNotification toastNotification, string message, ResultStatus status, string? title = null)
     {
         var (type, defaultTitle) = Describe(status);

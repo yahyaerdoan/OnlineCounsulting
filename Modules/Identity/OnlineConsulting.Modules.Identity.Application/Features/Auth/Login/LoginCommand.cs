@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using OnlineConsulting.Modules.Identity.Application.Features.Auth.Constants;
 using OnlineConsulting.Modules.Identity.Application.Features.Auth.Contracts;
+using OnlineConsulting.Modules.Identity.Application.Features.Auth.Abstractions;
 using OnlineConsulting.Modules.Identity.Domain;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -11,7 +12,7 @@ namespace OnlineConsulting.Modules.Identity.Application.Features.Auth.Login;
 
 public record LoginCommand(string UserNameOrEmail, string Password) : IRequest<OperationDataResult<AuthTokensResponse>>;
 
-public class LoginHandler(UserManager<User> userManager, SignInManager<User> signInManager, ITokenService tokenService, IRefreshTokenService refreshTokenService)
+public class LoginHandler(UserManager<User> userManager, RoleManager<Role> roleManager, SignInManager<User> signInManager, ITokenService tokenService, IRefreshTokenService refreshTokenService)
     : IRequestHandler<LoginCommand, OperationDataResult<AuthTokensResponse>>
 {
     public async Task<OperationDataResult<AuthTokensResponse>> Handle(LoginCommand request, CancellationToken cancellationToken)
@@ -31,8 +32,9 @@ public class LoginHandler(UserManager<User> userManager, SignInManager<User> sig
             return Result.BadRequest<AuthTokensResponse>(AuthMessages.InvalidCredentials);
 
         var roles = await userManager.GetRolesAsync(user);
+        var permissions = await RolePermissionResolver.ResolvePermissionsAsync(roleManager, roles);
 
-        var (accessToken, accessTokenExpiresAt) = tokenService.CreateAccessToken(user, [.. roles]);
+        var (accessToken, accessTokenExpiresAt) = tokenService.CreateAccessToken(user, [.. roles], permissions);
 
         var (refreshToken, _) = await refreshTokenService.IssueAsync(user, cancellationToken);
 

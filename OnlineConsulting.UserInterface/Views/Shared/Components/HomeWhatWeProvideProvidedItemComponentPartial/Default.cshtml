@@ -1,4 +1,5 @@
-﻿@model IQueryable<ResultProvidedItemDto>
+﻿@using OnlineConsulting.UserInterface.Areas.Admin.Features.ProvidedItem
+@model List<ProvidedItemListItemViewModel>
 
 <div class="col-lg-6">
     <div class="provider-wrap">
@@ -9,8 +10,7 @@
                     <!-- single-provide -->
                     <div class="single-provide">
                         <div class="single-provide-icons">
-                            <img src="@item.ImgIcon.IconUrl" alt="provided item icon"
-                                 style="width: 20%; height: auto; aspect-ratio: 1 / 1; object-fit: cover; display: block;   border-radius:5px;">
+                            <i class="@item.Icon" style="font-size:32px; color:@(item.IconColor ?? "inherit");"></i>
                         </div>
                         <div class="single-provide-contented hover-highlight-provide">
                             <h4>@item.Title</h4>

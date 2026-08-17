@@ -9,7 +9,7 @@ public static class ServiceRegistration
 {
     public static void AddApiServiceRegistration(this IServiceCollection services, ConfigurationManager configuration)
     {
-        services.AddOnlineConsultingConventionServices();
+        services.AddSharedKernel();
 
         // Identity/JWT wiring and role/permission policies live in IdentityModule and AuthorizationAddingBehavior, so this only needs "must be logged in".
         services.AddAuthorization();

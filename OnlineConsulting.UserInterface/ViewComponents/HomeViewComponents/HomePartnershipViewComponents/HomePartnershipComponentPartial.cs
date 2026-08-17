@@ -1,14 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
-using OnlineConsulting.BusinessLogic.Abstractions.IServiceManagers;
-using OnlineConsulting.DataTransferObject.Concretions.Dtos.PartnershipDtos;
+using OnlineConsulting.UserInterface.Areas.Admin.Features.Partnership;
 
 namespace OnlineConsulting.UserInterface.ViewComponents.HomeViewComponents.HomePartnershipViewComponents;
 
-public class HomePartnershipComponentPartial(IServiceManager serviceManager) : ViewComponent
+public class HomePartnershipComponentPartial(IPartnershipService partnershipService) : ViewComponent
 {
     public async Task<IViewComponentResult> InvokeAsync()
     {
-        var result = await serviceManager.PartnershipService.GetAllPartnershipsWithSocialMediasAsync<ResultPartnershipDto>(false, true);
-        return View(result.Data ?? Enumerable.Empty<ResultPartnershipDto>().AsQueryable());
+        var items = await partnershipService.GetAllWithSocialLinksAsync();
+        return View(items);
     }
 }

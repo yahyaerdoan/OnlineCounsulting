@@ -1,32 +1,32 @@
 using Microsoft.AspNetCore.Mvc;
-using OnlineConsulting.BusinessLogic.Abstractions.IServiceManagers;
-using OnlineConsulting.DataTransferObject.Concretions.Dtos.UserAddressDtos;
+using OnlineConsulting.UserInterface.Areas.User.Features.UserAddress;
 
 namespace OnlineConsulting.UserInterface.ViewComponents.CheckoutViewComponents.CheckoutBillingDetailsViewComponents;
 
-public class CheckoutBillingDetailsComponentPartial(IServiceManager serviceManager) : ViewComponent
+public class CheckoutBillingDetailsComponentPartial(IUserAddressService userAddressService) : ViewComponent
 {
     public async Task<IViewComponentResult> InvokeAsync(Guid cartId)
     {
         ViewBag.cartId = cartId;
 
-        var resultShipping = await serviceManager.UserAddressService.GetShippingAddressAsync();
-        var resultBilling = await serviceManager.UserAddressService.GetBillingAddressAsync();
-        var result = await serviceManager.UserAddressService.GetAddressesAsync(false);
+        var shipping = await userAddressService.GetShippingAsync();
+        var billing = await userAddressService.GetBillingAsync();
+        var all = await userAddressService.GetAllAsync();
 
         var model = new CheckoutAddressViewModel
         {
-            ShippingAddress = resultShipping.IsSuccessful ? resultShipping.Data : null,
-            BillingAddress = resultBilling.IsSuccessful ? resultBilling.Data : null,
-            AllAddresses = result.IsSuccessful && result.Data is not null ? result.Data : Enumerable.Empty<ResultUserAddressDto>().AsQueryable()
+            ShippingAddress = shipping,
+            BillingAddress = billing,
+            AllAddresses = all,
         };
 
         return View(model);
     }
 }
+
 public class CheckoutAddressViewModel
 {
-    public ResultUserAddressDto? ShippingAddress { get; set; }
-    public ResultUserAddressDto? BillingAddress { get; set; }
-    public required IQueryable<ResultUserAddressDto> AllAddresses { get; set; }
+    public UserAddressResponse? ShippingAddress { get; set; }
+    public UserAddressResponse? BillingAddress { get; set; }
+    public required List<UserAddressResponse> AllAddresses { get; set; }
 }

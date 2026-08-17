@@ -1,0 +1,57 @@
+@using OnlineConsulting.UserInterface.Areas.Admin.Features.PartnershipSocialLink
+@model CreatePartnershipSocialLinkViewModel
+@{
+    ViewData["Title"] = "Add New Social Link";
+    ViewData["SubPage1"] = "Partnership List";
+    ViewData["SubPage1Url"] = Url.Action("Index", "Partnership", new { area = "Admin" });
+    ViewData["SubPage2"] = "Partnership Social Link List";
+    ViewData["SubPage2Url"] = Url.Action("Index", "PartnershipSocialLink", new { area = "Admin", partnershipId = ViewBag.PartnershipId });
+    ViewData["SubPage3"] = "Add Social Link";
+}
+<div class="col-12">
+    <div class="card p-3">
+        <div class="card-header">
+            <h5 class="mb-0">Add New Social Link</h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                <input type="hidden" asp-for="PartnershipId" />
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Icon (CSS class name)</label>
+                            <input type="text" class="form-control" placeholder="e.g. ti ti-brand-linkedin" asp-for="Icon" />
+                            <span asp-validation-for="Icon" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Icon Color (optional)</label>
+                            <input type="text" class="form-control" placeholder="e.g. #0077b5" asp-for="IconColor" />
+                            <span asp-validation-for="IconColor" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Name</label>
+                            <input type="text" class="form-control" placeholder="Enter name" asp-for="Name" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="mb-3">
+                            <label class="form-label">Url</label>
+                            <input type="text" class="form-control" placeholder="Enter web site url" asp-for="Url" />
+                            <span asp-validation-for="Url" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-12 text-end mt-3">
+                        <div class="d-grid gap-2 mt-2 text-center">
+                            <button class="btn btn-outline-primary d-inline-flex text-center justify-content-center"> <i class="ti ti-bookmark me-1"></i>Save</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

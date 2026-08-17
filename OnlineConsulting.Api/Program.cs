@@ -1,5 +1,6 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Concretions;
 using Core.ApplicationLayer.Pipelines.Cachings.Concretions.CacheBehaviors;
+using Core.ApplicationLayer.Pipelines.Loggings.Concretions;
 using Core.ApplicationLayer.Pipelines.Validations.Concretions;
 using Core.CrossCuttingConcernLayer.ExceptionHandlings.Extensions;
 using MediatR;
@@ -9,6 +10,7 @@ using OnlineConsulting.Modules.Categories.Infrastructure;
 using OnlineConsulting.Modules.Commerce.Infrastructure;
 using OnlineConsulting.Modules.FeatureFlags.Infrastructure;
 using OnlineConsulting.Modules.Identity.Infrastructure;
+using OnlineConsulting.Modules.Identity.Infrastructure.Seeding;
 using OnlineConsulting.Modules.Inquiries.Infrastructure;
 using OnlineConsulting.Modules.Media.Infrastructure;
 using OnlineConsulting.Modules.Scheduling.Infrastructure;
@@ -28,11 +30,10 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ITenantProvider, TenantProvider>();
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationAddingBehavior<,>));
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(AuthorizationAddingBehavior<,>));
+builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LogResultAddingBehavior<,>));
 
-// Falls back to in-process caching when no Redis connection is configured (same pattern as the
-// MetroMiles reference project), so ICacheAddRequest/ICacheRemoveRequest work today without
-// standing up Redis, and can move to a real distributed cache later with only a config change.
 var redisConnection = builder.Configuration.GetConnectionString("Redis");
+
 if (string.IsNullOrWhiteSpace(redisConnection))
     builder.Services.AddDistributedMemoryCache();
 else
@@ -41,7 +42,6 @@ else
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CacheAddingBehavior<,>));
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CacheRemovingBehavior<,>));
 
-// Module registrations must precede AddApiServiceRegistration's Scrutor convention scan, so RegistrationStrategy.Skip sees each module's repositories already registered and doesn't double-register them.
 builder.Services.AddCategoriesModule(builder.Configuration);
 builder.Services.AddCommerceModule(builder.Configuration);
 builder.Services.AddFeatureFlagsModule(builder.Configuration);
@@ -52,9 +52,6 @@ builder.Services.AddSchedulingModule(builder.Configuration);
 builder.Services.AddSiteContentModule(builder.Configuration);
 builder.Services.AddMediaModule(builder.Configuration);
 builder.Services.AddStorageInfrastructure(builder.Configuration);
-
-// The local storage root is host-specific (varies per machine/deployment), so it's resolved from
-// the host environment rather than hardcoded in appsettings.json.
 builder.Services.PostConfigure<StorageOptions>(options =>
 {
     if (string.IsNullOrEmpty(options.Local.RootPath))
@@ -66,6 +63,8 @@ builder.Services.AddPaymentsInfrastructure(builder.Configuration);
 builder.Services.AddApiServiceRegistration(builder.Configuration);
 
 var app = builder.Build();
+
+await RoleSeeder.SeedAsync(app.Services);
 
 app.MapDefaultEndpoints();
 

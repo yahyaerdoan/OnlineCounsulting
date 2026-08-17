@@ -4,6 +4,7 @@ using Core.SecurityLayer.JsonWebTokens.Concretions;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using OnlineConsulting.Modules.Identity.Application.Features.Auth.Contracts;
+using OnlineConsulting.Modules.Identity.Application.Features.Auth.Abstractions;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Tenancy;
 using System.IdentityModel.Tokens.Jwt;
@@ -17,7 +18,7 @@ public class TokenManager(IJwtTokenHelper jwtTokenHelper, IOptions<TokenOption> 
 {
     private readonly TokenOption _tokenOption = tokenOption.Value;
 
-    public (string Token, DateTime ExpiresAt) CreateAccessToken(User user, IReadOnlyList<string> roles)
+    public (string Token, DateTime ExpiresAt) CreateAccessToken(User user, IReadOnlyList<string> roles, IReadOnlyList<string> permissions)
     {
         var claims = new List<Claim>
         {
@@ -28,6 +29,7 @@ public class TokenManager(IJwtTokenHelper jwtTokenHelper, IOptions<TokenOption> 
         claims.AddName(user.UserName ?? string.Empty);
         claims.AddEmail(user.Email ?? string.Empty);
         claims.AddRoles([.. roles]);
+        claims.AddPermissions([.. permissions]);
 
         var accessToken = jwtTokenHelper.CreateToken(claims);
         return (accessToken.Token, accessToken.Expiration);

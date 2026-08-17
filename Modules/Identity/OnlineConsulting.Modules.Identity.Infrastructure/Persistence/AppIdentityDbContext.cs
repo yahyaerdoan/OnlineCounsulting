@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Notifications;
+using OnlineConsulting.SharedKernel.Persistence;
 using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Identity.Infrastructure.Persistence;
@@ -15,7 +16,13 @@ public class AppIdentityDbContext(DbContextOptions<AppIdentityDbContext> options
     {
         modelBuilder.HasDefaultSchema("Identity");
 
-        modelBuilder.Entity<User>().Property(u => u.TenantId).HasDefaultValue(TenantDefaults.DefaultTenantId);
+        modelBuilder.Entity<User>(builder =>
+        {
+            builder.Property(u => u.TenantId).HasDefaultValue(TenantDefaults.DefaultTenantId);
+            builder.Property(u => u.CreatedDate).HasConversion(DateTimeOffsetConverters.NonNullable);
+            builder.Property(u => u.UpdatedDate).HasConversion(DateTimeOffsetConverters.Nullable);
+            builder.Property(u => u.DeletedDate).HasConversion(DateTimeOffsetConverters.Nullable);
+        });
 
         modelBuilder.ConfigureOutboxEmail();
 
@@ -24,20 +31,8 @@ public class AppIdentityDbContext(DbContextOptions<AppIdentityDbContext> options
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        var now = DateTime.Now;
-        foreach (var entry in ChangeTracker.Entries<User>())
-        {
-            switch (entry.State)
-            {
-                case EntityState.Added:
-                    entry.Entity.IsActive = true;
-                    entry.Entity.CreatedDate = now;
-                    break;
-                case EntityState.Modified:
-                    entry.Entity.UpdatedDate = now;
-                    break;
-            }
-        }
+        foreach (var entry in ChangeTracker.Entries<User>().Where(e => e.State == EntityState.Added))
+            entry.Entity.IsActive = true;
 
         return base.SaveChangesAsync(cancellationToken);
     }

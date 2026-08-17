@@ -1,14 +1,15 @@
 using Microsoft.AspNetCore.Mvc;
-using OnlineConsulting.BusinessLogic.Abstractions.IServiceManagers;
-using OnlineConsulting.DataTransferObject.Concretions.Dtos.ContactDtos;
+using AdminContact = OnlineConsulting.UserInterface.Areas.Admin.Features.Contact;
 
 namespace OnlineConsulting.UserInterface.ViewComponents.LayoutViewComponents.HeaderViewComponents.HeaderTopAreaViewComponents;
 
-public class LayoutHeaderTopContactInfoComponentPartial(IServiceManager serviceManager) : ViewComponent
+public class LayoutHeaderTopContactInfoComponentPartial(AdminContact.IContactService contactService) : ViewComponent
 {
     public async Task<IViewComponentResult> InvokeAsync()
     {
-        var result = await serviceManager.ContactService.GetAllAsync<ResultContactDto>(false);
-        return View(result.Data ?? Enumerable.Empty<ResultContactDto>().AsQueryable());
+        var contact = await contactService.GetAsync();
+        var items = contact is null ? [] : new List<AdminContact.ContactViewModel> { contact };
+
+        return View(items);
     }
 }

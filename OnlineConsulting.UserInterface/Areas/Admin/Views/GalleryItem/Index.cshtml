@@ -1,4 +1,5 @@
-﻿@model IQueryable<ResultGalleryItemWithCategoriesDto>
+@using OnlineConsulting.UserInterface.Areas.Admin.Features.GalleryItem
+@model List<GalleryItemListItemViewModel>
 @{
     ViewData["Title"] = "Gallery Item List";
     ViewData["SubPage1"] = "Gallery Item List";
@@ -61,9 +62,9 @@
                                     <td style="word-wrap: break-word; white-space: normal;">@item.Description</td>
                                     <td>
                                         <ul>
-                                            @foreach (var category in item.GalleryCategories)
+                                            @foreach (var categoryName in item.CategoryNames)
                                             {
-                                                <li>@category.Name</li>
+                                                <li>@categoryName</li>
                                             }
                                         </ul>
                                     </td>
@@ -92,7 +93,7 @@
                         <div class="modal-dialog modal-dialog-centered">
                             <div class="modal-content shadow-lg rounded-3 border-0">
                                 <div class="modal-header bg-light border-0">
-                                    <h5 class="modal-title fw-bold text-dark">item.Title</h5>
+                                    <h5 class="modal-title fw-bold text-dark">@item.Description</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body p-4">
@@ -110,38 +111,15 @@
                                             <hr />
                                             <table class="table table-hover table-responsive">
                                               
-                                            @foreach (var category in item.GalleryCategories)
+                                            @foreach (var categoryName in item.CategoryNames)
                                             {
                                                 <tr>
-                                                    <td>@category.Name</td>
+                                                    <td>@categoryName</td>
                                                 </tr>
                                             }
                                             </table>
                                         </div>
                                     </div>
-                                    <hr class="my-3 mt-2">
-                                    <ul class="list-group list-group-flush">
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Created Date:</strong> <span class="text-muted">@item.CreatedDate</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Created By:</strong> <span class="text-muted">@item.CreatedBy</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Updated Date:</strong> <span class="text-muted">@(string.IsNullOrWhiteSpace(item.UpdatedDate.ToString()) ? "No action has been taken yet." : item.UpdatedDate)</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Updated By:</strong> <span class="text-muted">@(string.IsNullOrWhiteSpace(item.UpdatedBy) ? "No action has been taken yet." : item.UpdatedBy)</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Deleted Date:</strong> <span class="text-muted"> @(string.IsNullOrWhiteSpace(item.DeletedDate.ToString()) ? "No action has been taken yet." : item.DeletedDate)</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Deleted By:</strong>  <span class="text-muted">
-                                                @(string.IsNullOrWhiteSpace(item.DeletedBy) ? "No action has been taken yet." : item.DeletedBy)
-                                            </span>
-                                        </li>
-                                    </ul>
                                 </div>
                                 <div class="modal-footer border-0">
                                     <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Close</button>
@@ -195,7 +173,7 @@
         deleteButtons.forEach(button => {
             button.addEventListener('click', function () {
                 const itemId = this.getAttribute('data-id');
-                confirmDeleteBtn.setAttribute('href', `/Admin/GalleryItem/Delete/${itemId}`);
+                confirmDeleteBtn.setAttribute('href', `/admin/gallery-items/${itemId}/delete`);
             });
         });
     });

@@ -12,7 +12,6 @@ public class GetCategories : IEndpoint
     {
         app.MapGet("/api/categories", Handle)
             .WithTags("Categories")
-            .RequireAuthorization()
             .WithName("GetCategories")
             .WithDescription("Returns the current tenant's categories, paginated.");
     }

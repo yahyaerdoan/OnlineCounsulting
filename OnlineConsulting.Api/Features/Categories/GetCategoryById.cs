@@ -14,7 +14,6 @@ public class GetCategoryById : IEndpoint
     {
         app.MapGet("/api/categories/{id:guid}", Handle)
             .WithTags("Categories")
-            .RequireAuthorization()
             .WithName("GetCategoryById")
             .WithDescription("Returns a single category by id.");
     }

@@ -24,7 +24,7 @@ public class InquiriesDbContext(DbContextOptions<InquiriesDbContext> options, IT
             builder.Property(m => m.Subject).HasMaxLength(200).IsRequired();
             builder.Property(m => m.Description).HasMaxLength(4000).IsRequired();
             builder.Property(m => m.RowVersion).IsRowVersion();
-            builder.HasQueryFilter(m => m.TenantId == tenantProvider.TenantId && m.DeletedDate == null);
+            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
         modelBuilder.Entity<NewsletterSubscriber>(builder =>
@@ -32,7 +32,7 @@ public class InquiriesDbContext(DbContextOptions<InquiriesDbContext> options, IT
             builder.Property(s => s.Email).HasMaxLength(320).IsRequired();
             builder.Property(s => s.RowVersion).IsRowVersion();
             builder.HasIndex(s => s.Email);
-            builder.HasQueryFilter(s => s.TenantId == tenantProvider.TenantId && s.DeletedDate == null);
+            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
         modelBuilder.Entity<CompanyContact>(builder =>
@@ -43,7 +43,7 @@ public class InquiriesDbContext(DbContextOptions<InquiriesDbContext> options, IT
             builder.Property(c => c.Description).HasMaxLength(2000).IsRequired();
             builder.Property(c => c.WorkingHours).HasMaxLength(200).IsRequired();
             builder.Property(c => c.RowVersion).IsRowVersion();
-            builder.HasQueryFilter(c => c.TenantId == tenantProvider.TenantId && c.DeletedDate == null);
+            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
         modelBuilder.ConfigureOutboxEmail();

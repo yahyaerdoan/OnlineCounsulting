@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Caching.Memory;
-using OnlineConsulting.Modules.FeatureFlags.Application;
+using OnlineConsulting.Modules.FeatureFlags.Application.Contracts;
+using OnlineConsulting.Modules.FeatureFlags.Application.Abstractions;
 using OnlineConsulting.Modules.FeatureFlags.Application.Features.Constants;
 using OnlineConsulting.SharedKernel.FeatureFlags;
 using OnlineConsulting.SharedKernel.Persistence;

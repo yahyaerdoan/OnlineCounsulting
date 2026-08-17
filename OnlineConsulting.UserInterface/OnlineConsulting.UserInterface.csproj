@@ -10,9 +10,25 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Areas\Admin\Data\**" />
+    <Compile Remove="Areas\Admin\Models\**" />
+    <Compile Remove="Areas\User\Data\**" />
+    <Compile Remove="Areas\User\Models\**" />
     <Compile Remove="Models\**" />
+    <Content Remove="Areas\Admin\Data\**" />
+    <Content Remove="Areas\Admin\Models\**" />
+    <Content Remove="Areas\User\Data\**" />
+    <Content Remove="Areas\User\Models\**" />
     <Content Remove="Models\**" />
+    <EmbeddedResource Remove="Areas\Admin\Data\**" />
+    <EmbeddedResource Remove="Areas\Admin\Models\**" />
+    <EmbeddedResource Remove="Areas\User\Data\**" />
+    <EmbeddedResource Remove="Areas\User\Models\**" />
     <EmbeddedResource Remove="Models\**" />
+    <None Remove="Areas\Admin\Data\**" />
+    <None Remove="Areas\Admin\Models\**" />
+    <None Remove="Areas\User\Data\**" />
+    <None Remove="Areas\User\Models\**" />
     <None Remove="Models\**" />
   </ItemGroup>
 
@@ -516,21 +532,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\OnlineConsulting.BusinessLogic\OnlineConsulting.BusinessLogic.csproj" />
-    <ProjectReference Include="..\OnlineConsulting.DataAccess\OnlineConsulting.DataAccess.csproj" />
-    <ProjectReference Include="..\OnlineConsulting.DataTransferObject\OnlineConsulting.DataTransferObject.csproj" />
     <ProjectReference Include="..\OnlineConsulting.SharedKernel\OnlineConsulting.SharedKernel.csproj" />
-    <ProjectReference Include="..\Modules\Identity\OnlineConsulting.Modules.Identity.Domain\OnlineConsulting.Modules.Identity.Domain.csproj" />
-    <ProjectReference Include="..\Modules\Identity\OnlineConsulting.Modules.Identity.Application\OnlineConsulting.Modules.Identity.Application.csproj" />
     <ProjectReference Include="..\Modules\Identity\OnlineConsulting.Modules.Identity.Infrastructure\OnlineConsulting.Modules.Identity.Infrastructure.csproj" />
     <ProjectReference Include="..\OnlineConsulting.ServiceDefaults\OnlineConsulting.ServiceDefaults.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Areas\Admin\Data\" />
-    <Folder Include="Areas\Admin\Models\" />
-    <Folder Include="Areas\User\Data\" />
-    <Folder Include="Areas\User\Models\" />
     <Folder Include="ViewComponents\LayoutViewComponents\AccountViewComponents\" />
   </ItemGroup>
 

@@ -27,7 +27,6 @@ public class UpdateUserHandler(UserManager<User> userManager) : IRequestHandler<
         user.FirstName = request.FirstName;
         user.LastName = request.LastName;
         user.IsActive = request.IsActive;
-        user.UpdatedDate = DateTime.Now;
 
         var result = await userManager.UpdateAsync(user);
 

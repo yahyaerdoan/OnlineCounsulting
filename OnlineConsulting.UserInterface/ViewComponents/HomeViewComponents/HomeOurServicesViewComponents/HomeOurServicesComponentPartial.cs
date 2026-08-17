@@ -1,14 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
-using OnlineConsulting.BusinessLogic.Abstractions.IServiceManagers;
-using OnlineConsulting.DataTransferObject.Concretions.Dtos.ServiceDtos;
+using OnlineConsulting.UserInterface.Features.Home;
 
 namespace OnlineConsulting.UserInterface.ViewComponents.HomeViewComponents.HomeOurServicesViewComponents;
 
-public class HomeOurServicesComponentPartial(IServiceManager serviceManager) : ViewComponent
+public class HomeOurServicesComponentPartial(IHomeContentService homeContentService) : ViewComponent
 {
-    public async Task<IViewComponentResult> InvokeAsync()
-    {
-        var result = await serviceManager.ServiceService.GetAllServicesByFeaturedAreaTrueAsync<ResultServiceWithImageDto>(false, true);
-        return View(result.Data ?? Enumerable.Empty<ResultServiceWithImageDto>().AsQueryable());
-    }
+    public async Task<IViewComponentResult> InvokeAsync() => View(await homeContentService.GetFeaturedServicesAsync());
 }

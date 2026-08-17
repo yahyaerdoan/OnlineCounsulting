@@ -1,22 +1,22 @@
-﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
+using OnlineConsulting.UserInterface.Common;
+using OnlineConsulting.UserInterface.Infrastructure.Api;
 
 namespace OnlineConsulting.UserInterface.ViewComponents.LayoutViewComponents.HeaderViewComponents.HeaderTopAreaViewComponents;
 
-public class LayoutHeaderLoginAndRegisterComponentPartial(ISender sender) : ViewComponent
+public class LayoutHeaderLoginAndRegisterComponentPartial(IApiClient apiClient) : ViewComponent
 {
     public async Task<IViewComponentResult> InvokeAsync()
     {
-        var userResult = await sender.Send(new GetCurrentUserQuery());
+        var userResult = await apiClient.GetAsync<CurrentUserResponse>("/api/users/me");
 
-        if (userResult?.Data is not null)  // user ve ResultData null deÄŸilse devam et
+        if (userResult.ResultData is not null)
         {
-            ViewBag.userFullName = $"{userResult.Data.FirstName} {userResult.Data.LastName}";
+            ViewBag.userFullName = $"{userResult.ResultData.FirstName} {userResult.ResultData.LastName}";
         }
         else
         {
-            ViewBag.userFullName = null;  // Null hatasÄ±nÄ± Ã¶nlemek iÃ§in boÅŸ string atanÄ±yor
+            ViewBag.userFullName = null;
         }
 
         return View();

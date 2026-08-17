@@ -11,13 +11,16 @@ using Microsoft.IdentityModel.Tokens;
 using OnlineConsulting.Modules.Identity.Application;
 using OnlineConsulting.Modules.Identity.Application.Common.Templates;
 using OnlineConsulting.Modules.Identity.Application.Features.Auth.Contracts;
+using OnlineConsulting.Modules.Identity.Application.Features.Auth.Abstractions;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Contracts;
+using OnlineConsulting.Modules.Identity.Application.Features.Users.Abstractions;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.Modules.Identity.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Identity.Infrastructure.Pipelines;
 using OnlineConsulting.Modules.Identity.Infrastructure.Repositories;
 using OnlineConsulting.Modules.Identity.Infrastructure.Security;
 using OnlineConsulting.Modules.Identity.Infrastructure.Storage;
+using OnlineConsulting.SharedKernel.Auditing;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
 using System.Text;
@@ -31,7 +34,10 @@ public static class IdentityModule
     {
         var connectionString = configuration.GetSection("OnlineConsultingDbConnections:DevelopmentDbConnection").Value;
 
-        services.AddDbContext<AppIdentityDbContext>(options => options.UseSqlServer(connectionString));
+        services.AddScoped<AuditSaveChangesInterceptor>();
+
+        services.AddDbContext<AppIdentityDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
+            .AddInterceptors(serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>()));
 
         services.AddIdentity<User, Role>(options => options.Password.RequiredLength = 6)
             .AddEntityFrameworkStores<AppIdentityDbContext>()

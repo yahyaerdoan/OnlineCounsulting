@@ -1,4 +1,5 @@
-﻿@model ResultContactDto
+@using OnlineConsulting.UserInterface.Areas.Admin.Features.Contact
+@model ContactViewModel
 @{
     ViewData["Title"] = "Contact Informations";
     ViewData["SubPage1"] = "Contact Informations";
@@ -19,7 +20,7 @@
                 <div>
                     @if (Model == null)
                     {
-                        <a href="@Url.Action("Create","Contact")" class="btn btn-primary">Add Contact Informations</a>
+                        <a href="@Url.Action("Update","Contact")" class="btn btn-primary">Add Contact Informations</a>
                     }
                 </div>
             </div>
@@ -52,13 +53,12 @@
                                     <a href="#" data-bs-toggle="modal" data-bs-target="#modal1" class="avtar avtar-xs btn-link-secondary detail-btn">
                                         <i class="ti ti-eye f-20"></i>
                                     </a>
-                                    <a href="@Url.Action("Update","Contact",new{id=Model.Id})" class="avtar avtar-xs btn-link-secondary">
+                                    <a href="@Url.Action("Update","Contact")" class="avtar avtar-xs btn-link-secondary">
                                         <i class="ti ti-edit f-20"></i>
                                     </a>
                                 </td>
                             </tr>
                             count++;
-                         
                         }
                         else
                         {
@@ -103,21 +103,6 @@
                         <p class="text-secondary">@Model.WorkingHours</p>
                     </div>
                 </div>
-                <hr class="my-3 mt-2">
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                        <strong>Created Date:</strong> <span class="text-muted">@Model.CreatedDate</span>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                        <strong>Created By:</strong> <span class="text-muted">@Model.CreatedBy</span>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                        <strong>Updated Date:</strong> <span class="text-muted">@(string.IsNullOrWhiteSpace(Model.UpdatedDate.ToString()) ? "No action has been taken yet." : Model.UpdatedDate)</span>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                        <strong>Updated By:</strong> <span class="text-muted">@(string.IsNullOrWhiteSpace(Model.UpdatedBy) ? "No action has been taken yet." : Model.UpdatedBy)</span>
-                    </li>
-                </ul>
             </div>
             <div class="modal-footer border-0">
                 <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Close</button>

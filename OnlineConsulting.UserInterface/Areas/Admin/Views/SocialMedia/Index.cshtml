@@ -1,7 +1,7 @@
-﻿@model IQueryable<ResultAllSocialMediaAccountsWithIconDto>
+@using OnlineConsulting.UserInterface.Areas.Admin.Features.SocialMedia
+@model List<SocialMediaListItemViewModel>
 @{
-
-    ViewData["Title"] = "Social Media Accounyt List";
+    ViewData["Title"] = "Social Media Account List";
     ViewData["SubPage1"] = "Social Media Accounts List";
     ViewData["SubPage1Url"] = Url.Action("Index", "SocialMedia", new { area = "Admin" });
     int count = 1;
@@ -18,13 +18,12 @@
             <div class="d-sm-flex align-items-center justify-content-between">
                 <h5 class="mb-3 mb-sm-0">Social Media Account List</h5>
                 <div>
-
                     <a href="@Url.Action("Create","SocialMedia")" class="btn btn-primary">Add Social Media Account</a>
                 </div>
             </div>
         </div>
         <div class="card-body pt-3">
-            @if (Model != null)
+            @if (Model.Count > 0)
             {
                 <div class="table-responsive">
                     <table class="table table-hover" id="pc-dt-simple">
@@ -32,8 +31,8 @@
                             <tr>
                                 <th>Count</th>
                                 <th>Icon - Name</th>
-                                <th>Title</th>
                                 <th>Go To Page</th>
+                                <th>Display Order</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -45,19 +44,16 @@
                                     <td style="word-wrap: break-word; white-space: normal;">
                                         <div class="d-flex align-items-center justify-content-center">
                                             <div class="flex-shrink-0">
-                                                <i class="@item.ClassIcon.IconClass"></i>
+                                                <i class="@item.Icon" style="color:@(item.IconColor ?? "inherit")"></i>
                                             </div>
                                             <div class="flex-grow-1 ms-3">
-                                                <h6 class="mb-0" style="word-wrap: break-word; white-space: normal;">@item.ClassIcon.Name</h6>
+                                                <h6 class="mb-0" style="word-wrap: break-word; white-space: normal;">@item.Name</h6>
                                             </div>
                                         </div>
                                     </td>
-                                    <td style="word-wrap: break-word; white-space: normal;">@item.Name</td>
                                     <td style="word-wrap: break-word; white-space: normal;"><a href="@item.Url" target="_blank">Go To Page</a></td>
+                                    <td>@item.DisplayOrder</td>
                                     <td>
-                                        <a href="#" data-bs-toggle="modal" data-bs-target="#modal-@item.Id" class="avtar avtar-xs btn-link-secondary detail-btn">
-                                            <i class="ti ti-eye f-20"></i>
-                                        </a>
                                         <a href="@Url.Action("Update","SocialMedia",new{id=item.Id})" class="avtar avtar-xs btn-link-secondary">
                                             <i class="ti ti-edit f-20"></i>
                                         </a>
@@ -71,61 +67,6 @@
                         </tbody>
                     </table>
                 </div>
-                <!-- Detail Modal Start -->
-                @foreach (var item in Model)
-                {
-                    <div id="modal-@item.Id" class="modal fade" tabindex="-1" aria-labelledby="detailModalCenterTitle" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered">
-                            <div class="modal-content shadow-lg rounded-3 border-0">
-                                <div class="modal-header bg-light border-0">
-                                    <h5 class="modal-title fw-bold text-dark">@item.Name</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body p-4">
-                                    <div class="row align-items-center">
-
-                                        <div class="col-md-4 text-center">
-                                            <div class="flex-shrink-0">
-                                                <i class="@item.ClassIcon.IconClass"></i>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-8">
-                                            <h6 class="text-muted">@item.Name</h6>
-                                            <p class="text-secondary">@item.Url</p>
-                                        </div>
-                                    </div>
-                                    <hr class="my-3 mt-2">
-                                    <ul class="list-group list-group-flush">
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Created Date:</strong> <span class="text-muted">@item.CreatedDate</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Created By:</strong> <span class="text-muted">@item.CreatedBy</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Updated Date:</strong> <span class="text-muted">@(string.IsNullOrWhiteSpace(item.UpdatedDate.ToString()) ? "No action has been taken yet." : item.UpdatedDate)</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Updated By:</strong> <span class="text-muted">@(string.IsNullOrWhiteSpace(item.UpdatedBy) ? "No action has been taken yet." : item.UpdatedBy)</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Deleted Date:</strong> <span class="text-muted"> @(string.IsNullOrWhiteSpace(item.DeletedDate.ToString()) ? "No action has been taken yet." : item.DeletedDate)</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Deleted By:</strong>  <span class="text-muted">
-                                                @(string.IsNullOrWhiteSpace(item.DeletedBy) ? "No action has been taken yet." : item.DeletedBy)
-                                            </span>
-                                        </li>
-                                    </ul>
-                                </div>
-                                <div class="modal-footer border-0">
-                                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Close</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                }
-                <!-- Detail Modal End -->
             }
             else
             {
@@ -156,14 +97,14 @@
 </div>
 <!-- Delete Confirmation Modal End -->
 <script>
-        document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function () {
         const deleteButtons = document.querySelectorAll('.delete-btn');
         const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
 
         deleteButtons.forEach(button => {
             button.addEventListener('click', function () {
                 const itemId = this.getAttribute('data-id');
-                confirmDeleteBtn.setAttribute('href', `/Admin/SocialMedia/Delete/${itemId}`);
+                confirmDeleteBtn.setAttribute('href', `/admin/social-media/${itemId}/delete`);
             });
         });
     });

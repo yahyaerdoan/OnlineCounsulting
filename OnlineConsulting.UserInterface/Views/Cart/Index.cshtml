@@ -1,9 +1,10 @@
-﻿@model IQueryable<ResultBasketItemDto>
+﻿@model CartViewModel
 @{
     ViewData["Title"] = "Cart";
     ViewData["SubPage1"] = "Cart";
     int count = 1;
-    Guid cartId = Guid.Empty;
+    var cartId = Model?.CartId ?? Guid.Empty;
+    var items = Model?.Items ?? [];
 }
 <style>
     .remove-btn {
@@ -25,7 +26,7 @@
             <div class="row">
                 <div class="col-12">
                     <div class="cart-table">
-                        @if (Model != null && Model.Any())
+                        @if (items.Any())
                         {
                             <div class="table-responsive">
                                 <table class="table table-hover">
@@ -42,11 +43,11 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach (var item in Model)
+                                        @foreach (var item in items)
                                         {
                                             <tr>
                                                 <td style="padding-left:2rem">@count</td>
-                                                <td class="plantmore-product-name">@item.Service.Title</td>
+                                                <td class="plantmore-product-name">@item.ServiceTitle</td>
                                                 <td class="plantmore-product-price">@item.Price.ToUsd()</td>
                                                 <td class="product-subtotal">@item.TaxRate%</td>
                                                 <td class="product-subtotal">@item.TaxAmount.ToUsd()</td>
@@ -62,7 +63,6 @@
                                                 </td>
                                             </tr>
                                             count++;
-                                            cartId = item.BasketId;
                                         }
                                     </tbody>
                                 </table>
@@ -75,15 +75,15 @@
                                         <ul class="list-unstyled mb-4 small">
                                             <li class="d-flex justify-content-between  fw-semibold">
                                                 <span>Subtotal</span>
-                                                <span>@Model.Sum(x => x.SubTotalPrice).ToUsd()</span>
+                                                <span>@Model!.SubTotal.ToUsd()</span>
                                             </li>
                                             <li class="d-flex justify-content-between  fw-semibold">
                                                 <span>Tax Total</span>
-                                                <span>@Model.Sum(x => x.TaxAmount).ToUsd()</span>
+                                                <span>@items.Sum(x => x.TaxAmount).ToUsd()</span>
                                             </li>
                                             <li class="d-flex justify-content-between">
                                                 <span>Total</span>
-                                                <span>@Model.Sum(x => x.TotalPrice).ToUsd()</span>
+                                                <span>@Model!.Total.ToUsd()</span>
                                             </li>
                                         </ul>
                                         <!-- Butons -->

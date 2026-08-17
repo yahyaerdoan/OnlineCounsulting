@@ -2,6 +2,7 @@ using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using Core.ApplicationLayer.Pipelines.Cachings.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.FeatureFlags.Application.Contracts;
+using OnlineConsulting.Modules.FeatureFlags.Application.Abstractions;
 using OnlineConsulting.Modules.FeatureFlags.Application.Features.Constants;
 using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;

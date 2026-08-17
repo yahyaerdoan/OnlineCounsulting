@@ -1,7 +1,8 @@
 using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
-using OnlineConsulting.Modules.SiteContent.Application.Contracts;
-using OnlineConsulting.Modules.SiteContent.Application.Features.Constants;
+using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryCategories.Contracts;
+using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryCategories.Abstractions;
+using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;

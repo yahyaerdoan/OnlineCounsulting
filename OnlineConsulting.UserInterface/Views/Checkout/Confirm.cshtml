@@ -1,0 +1,65 @@
+@{
+    ViewData["Title"] = "Confirm Payment";
+    ViewData["SubPage1"] = "Checkout";
+}
+
+<main class="page-content">
+    <div class="checkout-main-content section-ptb">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-6 col-md-8">
+                    <div class="your-order-wrapper">
+                        <h3 class="shoping-checkboxt-title">Confirm Payment</h3>
+                        <p class="text-muted">Order @ViewBag.OrderNumber - enter your card details to complete the payment.</p>
+
+                        <div id="payment-element" class="mb-3"></div>
+                        <div id="payment-message" class="text-danger mb-3" style="display:none;"></div>
+
+                        <button id="submit-payment" type="button" class="btn btn w-100" style="border-radius:0.5rem;">
+                            <span id="submit-spinner" class="spinner-border spinner-border-sm me-1" style="display:none;"></span>
+                            Confirm Payment
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+@section Scripts {
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+        (function () {
+            const stripe = Stripe('@ViewBag.StripePublishableKey');
+            const elements = stripe.elements({ clientSecret: '@ViewBag.ClientSecret' });
+            const paymentElement = elements.create('payment');
+            paymentElement.mount('#payment-element');
+
+            const submitButton = document.getElementById('submit-payment');
+            const spinner = document.getElementById('submit-spinner');
+            const messageBox = document.getElementById('payment-message');
+
+            submitButton.addEventListener('click', async function () {
+                submitButton.disabled = true;
+                spinner.style.display = 'inline-block';
+                messageBox.style.display = 'none';
+
+                const { error } = await stripe.confirmPayment({
+                    elements,
+                    confirmParams: {
+                        return_url: window.location.origin + '/checkout/return'
+                    }
+                });
+
+                // Only reachable if confirmation fails immediately (card declined etc.) - on success
+                // Stripe navigates the browser to return_url itself, this code never runs.
+                if (error) {
+                    messageBox.textContent = error.message || 'Payment could not be confirmed. Please try again.';
+                    messageBox.style.display = 'block';
+                    submitButton.disabled = false;
+                    spinner.style.display = 'none';
+                }
+            });
+        })();
+    </script>
+}

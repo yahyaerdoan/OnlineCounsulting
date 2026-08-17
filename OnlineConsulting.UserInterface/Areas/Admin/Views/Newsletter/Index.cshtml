@@ -1,4 +1,5 @@
-﻿@model IQueryable<ResultNewsletterDto>
+﻿@using OnlineConsulting.UserInterface.Areas.Admin.Features.Newsletter
+@model List<NewsletterListItemViewModel>
 @{
     ViewData["Title"] = "Newsletter List";
     ViewData["SubPage1"] = "Newsletter List";
@@ -19,7 +20,7 @@
             </div>
         </div>
         <div class="card-body pt-3">
-            @if (Model != null)
+            @if (Model is { Count: > 0 })
             {
                 <div class="table-responsive">
                     <table class="table table-hover" id="pc-dt-simple">
@@ -69,14 +70,6 @@
                                         <li class="list-group-item d-flex justify-content-between align-items-center border-0">
                                             <strong>Created Date:</strong> <span class="text-muted">@item.CreatedDate</span>
                                         </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Deleted Date:</strong> <span class="text-muted"> @(string.IsNullOrWhiteSpace(item.DeletedDate.ToString()) ? "No action has been taken yet." : item.DeletedDate)</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Deleted By:</strong>  <span class="text-muted">
-                                                @(string.IsNullOrWhiteSpace(item.DeletedBy) ? "No action has been taken yet." : item.DeletedBy)
-                                            </span>
-                                        </li>
                                     </ul>
                                 </div>
                                 <div class="modal-footer border-0">
@@ -124,7 +117,7 @@
         deleteButtons.forEach(button => {
             button.addEventListener('click', function () {
                 const itemId = this.getAttribute('data-id');
-                confirmDeleteBtn.setAttribute('href', `/Admin/Newsletter/Delete/${itemId}`);
+                confirmDeleteBtn.setAttribute('href', `/admin/newsletter/${itemId}/delete`);
             });
         });
     });

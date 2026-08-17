@@ -1,5 +1,7 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
+using OnlineConsulting.Modules.Inquiries.Application.Features.Contact.Contracts;
+using OnlineConsulting.Modules.Inquiries.Application.Features.Contact.Abstractions;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Contact.Constants;
 using OnlineConsulting.Modules.Inquiries.Domain;
 using OnlineConsulting.SharedKernel.Persistence;

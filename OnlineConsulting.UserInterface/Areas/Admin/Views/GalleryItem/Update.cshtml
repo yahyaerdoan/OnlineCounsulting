@@ -1,4 +1,5 @@
-﻿@model UpdateGalleryItemWithCategoryDto
+@using OnlineConsulting.UserInterface.Areas.Admin.Features.GalleryItem
+@model UpdateGalleryItemViewModel
 @{
     ViewData["Title"] = "Update GalleryItem";
     ViewData["SubPage1"] = "GalleryItem List";
@@ -20,14 +21,20 @@
                     <form method="post" enctype="multipart/form-data">
                         <div class="row">
                             <input type="hidden" asp-for="Id" />
-                            <input type="hidden" asp-for="ImageUrl" />
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label class="form-label" for="Image">Replace Image (optional)</label>
+                                    <input class="form-control" type="file" asp-for="Image" accept=".png, .jpeg, .jpg, .gif" />
+                                </div>
+                            </div>
+                            <input type="hidden" asp-for="PhotoMediaAssetId" />
                             <!-- Categories Section -->
                             <div class="col-md-12">
                                 <div class="mb-3">
                                     <label class="form-label">Categories</label>
                                     <div class="form-control" style="padding: 1rem;">
                                         <div class="row">
-                                            @foreach (var category in ViewBag.GetGalleryCategories)
+                                            @foreach (var category in Model.AvailableCategories)
                                             {
                                                 <div class="col-md-2 d-flex align-items-center" style="gap: 0.5rem; margin-bottom: 0.5rem;">
                                                     <input type="checkbox"
@@ -35,7 +42,7 @@
                                                            id="category_@category.Id"
                                                            name="GalleryCategoryIds"
                                                            value="@category.Id"
-                                                    @(Model.GalleryCategories?.Any(x => x.Id == category.Id) == true ? "checked" : "") />
+                                                    @(Model.GalleryCategoryIds.Contains(category.Id) ? "checked" : "") />
                                                     <label class="form-check-label" for="category_@category.Id">
                                                         @category.Name
                                                     </label>

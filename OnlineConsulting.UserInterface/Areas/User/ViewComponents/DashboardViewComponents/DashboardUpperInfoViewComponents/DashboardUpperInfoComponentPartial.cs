@@ -1,27 +1,25 @@
-﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using OnlineConsulting.BusinessLogic.Abstractions.IServiceManagers;
-using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
-using OnlineConsulting.UserInterface.Areas.User.ViewModels.UserViewModels;
+using OnlineConsulting.UserInterface.Areas.User.Features.Dashboard;
 using OnlineConsulting.UserInterface.Common;
+using OnlineConsulting.UserInterface.Infrastructure.Api;
+using OnlineConsulting.UserInterface.Features.Cart;
 
 namespace OnlineConsulting.UserInterface.Areas.User.ViewComponents.DashboardViewComponents.DashboardUpperInfoViewComponents;
 
-public class DashboardUpperInfoComponentPartial(IServiceManager serviceManager, ISender sender) : ViewComponent
+/// <summary>Dashboard layout header. Kept out of a feature folder because it is a layout widget, not a slice.</summary>
+public class DashboardUpperInfoComponentPartial(ICartService cartService, IApiClient apiClient) : ViewComponent
 {
     public async Task<IViewComponentResult> InvokeAsync()
     {
-        var userResult = await sender.Send(new GetCurrentUserQuery());
-        if (!userResult.IsSuccessful || userResult.Data is null)
+        var userResult = await apiClient.GetAsync<CurrentUserResponse>("/api/users/me");
+        if (!userResult.IsSuccessful || userResult.ResultData is null)
             return Content(string.Empty);
 
-        var totalCount = await serviceManager.BasketItemService.GetTotalBasketItemsCountAsync();
-
-        ViewBag.TotalBasketItemsCount = totalCount.Data;
+        ViewBag.TotalBasketItemsCount = await cartService.GetItemsCountAsync();
 
         var viewModel = new UserAccountViewModel
         {
-            User = userResult.Data.ToResultUserDto()
+            User = userResult.ResultData.ToUserSummaryViewModel()
         };
 
         return View(viewModel);

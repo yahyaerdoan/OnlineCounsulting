@@ -1,5 +1,8 @@
 using MediatR;
-using OnlineConsulting.Modules.SiteContent.Application.Contracts;
+using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryCategories.Contracts;
+using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryCategories.Abstractions;
+using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryItems.Contracts;
+using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryItems.Abstractions;
 using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;

@@ -1,4 +1,5 @@
-﻿@model IQueryable<ResultSliderItemDto>
+﻿@using OnlineConsulting.UserInterface.Areas.Admin.Features.SliderItem
+@model List<SliderItemListItemViewModel>
 @{
     ViewData["Title"] = "Slider Item List";
     ViewData["SubPage1"] = "Slider Item List";
@@ -22,7 +23,7 @@
             </div>
         </div>
         <div class="card-body pt-3">
-            @if (Model != null)
+            @if (Model is { Count: > 0 })
             {
 
                 <div class="table-responsive">
@@ -95,29 +96,6 @@
                                             <p class="text-secondary">@item.Description</p>
                                         </div>
                                     </div>
-                                    <hr class="my-3 mt-2">
-                                    <ul class="list-group list-group-flush">
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Created Date:</strong> <span class="text-muted">@item.CreatedDate</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Created By:</strong> <span class="text-muted">@item.CreatedBy</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Updated Date:</strong> <span class="text-muted">@(string.IsNullOrWhiteSpace(item.UpdatedDate.ToString()) ? "No action has been taken yet." : item.UpdatedDate)</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Updated By:</strong> <span class="text-muted">@(string.IsNullOrWhiteSpace(item.UpdatedBy) ? "No action has been taken yet." : item.UpdatedBy)</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Deleted Date:</strong> <span class="text-muted"> @(string.IsNullOrWhiteSpace(item.DeletedDate.ToString()) ? "No action has been taken yet." : item.DeletedDate)</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Deleted By:</strong>  <span class="text-muted">
-                                                @(string.IsNullOrWhiteSpace(item.DeletedBy) ? "No action has been taken yet." : item.DeletedBy)
-                                            </span>
-                                        </li>
-                                    </ul>
                                 </div>
                                 <div class="modal-footer border-0">
                                     <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Close</button>
@@ -171,7 +149,7 @@
         deleteButtons.forEach(button => {
             button.addEventListener('click', function () {
                 const itemId = this.getAttribute('data-id');
-                confirmDeleteBtn.setAttribute('href', `/Admin/SliderItem/Delete/${itemId}`);
+                confirmDeleteBtn.setAttribute('href', `/admin/slider-items/${itemId}/delete`);
             });
         });
     });

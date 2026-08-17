@@ -5,9 +5,12 @@ using OnlineConsulting.Modules.Commerce.Application.Common;
 using OnlineConsulting.Modules.Commerce.Application.Common.Templates;
 using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.Constants;
 using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.Contracts;
+using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.Abstractions;
 using OnlineConsulting.Modules.Commerce.Application.Features.Baskets.Constants;
 using OnlineConsulting.Modules.Commerce.Application.Features.Baskets.Contracts;
+using OnlineConsulting.Modules.Commerce.Application.Features.Baskets.Abstractions;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Contracts;
+using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Abstractions;
 using OnlineConsulting.Modules.Commerce.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.Notifications;
@@ -22,34 +25,34 @@ using SharedPaymentStatuses = OnlineConsulting.SharedKernel.Payments.PaymentStat
 
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Orders.CreateOrderFromBasket;
 
-public record CreateOrderFromBasketCommand(Guid UserId, string Email) : IRequest<OperationDataResult<Guid>>, ITransactionAddRequest, ISecureAddRequest
+public record CreateOrderFromBasketCommand(Guid UserId, string Email) : IRequest<OperationDataResult<CreateOrderResult>>, ITransactionAddRequest, ISecureAddRequest
 {
     [JsonIgnore]
     public string[] Roles => [GlobalOperationClaims.User];
 }
 
 public class CreateOrderFromBasketHandler(IBasketRepository basketRepository, IBasketItemRepository basketItemRepository, IUserAddressRepository userAddressRepository, IOrderRepository orderRepository, IOrderItemRepository orderItemRepository, IEmailOutboxWriter outboxWriter, IEmailTemplate<OrderConfirmationEmailModel> confirmationTemplate, IPaymentGateway paymentGateway)
-    : IRequestHandler<CreateOrderFromBasketCommand, OperationDataResult<Guid>>
+    : IRequestHandler<CreateOrderFromBasketCommand, OperationDataResult<CreateOrderResult>>
 {
-    public async Task<OperationDataResult<Guid>> Handle(CreateOrderFromBasketCommand request, CancellationToken cancellationToken)
+    public async Task<OperationDataResult<CreateOrderResult>> Handle(CreateOrderFromBasketCommand request, CancellationToken cancellationToken)
     {
         var basket = await basketRepository.GetAsync(b => b.UserId == request.UserId, cancellationToken: cancellationToken);
         if (basket is null)
-            return Result.BadRequest<Guid>(BasketMessages.BasketNotFoundOrEmpty);
+            return Result.BadRequest<CreateOrderResult>(BasketMessages.BasketNotFoundOrEmpty);
 
         var basketItems = await basketItemRepository.GetListAsync(i => i.BasketId == basket.Id, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
         if (basketItems.Items.Count == 0)
-            return Result.BadRequest<Guid>(BasketMessages.BasketNotFoundOrEmpty);
+            return Result.BadRequest<CreateOrderResult>(BasketMessages.BasketNotFoundOrEmpty);
 
         var shippingAddress = await userAddressRepository.GetAsync(a => a.UserId == request.UserId && a.IsShippingAddress,
             enableTracking: false, cancellationToken: cancellationToken);
         if (shippingAddress is null)
-            return Result.BadRequest<Guid>(AddressMessages.ShippingAddressNotFound);
+            return Result.BadRequest<CreateOrderResult>(AddressMessages.ShippingAddressNotFound);
 
         var billingAddress = await userAddressRepository.GetAsync(a => a.UserId == request.UserId && a.IsBillingAddress, enableTracking: false, cancellationToken: cancellationToken);
 
         if (billingAddress is null)
-            return Result.BadRequest<Guid>(AddressMessages.BillingAddressNotFound);
+            return Result.BadRequest<CreateOrderResult>(AddressMessages.BillingAddressNotFound);
 
         var orderId = Guid.NewGuid();
         var total = basketItems.Items.Sum(i => TaxCalculator.Calculate(i.Price, i.Quantity, i.TaxRate).TotalPrice);
@@ -72,7 +75,7 @@ public class CreateOrderFromBasketHandler(IBasketRepository basketRepository, IB
 
         await basketRepository.DeleteAsync(basket);
 
-        return Result.Created(order.Id, $"Order created: {order.OrderNumber}");
+        return Result.Created(new CreateOrderResult(order.Id, paymentIntent.ClientSecret, order.OrderNumber), $"Order created: {order.OrderNumber}");
     }
 
     private async Task<Order> CreateOrderWithItemsAsync(Guid orderId, Guid userId, Guid shippingAddressId, Guid billingAddressId, IEnumerable<BasketItem> basketItems, PaymentIntentResult paymentIntent)

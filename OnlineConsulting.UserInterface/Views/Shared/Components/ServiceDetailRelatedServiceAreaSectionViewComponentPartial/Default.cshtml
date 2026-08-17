@@ -1,4 +1,4 @@
-﻿@model List<ResultServiceWithImageDto>
+﻿@model List<ServiceCardViewModel>
 
 <div class="related-product-area section-pt pt--60">
     <div class="row">
@@ -25,7 +25,7 @@
                                     <div class="single-popular-courses mt--30">
                                         <div class="popular-courses-image">
                                             <a href="@Url.Action("Detail", "Service", new { slug = item.Slug })">
-                                                <img src="@item.ServiceImages.Select(x => x.ImageUrl).FirstOrDefault()"
+                                                <img src="@item.CoverImageUrl"
                                                      style="width: 100%; height: auto; aspect-ratio: 1 / 1; object-fit: cover; display: block; border-radius: 5px 5px 0px 0px;"
                                                      alt="Service Images">
                                             </a>
@@ -34,7 +34,7 @@
                                             <h5 style="height:43.19px;"><a href="@Url.Action("Detail","Service", new { slug = item.Slug } )">@item.Title</a></h5>
                                             <div class="post_meta">
                                                 <ul style="height:56px;">
-                                                    <li><a href="@Url.Action("Detail","Service", new { slug = item.Slug } )">@item.Category.Title</a></li>
+                                                    <li><a href="@Url.Action("Detail","Service", new { slug = item.Slug } )">@item.CategoryTitle</a></li>
                                                     @if (item.DiscountRate > 0)
                                                     {
                                                         <li>

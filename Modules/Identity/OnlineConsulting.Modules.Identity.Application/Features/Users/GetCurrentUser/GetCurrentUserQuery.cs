@@ -1,8 +1,10 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using OnlineConsulting.Modules.Identity.Application.Features.Auth;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Constants;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Contracts;
+using OnlineConsulting.Modules.Identity.Application.Features.Users.Abstractions;
 using OnlineConsulting.Modules.Identity.Domain;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -12,7 +14,7 @@ namespace OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurren
 
 public record GetCurrentUserQuery : IRequest<OperationDataResult<UserResponse>>;
 
-public class GetCurrentUserHandler(IHttpContextAccessor httpContextAccessor, UserManager<User> userManager)
+public class GetCurrentUserHandler(IHttpContextAccessor httpContextAccessor, UserManager<User> userManager, RoleManager<Role> roleManager)
     : IRequestHandler<GetCurrentUserQuery, OperationDataResult<UserResponse>>
 {
     public async Task<OperationDataResult<UserResponse>> Handle(GetCurrentUserQuery request, CancellationToken cancellationToken)
@@ -30,6 +32,8 @@ public class GetCurrentUserHandler(IHttpContextAccessor httpContextAccessor, Use
             return Result.BadRequest<UserResponse>(UserMessages.UserNotFoundOrInvalidData);
 
         var roles = await userManager.GetRolesAsync(user);
+        var permissions = await RolePermissionResolver.ResolvePermissionsAsync(roleManager, roles);
+
         var response = new UserResponse
         {
             Id = user.Id,
@@ -40,6 +44,7 @@ public class GetCurrentUserHandler(IHttpContextAccessor httpContextAccessor, Use
             Email = user.Email ?? string.Empty,
             ImageUrl = user.ImageUrl,
             Roles = [.. roles],
+            Permissions = permissions,
         };
 
         return Result.Success(response, "User found.");

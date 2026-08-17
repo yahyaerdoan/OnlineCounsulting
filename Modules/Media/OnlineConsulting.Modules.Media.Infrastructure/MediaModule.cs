@@ -4,9 +4,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OnlineConsulting.Modules.Media.Application;
+using OnlineConsulting.Modules.Media.Application.Contracts;
+using OnlineConsulting.Modules.Media.Application.Abstractions;
 using OnlineConsulting.Modules.Media.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Media.Infrastructure.Pipelines;
 using OnlineConsulting.Modules.Media.Infrastructure.Repositories;
+using OnlineConsulting.SharedKernel.Auditing;
 using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Media.Infrastructure;
@@ -18,9 +21,10 @@ public static class MediaModule
         var connectionString = configuration.GetSection("OnlineConsultingDbConnections:DevelopmentDbConnection").Value;
 
         services.AddScoped<TenantSaveChangesInterceptor>();
+        services.AddScoped<AuditSaveChangesInterceptor>();
 
         services.AddDbContext<MediaDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
-            .AddInterceptors(serviceProvider.GetRequiredService<TenantSaveChangesInterceptor>()));
+            .AddInterceptors(serviceProvider.GetRequiredService<TenantSaveChangesInterceptor>(), serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>()));
 
         services.AddScoped<IMediaAssetRepository, MediaAssetRepository>();
 

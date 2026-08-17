@@ -24,14 +24,14 @@ public class ServicesDbContext(DbContextOptions<ServicesDbContext> options, ITen
             builder.Property(s => s.RowVersion).IsRowVersion();
             builder.HasIndex(s => s.CategoryId);
             builder.HasIndex(s => new { s.TenantId, s.Slug }).IsUnique().HasFilter("[DeletedDate] IS NULL");
-            builder.HasQueryFilter(s => s.TenantId == tenantProvider.TenantId && s.DeletedDate == null);
+            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
         modelBuilder.Entity<ServiceMediaItem>(builder =>
         {
             builder.Property(m => m.RowVersion).IsRowVersion();
             builder.HasIndex(m => m.ServiceId);
-            builder.HasQueryFilter(m => m.TenantId == tenantProvider.TenantId && m.DeletedDate == null);
+            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
         base.OnModelCreating(modelBuilder);

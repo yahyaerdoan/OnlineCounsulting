@@ -1,4 +1,5 @@
-﻿@model IQueryable<ResultPartnershipDto>
+@using OnlineConsulting.UserInterface.Areas.Admin.Features.Partnership
+@model List<PartnershipListItemViewModel>
 @{
     ViewData["Title"] = "Partnership List";
     ViewData["SubPage1"] = "Partnership List";
@@ -22,7 +23,7 @@
             </div>
         </div>
         <div class="card-body pt-3">
-            @if (Model != null)
+            @if (Model.Count > 0)
             {
                 <div class="table-responsive">
                     <table class="table table-hover" id="pc-dt-simple">
@@ -45,11 +46,11 @@
                                     <td>
                                         <div class="d-flex align-items-center justify-content-center">
                                             <div class="flex-shrink-0">
-                                                <img id="openImg" src="@item.ImageUrl" alt="user image" class="rounded-circle" style="width: 60px; height: 60px; object-fit: cover;"
+                                                <img id="openImg" src="@item.PhotoUrl" alt="user image" class="rounded-circle" style="width: 60px; height: 60px; object-fit: cover;"
                                                      data-pc-animate="blur"
                                                      data-bs-toggle="modal"
                                                      data-bs-target="#animateModal"
-                                                     data-url="@item.ImageUrl" />
+                                                     data-url="@item.PhotoUrl" />
                                             </div>
                                             <div class="flex-grow-1 ms-3">
                                                 <h6 class="mb-0" style="word-wrap: break-word; white-space: normal;">@item.FirstName @item.LastName</h6>
@@ -64,9 +65,6 @@
                                     <td>
                                         <a href="#" data-bs-toggle="modal" data-bs-target="#modal-@item.Id" class="avtar avtar-xs btn-link-secondary detail-btn">
                                             <i class="ti ti-eye f-20"></i>
-                                        </a>
-                                        <a href="@Url.Action("Index","PartnershipSocialMedia",new{id=item.Id})" class="avtar avtar-xs btn-link-secondary">
-                                            <i class="ti ti-brand-facebook f-20"></i>
                                         </a>
                                         <a href="@Url.Action("Update","Partnership",new{id=item.Id})" class="avtar avtar-xs btn-link-secondary">
                                             <i class="ti ti-edit f-20"></i>
@@ -95,15 +93,11 @@
                                     <div class="row align-items-center">
 
                                         <div class="col-md-4 text-center">
-                                            <img src="@item.ImageUrl" alt="Cover Image" class="img-fluid rounded shadow-sm">
+                                            <img src="@item.PhotoUrl" alt="Cover Image" class="img-fluid rounded shadow-sm">
                                         </div>
                                         <div class="col-md-8">
                                             <h6 class="text-muted">@item.Title</h6>
                                             <p class="text-secondary">@item.Description</p>
-                                        </div>
-                                        <div class="col-md-12 mt-3">
-                                            <h6 class="text-muted">Company</h6>
-                                            <p class="text-secondary">@item.CompanyName</p>
                                         </div>
                                         <div class="col-md-12">
                                             <h6 class="text-muted">Email Address</h6>
@@ -114,29 +108,6 @@
                                             <p class="text-secondary">@item.WebsiteUrl</p>
                                         </div>
                                     </div>
-                                    <hr class="my-3 mt-2">
-                                    <ul class="list-group list-group-flush">
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Created Date:</strong> <span class="text-muted">@item.CreatedDate</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Created By:</strong> <span class="text-muted">@item.CreatedBy</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Updated Date:</strong> <span class="text-muted">@(string.IsNullOrWhiteSpace(item.UpdatedDate.ToString()) ? "No action has been taken yet." : item.UpdatedDate)</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Updated By:</strong> <span class="text-muted">@(string.IsNullOrWhiteSpace(item.UpdatedBy) ? "No action has been taken yet." : item.UpdatedBy)</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Deleted Date:</strong> <span class="text-muted"> @(string.IsNullOrWhiteSpace(item.DeletedDate.ToString()) ? "No action has been taken yet." : item.DeletedDate)</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Deleted By:</strong>  <span class="text-muted">
-                                                @(string.IsNullOrWhiteSpace(item.DeletedBy) ? "No action has been taken yet." : item.DeletedBy)
-                                            </span>
-                                        </li>
-                                    </ul>
                                 </div>
                                 <div class="modal-footer border-0">
                                     <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Close</button>
@@ -190,7 +161,7 @@
         deleteButtons.forEach(button => {
             button.addEventListener('click', function () {
                 const itemId = this.getAttribute('data-id');
-                confirmDeleteBtn.setAttribute('href', `/Admin/Partnership/Delete/${itemId}`);
+                confirmDeleteBtn.setAttribute('href', `/admin/partnerships/${itemId}/delete`);
             });
         });
     });

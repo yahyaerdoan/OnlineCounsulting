@@ -1,4 +1,5 @@
-﻿@model CreateServiceDto
+@using OnlineConsulting.UserInterface.Areas.Admin.Features.Service
+@model CreateServiceViewModel
 @{
     ViewData["Title"] = "Create Service";
     ViewData["SubPage1"] = "Service";
@@ -20,7 +21,7 @@
                             <label class="form-label" for="Servicecategory">Category</label>
                             <select class="form-control" placeholder="Select Category" asp-for="CategoryId">
                                 <option value="" disabled selected>Select a category</option>
-                                @foreach (var category in (List<ResultCategoryDto>)ViewBag.GetCategories)
+                                @foreach (var category in Model.Categories)
                                 {
                                     <option value="@category.Id">@category.Title</option>
                                 }
@@ -52,9 +53,8 @@
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label class="form-label" for="discountedprice">Discounted Price</label>
-                            <input type="number" class="form-control" id="discountedprice" placeholder="Enter discounted price" asp-for="DiscountedPrice" disabled />
-                            <input type="hidden" id="discountedprice-hidden" name="DiscountedPrice" asp-for="DiscountedPrice" />
-                            <span asp-validation-for="DiscountedPrice" class="text-danger"></span>
+                            <input type="number" class="form-control" id="discountedprice" placeholder="Calculated from price and discount rate" disabled />
+                            <input type="hidden" id="discountedprice-hidden" />
                         </div>
                     </div>
                     <div class="col-md-6">

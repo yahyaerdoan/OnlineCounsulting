@@ -1,4 +1,5 @@
-﻿@model IQueryable<ResultServiceWithImageDto>
+@using OnlineConsulting.UserInterface.Areas.Admin.Features.Service
+@model List<ServiceListItemViewModel>
 @{
     ViewData["Title"] = "Service";
     ViewData["SubPage1"] = "Service";
@@ -44,16 +45,16 @@
                                 <tr>
                                     <td style="padding-left:2rem">@count</td>
                                     <td style="word-wrap: break-word; white-space: normal;">
-                                        @if (item.ServiceImages != null && item.ServiceImages.Any())
+                                        @if (item.CoverUrl != null)
                                         {
                                             <div class="d-flex align-items-center justify-content-center">
                                                 <div class="flex-shrink-0">
-                                                    <img id="openImg" src="@item.ServiceImages.First().ImageUrl" alt="user image"
+                                                    <img id="openImg" src="@item.CoverUrl" alt="service image"
                                                          class="rounded-circle" style="width: 60px; height: 60px; object-fit: cover;"
                                                          data-pc-animate="blur"
                                                          data-bs-toggle="modal"
                                                          data-bs-target="#animateModal"
-                                                         data-url="@item.ServiceImages.First().ImageUrl" />
+                                                         data-url="@item.CoverUrl" />
                                                 </div>
                                                 <div class="flex-grow-1 ms-3">
                                                     <h6 class="mb-0">@item.Title</h6>
@@ -65,7 +66,7 @@
                                             <span>No image available</span>
                                         }
                                     </td>
-                                    <td style="word-wrap: break-word; white-space: normal;">@item.Category.Title</td>
+                                    <td style="word-wrap: break-word; white-space: normal;">@item.CategoryTitle</td>
                                     <td style="word-wrap: break-word; white-space: normal;">
                                         @(item.Description.Length > 70 ? item.Description.Substring(0, 70) + "..." : item.Description)</td>
                                     <td style="word-wrap: break-word; white-space: normal;">@item.Price</td>
@@ -102,48 +103,10 @@
                                     <div class="row align-items-center">
 
                                         <div class="col-md-12 text-center mt-3">
-                                            <div id="carousel-@item.Id" class="carousel slide" data-bs-ride="carousel">
-                                                <div class="carousel-indicators">
-                                                    @if (item.ServiceImages != null && item.ServiceImages.Any())
-                                                    {
-                                                        int indicatorIndex = 0;
-                                                        foreach (var image in item.ServiceImages)
-                                                        {
-                                                            <button type="button" data-bs-target="#carousel-@item.Id" data-bs-slide-to="@indicatorIndex"
-                                                                    class="@(indicatorIndex == 0 ? "active" : "")" aria-current="true"></button>
-                                                            indicatorIndex++;
-                                                        }
-                                                    }
-                                                </div>
-                                                <div class="carousel-inner">
-                                                    @if (item.ServiceImages != null && item.ServiceImages.Any())
-                                                    {
-                                                        int imageIndex = 0;
-                                                        foreach (var image in item.ServiceImages)
-                                                        {
-                                                            <div class="carousel-item @(imageIndex == 0 ? "active" : "")">
-                                                                <img class="img-fluid d-block w-100" src="@image.ImageUrl" alt="Slide @(imageIndex + 1)" />
-                                                            </div>
-                                                            @*  <div class="carousel-item @(imageIndex == 0 ? "active" : "")">
-                                                                <img class="img-fluid d-block w-100"
-                                                                     src="@image.ImageUrl"
-                                                                     alt="Slide @(imageIndex + 1)"
-                                                                     style="max-width: 5000px; max-height: 300px; object-fit: cover;" />
-                                                            </div> *@
-
-                                                            imageIndex++;
-                                                        }
-                                                    }
-                                                </div>
-                                                <button class="carousel-control-prev" type="button" data-bs-target="#carousel-@item.Id" data-bs-slide="prev">
-                                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                                    <span class="visually-hidden">Previous</span>
-                                                </button>
-                                                <button class="carousel-control-next" type="button" data-bs-target="#carousel-@item.Id" data-bs-slide="next">
-                                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                                    <span class="visually-hidden">Next</span>
-                                                </button>
-                                            </div>
+                                            @if (item.CoverUrl != null)
+                                            {
+                                                <img class="img-fluid d-block w-100" src="@item.CoverUrl" alt="@item.Title" />
+                                            }
                                         </div>
                                         <div class="col-md-12 mt-3">
                                             <h6 class="text-muted">@item.Title</h6>
@@ -167,32 +130,9 @@
                                         </div>
                                         <div class="col-md-6 mt-3">
                                             <h6 class="text-muted">Category</h6>
-                                            <p class="text-secondary">@item.Category.Title</p>
+                                            <p class="text-secondary">@item.CategoryTitle</p>
                                         </div>
                                     </div>
-                                    <hr class="my-3 mt-2">
-                                    <ul class="list-group list-group-flush">
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Created Date:</strong> <span class="text-muted">@item.CreatedDate</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Created By:</strong> <span class="text-muted">@item.CreatedBy</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Updated Date:</strong> <span class="text-muted">@(string.IsNullOrWhiteSpace(item.UpdatedDate.ToString()) ? "No action has been taken yet." : item.UpdatedDate)</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Updated By:</strong> <span class="text-muted">@(string.IsNullOrWhiteSpace(item.UpdatedBy) ? "No action has been taken yet." : item.UpdatedBy)</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Deleted Date:</strong> <span class="text-muted"> @(string.IsNullOrWhiteSpace(item.DeletedDate.ToString()) ? "No action has been taken yet." : item.DeletedDate)</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Deleted By:</strong>  <span class="text-muted">
-                                                @(string.IsNullOrWhiteSpace(item.DeletedBy) ? "No action has been taken yet." : item.DeletedBy)
-                                            </span>
-                                        </li>
-                                    </ul>
                                 </div>
                                 <div class="modal-footer border-0">
                                     <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Close</button>
@@ -246,7 +186,7 @@
         deleteButtons.forEach(button => {
             button.addEventListener('click', function () {
                 const itemId = this.getAttribute('data-id');
-                confirmDeleteBtn.setAttribute('href', `/Admin/Service/Delete/${itemId}`);
+                confirmDeleteBtn.setAttribute('href', `/admin/services/${itemId}/delete`);
             });
         });
     });

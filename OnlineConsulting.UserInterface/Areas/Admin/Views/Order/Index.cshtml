@@ -1,5 +1,6 @@
-﻿@using System.Globalization
-@model IQueryable<ResultOrderDto>
+@using System.Globalization
+@using OnlineConsulting.UserInterface.Areas.Admin.Features.Order
+@model List<AdminOrderListItemViewModel>
 @{
     ViewData["Title"] = "Order List";
     ViewData["SubPage1"] = "Orders";
@@ -46,7 +47,7 @@
                                     <td style="word-wrap: break-word; white-space: normal;">
                                         <div class="d-flex align-items-center justify-content-center">
                                             <div class="flex-grow-1">
-                                                <h6 class="mb-0">@item.UserFirstName @item.UserLastName</h6>
+                                                <h6 class="mb-0">@item.OwnerDisplayName</h6>
                                             </div>
                                         </div>
                                     </td>
@@ -57,17 +58,14 @@
                                             </div>
                                         </div>
                                     </td>
-                                    <td style="word-wrap: break-word; white-space: normal;">@item.CreatedDate?.ToString("f", CultureInfo.CurrentCulture)</td>
+                                    <td style="word-wrap: break-word; white-space: normal;">@item.CreatedDate.ToString("f", CultureInfo.CurrentCulture)</td>
                                     <td style="word-wrap: break-word; white-space: normal;">@item.OrderStatus</td>
                                     <td style="word-wrap: break-word; white-space: normal;">@item.PaymentStatus</td>
                                     <td>
                                         <a href="#" data-bs-toggle="modal" data-bs-target="#modal-@item.Id" class="avtar avtar-xs btn-link-secondary detail-btn">
                                             <i class="ti ti-eye f-20"></i>
                                         </a>
-                                        <a href="@Url.Action("Update","Order",new{id=item.Id})" class="avtar avtar-xs btn-link-secondary">
-                                            <i class="ti ti-edit f-20"></i>
-                                        </a>
-                                        <a href="#" data-bs-toggle="modal" data-bs-target="#deleteModalCenter" class="avtar avtar-xs btn-link-secondary delete-btn" data-id="@item.Id">
+                                        <a href="#" data-bs-toggle="modal" data-bs-target="#deleteModalCenter" class="avtar avtar-xs btn-link-secondary delete-btn" title="Refund this order" data-id="@item.Id">
                                             <i class="ti ti-trash f-20"></i>
                                         </a>
                                     </td>
@@ -95,32 +93,11 @@
  *@                                        </div>
                                         <div class="col-md-8">
                                             <h6 class="text-muted">@item.OrderNumber</h6>
-                                            <p class="text-secondary">@item.OrderStatus</p>
+                                            <p class="text-secondary">@item.OrderStatus / @item.PaymentStatus</p>
+                                            <p class="text-secondary">@item.TotalPrice</p>
+                                            <p class="text-secondary">@item.OwnerDisplayName @item.UserEmail</p>
                                         </div>
                                     </div>
-                                    <hr class="my-3 mt-2">
-                                    <ul class="list-group list-group-flush">
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Created Date:</strong> <span class="text-muted">@item.CreatedDate</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Created By:</strong> <span class="text-muted">@item.CreatedBy</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Updated Date:</strong> <span class="text-muted">@(string.IsNullOrWhiteSpace(item.UpdatedDate.ToString()) ? "No action has been taken yet." : item.UpdatedDate)</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Updated By:</strong> <span class="text-muted">@(string.IsNullOrWhiteSpace(item.UpdatedBy) ? "No action has been taken yet." : item.UpdatedBy)</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Deleted Date:</strong> <span class="text-muted"> @(string.IsNullOrWhiteSpace(item.DeletedDate.ToString()) ? "No action has been taken yet." : item.DeletedDate)</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Deleted By:</strong>  <span class="text-muted">
-                                                @(string.IsNullOrWhiteSpace(item.DeletedBy) ? "No action has been taken yet." : item.DeletedBy)
-                                            </span>
-                                        </li>
-                                    </ul>
                                 </div>
                                 <div class="modal-footer border-0">
                                     <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Close</button>
@@ -138,24 +115,17 @@
         </div>
     </div>
 </div>
-<!-- Icon Modal Start -->
-<div class="modal fade modal-animate" id="animateModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <img id="showImg" style="max-width:800px; object-fit:contain;" />
-    </div>
-</div>
-<!-- Icon Modal End -->
 <!-- Delete Confirmation Modal Start -->
 <div id="deleteModalCenter" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="deleteModalCenterTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="deleteModalCenterTitle">Delete Confirmation</h5>
+                <h5 class="modal-title" id="deleteModalCenterTitle">Refund Confirmation</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <p>
-                    The record you selected will be deleted. Do you want to continue?
+                    The order you selected will be refunded through its payment provider. Do you want to continue?
                 </p>
             </div>
             <div class="modal-footer">
@@ -174,19 +144,7 @@
         deleteButtons.forEach(button => {
             button.addEventListener('click', function () {
                 const itemId = this.getAttribute('data-id');
-                confirmDeleteBtn.setAttribute('href', `/Admin/Order/Delete/${itemId}`);
-            });
-        });
-    });
-
-    document.addEventListener('DOMContentLoaded', function () {
-        const openButtons = document.querySelectorAll('#openImg');
-        const showCoverImage = document.querySelector('#showImg');
-
-        openButtons.forEach(button => {
-            button.addEventListener('click', function () {
-                const imgUrl = this.getAttribute('data-url');
-                showCoverImage.setAttribute('src', imgUrl);
+                confirmDeleteBtn.setAttribute('href', `/admin/orders/${itemId}/refund`);
             });
         });
     });

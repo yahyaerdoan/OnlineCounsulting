@@ -1,8 +1,9 @@
-﻿@model IQueryable<ResultAllSocialMediaAccountsWithIconDto>
+@using OnlineConsulting.UserInterface.Areas.Admin.Features.SocialMedia
+@model List<SocialMediaListItemViewModel>
 
 <ul class="footer-social-link">
     @foreach (var item in Model)
     {
-        <li><a href="@item.Url"><i class="@item.ClassIcon.IconClass"></i></a></li>
+        <li><a href="@item.Url"><i class="@item.Icon" style="color:@(item.IconColor ?? "inherit")"></i></a></li>
     }
 </ul>

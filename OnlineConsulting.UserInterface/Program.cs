@@ -1,12 +1,43 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Core.SecurityLayer.Constants;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
-using OnlineConsulting.BusinessLogic.Concretions.Configurations.Extensions;
-using OnlineConsulting.BusinessLogic.Concretions.Filters.ValidationFilters;
-using OnlineConsulting.DataAccess.Concretions.Configurations.Extensions;
-using OnlineConsulting.DataTransferObject.Concretions.Configurations.Extensions;
 using OnlineConsulting.Modules.Identity.Infrastructure;
 using OnlineConsulting.ServiceDefaults;
+using OnlineConsulting.UserInterface.Areas.Admin.Features.AboutUs;
+using OnlineConsulting.UserInterface.Areas.Admin.Features.Breadcrumb;
+using OnlineConsulting.UserInterface.Areas.Admin.Features.Category;
+using OnlineConsulting.UserInterface.Areas.Admin.Features.FooterAbout;
+using OnlineConsulting.UserInterface.Areas.Admin.Features.GalleryCategory;
+using OnlineConsulting.UserInterface.Areas.Admin.Features.GalleryItem;
+using OnlineConsulting.UserInterface.Areas.Admin.Features.HowIGetService;
+using OnlineConsulting.UserInterface.Areas.Admin.Features.Message;
+using OnlineConsulting.UserInterface.Areas.Admin.Features.Newsletter;
+using OnlineConsulting.UserInterface.Areas.Admin.Features.Order;
+using OnlineConsulting.UserInterface.Areas.Admin.Features.Partnership;
+using OnlineConsulting.UserInterface.Areas.Admin.Features.PartnershipSocialLink;
+using OnlineConsulting.UserInterface.Areas.Admin.Features.ProvidedItem;
+using OnlineConsulting.UserInterface.Areas.Admin.Features.Service;
+using OnlineConsulting.UserInterface.Areas.Admin.Features.SliderItem;
+using OnlineConsulting.UserInterface.Areas.Admin.Features.SocialMedia;
+using OnlineConsulting.UserInterface.Areas.Admin.Features.SystemRole;
+using OnlineConsulting.UserInterface.Areas.Admin.Features.SystemUser;
+using OnlineConsulting.UserInterface.Areas.Admin.Features.Testimonial;
+using OnlineConsulting.UserInterface.Areas.Admin.Features.WhatWeProvide;
+using OnlineConsulting.UserInterface.Areas.User.Features.Order;
+using OnlineConsulting.UserInterface.Areas.User.Features.UserAddress;
 using OnlineConsulting.UserInterface.Configurations.Extensions;
+using OnlineConsulting.UserInterface.Features.Account;
+using OnlineConsulting.UserInterface.Features.Cart;
+using OnlineConsulting.UserInterface.Features.Category;
+using OnlineConsulting.UserInterface.Features.Checkout;
+using OnlineConsulting.UserInterface.Features.Gallery;
+using OnlineConsulting.UserInterface.Features.Home;
+using OnlineConsulting.UserInterface.Features.Search;
+using OnlineConsulting.UserInterface.Features.Service;
+using OnlineConsulting.UserInterface.Infrastructure.Api;
+using OnlineConsulting.UserInterface.Infrastructure.Media;
+using AdminContact = OnlineConsulting.UserInterface.Areas.Admin.Features.Contact;
+using PublicContact = OnlineConsulting.UserInterface.Features.Contact;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,8 +45,6 @@ builder.AddServiceDefaults();
 
 builder.Services.AddControllersWithViews(options =>
 {
-    options.Filters.Add<ValidationFilter>();
-    // Suppress the framework's implicit [Required] on non-nullable reference types so FluentValidation owns validation messages.
     options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
 
     var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
@@ -26,19 +55,65 @@ builder.Services.AddControllersWithViews(options =>
     options.SuppressModelStateInvalidFilter = true;
 });
 
-//Identity module: Identity (cookie scheme, its own default), AppIdentityDbContext, CQRS handlers.
 builder.Services.AddIdentityModule(builder.Configuration);
 builder.Services.AddHttpContextAccessor();
 
+
+builder.Services.AddTransient<BearerTokenHandler>();
+builder.Services.AddTransient<GuestIdHandler>();
+builder.Services.AddHttpClient<IApiClient, ApiClient>(client =>
+    client.BaseAddress = new Uri(builder.Configuration["Api:BaseUrl"] ?? "https+http://api"))
+    .AddHttpMessageHandler<BearerTokenHandler>()
+    .AddHttpMessageHandler<GuestIdHandler>();
+
+
+builder.Services.Configure<StripeOptions>(builder.Configuration.GetSection(StripeOptions.SectionName));
+builder.Services.Configure<RecaptchaOptions>(builder.Configuration.GetSection(RecaptchaOptions.SectionName));
+builder.Services.AddHttpClient<IRecaptchaService, RecaptchaService>();
+builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped<IMediaService, MediaService>();
+builder.Services.AddScoped<IPartnershipService, PartnershipService>();
+builder.Services.AddScoped<IPartnershipSocialLinkService, PartnershipSocialLinkService>();
+builder.Services.AddScoped<ITestimonialService, TestimonialService>();
+builder.Services.AddScoped<ISocialMediaService, SocialMediaService>();
+builder.Services.AddScoped<ISliderItemService, SliderItemService>();
+builder.Services.AddScoped<IBreadcrumbService, BreadcrumbService>();
+builder.Services.AddScoped<IFooterAboutService, FooterAboutService>();
+builder.Services.AddScoped<IWhatWeProvideService, WhatWeProvideService>();
+builder.Services.AddScoped<IHowIGetServiceService, HowIGetServiceService>();
+builder.Services.AddScoped<IProvidedItemService, ProvidedItemService>();
+builder.Services.AddScoped<AdminContact.IContactService, AdminContact.ContactService>();
+builder.Services.AddScoped<PublicContact.IContactService, PublicContact.ContactService>();
+builder.Services.AddScoped<IMessageService, MessageService>();
+builder.Services.AddScoped<INewsletterService, NewsletterService>();
+builder.Services.AddScoped<ISearchService, SearchService>();
+builder.Services.AddScoped<ISystemRoleService, SystemRoleService>();
+builder.Services.AddScoped<ISystemUserService, SystemUserService>();
+builder.Services.AddScoped<IAboutUsService, AboutUsService>();
+builder.Services.AddScoped<IAdminCategoryService, AdminCategoryService>();
+builder.Services.AddScoped<IAdminServiceCatalogService, AdminServiceCatalogService>();
+builder.Services.AddScoped<IAdminGalleryCategoryService, AdminGalleryCategoryService>();
+builder.Services.AddScoped<IAdminGalleryItemService, AdminGalleryItemService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IServiceCatalogService, ServiceCatalogService>();
+builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddScoped<ICheckoutService, CheckoutService>();
+builder.Services.AddScoped<IUserAddressService, UserAddressService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IAdminOrderService, AdminOrderService>();
+builder.Services.AddScoped<IGalleryService, GalleryService>();
+builder.Services.AddScoped<IHomeContentService, HomeContentService>();
+builder.Services.AddScoped<IGalleryContentService, GalleryContentService>();
+builder.Services.AddScoped<IServiceCatalogPageService, ServiceCatalogPageService>();
+builder.Services.AddScoped<ICartPageService, CartPageService>();
+builder.Services.AddScoped<IUserAddressPageService, UserAddressPageService>();
+builder.Services.AddScoped<IUserOrderPageService, UserOrderPageService>();
+
 builder.Services.AddUserInterfaceServiceRegistration(builder.Configuration);
-builder.Services.AddBusinessLogicServiceRegistration(builder.Configuration);
-builder.Services.AddDataAccesssServiceRegistration(builder.Configuration);
-builder.Services.AddDataTransferObjectServiceRegistration(builder.Configuration);
 
 builder.Services.AddAuthorizationBuilder()
-    .AddPolicy("RequireAdminOrSuperAdminPolicy", policy => policy.RequireRole("Admin", "Super Admin"))
-    .AddPolicy("RequireSuperAdminPolicy", policy => policy.RequireRole("Super Admin"))
-    .AddPolicy("RequireUserDashboardPolicy", policy => policy.RequireRole("Super Admin", "Admin", "User"));
+    .AddPolicy("RequireAdminAreaAccessPolicy", policy => policy.RequireAssertion(context =>
+        context.User.HasClaim(c => c.Type == PermissionClaimTypes.Type)));
 
 var app = builder.Build();
 

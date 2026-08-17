@@ -9,7 +9,7 @@ public static class ServiceRegistration
 {
     public static void AddUserInterfaceServiceRegistration(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddOnlineConsultingConventionServices();
+        services.AddSharedKernel();
 
         services.AddRouting(options =>
         {

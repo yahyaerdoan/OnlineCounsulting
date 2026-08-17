@@ -1,4 +1,5 @@
-﻿@model IQueryable<ResultAboutUsDto>
+﻿@using OnlineConsulting.UserInterface.Areas.Admin.Features.AboutUs
+@model List<AboutUsListItemViewModel>
 @{
     ViewData["Title"] = "About Us";
     ViewData["SubPage1"] = "About Us";
@@ -16,15 +17,12 @@
             <div class="d-sm-flex align-items-center justify-content-between">
                 <h5 class="mb-3 mb-sm-0">About Us List</h5>
                 <div>
-                    @if (Model == null)
-                    {
-                        <a href="@Url.Action("Create","AboutUs")" class="btn btn-primary">Add About Us</a>
-                    }
+                    <a href="@Url.Action("Create","AboutUs")" class="btn btn-primary">Add About Us</a>
                 </div>
             </div>
         </div>
         <div class="card-body pt-3">
-            @if (Model != null)
+            @if (Model is { Count: > 0 })
             {
                 <div class="table-responsive">
                     <table class="table table-hover" id="pc-dt-simple">
@@ -94,21 +92,6 @@
                                             <p class="text-secondary">@item.Description</p>
                                         </div>
                                     </div>
-                                    <hr class="my-3 mt-2">
-                                    <ul class="list-group list-group-flush">
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Created Date:</strong> <span class="text-muted">@item.CreatedDate</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Created By:</strong> <span class="text-muted">@item.CreatedBy</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Updated Date:</strong> <span class="text-muted">@(string.IsNullOrWhiteSpace(item.UpdatedDate.ToString()) ? "No action has been taken yet." : item.UpdatedDate)</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Updated By:</strong> <span class="text-muted">@(string.IsNullOrWhiteSpace(item.UpdatedBy) ? "No action has been taken yet." : item.UpdatedBy)</span>
-                                        </li>
-                                    </ul>
                                 </div>
                                 <div class="modal-footer border-0">
                                     <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Close</button>

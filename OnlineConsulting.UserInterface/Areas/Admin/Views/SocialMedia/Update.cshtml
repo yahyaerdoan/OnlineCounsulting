@@ -1,9 +1,10 @@
-﻿@model UpdateSocialMediaDto
+@using OnlineConsulting.UserInterface.Areas.Admin.Features.SocialMedia
+@model UpdateSocialMediaViewModel
 @{
     ViewData["Title"] = "Update Social Media Account";
     ViewData["SubPage1"] = "Social Media List";
     ViewData["SubPage1Url"] = Url.Action("Index", "SocialMedia", new { area = "Admin" });
-    ViewData["SubPage2"] = "Update Social Media Acoount";
+    ViewData["SubPage2"] = "Update Social Media Account";
     ViewData["SubPage2Url"] = Url.Action("Update", "SocialMedia", new { area = "Admin", id = Model.Id });
 }
 
@@ -20,15 +21,16 @@
                             <input type="hidden" asp-for="Id" />
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label class="form-label" for="icon">Icon</label>
-                                    <select class="form-control"  id="icon" placeholder="Select Icon" asp-for="ClassIconId">
-                                        <option value="" disabled selected>Select an icon</option>
-                                        @foreach (var icon in (List<ResultClassIconDto>)ViewBag.GetClassIcons)
-                                        {
-                                            <option value="@icon.Id">@icon.Name</option>
-                                        }
-                                    </select>
-                                    <span asp-validation-for="ClassIconId" class="text-danger"></span>
+                                    <label class="form-label" for="icon">Icon (CSS class name)</label>
+                                    <input type="text" class="form-control" id="icon" placeholder="e.g. ti ti-brand-facebook" asp-for="Icon" />
+                                    <span asp-validation-for="Icon" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label" for="iconcolor">Icon Color (optional)</label>
+                                    <input type="text" class="form-control" id="iconcolor" placeholder="e.g. #ff0000" asp-for="IconColor" />
+                                    <span asp-validation-for="IconColor" class="text-danger"></span>
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -36,6 +38,13 @@
                                     <label class="form-label" for="name">Name</label>
                                     <input type="text" id="name" class="form-control" placeholder="Enter account name" asp-for="Name" />
                                     <span asp-validation-for="Name" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label" for="displayOrder">Display Order</label>
+                                    <input type="number" id="displayOrder" class="form-control" asp-for="DisplayOrder" />
+                                    <span asp-validation-for="DisplayOrder" class="text-danger"></span>
                                 </div>
                             </div>
                             <div class="col-md-12">

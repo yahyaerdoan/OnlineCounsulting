@@ -1,9 +1,9 @@
-﻿@model ResultOrderDetailDto
+@model UserOrderDetailViewModel
 
 @{
     var count = 1;
-    var subTotal = Model?.OrderItems?.Sum(i => i.SubTotalPrice) ?? 0;
-    var taxTotal = Model?.OrderItems?.Sum(i => i.TaxAmount) ?? 0;
+    var subTotal = Model?.SubTotal ?? 0;
+    var taxTotal = Model?.TaxTotal ?? 0;
     var shippingHandling = 0M; // Adjust if needed
     var totalBeforeTax = subTotal + shippingHandling;
     var grandTotal = totalBeforeTax + taxTotal;
@@ -21,13 +21,13 @@
             <!-- Removed the Amazon logo image -->
 
             <h6 style="margin-top: 10px; font-weight: bold; color: #e47911;">
-                Final Details for Order #@Model?.Order.OrderNumber
+                Final Details for Order #@Model?.Order?.OrderNumber
             </h6>
         </div>
 
 
-        <p><strong>Order Placed: </strong>@Model?.Order.CreatedDate?.ToString("f", CultureInfo.CurrentCulture)</p>
-        <p><strong>Order Number: </strong>@Model?.Order.OrderNumber</p>
+        <p><strong>Order Placed: </strong>@Model?.Order?.CreatedDate.ToString("f", CultureInfo.CurrentCulture)</p>
+        <p><strong>Order Number: </strong>@Model?.Order?.OrderNumber</p>
         <p><strong>Order Total: </strong>@grandTotal.ToUsd()</p>
 
         <h3 style="text-align:center; margin:30px 0 20px;">Shipped on April 20, 2025</h3>
@@ -36,12 +36,11 @@
         <table style="width:100%;border-collapse:collapse;">
             @foreach (var item in Model!.OrderItems)
             {
-                var service = Model.Services.FirstOrDefault(s => s.Id == item.ServiceId);
                 <tr style="border-bottom:1px solid #ddd;">
                     <td style="padding:8px 0;">
-                        @count of: <strong>@service?.Title</strong><br />
+                        @count of: <strong>@item.ServiceTitle</strong><br />
                         Sold by: CESTFINI (seller profile)<br />
-                        Category: @service?.Category?.Title
+                        Category: @item.CategoryTitle
                     </td>
                     <td style="text-align:right;vertical-align:top;">
                         @item.UnitPrice.ToUsd()

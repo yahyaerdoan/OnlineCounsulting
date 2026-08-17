@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using OnlineConsulting.DataTransferObject.Concretions.Dtos.MessageDtos;
+using OnlineConsulting.UserInterface.Features.Contact;
 
 namespace OnlineConsulting.UserInterface.ViewComponents.ContactViewComponents.ContactMessageViewComponents;
 
@@ -7,7 +7,7 @@ public class ContactMessageComponentPartial : ViewComponent
 {
     public IViewComponentResult Invoke()
     {
-        var model = new CreateMessageDto();
+        var model = new CreateMessageViewModel();
         return View(model);
     }
 }

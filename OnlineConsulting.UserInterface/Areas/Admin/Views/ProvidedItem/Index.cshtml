@@ -1,4 +1,5 @@
-﻿@model IQueryable<ResultProvidedItemDto>
+@using OnlineConsulting.UserInterface.Areas.Admin.Features.ProvidedItem
+@model List<ProvidedItemListItemViewModel>
 @{
     ViewData["Title"] = "Provided Item";
     ViewData["SubPage1"] = "Provided Item";
@@ -22,7 +23,7 @@
             </div>
         </div>
         <div class="card-body pt-3">
-            @if (Model != null)
+            @if (Model is { Count: > 0 })
             {
                 <div class="table-responsive">
                     <table class="table table-hover" id="pc-dt-simple" style="table-layout: auto; width: 100%;">
@@ -42,12 +43,7 @@
                                     <td style="word-wrap: break-word; white-space: normal;">
                                         <div class="d-flex align-items-center justify-content-center">
                                             <div class="flex-shrink-0">
-                                                <img id="openImg" src="@item.ImgIcon.IconUrl" alt="user image"
-                                                     class="rounded-circle" style="width: 60px; height: 60px; object-fit: cover;"
-                                                     data-pc-animate="blur"
-                                                     data-bs-toggle="modal"
-                                                     data-bs-target="#animateModal"
-                                                     data-url="@item.ImgIcon.IconUrl" />
+                                                <i class="@item.Icon f-24" style="color: @(item.IconColor ?? "inherit")"></i>
                                             </div>
                                             <div class="flex-grow-1 ms-3">
                                                 <h6 class="mb-0">@item.Title</h6>
@@ -84,38 +80,14 @@
                                 </div>
                                 <div class="modal-body p-4">
                                     <div class="row align-items-center">
-
                                         <div class="col-md-4 text-center">
-                                            <img src="@item.ImgIcon.IconUrl" alt="Cover Image" class="img-fluid rounded shadow-sm">
+                                            <i class="@item.Icon" style="font-size: 64px; color: @(item.IconColor ?? "inherit")"></i>
                                         </div>
                                         <div class="col-md-8">
                                             <h6 class="text-muted">@item.Title</h6>
                                             <p class="text-secondary">@item.Description</p>
                                         </div>
                                     </div>
-                                    <hr class="my-3 mt-2">
-                                    <ul class="list-group list-group-flush">
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Created Date:</strong> <span class="text-muted">@item.CreatedDate</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Created By:</strong> <span class="text-muted">@item.CreatedBy</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Updated Date:</strong> <span class="text-muted">@(string.IsNullOrWhiteSpace(item.UpdatedDate.ToString()) ? "No action has been taken yet." : item.UpdatedDate)</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Updated By:</strong> <span class="text-muted">@(string.IsNullOrWhiteSpace(item.UpdatedBy) ? "No action has been taken yet." : item.UpdatedBy)</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Deleted Date:</strong> <span class="text-muted"> @(string.IsNullOrWhiteSpace(item.DeletedDate.ToString()) ? "No action has been taken yet." : item.DeletedDate)</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Deleted By:</strong>  <span class="text-muted">
-                                                @(string.IsNullOrWhiteSpace(item.DeletedBy) ? "No action has been taken yet." : item.DeletedBy)
-                                            </span>
-                                        </li>
-                                    </ul>
                                 </div>
                                 <div class="modal-footer border-0">
                                     <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Close</button>
@@ -133,13 +105,6 @@
         </div>
     </div>
 </div>
-<!-- Icon Modal Start -->
-<div class="modal fade modal-animate" id="animateModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <img id="showImg" style="max-width:800px; object-fit:contain;" />
-    </div>
-</div>
-<!-- Icon Modal End -->
 <!-- Delete Confirmation Modal Start -->
 <div id="deleteModalCenter" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="deleteModalCenterTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
@@ -169,19 +134,7 @@
         deleteButtons.forEach(button => {
             button.addEventListener('click', function () {
                 const itemId = this.getAttribute('data-id');
-                confirmDeleteBtn.setAttribute('href', `/Admin/ProvidedItem/Delete/${itemId}`);
-            });
-        });
-    });
-
-    document.addEventListener('DOMContentLoaded', function () {
-        const openButtons = document.querySelectorAll('#openImg');
-        const showCoverImage = document.querySelector('#showImg');
-
-        openButtons.forEach(button => {
-            button.addEventListener('click', function () {
-                const imgUrl = this.getAttribute('data-url');
-                showCoverImage.setAttribute('src', imgUrl);
+                confirmDeleteBtn.setAttribute('href', `/admin/provided-items/${itemId}/delete`);
             });
         });
     });

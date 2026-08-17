@@ -1,4 +1,5 @@
-﻿@model IQueryable<ResultFooterAboutDto>
+﻿@using OnlineConsulting.UserInterface.Areas.Admin.Features.FooterAbout
+@model List<FooterAboutListItemViewModel>
 @{
     ViewData["Title"] = "Footer About";
     ViewData["SubPage1"] = "Footer About";
@@ -15,15 +16,12 @@
             <div class="d-sm-flex align-items-center justify-content-between">
                 <h5 class="mb-3 mb-sm-0">Footer About </h5>
                 <div>
-                    @if (Model == null)
-                    {
-                        <a href="@Url.Action("Create","FooterAbout")" class="btn btn-primary">Add Footer About</a>
-                    }
+                    <a href="@Url.Action("Create","FooterAbout")" class="btn btn-primary">Add Footer About</a>
                 </div>
             </div>
         </div>
         <div class="card-body pt-3">
-            @if (Model != null)
+            @if (Model is { Count: > 0 })
             {
                 <div class="table-responsive">
                     <table class="table table-hover" id="pc-dt-simple">
@@ -93,21 +91,6 @@
                                             <p class="text-secondary">@item.Description</p>
                                         </div>
                                     </div>
-                                    <hr class="my-3 mt-2">
-                                    <ul class="list-group list-group-flush">
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Created Date:</strong> <span class="text-muted">@item.CreatedDate</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Created By:</strong> <span class="text-muted">@item.CreatedBy</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Updated Date:</strong> <span class="text-muted">@(string.IsNullOrWhiteSpace(item.UpdatedDate.ToString()) ? "No action has been taken yet." : item.UpdatedDate)</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Updated By:</strong> <span class="text-muted">@(string.IsNullOrWhiteSpace(item.UpdatedBy) ? "No action has been taken yet." : item.UpdatedBy)</span>
-                                        </li>
-                                    </ul>
                                 </div>
                                 <div class="modal-footer border-0">
                                     <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Close</button>
@@ -161,7 +144,7 @@
         deleteButtons.forEach(button => {
             button.addEventListener('click', function () {
                 const itemId = this.getAttribute('data-id');
-                confirmDeleteBtn.setAttribute('href', `/Admin/FooterAbout/Delete/${itemId}`);
+                confirmDeleteBtn.setAttribute('href', `/admin/footer-about/${itemId}/delete`);
             });
         });
     });

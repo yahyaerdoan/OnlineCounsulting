@@ -1,5 +1,6 @@
 using MediatR;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Contracts;
+using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Abstractions;
 using OnlineConsulting.SharedKernel.Payments;
 using OrderPaymentStatuses = OnlineConsulting.Modules.Commerce.Application.Features.Orders.Contracts.PaymentStatuses;
 

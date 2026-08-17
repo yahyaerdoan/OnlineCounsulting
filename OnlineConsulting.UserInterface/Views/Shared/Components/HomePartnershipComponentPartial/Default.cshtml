@@ -1,4 +1,5 @@
-﻿@model IQueryable<ResultPartnershipDto>
+@using OnlineConsulting.UserInterface.Areas.Admin.Features.Partnership
+@model List<PartnershipShowcaseItemViewModel>
 @{
     var index = 0;
 }
@@ -23,7 +24,7 @@
                             <!-- Görsel boyutu ve dolgu ayarları -->
                             <img data-bs-toggle="modal"
                                  data-bs-target="#personModal-@index"
-                                 src="@item.ImageUrl"
+                                 src="@item.PhotoUrl"
                                  alt=""
                                  style="width: 100%; height: auto; aspect-ratio: 1 / 1; object-fit: cover; display: block; border-radius: 5px 5px 0px 0px;" />
                         </div>
@@ -32,9 +33,9 @@
                             <p style="text-transform:capitalize;">@item.Title</p>
                         </div>
                         <ul class="personsl-socail">
-                            @foreach (var socialMedia in item.PartnershipSocialMedias)
+                            @foreach (var socialLink in item.SocialLinks)
                             {
-                                <li><a href="@socialMedia.Url" target="_blank"><i class="@socialMedia.ClassIcon.IconClass"></i></a></li>
+                                <li><a href="@socialLink.Url" target="_blank"><i class="@socialLink.Icon" style="color:@(socialLink.IconColor ?? "inherit")"></i></a></li>
                             }
                         </ul>
                     </div>
@@ -49,18 +50,18 @@
                                 <div class="modal-body">
                                     <div class="row g-4">
                                         <div class="col-md-4">
-                                            <img src="@item.ImageUrl" alt="@item.FirstName @item.LastName"
+                                            <img src="@item.PhotoUrl" alt="@item.FirstName @item.LastName"
                                                  class="img-fluid rounded-3 shadow-sm w-100"
                                                  style="aspect-ratio: 1 / 1; object-fit: cover;" />
                                             <div class="mt-2">
                                                 <strong>Connect:</strong>
                                                 <div class="mt-2 d-flex flex-wrap gap-2">
-                                                    @foreach (var sm in item.PartnershipSocialMedias)
+                                                    @foreach (var sm in item.SocialLinks)
                                                     {
                                                         <a href="@sm.Url" target="_blank"
                                                            class="btn btn btn-sm d-inline-flex align-items-center justify-content-center rounded-circle"
                                                            style="width: 35px; height: 35px; padding:0px">
-                                                            <i class="@sm.ClassIcon.IconClass"></i>
+                                                            <i class="@sm.Icon" style="color:@(sm.IconColor ?? "inherit")"></i>
                                                         </a>
                                                     }
                                                 </div>
@@ -91,6 +92,6 @@
         </div>
     </div>
 </div>
-@* 
+@*
 Modal id ve data-bs-target  Değerleri Benzersiz Olmalı:
 Modal başlıkları için aria-labelledby değerleri de benzersiz tanımlandı (personModalLabel1, personModalLabel2). *@

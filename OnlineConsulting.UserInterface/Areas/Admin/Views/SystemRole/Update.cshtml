@@ -1,10 +1,11 @@
-﻿@model ResultSystemRoleDto
+﻿@using OnlineConsulting.UserInterface.Areas.Admin.Features.SystemRole
+@model UpdateSystemRoleViewModel
 @{
     ViewData["Title"] = "Update New System Role";
     ViewData["SubPage1"] = "System Role List";
     ViewData["SubPage1Url"] = Url.Action("Index", "SystemRole", new { area = "Admin" });
     ViewData["SubPage2"] = "Update System Role";
-    ViewData["SubPage2Url"] = Url.Action("Update", "SystemRole", new { area = "Admin" });
+    ViewData["SubPage2Url"] = Url.Action("Update", "SystemRole", new { area = "Admin", id = Model.Id });
 }
 <div class="col-12">
     <div class="card p-3">

@@ -1,5 +1,7 @@
 using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
+using OnlineConsulting.Modules.Services.Application.Contracts;
+using OnlineConsulting.Modules.Services.Application.Abstractions;
 using OnlineConsulting.Modules.Services.Application.Features.Constants;
 using OnlineConsulting.Modules.Services.Application.Features.Rules;
 using ResultHandler.Core.Base;

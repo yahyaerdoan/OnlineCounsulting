@@ -1,4 +1,5 @@
-﻿@model CreateHowIGetServiceDto
+@using OnlineConsulting.UserInterface.Areas.Admin.Features.HowIGetService
+@model CreateHowIGetServiceViewModel
 @{
     ViewData["Title"] = "Create New How I Get Service Stage";
     ViewData["SubPage1"] = "How I Get Service Stage List";
@@ -12,19 +13,20 @@
             <h5 class="mb-0">Create New How I Get Service Stage</h5>
         </div>
         <div class="card-body">
-            <form method="post" enctype="multipart/form-data">
+            <form method="post">
                 <div class="row">
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label class="form-label" for="imgicon">Icon</label>
-                            <select class="form-control" id="imgicon" asp-for="ImgIconId">
-                                <option value="" disabled selected>Select an icon</option>
-                                @foreach (var icon in (List<ResultImgIconDto>)ViewBag.GetImgIcons)
-                                {
-                                    <option value="@icon.Id">@icon.Name</option>
-                                }
-                            </select>
-                            <span asp-validation-for="ImgIconId" class="text-danger"></span>
+                            <label class="form-label" for="icon">Icon (CSS class name)</label>
+                            <input type="text" class="form-control" id="icon" placeholder="e.g. ti ti-truck" asp-for="Icon" />
+                            <span asp-validation-for="Icon" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label" for="iconcolor">Icon Color (optional)</label>
+                            <input type="text" class="form-control" id="iconcolor" placeholder="e.g. #ff0000" asp-for="IconColor" />
+                            <span asp-validation-for="IconColor" class="text-danger"></span>
                         </div>
                     </div>
                     <div class="col-md-6">

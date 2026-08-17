@@ -1,5 +1,5 @@
-@using OnlineConsulting.BusinessLogic.Concretions.Services
-@model CreateUserDto
+@using OnlineConsulting.UserInterface.Features.Account
+@model RegisterViewModel
 @inject IConfiguration Configuration
 @{
     ViewData["Title"] = "Register";
@@ -26,7 +26,7 @@
                             <div id="lg1" class="tab-pane active">
                                 <div class="login-form-container">
                                     <div class="login-register-form">
-                                        <form method="post">
+                                        <form asp-action="Register" asp-controller="Account" method="post">
                                             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                                             <div class="login-input-box">
                                                 <div class="form-group mb-3">

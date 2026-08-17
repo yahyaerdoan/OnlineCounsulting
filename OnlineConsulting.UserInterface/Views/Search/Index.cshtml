@@ -1,5 +1,5 @@
-@using OnlineConsulting.DataTransferObject.Concretions.Dtos.ServiceDtos
-@model List<ResultServiceWithImageDto>
+@using OnlineConsulting.UserInterface.Features.Search
+@model List<SearchResultItemViewModel>
 @{
     ViewData["Title"] = "Search Results";
     ViewData["SubPage1"] = "Search";
@@ -27,7 +27,7 @@
                         <div class="single-popular-courses mt--30">
                             <div class="popular-courses-image">
                                 <a href="@Url.Action("Detail", "Service", new { slug = item.Slug })">
-                                    <img src="@item.ServiceImages.Select(x => x.ImageUrl).FirstOrDefault()"
+                                    <img src="@item.CoverImageUrl"
                                          style="width: 100%; height: auto; aspect-ratio: 1 / 1; object-fit: cover; display: block; border-radius: 5px 5px 0px 0px;"
                                          alt="Service Images">
                                 </a>

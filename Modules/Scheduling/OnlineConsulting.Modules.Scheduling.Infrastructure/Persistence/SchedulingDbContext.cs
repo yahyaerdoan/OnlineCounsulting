@@ -23,14 +23,14 @@ public class SchedulingDbContext(DbContextOptions<SchedulingDbContext> options, 
             builder.HasIndex(a => a.UserId);
             builder.HasIndex(a => a.ServiceId);
             builder.HasIndex(a => new { a.TenantId, a.ScheduledStart });
-            builder.HasQueryFilter(a => a.TenantId == tenantProvider.TenantId && a.DeletedDate == null);
+            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
         modelBuilder.Entity<AvailabilityRule>(builder =>
         {
             builder.Property(r => r.RowVersion).IsRowVersion();
             builder.HasIndex(r => new { r.TenantId, r.DayOfWeek });
-            builder.HasQueryFilter(r => r.TenantId == tenantProvider.TenantId && r.DeletedDate == null);
+            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
         modelBuilder.ConfigureOutboxEmail();

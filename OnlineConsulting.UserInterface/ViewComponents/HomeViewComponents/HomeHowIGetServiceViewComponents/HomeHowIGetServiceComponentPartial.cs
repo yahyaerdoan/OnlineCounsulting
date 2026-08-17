@@ -1,14 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
-using OnlineConsulting.BusinessLogic.Abstractions.IServiceManagers;
-using OnlineConsulting.DataTransferObject.Concretions.Dtos.HowIGetServiceDtos;
+using OnlineConsulting.UserInterface.Areas.Admin.Features.HowIGetService;
 
 namespace OnlineConsulting.UserInterface.ViewComponents.HomeViewComponents.HomeHowIGetServiceViewComponents;
 
-public class HomeHowIGetServiceComponentPartial(IServiceManager serviceManager) : ViewComponent
+public class HomeHowIGetServiceComponentPartial(IHowIGetServiceService howIGetServiceService) : ViewComponent
 {
     public async Task<IViewComponentResult> InvokeAsync()
     {
-        var result = await serviceManager.HowIGetServiceService.GetAllHowIGetServicesWithImgIconsAsync<ResultHowIGetServiceDto>(false, true);
-        return View(result.Data ?? Enumerable.Empty<ResultHowIGetServiceDto>().AsQueryable());
+        var result = await howIGetServiceService.GetAllAsync();
+        return View(result);
     }
 }

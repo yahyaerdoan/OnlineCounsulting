@@ -1,4 +1,5 @@
-﻿@model CreateGalleryCategoryDto
+@using OnlineConsulting.UserInterface.Areas.Admin.Features.GalleryCategory
+@model CreateGalleryCategoryViewModel
 @{
     ViewData["Title"] = "Create New Gallery Category";
     ViewData["SubPage1"] = "Gallery Category List";
@@ -12,7 +13,7 @@
             <h5 class="mb-0">Create New Gallery Category</h5>
         </div>
         <div class="card-body">
-            <form method="post" enctype="multipart/form-data">
+            <form method="post">
                 <div class="row">
                     <div class="col-md-12">
                         <div class="mb-3">

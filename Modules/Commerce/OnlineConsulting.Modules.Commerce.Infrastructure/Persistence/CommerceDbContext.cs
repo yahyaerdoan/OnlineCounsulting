@@ -30,7 +30,7 @@ public class CommerceDbContext(DbContextOptions<CommerceDbContext> options, ITen
             builder.Property(a => a.Notes).HasMaxLength(1000);
             builder.Property(a => a.RowVersion).IsRowVersion();
             builder.HasIndex(a => a.UserId);
-            builder.HasQueryFilter(a => a.TenantId == tenantProvider.TenantId && a.DeletedDate == null);
+            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
         modelBuilder.Entity<Basket>(builder =>
@@ -40,7 +40,7 @@ public class CommerceDbContext(DbContextOptions<CommerceDbContext> options, ITen
             builder.Property(b => b.RowVersion).IsRowVersion();
             builder.HasIndex(b => b.UserId);
             builder.HasIndex(b => b.GuestId);
-            builder.HasQueryFilter(b => b.TenantId == tenantProvider.TenantId && b.DeletedDate == null);
+            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
         modelBuilder.Entity<BasketItem>(builder =>
@@ -51,7 +51,7 @@ public class CommerceDbContext(DbContextOptions<CommerceDbContext> options, ITen
             builder.Property(i => i.TotalPrice).HasColumnType("decimal(18,2)");
             builder.Property(i => i.RowVersion).IsRowVersion();
             builder.HasIndex(i => i.BasketId);
-            builder.HasQueryFilter(i => i.TenantId == tenantProvider.TenantId && i.DeletedDate == null);
+            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
         modelBuilder.Entity<Order>(builder =>
@@ -63,7 +63,7 @@ public class CommerceDbContext(DbContextOptions<CommerceDbContext> options, ITen
             builder.Property(o => o.ProviderPaymentId).HasMaxLength(200);
             builder.Property(o => o.RowVersion).IsRowVersion();
             builder.HasIndex(o => o.UserId);
-            builder.HasQueryFilter(o => o.TenantId == tenantProvider.TenantId && o.DeletedDate == null);
+            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
         modelBuilder.Entity<OrderItem>(builder =>
@@ -74,7 +74,7 @@ public class CommerceDbContext(DbContextOptions<CommerceDbContext> options, ITen
             builder.Property(i => i.TotalPrice).HasColumnType("decimal(18,2)");
             builder.Property(i => i.RowVersion).IsRowVersion();
             builder.HasIndex(i => i.OrderId);
-            builder.HasQueryFilter(i => i.TenantId == tenantProvider.TenantId && i.DeletedDate == null);
+            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
         modelBuilder.ConfigureOutboxEmail();

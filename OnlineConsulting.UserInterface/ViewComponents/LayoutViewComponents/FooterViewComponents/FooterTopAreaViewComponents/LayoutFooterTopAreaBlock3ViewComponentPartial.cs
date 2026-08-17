@@ -1,14 +1,17 @@
 using Microsoft.AspNetCore.Mvc;
-using OnlineConsulting.BusinessLogic.Abstractions.IServiceManagers;
-using OnlineConsulting.DataTransferObject.Concretions.Dtos.ServiceDtos;
+using OnlineConsulting.UserInterface.Features.Service;
 
 namespace OnlineConsulting.UserInterface.ViewComponents.LayoutViewComponents.FooterViewComponents.FooterTopAreaViewComponents;
 
-public class LayoutFooterTopAreaBlock3ViewComponentPartial(IServiceManager serviceManager) : ViewComponent
+public class LayoutFooterTopAreaBlock3ViewComponentPartial(IServiceCatalogPageService serviceCatalogPageService) : ViewComponent
 {
     public async Task<IViewComponentResult> InvokeAsync()
     {
-        var result = await serviceManager.ServiceService.GetAllServicesWithImagesAsync<ResultServiceWithImageDto>(false, true);
-        return View((result.Data ?? Enumerable.Empty<ResultServiceWithImageDto>().AsQueryable()).OrderByDescending(x => x.CreatedDate).Take(3));
+        // The Api's ServiceCardViewModel doesn't carry CreatedDate (legacy "3 newest" ordering no longer
+        // available) - closest real equivalent is the catalog's own first page, capped to 3 with a cover image.
+        var page = await serviceCatalogPageService.GetPagedAsync(1, 3);
+        var result = page.Services.Where(s => s.CoverImageUrl is not null).ToList();
+
+        return View(result);
     }
 }

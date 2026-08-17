@@ -1,14 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
-using OnlineConsulting.BusinessLogic.Abstractions.IServiceManagers;
-using OnlineConsulting.DataTransferObject.Concretions.Dtos.SliderItemDtos;
+using OnlineConsulting.UserInterface.Areas.Admin.Features.SliderItem;
 
 namespace OnlineConsulting.UserInterface.ViewComponents.HomeViewComponents.HomeSliderViewComponents;
 
-public class HomeSliderComponentPartial(IServiceManager serviceManager) : ViewComponent
+public class HomeSliderComponentPartial(ISliderItemService sliderItemService) : ViewComponent
 {
     public async Task<IViewComponentResult> InvokeAsync()
     {
-        var result = await serviceManager.SliderItemService.GetAllAsync<ResultSliderItemDto>(false, true);
-        return View(result.Data ?? Enumerable.Empty<ResultSliderItemDto>().AsQueryable());
+        var items = await sliderItemService.GetAllAsync();
+        return View(items);
     }
 }

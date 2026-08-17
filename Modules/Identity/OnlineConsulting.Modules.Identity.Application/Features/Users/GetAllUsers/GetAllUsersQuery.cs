@@ -1,9 +1,11 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+using Core.SecurityLayer.Constants;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Constants;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Contracts;
+using OnlineConsulting.Modules.Identity.Application.Features.Users.Abstractions;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
 using ResultHandler.Core.Base;
@@ -18,7 +20,7 @@ public record GetAllUsersQuery : IRequest<OperationDataResult<List<UserResponse>
     public string[] Roles => [UsersOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, UsersOperationClaims.Read];
 }
 
-public class GetAllUsersHandler(UserManager<User> userManager) : IRequestHandler<GetAllUsersQuery, OperationDataResult<List<UserResponse>>>
+public class GetAllUsersHandler(UserManager<User> userManager, RoleManager<Role> roleManager) : IRequestHandler<GetAllUsersQuery, OperationDataResult<List<UserResponse>>>
 {
     public async Task<OperationDataResult<List<UserResponse>>> Handle(GetAllUsersQuery request, CancellationToken cancellationToken)
     {
@@ -26,10 +28,17 @@ public class GetAllUsersHandler(UserManager<User> userManager) : IRequestHandler
         if (users.Count == 0)
             return Result.NotFound<List<UserResponse>>(UserMessages.NoUserDataFound);
 
+        var permissionsByRole = await GetPermissionsByRoleAsync(roleManager, cancellationToken);
+
         var userResponses = new List<UserResponse>();
         foreach (var user in users)
         {
             var roles = await userManager.GetRolesAsync(user);
+            var permissions = roles
+                .SelectMany(role => permissionsByRole.GetValueOrDefault(role, []))
+                .Distinct()
+                .ToList();
+
             userResponses.Add(new UserResponse
             {
                 Id = user.Id,
@@ -40,9 +49,27 @@ public class GetAllUsersHandler(UserManager<User> userManager) : IRequestHandler
                 Email = user.Email ?? string.Empty,
                 ImageUrl = user.ImageUrl,
                 Roles = [.. roles],
+                Permissions = permissions,
             });
         }
 
         return Result.Success(userResponses, "User data retrieved successfully.");
+    }
+
+    private static async Task<Dictionary<string, List<string>>> GetPermissionsByRoleAsync(RoleManager<Role> roleManager, CancellationToken cancellationToken)
+    {
+        var roles = await roleManager.Roles.ToListAsync(cancellationToken);
+        var permissionsByRole = new Dictionary<string, List<string>>();
+
+        foreach (var role in roles)
+        {
+            if (role.Name is null)
+                continue;
+
+            var claims = await roleManager.GetClaimsAsync(role);
+            permissionsByRole[role.Name] = [.. claims.Where(c => c.Type == PermissionClaimTypes.Type).Select(c => c.Value)];
+        }
+
+        return permissionsByRole;
     }
 }

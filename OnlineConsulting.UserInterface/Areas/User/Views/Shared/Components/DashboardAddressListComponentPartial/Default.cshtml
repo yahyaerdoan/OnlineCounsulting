@@ -1,4 +1,4 @@
-﻿@model AddressListPageViewModel
+@model AddressListPageViewModel
 @{
     var index = 0;
 }
@@ -17,7 +17,7 @@
                             <a href="#" class="text-primary" data-bs-toggle="modal" data-bs-target="#addressModal-@index">
                                 <i class="zmdi zmdi-edit fs-5"></i>
                             </a>
-                            <a href="@Url.Action("Delete", "UserAddress", new { id = item.Id, area = "user" })" class="text-danger">
+                            <a href="@Url.Action("Delete", "UserAddress", new { id = item.Id, area = "User" })" class="text-danger">
                                 <i class="zmdi zmdi-delete fs-5"></i>
                             </a>
                         </div>
@@ -50,47 +50,46 @@
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
 
-                        <form method="post" asp-action="Update" asp-area="user" asp-controller="UserAddress">
+                        <form method="post" asp-action="Update" asp-area="User" asp-controller="UserAddress" asp-route-id="@item.Id">
                             <div class="modal-body">
-                                <input type="hidden" name="UpdateUserAddressDto.Id" value="@item.Id" />
-                                <input type="hidden" name="UpdateUserAddressDto.UserId" value="@item.UserId" />
+                                <input type="hidden" name="Id" value="@item.Id" />
 
                                 <div class="row g-3">
                                     <div class="col-md-6">
                                         <label class="form-label">Address Name</label>
-                                        <input class="form-control" name="UpdateUserAddressDto.AddressName" value="@item.AddressName" required />
+                                        <input class="form-control" name="AddressName" value="@item.AddressName" required />
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">Company Name</label>
-                                        <input class="form-control" name="UpdateUserAddressDto.CompanyName" value="@item.CompanyName" />
+                                        <input class="form-control" name="CompanyName" value="@item.CompanyName" />
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">Country</label>
-                                        <input class="form-control" name="UpdateUserAddressDto.Country" value="@item.Country" required />
+                                        <input class="form-control" name="Country" value="@item.Country" required />
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">City</label>
-                                        <input class="form-control" name="UpdateUserAddressDto.City" value="@item.City" required />
+                                        <input class="form-control" name="City" value="@item.City" required />
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">State</label>
-                                        <input class="form-control" name="UpdateUserAddressDto.State" value="@item.State" required />
+                                        <input class="form-control" name="State" value="@item.State" required />
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">Zip Code</label>
-                                        <input class="form-control" name="UpdateUserAddressDto.Zipcode" value="@item.Zipcode" required />
+                                        <input class="form-control" name="Zipcode" value="@item.Zipcode" required />
                                     </div>
                                     <div class="col-12">
                                         <label class="form-label">Address Line</label>
-                                        <input class="form-control" name="UpdateUserAddressDto.AddressLine" value="@item.AddressLine" required />
+                                        <input class="form-control" name="AddressLine" value="@item.AddressLine" required />
                                     </div>
                                     <div class="col-12">
                                         <label class="form-label">Notes</label>
-                                        <input class="form-control" name="UpdateUserAddressDto.Notes" value="@item.Notes" />
+                                        <input class="form-control" name="Notes" value="@item.Notes" />
                                     </div>
                                     <div class="col-12 d-flex align-items-center">
                                         <input type="checkbox" class="form-check-input me-2"
-                                               name="UpdateUserAddressDto.IsShippingAddress"
+                                               name="IsShippingAddress"
                                                id="shippingCheck-@index"
                                                value="true"
                                                style="width: 1.25em; height: 1.25em; margin-right: 0.5rem;"
@@ -99,7 +98,7 @@
                                     </div>
                                     <div class="col-12 d-flex align-items-center">
                                         <input type="checkbox" class="form-check-input me-2"
-                                               name="UpdateUserAddressDto.IsBillingAddress"
+                                               name="IsBillingAddress"
                                                id="billingCheck-@index"
                                                value="true"
                                                style="width: 1.25em; height: 1.25em; margin-right: 0.5rem;"

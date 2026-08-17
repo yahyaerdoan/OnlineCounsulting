@@ -1,4 +1,4 @@
-﻿@model IQueryable<ResultCategoryDto>
+﻿@model List<CategoryResponse>
 @{
     var colorClasses = new[] { "malachite", "sunglow", "mariner", "brilliantrose", "shakespeare", "deyork" };
     int i = 0;
@@ -31,8 +31,7 @@
                             <div class="single-course-categories @colorClass">
                                 <div class="item-inner">
                                     <div class="cours-icon">
-                                        <img src="@item.ImgIcon.IconUrl"
-                                             style="border-radius:5px; max-width:50px; max-height:50px; object-fit:cover;" alt="">
+                                        <i class="@item.Icon" style="font-size:48px; color:@(item.IconColor ?? "inherit")"></i>
                                     </div>
                                     <div class="cours-title">
                                         <h5>@item.Title</h5>

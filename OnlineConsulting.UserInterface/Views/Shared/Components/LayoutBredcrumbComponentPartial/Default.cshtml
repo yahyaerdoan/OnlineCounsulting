@@ -1,4 +1,5 @@
-﻿@model IQueryable<ResultBreadcrumbDto>
+﻿@using OnlineConsulting.UserInterface.Areas.Admin.Features.Breadcrumb
+@model List<BreadcrumbListItemViewModel>
 @{
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString();

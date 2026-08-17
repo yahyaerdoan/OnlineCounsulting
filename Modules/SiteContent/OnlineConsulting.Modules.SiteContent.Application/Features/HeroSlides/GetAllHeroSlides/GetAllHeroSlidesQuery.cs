@@ -1,5 +1,6 @@
 using MediatR;
-using OnlineConsulting.Modules.SiteContent.Application.Contracts;
+using OnlineConsulting.Modules.SiteContent.Application.Features.HeroSlides.Contracts;
+using OnlineConsulting.Modules.SiteContent.Application.Features.HeroSlides.Abstractions;
 using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;

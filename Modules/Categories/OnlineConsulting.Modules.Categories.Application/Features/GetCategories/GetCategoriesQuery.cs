@@ -2,6 +2,7 @@ using Core.ApplicationLayer.Requests.Page;
 using Core.PersistenceLayer.Pagings.Paging;
 using MediatR;
 using OnlineConsulting.Modules.Categories.Application.Contracts;
+using OnlineConsulting.Modules.Categories.Application.Abstractions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 

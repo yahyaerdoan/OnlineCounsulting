@@ -1,14 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
-using OnlineConsulting.BusinessLogic.Abstractions.IServiceManagers;
-using OnlineConsulting.DataTransferObject.Concretions.Dtos.FooterAboutDtos;
+using OnlineConsulting.UserInterface.Areas.Admin.Features.FooterAbout;
 
 namespace OnlineConsulting.UserInterface.ViewComponents.LayoutViewComponents.FooterViewComponents.FooterTopAreaViewComponents;
 
-public class LayoutFooterTopAreaBlock1ViewComponentPartial(IServiceManager serviceManager) : ViewComponent
+public class LayoutFooterTopAreaBlock1ViewComponentPartial(IFooterAboutService footerAboutService) : ViewComponent
 {
     public async Task<IViewComponentResult> InvokeAsync()
     {
-        var result = await serviceManager.FooterAboutService.GetAllAsync<ResultFooterAboutDto>(false, true);
-        return View(result.Data ?? Enumerable.Empty<ResultFooterAboutDto>().AsQueryable());
+        var items = await footerAboutService.GetAllAsync();
+        return View(items);
     }
 }

@@ -1,4 +1,4 @@
-﻿@model IQueryable<ResultServiceWithImageDto>
+﻿@model List<HomeFeaturedServiceViewModel>
 
 <div class="most-popular-courses-area section-ptb p-3 m-3">
     <div class="container">
@@ -30,7 +30,7 @@
                                             <div class="popular-courses-image">
                                                 <!-- Loop through ServiceImages -->
                                                 <a href="@Url.Action("Detail","Service", new { slug = item.Slug } )">
-                                                    <img src="@item.ServiceImages.FirstOrDefault()!.ImageUrl" alt="Service Image"
+                                                    <img src="@item.CoverImageUrl" alt="Service Image"
                                                          style="width: 100%; height: auto; aspect-ratio: 1 / 1; object-fit: cover; display: block; border-radius: 5px 5px 0px 0px;" />
                                                 </a>
                                             </div>
@@ -38,7 +38,7 @@
                                                 <h5 style="height:43.19px;"><a href="@Url.Action("Detail","Service", new { slug = item.Slug} )">@item.Title</a></h5>
                                                 <div class="post_meta">
                                                     <ul style="height:56px;">
-                                                        <li><a href="@Url.Action("Detail","Service", new { slug = item.Slug } )">@item.Category.Title</a></li>
+                                                        <li><a href="@Url.Action("Detail","Service", new { slug = item.Slug } )">@item.CategoryTitle</a></li>
                                                         @if (item.DiscountRate > 0)
                                                         {
                                                             <li>

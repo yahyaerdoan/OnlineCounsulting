@@ -5,11 +5,18 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OnlineConsulting.Modules.Inquiries.Application;
 using OnlineConsulting.Modules.Inquiries.Application.Common.Templates;
+using OnlineConsulting.Modules.Inquiries.Application.Features.Contact.Contracts;
+using OnlineConsulting.Modules.Inquiries.Application.Features.Contact.Abstractions;
+using OnlineConsulting.Modules.Inquiries.Application.Features.Messages.Contracts;
+using OnlineConsulting.Modules.Inquiries.Application.Features.Messages.Abstractions;
+using OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.Contracts;
+using OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.Abstractions;
 using OnlineConsulting.Modules.Inquiries.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Inquiries.Infrastructure.Pipelines;
 using OnlineConsulting.Modules.Inquiries.Infrastructure.Repositories;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
+using OnlineConsulting.SharedKernel.Auditing;
 using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Inquiries.Infrastructure;
@@ -21,9 +28,10 @@ public static class InquiriesModule
         var connectionString = configuration.GetSection("OnlineConsultingDbConnections:DevelopmentDbConnection").Value;
 
         services.AddScoped<TenantSaveChangesInterceptor>();
+        services.AddScoped<AuditSaveChangesInterceptor>();
 
         services.AddDbContext<InquiriesDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
-            .AddInterceptors(serviceProvider.GetRequiredService<TenantSaveChangesInterceptor>()));
+            .AddInterceptors(serviceProvider.GetRequiredService<TenantSaveChangesInterceptor>(), serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>()));
 
         services.AddScoped<IMessageRepository, MessageRepository>();
         services.AddScoped<INewsletterSubscriberRepository, NewsletterSubscriberRepository>();

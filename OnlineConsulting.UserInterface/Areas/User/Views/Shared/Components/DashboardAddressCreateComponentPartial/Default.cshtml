@@ -1,9 +1,9 @@
-﻿@model CreateUserAddressDto
+@model CreateUserAddressViewModel
 
 <div class="address-form shadow p-4 rounded bg-white">
     <h6 class="mb-4 text-secondary">Create New Address</h6>
 
-    <form method="post" asp-action="Create" asp-area="user" asp-controller="useraddress" id="addressForm">
+    <form method="post" asp-action="Create" asp-area="User" asp-controller="UserAddress" id="addressForm">
         <div class="row g-3">
             <!-- Address Identification -->
             <div class="col-md-6">

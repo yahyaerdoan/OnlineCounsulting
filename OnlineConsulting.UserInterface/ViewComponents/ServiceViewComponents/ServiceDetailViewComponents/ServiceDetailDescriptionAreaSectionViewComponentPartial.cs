@@ -1,14 +1,15 @@
 using Microsoft.AspNetCore.Mvc;
-using OnlineConsulting.BusinessLogic.Abstractions.IServiceManagers;
-using OnlineConsulting.DataTransferObject.Concretions.Dtos.ServiceDtos;
+using OnlineConsulting.UserInterface.Features.Service;
 
 namespace OnlineConsulting.UserInterface.ViewComponents.ServiceViewComponents.ServiceDetailViewComponents;
 
-public class ServiceDetailDescriptionAreaSectionViewComponentPartial(IServiceManager serviceManager) : ViewComponent
+/// <summary>Was previously a sync Invoke() blocking on .Result (sync-over-async) - fixed to proper InvokeAsync
+/// while rewiring, since the old blocking pattern is a genuine bug, not something worth preserving.</summary>
+public class ServiceDetailDescriptionAreaSectionViewComponentPartial(IServiceCatalogPageService serviceCatalogPageService) : ViewComponent
 {
-    public IViewComponentResult Invoke(string slug)
+    public async Task<IViewComponentResult> InvokeAsync(string slug)
     {
-        var result = serviceManager.ServiceService.GetServiceBySlugAsync<ResultServiceWithImageDto>(slug, false, true);
-        return View(result.Result.Data);
+        var model = await serviceCatalogPageService.GetDetailAsync(slug);
+        return View(model);
     }
 }

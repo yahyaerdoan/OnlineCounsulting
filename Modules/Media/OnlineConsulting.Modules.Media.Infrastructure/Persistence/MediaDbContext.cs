@@ -19,7 +19,7 @@ public class MediaDbContext(DbContextOptions<MediaDbContext> options, ITenantPro
             builder.Property(x => x.ContentType).HasMaxLength(100).IsRequired();
             builder.Property(x => x.StorageProvider).HasMaxLength(50).IsRequired();
             builder.Property(x => x.RowVersion).IsRowVersion();
-            builder.HasQueryFilter(x => x.TenantId == tenantProvider.TenantId && x.DeletedDate == null);
+            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
         base.OnModelCreating(modelBuilder);

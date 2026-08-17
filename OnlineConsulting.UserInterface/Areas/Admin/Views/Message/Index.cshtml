@@ -1,4 +1,5 @@
-﻿@model IQueryable<ResultMessageDto>
+﻿@using OnlineConsulting.UserInterface.Areas.Admin.Features.Message
+@model List<MessageListItemViewModel>
 @{
     ViewData["Title"] = "Message";
     ViewData["SubPage1"] = "Message";
@@ -17,15 +18,11 @@
             <div class="d-sm-flex align-items-center justify-content-between">
                 <h5 class="mb-3 mb-sm-0">Message List</h5>
                 <div>
-                    @if (Model == null)
-                    {
-                        <a href="@Url.Action("Index", "Contact", new {area=""})" class="btn btn-primary">Add Message</a>
-                    }
                 </div>
             </div>
         </div>
         <div class="card-body pt-3">
-            @if (Model != null)
+            @if (Model is { Count: > 0 })
             {
                 <div class="table-responsive">
                     <table class="table table-hover" id="pc-dt-simple">
@@ -94,14 +91,6 @@
                                         <li class="list-group-item d-flex justify-content-between align-items-center border-0">
                                             <strong>Created Date:</strong> <span class="text-muted">@item.CreatedDate</span>
                                         </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Deleted Date:</strong> <span class="text-muted"> @(string.IsNullOrWhiteSpace(item.DeletedDate.ToString()) ? "No action has been taken yet." : item.DeletedDate)</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                            <strong>Deleted By:</strong>  <span class="text-muted">
-                                                @(string.IsNullOrWhiteSpace(item.DeletedBy) ? "No action has been taken yet." : item.DeletedBy)
-                                            </span>
-                                        </li>
                                     </ul>
                                 </div>
                                 <div class="modal-footer border-0">
@@ -149,7 +138,7 @@
         deleteButtons.forEach(button => {
             button.addEventListener('click', function () {
                 const itemId = this.getAttribute('data-id');
-                confirmDeleteBtn.setAttribute('href', `/Admin/Message/Delete/${itemId}`);
+                confirmDeleteBtn.setAttribute('href', `/admin/messages/${itemId}/delete`);
             });
         });
     });

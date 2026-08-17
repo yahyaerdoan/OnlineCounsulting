@@ -19,7 +19,7 @@ public class CategoriesDbContext(DbContextOptions<CategoriesDbContext> options, 
             builder.Property(c => c.Icon).HasMaxLength(2000).IsRequired();
             builder.Property(c => c.IconColor).HasMaxLength(7);
             builder.Property(c => c.RowVersion).IsRowVersion();
-            builder.HasQueryFilter(c => c.TenantId == tenantProvider.TenantId && c.DeletedDate == null);
+            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
         base.OnModelCreating(modelBuilder);

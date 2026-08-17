@@ -2,6 +2,7 @@ using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Contracts;
+using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Abstractions;
 using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.Payments;
 using ResultHandler.Core.Base;

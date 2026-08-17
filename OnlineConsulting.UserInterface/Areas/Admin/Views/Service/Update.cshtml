@@ -1,4 +1,5 @@
-﻿@model UpdateServiceDto
+@using OnlineConsulting.UserInterface.Areas.Admin.Features.Service
+@model UpdateServiceViewModel
 @{
     ViewData["Title"] = "Update Service";
     ViewData["SubPage1"] = "Service";
@@ -17,13 +18,17 @@
                 <div class="row">
                     <div class="col-md-12">
                         <div class="row">
-                            @if (Model.ServiceImages.Any())
+                            @if (Model.ExistingImages.Any())
                             {
-                                foreach (var image in Model.ServiceImages)
+                                foreach (var image in Model.ExistingImages)
                                 {
                                     <div class="col-sm-6 col-lg-4 col-xxl-3">
                                         <div class="position-relative">
-                                            <img src="@image.ImageUrl" alt="img" class="img-fluid w-100 rounded-3" />
+                                            <img src="@image.Url" alt="img" class="img-fluid w-100 rounded-3" />
+                                            @if (image.IsCover)
+                                            {
+                                                <span class="badge bg-primary" style="position: absolute; top: 10px; left: 10px;">Cover</span>
+                                            }
                                             <div style="position: absolute; bottom: 10px; right: 10px;">
                                                 <a href="#" data-bs-toggle="modal" data-bs-target="#deleteModalCenter" class="btn btn-sm btn-outline-danger delete-btn" data-id="@image.Id" data-modelId="@Model.Id">
                                                     <i class="ti ti-trash f-20"></i>
@@ -43,11 +48,10 @@
                     </div>
                     <div class="col-md-12">
                         <div class="mt-3">
-                            <form asp-action="Create" asp-controller="ServiceImage" class="row g-1 align-items-center" method="post" enctype="multipart/form-data">
-                                <input type="hidden" name="ServiceId" value="@Model.Id" />
+                            <form action="/admin/services/@Model.Id/media-items" class="row g-1 align-items-center" method="post" enctype="multipart/form-data">
                                 <!-- Input Field -->
                                 <div class="col-md-12">
-                                    <input name="Image" class="form-control" id="ServiceImageimage" type="file" accept=".png, .jpeg, .jpg, .gif" required />
+                                    <input name="image" class="form-control" id="ServiceImageimage" type="file" accept=".png, .jpeg, .jpg, .gif" required />
                                     <div class="text-muted" style="font-size: x-small;">
                                         <span style="font-weight: bold;">*</span>Please ensure the image is <strong>370x240 pixels</strong> for the best results.
                                     </div>
@@ -72,7 +76,7 @@
                                     <label class="form-label" for="Servicecategory">Category</label>
                                     <select class="form-control" id="Servicecategory" asp-for="CategoryId">
                                         <option value="" disabled selected>Select a category</option>
-                                        @foreach (var category in (List<ResultCategoryDto>)ViewBag.GetCategories)
+                                        @foreach (var category in Model.Categories)
                                         {
                                             <option value="@category.Id">@category.Title</option>
                                         }
@@ -104,9 +108,8 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label" for="discountedprice">Discounted Price</label>
-                                    <input type="number" class="form-control" id="discountedprice" placeholder="Enter discounted price" asp-for="DiscountedPrice" disabled />
-                                    <input type="hidden" id="discountedprice-hidden" name="DiscountedPrice" asp-for="DiscountedPrice" />
-                                    <span asp-validation-for="DiscountedPrice" class="text-danger"></span>
+                                    <input type="number" class="form-control" id="discountedprice" placeholder="Calculated from price and discount rate" disabled />
+                                    <input type="hidden" id="discountedprice-hidden" />
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -166,10 +169,7 @@
                 </p>
             </div>
             <div class="modal-footer">
-                <form asp-action="Delete" asp-controller="ServiceImage">
-                    <input type="hidden" name="id" id="idInput" />
-                    <input type="hidden" name="modelId" id="modelIdInput" />
-
+                <form id="deleteImageForm" method="post">
                     <button type="button" class="btn btn-success" data-bs-dismiss="modal">No</button>
                     <button id="confirmDeleteBtn" class="btn btn-danger">Yes</button>
                 </form>
@@ -181,16 +181,13 @@
 <script>
         document.addEventListener('DOMContentLoaded', function () {
         const deleteButtons = document.querySelectorAll('.delete-btn');
-        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-        const inputId = document.getElementById('idInput');
-        const inputModelId = document.getElementById('modelIdInput');
+        const deleteImageForm = document.getElementById('deleteImageForm');
 
         deleteButtons.forEach(button => {
             button.addEventListener('click', function () {
                 const itemId = this.getAttribute('data-id');
                 const modelId = this.getAttribute('data-modelId');
-                inputId.setAttribute('value', itemId);
-                inputModelId.setAttribute('value', modelId);
+                deleteImageForm.setAttribute('action', `/admin/services/${modelId}/media-items/${itemId}/delete`);
             });
         });
     });

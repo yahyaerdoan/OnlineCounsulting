@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Contracts;
+using OnlineConsulting.Modules.Identity.Application.Features.Users.Abstractions;
 using OnlineConsulting.Modules.Identity.Domain;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;

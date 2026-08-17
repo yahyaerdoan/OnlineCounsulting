@@ -11,9 +11,8 @@ public class GetAllGalleryCategories : IEndpoint
     {
         app.MapGet("/api/site-content/gallery-categories", Handle)
             .WithTags("SiteContent/GalleryCategories")
-            .RequireAuthorization()
             .WithName("GetAllGalleryCategories")
-            .WithDescription("Returns the tenant's gallery category tags. Admin-only.");
+            .WithDescription("Returns the tenant's gallery category tags.");
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext)

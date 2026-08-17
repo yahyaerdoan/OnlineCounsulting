@@ -15,7 +15,7 @@ public class GoogleCloudStorageService : IStorageService
     public GoogleCloudStorageService(IOptions<StorageOptions> options)
     {
         _options = options.Value.GoogleCloud;
-        var credential = GoogleCredential.FromJson(_options.CredentialsJson);
+        var credential = CredentialFactory.FromJson<ServiceAccountCredential>(_options.CredentialsJson).ToGoogleCredential();
         _client = StorageClient.Create(credential);
     }
 

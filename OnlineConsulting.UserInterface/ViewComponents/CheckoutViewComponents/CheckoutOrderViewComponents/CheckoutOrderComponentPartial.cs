@@ -1,14 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
-using OnlineConsulting.BusinessLogic.Abstractions.IServiceManagers;
-using OnlineConsulting.DataTransferObject.Concretions.Dtos.BasketItemDtos;
+using OnlineConsulting.UserInterface.Features.Cart;
 
 namespace OnlineConsulting.UserInterface.ViewComponents.CheckoutViewComponents.CheckoutOrderViewComponents;
 
-public class CheckoutOrderComponentPartial(IServiceManager serviceManager) : ViewComponent
+public class CheckoutOrderComponentPartial(ICartPageService cartPageService) : ViewComponent
 {
     public async Task<IViewComponentResult> InvokeAsync(Guid cartId)
     {
-        var result = await serviceManager.BasketItemService.GetBasketItemsByUserIdAsync(cartId, false, true);
-        return View(result.Data ?? Enumerable.Empty<ResultBasketItemDto>().AsQueryable());
+        var cart = await cartPageService.GetCartAsync();
+        return View(cart?.Items ?? []);
     }
 }

@@ -1,6 +1,6 @@
-﻿@model List<ResultOrderDto>
+@model List<UserOrderListItemViewModel>
 @{
-    var orders = Model ?? new List<ResultOrderDto>();
+    var orders = Model ?? new List<UserOrderListItemViewModel>();
 }
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
 
@@ -33,7 +33,7 @@
                         var order = orders[i];
                         <tr>
                             <td>@(i + 1)</td>
-                            <td>@order.CreatedDate?.ToString("f", CultureInfo.CurrentCulture)</td>
+                            <td>@order.CreatedDate.ToString("f", CultureInfo.CurrentCulture)</td>
                             <td>
                                 <span class="badge
                                     @(order.OrderStatus == "Pending" ? "bg-warning text-dark" :
