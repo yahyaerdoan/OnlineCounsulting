@@ -1,5 +1,5 @@
-﻿using OnlineConsulting.UserInterface.Infrastructure.Api;
-using OnlineConsulting.UserInterface.Features.Service;
+﻿using OnlineConsulting.UserInterface.Features.Service;
+using OnlineConsulting.UserInterface.Infrastructure.Api;
 
 namespace OnlineConsulting.UserInterface.Features.Cart;
 

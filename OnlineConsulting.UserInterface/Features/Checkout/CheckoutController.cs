@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using NToastNotify;
-using OnlineConsulting.UserInterface.NotificationServices.ToastrServices;
 using OnlineConsulting.UserInterface.Areas.User.Features.UserAddress;
+using OnlineConsulting.UserInterface.NotificationServices.ToastrServices;
 using ResultHandler.Core.Enums;
 
 namespace OnlineConsulting.UserInterface.Features.Checkout;

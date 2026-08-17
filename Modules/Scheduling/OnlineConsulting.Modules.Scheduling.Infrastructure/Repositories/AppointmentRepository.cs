@@ -1,5 +1,4 @@
-using Core.PersistenceLayer.Repositories.EfRepositories;
-using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Contracts;
+﻿using Core.PersistenceLayer.Repositories.EfRepositories;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Abstractions;
 using OnlineConsulting.Modules.Scheduling.Domain;
 using OnlineConsulting.Modules.Scheduling.Infrastructure.Persistence;

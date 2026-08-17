@@ -1,24 +1,21 @@
-using FluentValidation;
+﻿using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OnlineConsulting.Modules.Inquiries.Application;
 using OnlineConsulting.Modules.Inquiries.Application.Common.Templates;
-using OnlineConsulting.Modules.Inquiries.Application.Features.Contact.Contracts;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Contact.Abstractions;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Messages;
-using OnlineConsulting.Modules.Inquiries.Application.Features.Messages.Contracts;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Messages.Abstractions;
-using OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.Contracts;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.Abstractions;
 using OnlineConsulting.Modules.Inquiries.Infrastructure.Notifications;
 using OnlineConsulting.Modules.Inquiries.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Inquiries.Infrastructure.Pipelines;
 using OnlineConsulting.Modules.Inquiries.Infrastructure.Repositories;
+using OnlineConsulting.SharedKernel.Auditing;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
-using OnlineConsulting.SharedKernel.Auditing;
 using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Inquiries.Infrastructure;

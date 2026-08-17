@@ -1,5 +1,4 @@
-using Core.PersistenceLayer.Repositories.EfRepositories;
-using OnlineConsulting.Modules.Inquiries.Application.Features.Contact.Contracts;
+﻿using Core.PersistenceLayer.Repositories.EfRepositories;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Contact.Abstractions;
 using OnlineConsulting.Modules.Inquiries.Domain;
 using OnlineConsulting.Modules.Inquiries.Infrastructure.Persistence;

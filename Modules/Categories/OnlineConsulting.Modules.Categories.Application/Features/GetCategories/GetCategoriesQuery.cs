@@ -1,8 +1,8 @@
-using Core.ApplicationLayer.Requests.Page;
+﻿using Core.ApplicationLayer.Requests.Page;
 using Core.PersistenceLayer.Pagings.Paging;
 using MediatR;
-using OnlineConsulting.Modules.Categories.Application.Contracts;
 using OnlineConsulting.Modules.Categories.Application.Abstractions;
+using OnlineConsulting.Modules.Categories.Application.Contracts;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 

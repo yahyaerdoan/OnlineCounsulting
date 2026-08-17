@@ -1,5 +1,4 @@
-using Core.PersistenceLayer.Repositories.EfRepositories;
-using OnlineConsulting.Modules.SiteContent.Application.Features.AboutUss.Contracts;
+﻿using Core.PersistenceLayer.Repositories.EfRepositories;
 using OnlineConsulting.Modules.SiteContent.Application.Features.AboutUss.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Domain;
 using OnlineConsulting.Modules.SiteContent.Infrastructure.Persistence;

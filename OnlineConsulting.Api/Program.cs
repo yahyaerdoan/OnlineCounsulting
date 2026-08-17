@@ -3,18 +3,30 @@ using Core.ApplicationLayer.Pipelines.Cachings.Concretions.CacheBehaviors;
 using Core.ApplicationLayer.Pipelines.Loggings.Concretions;
 using Core.ApplicationLayer.Pipelines.Validations.Concretions;
 using Core.CrossCuttingConcernLayer.ExceptionHandlings.Extensions;
+using Core.SecurityLayer.Authorization;
 using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Api.Configurations.Extensions;
+using OnlineConsulting.Modules.Categories.Application.Features.Constants;
 using OnlineConsulting.Modules.Categories.Infrastructure;
 using OnlineConsulting.Modules.Commerce.Infrastructure;
+using OnlineConsulting.Modules.FeatureFlags.Application.Features.Constants;
 using OnlineConsulting.Modules.FeatureFlags.Infrastructure;
+using OnlineConsulting.Modules.Identity.Application.Features.Roles.Constants;
+using OnlineConsulting.Modules.Identity.Application.Features.Users.Constants;
 using OnlineConsulting.Modules.Identity.Infrastructure;
 using OnlineConsulting.Modules.Identity.Infrastructure.Seeding;
+using OnlineConsulting.Modules.Inquiries.Application.Features.Contact.Constants;
+using OnlineConsulting.Modules.Inquiries.Application.Features.Messages.Constants;
+using OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.Constants;
 using OnlineConsulting.Modules.Inquiries.Infrastructure;
+using OnlineConsulting.Modules.Media.Application.Features.Constants;
 using OnlineConsulting.Modules.Media.Infrastructure;
+using OnlineConsulting.Modules.Scheduling.Application.Common;
 using OnlineConsulting.Modules.Scheduling.Infrastructure;
+using OnlineConsulting.Modules.Services.Application.Features.Constants;
 using OnlineConsulting.Modules.Services.Infrastructure;
+using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Infrastructure;
 using OnlineConsulting.Notifications;
 using OnlineConsulting.Payments;
@@ -41,6 +53,21 @@ else
 
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CacheAddingBehavior<,>));
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CacheRemovingBehavior<,>));
+
+builder.Services.AddSingleton<IPermissionCatalog>(new PermissionCatalog(new Dictionary<string, string[]>
+{
+    ["Categories"] = CategoriesOperationClaims.All,
+    ["FeatureFlags"] = FeatureFlagsOperationClaims.All,
+    ["Roles"] = RolesOperationClaims.All,
+    ["Users"] = UsersOperationClaims.All,
+    ["Contact"] = ContactOperationClaims.All,
+    ["Messages"] = MessagesOperationClaims.All,
+    ["Newsletter"] = NewsletterOperationClaims.All,
+    ["Media"] = MediaOperationClaims.All,
+    ["Scheduling"] = SchedulingOperationClaims.All,
+    ["Services"] = ServicesOperationClaims.All,
+    ["SiteContent"] = SiteContentOperationClaims.All,
+}));
 
 builder.Services.AddCategoriesModule(builder.Configuration);
 builder.Services.AddCommerceModule(builder.Configuration);

@@ -1,7 +1,7 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
-using OnlineConsulting.Modules.Services.Application.Features.ServiceMediaItems.Abstractions;
 using OnlineConsulting.Modules.Services.Application.Features.Constants;
+using OnlineConsulting.Modules.Services.Application.Features.ServiceMediaItems.Abstractions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;

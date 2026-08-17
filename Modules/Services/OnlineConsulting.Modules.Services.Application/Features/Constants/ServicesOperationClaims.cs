@@ -8,4 +8,6 @@ public static class ServicesOperationClaims
     public const string Add = "services.add";
     public const string Update = "services.update";
     public const string Delete = "services.delete";
+
+    public static readonly string[] All = [Admin, Read, Write, Add, Update, Delete];
 }

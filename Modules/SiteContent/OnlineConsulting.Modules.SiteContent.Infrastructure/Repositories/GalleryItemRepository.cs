@@ -1,5 +1,4 @@
-using Core.PersistenceLayer.Repositories.EfRepositories;
-using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryItems.Contracts;
+﻿using Core.PersistenceLayer.Repositories.EfRepositories;
 using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryItems.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Domain;
 using OnlineConsulting.Modules.SiteContent.Infrastructure.Persistence;

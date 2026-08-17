@@ -1,6 +1,5 @@
 ﻿using MediatR;
 using OnlineConsulting.Modules.Inquiries.Application.Common.Templates;
-using OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.Contracts;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.Abstractions;
 using OnlineConsulting.Modules.Inquiries.Domain;
 using OnlineConsulting.SharedKernel.Notifications;

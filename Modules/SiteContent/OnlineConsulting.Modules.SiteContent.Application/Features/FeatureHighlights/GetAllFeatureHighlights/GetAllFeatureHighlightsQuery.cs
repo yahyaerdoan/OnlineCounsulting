@@ -1,6 +1,6 @@
-using MediatR;
-using OnlineConsulting.Modules.SiteContent.Application.Features.FeatureHighlights.Contracts;
+﻿using MediatR;
 using OnlineConsulting.Modules.SiteContent.Application.Features.FeatureHighlights.Abstractions;
+using OnlineConsulting.Modules.SiteContent.Application.Features.FeatureHighlights.Contracts;
 using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;

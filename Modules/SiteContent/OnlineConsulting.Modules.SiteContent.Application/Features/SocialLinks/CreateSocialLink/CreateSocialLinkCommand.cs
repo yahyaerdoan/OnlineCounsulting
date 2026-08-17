@@ -1,8 +1,7 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
-using OnlineConsulting.Modules.SiteContent.Application.Features.SocialLinks.Contracts;
-using OnlineConsulting.Modules.SiteContent.Application.Features.SocialLinks.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Application.Common;
+using OnlineConsulting.Modules.SiteContent.Application.Features.SocialLinks.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Domain;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;

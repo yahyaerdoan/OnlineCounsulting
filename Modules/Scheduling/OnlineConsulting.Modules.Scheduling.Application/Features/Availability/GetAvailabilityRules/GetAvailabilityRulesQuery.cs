@@ -1,6 +1,6 @@
 ﻿using MediatR;
-using OnlineConsulting.Modules.Scheduling.Application.Features.Availability.Contracts;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Availability.Abstractions;
+using OnlineConsulting.Modules.Scheduling.Application.Features.Availability.Contracts;
 using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;

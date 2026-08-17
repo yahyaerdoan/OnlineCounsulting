@@ -1,5 +1,5 @@
+﻿using OnlineConsulting.UserInterface.Features.Gallery;
 using OnlineConsulting.UserInterface.Infrastructure.Api;
-using OnlineConsulting.UserInterface.Features.Gallery;
 using OnlineConsulting.UserInterface.Infrastructure.Media;
 
 namespace OnlineConsulting.UserInterface.Areas.Admin.Features.GalleryItem;

@@ -1,9 +1,9 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using OnlineConsulting.Modules.Identity.Application.Features.Auth.Abstractions;
 using OnlineConsulting.Modules.Identity.Application.Features.Auth.Constants;
 using OnlineConsulting.Modules.Identity.Application.Features.Auth.Contracts;
-using OnlineConsulting.Modules.Identity.Application.Features.Auth.Abstractions;
 using OnlineConsulting.Modules.Identity.Domain;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;

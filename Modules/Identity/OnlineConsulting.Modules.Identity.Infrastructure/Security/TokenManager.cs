@@ -1,9 +1,8 @@
-using Core.SecurityLayer.Extensions;
+﻿using Core.SecurityLayer.Extensions;
 using Core.SecurityLayer.JsonWebTokens.Abstractions;
 using Core.SecurityLayer.JsonWebTokens.Concretions;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using OnlineConsulting.Modules.Identity.Application.Features.Auth.Contracts;
 using OnlineConsulting.Modules.Identity.Application.Features.Auth.Abstractions;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Tenancy;

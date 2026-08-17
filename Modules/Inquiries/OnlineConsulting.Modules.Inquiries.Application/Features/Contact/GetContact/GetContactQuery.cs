@@ -1,6 +1,6 @@
 ﻿using MediatR;
-using OnlineConsulting.Modules.Inquiries.Application.Features.Contact.Contracts;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Contact.Abstractions;
+using OnlineConsulting.Modules.Inquiries.Application.Features.Contact.Contracts;
 using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;

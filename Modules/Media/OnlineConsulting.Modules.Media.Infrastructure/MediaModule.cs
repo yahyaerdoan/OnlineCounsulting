@@ -1,10 +1,9 @@
-using FluentValidation;
+﻿using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OnlineConsulting.Modules.Media.Application;
-using OnlineConsulting.Modules.Media.Application.Contracts;
 using OnlineConsulting.Modules.Media.Application.Abstractions;
 using OnlineConsulting.Modules.Media.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Media.Infrastructure.Pipelines;

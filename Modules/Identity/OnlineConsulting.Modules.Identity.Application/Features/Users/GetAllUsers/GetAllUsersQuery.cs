@@ -1,11 +1,12 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+using Core.SecurityLayer.Authorization;
 using Core.SecurityLayer.Constants;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using OnlineConsulting.Modules.Identity.Application.Features.Auth;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Constants;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Contracts;
-using OnlineConsulting.Modules.Identity.Application.Features.Users.Abstractions;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
 using ResultHandler.Core.Base;
@@ -20,7 +21,7 @@ public record GetAllUsersQuery : IRequest<OperationDataResult<List<UserResponse>
     public string[] Roles => [UsersOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, UsersOperationClaims.Read];
 }
 
-public class GetAllUsersHandler(UserManager<User> userManager, RoleManager<Role> roleManager) : IRequestHandler<GetAllUsersQuery, OperationDataResult<List<UserResponse>>>
+public class GetAllUsersHandler(UserManager<User> userManager, RoleManager<Role> roleManager, IPermissionCatalog permissionCatalog) : IRequestHandler<GetAllUsersQuery, OperationDataResult<List<UserResponse>>>
 {
     public async Task<OperationDataResult<List<UserResponse>>> Handle(GetAllUsersQuery request, CancellationToken cancellationToken)
     {
@@ -34,10 +35,8 @@ public class GetAllUsersHandler(UserManager<User> userManager, RoleManager<Role>
         foreach (var user in users)
         {
             var roles = await userManager.GetRolesAsync(user);
-            var permissions = roles
-                .SelectMany(role => permissionsByRole.GetValueOrDefault(role, []))
-                .Distinct()
-                .ToList();
+            var permissions = RolePermissionResolver.ExpandForDisplay(
+                [.. roles.SelectMany(role => permissionsByRole.GetValueOrDefault(role, [])).Distinct()], permissionCatalog);
 
             userResponses.Add(new UserResponse
             {

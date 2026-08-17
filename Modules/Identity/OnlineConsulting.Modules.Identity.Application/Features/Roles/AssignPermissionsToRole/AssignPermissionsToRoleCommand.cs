@@ -1,5 +1,6 @@
 using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
+using Core.SecurityLayer.Authorization;
 using Core.SecurityLayer.Constants;
 using Core.SecurityLayer.Extensions;
 using MediatR;
@@ -21,13 +22,17 @@ public record AssignPermissionsToRoleCommand(Guid RoleId, List<string> Permissio
     public string[] Roles => [RolesOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, RolesOperationClaims.Update];
 }
 
-public class AssignPermissionsToRoleHandler(RoleManager<Role> roleManager, IHttpContextAccessor httpContextAccessor) : IRequestHandler<AssignPermissionsToRoleCommand, OperationResult>
+public class AssignPermissionsToRoleHandler(RoleManager<Role> roleManager, IHttpContextAccessor httpContextAccessor, IPermissionCatalog permissionCatalog) : IRequestHandler<AssignPermissionsToRoleCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(AssignPermissionsToRoleCommand request, CancellationToken cancellationToken)
     {
         if (request.Permissions.Contains(PermissionClaimTypes.FullAccess)
             && !(httpContextAccessor.HttpContext?.User.ClaimPermissions()?.Contains(PermissionClaimTypes.FullAccess) ?? false))
             return Result.Forbidden("Only an existing full-access role holder can grant full access to another role.");
+
+        var unknownPermissions = request.Permissions.Where(p => p != PermissionClaimTypes.FullAccess && !permissionCatalog.AllPermissions.Contains(p)).ToList();
+        if (unknownPermissions.Count > 0)
+            return Result.BadRequest($"Unknown permission(s): {string.Join(", ", unknownPermissions)}.");
 
         var role = await roleManager.FindByIdAsync(request.RoleId.ToString());
         if (role is null)

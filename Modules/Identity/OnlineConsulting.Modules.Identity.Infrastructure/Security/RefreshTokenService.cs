@@ -1,6 +1,5 @@
 ﻿using Core.SecurityLayer.Hashings;
 using Core.SecurityLayer.JsonWebTokens.Abstractions;
-using OnlineConsulting.Modules.Identity.Application.Features.Auth.Contracts;
 using OnlineConsulting.Modules.Identity.Application.Features.Auth.Abstractions;
 using OnlineConsulting.Modules.Identity.Domain;
 using System.Security.Cryptography;

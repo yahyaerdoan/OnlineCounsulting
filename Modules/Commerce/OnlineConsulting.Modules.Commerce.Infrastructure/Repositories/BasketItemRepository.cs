@@ -1,5 +1,4 @@
 ﻿using Core.PersistenceLayer.Repositories.EfRepositories;
-using OnlineConsulting.Modules.Commerce.Application.Features.Baskets.Contracts;
 using OnlineConsulting.Modules.Commerce.Application.Features.Baskets.Abstractions;
 using OnlineConsulting.Modules.Commerce.Domain;
 using OnlineConsulting.Modules.Commerce.Infrastructure.Persistence;

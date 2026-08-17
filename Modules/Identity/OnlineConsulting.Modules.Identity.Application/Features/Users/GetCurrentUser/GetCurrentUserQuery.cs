@@ -1,10 +1,10 @@
-﻿using MediatR;
+﻿using Core.SecurityLayer.Authorization;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using OnlineConsulting.Modules.Identity.Application.Features.Auth;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Constants;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Contracts;
-using OnlineConsulting.Modules.Identity.Application.Features.Users.Abstractions;
 using OnlineConsulting.Modules.Identity.Domain;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -14,7 +14,7 @@ namespace OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurren
 
 public record GetCurrentUserQuery : IRequest<OperationDataResult<UserResponse>>;
 
-public class GetCurrentUserHandler(IHttpContextAccessor httpContextAccessor, UserManager<User> userManager, RoleManager<Role> roleManager)
+public class GetCurrentUserHandler(IHttpContextAccessor httpContextAccessor, UserManager<User> userManager, RoleManager<Role> roleManager, IPermissionCatalog permissionCatalog)
     : IRequestHandler<GetCurrentUserQuery, OperationDataResult<UserResponse>>
 {
     public async Task<OperationDataResult<UserResponse>> Handle(GetCurrentUserQuery request, CancellationToken cancellationToken)
@@ -32,7 +32,7 @@ public class GetCurrentUserHandler(IHttpContextAccessor httpContextAccessor, Use
             return Result.BadRequest<UserResponse>(UserMessages.UserNotFoundOrInvalidData);
 
         var roles = await userManager.GetRolesAsync(user);
-        var permissions = await RolePermissionResolver.ResolvePermissionsAsync(roleManager, roles);
+        var permissions = RolePermissionResolver.ExpandForDisplay(await RolePermissionResolver.ResolvePermissionsAsync(roleManager, roles), permissionCatalog);
 
         var response = new UserResponse
         {

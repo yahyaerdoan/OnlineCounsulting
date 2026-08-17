@@ -1,6 +1,5 @@
-using OnlineConsulting.Modules.SiteContent.Application.Common;
+﻿using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.PartnershipSocialLinks.Contracts;
-using OnlineConsulting.Modules.SiteContent.Application.Features.PartnershipSocialLinks.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Domain;
 
 namespace OnlineConsulting.Modules.SiteContent.Application.Features.Partnerships.Contracts;

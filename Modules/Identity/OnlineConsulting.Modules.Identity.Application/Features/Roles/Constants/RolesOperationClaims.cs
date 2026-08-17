@@ -8,4 +8,6 @@ public static class RolesOperationClaims
     public const string Add = "roles.add";
     public const string Update = "roles.update";
     public const string Delete = "roles.delete";
+
+    public static readonly string[] All = [Admin, Read, Write, Add, Update, Delete];
 }

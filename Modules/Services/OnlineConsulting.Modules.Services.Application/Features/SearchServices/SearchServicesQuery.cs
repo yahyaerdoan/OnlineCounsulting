@@ -1,6 +1,6 @@
 ﻿using MediatR;
-using OnlineConsulting.Modules.Services.Application.Contracts;
 using OnlineConsulting.Modules.Services.Application.Abstractions;
+using OnlineConsulting.Modules.Services.Application.Contracts;
 using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;

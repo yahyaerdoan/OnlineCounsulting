@@ -1,21 +1,19 @@
-using FluentValidation;
+﻿using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OnlineConsulting.Modules.Scheduling.Application;
 using OnlineConsulting.Modules.Scheduling.Application.Common.Templates;
-using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Contracts;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Abstractions;
-using OnlineConsulting.Modules.Scheduling.Application.Features.Availability.Contracts;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Availability.Abstractions;
 using OnlineConsulting.Modules.Scheduling.Infrastructure.Notifications;
 using OnlineConsulting.Modules.Scheduling.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Scheduling.Infrastructure.Pipelines;
 using OnlineConsulting.Modules.Scheduling.Infrastructure.Repositories;
+using OnlineConsulting.SharedKernel.Auditing;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
-using OnlineConsulting.SharedKernel.Auditing;
 using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Scheduling.Infrastructure;

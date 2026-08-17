@@ -1,6 +1,5 @@
-using OnlineConsulting.Modules.SiteContent.Application.Common;
+﻿using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryCategories.Contracts;
-using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryCategories.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Domain;
 
 namespace OnlineConsulting.Modules.SiteContent.Application.Features.GalleryItems.Contracts;

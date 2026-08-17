@@ -1,7 +1,6 @@
-using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Commerce.Application.Common;
-using OnlineConsulting.Modules.Commerce.Application.Features.Baskets.Contracts;
 using OnlineConsulting.Modules.Commerce.Application.Features.Baskets.Abstractions;
 using OnlineConsulting.Modules.Commerce.Application.Features.Baskets.Rules;
 using OnlineConsulting.SharedKernel.Persistence;

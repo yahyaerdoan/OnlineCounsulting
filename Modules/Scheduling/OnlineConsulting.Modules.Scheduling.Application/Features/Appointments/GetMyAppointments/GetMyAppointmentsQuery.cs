@@ -1,8 +1,8 @@
 ﻿using Core.ApplicationLayer.Requests.Page;
 using Core.PersistenceLayer.Pagings.Paging;
 using MediatR;
-using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Contracts;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Abstractions;
+using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Contracts;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 

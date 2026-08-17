@@ -1,10 +1,10 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using Core.ApplicationLayer.Requests.Page;
 using Core.PersistenceLayer.Pagings.Paging;
 using MediatR;
+using OnlineConsulting.Modules.Inquiries.Application.Features.Messages.Abstractions;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Messages.Constants;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Messages.Contracts;
-using OnlineConsulting.Modules.Inquiries.Application.Features.Messages.Abstractions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;

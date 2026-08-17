@@ -4,4 +4,6 @@ public static class MediaOperationClaims
 {
     public const string Admin = "media.admin";
     public const string Write = "media.write";
+
+    public static readonly string[] All = [Admin, Write];
 }
