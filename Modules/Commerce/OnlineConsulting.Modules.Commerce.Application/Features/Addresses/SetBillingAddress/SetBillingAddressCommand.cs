@@ -3,7 +3,6 @@ using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.Contracts;
 using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.Abstractions;
-using OnlineConsulting.SharedKernel.Authorization;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -13,7 +12,7 @@ namespace OnlineConsulting.Modules.Commerce.Application.Features.Addresses.SetBi
 public record SetBillingAddressCommand(Guid UserId, Guid AddressId) : IRequest<OperationResult>, ITransactionAddRequest, ISecureAddRequest
 {
     [JsonIgnore]
-    public string[] Roles => [GlobalOperationClaims.User];
+    public string[] Roles => [];
 }
 
 public class SetBillingAddressHandler(IUserAddressRepository repository) : IRequestHandler<SetBillingAddressCommand, OperationResult>

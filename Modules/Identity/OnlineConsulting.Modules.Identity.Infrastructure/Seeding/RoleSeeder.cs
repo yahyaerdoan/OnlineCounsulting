@@ -9,7 +9,7 @@ namespace OnlineConsulting.Modules.Identity.Infrastructure.Seeding;
 
 public static class RoleSeeder
 {
-    private static readonly string[] Roles = [GeneralOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, GlobalOperationClaims.User];
+    private static readonly string[] Roles = [GeneralOperationClaims.Admin, GlobalOperationClaims.SuperAdmin];
 
     /// <summary>Ensures the built-in roles exist and hold their baseline permission claims.</summary>
     public static async Task SeedAsync(IServiceProvider services)

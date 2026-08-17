@@ -4,7 +4,6 @@ using MediatR;
 using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.Contracts;
 using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.Abstractions;
 using OnlineConsulting.Modules.Commerce.Domain;
-using OnlineConsulting.SharedKernel.Authorization;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -15,7 +14,7 @@ public record CreateUserAddressCommand(Guid UserId, string AddressName, string? 
     : IRequest<OperationDataResult<Guid>>, ITransactionAddRequest, ISecureAddRequest
 {
     [JsonIgnore]
-    public string[] Roles => [GlobalOperationClaims.User];
+    public string[] Roles => [];
 }
 
 public class CreateUserAddressHandler(IUserAddressRepository repository) : IRequestHandler<CreateUserAddressCommand, OperationDataResult<Guid>>

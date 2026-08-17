@@ -12,7 +12,6 @@ using OnlineConsulting.Modules.Commerce.Application.Features.Baskets.Abstraction
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Contracts;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Abstractions;
 using OnlineConsulting.Modules.Commerce.Domain;
-using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
 using OnlineConsulting.SharedKernel.Payments;
@@ -28,7 +27,7 @@ namespace OnlineConsulting.Modules.Commerce.Application.Features.Orders.CreateOr
 public record CreateOrderFromBasketCommand(Guid UserId, string Email) : IRequest<OperationDataResult<CreateOrderResult>>, ITransactionAddRequest, ISecureAddRequest
 {
     [JsonIgnore]
-    public string[] Roles => [GlobalOperationClaims.User];
+    public string[] Roles => [];
 }
 
 public class CreateOrderFromBasketHandler(IBasketRepository basketRepository, IBasketItemRepository basketItemRepository, IUserAddressRepository userAddressRepository, IOrderRepository orderRepository, IOrderItemRepository orderItemRepository, IEmailOutboxWriter outboxWriter, IEmailTemplate<OrderConfirmationEmailModel> confirmationTemplate, IPaymentGateway paymentGateway)

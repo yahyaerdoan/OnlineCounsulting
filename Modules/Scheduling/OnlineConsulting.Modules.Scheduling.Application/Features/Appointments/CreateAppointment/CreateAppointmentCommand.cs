@@ -6,7 +6,6 @@ using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Cons
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Contracts;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Abstractions;
 using OnlineConsulting.Modules.Scheduling.Domain;
-using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
 using ResultHandler.Core.Base;
@@ -20,7 +19,7 @@ public record CreateAppointmentCommand(Guid UserId, string Email, Guid? ServiceI
     : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
     [JsonIgnore]
-    public string[] Roles => [GlobalOperationClaims.User];
+    public string[] Roles => [];
 }
 
 public class CreateAppointmentHandler(IAppointmentRepository repository, IEmailOutboxWriter outboxWriter, IEmailTemplate<AppointmentConfirmationEmailModel> confirmationTemplate)

@@ -9,6 +9,7 @@ using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Cont
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Abstractions;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Availability.Contracts;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Availability.Abstractions;
+using OnlineConsulting.Modules.Scheduling.Infrastructure.Notifications;
 using OnlineConsulting.Modules.Scheduling.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Scheduling.Infrastructure.Pipelines;
 using OnlineConsulting.Modules.Scheduling.Infrastructure.Repositories;

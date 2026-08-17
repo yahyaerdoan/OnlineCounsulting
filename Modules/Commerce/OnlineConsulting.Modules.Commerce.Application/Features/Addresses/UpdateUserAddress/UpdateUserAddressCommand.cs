@@ -3,7 +3,6 @@ using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.Contracts;
 using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.Abstractions;
-using OnlineConsulting.SharedKernel.Authorization;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -14,7 +13,7 @@ public record UpdateUserAddressCommand(Guid Id, Guid UserId, string AddressName,
     : IRequest<OperationResult>, ITransactionAddRequest, ISecureAddRequest
 {
     [JsonIgnore]
-    public string[] Roles => [GlobalOperationClaims.User];
+    public string[] Roles => [];
 }
 
 public class UpdateUserAddressHandler(IUserAddressRepository repository) : IRequestHandler<UpdateUserAddressCommand, OperationResult>

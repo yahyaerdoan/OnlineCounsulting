@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.Extensions.Options;
+using OnlineConsulting.Modules.Inquiries.Application.Features.Messages;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Messages.Contracts;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Messages.Abstractions;
 using OnlineConsulting.Modules.Inquiries.Application.Common.Templates;

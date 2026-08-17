@@ -11,6 +11,7 @@ using OnlineConsulting.Modules.Commerce.Application.Features.Baskets.Contracts;
 using OnlineConsulting.Modules.Commerce.Application.Features.Baskets.Abstractions;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Contracts;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Abstractions;
+using OnlineConsulting.Modules.Commerce.Infrastructure.Notifications;
 using OnlineConsulting.Modules.Commerce.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Commerce.Infrastructure.Pipelines;
 using OnlineConsulting.Modules.Commerce.Infrastructure.Repositories;

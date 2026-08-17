@@ -1,4 +1,4 @@
-﻿namespace OnlineConsulting.Modules.Identity.Application;
+namespace OnlineConsulting.Modules.Identity.Application.Features.Auth;
 
 public class AuthEmailOptions
 {

@@ -5,7 +5,6 @@ using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Cons
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Contracts;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Abstractions;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Rules;
-using OnlineConsulting.SharedKernel.Authorization;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -16,7 +15,7 @@ namespace OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.
 public record CancelAppointmentCommand(Guid Id, Guid UserId) : IRequest<OperationResult>, ISecureAddRequest
 {
     [JsonIgnore]
-    public string[] Roles => [GlobalOperationClaims.User];
+    public string[] Roles => [];
 }
 
 public class CancelAppointmentHandler(IAppointmentRepository repository) : IRequestHandler<CancelAppointmentCommand, OperationResult>
