@@ -1,7 +1,7 @@
 ﻿using Core.SecurityLayer.Constants;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Authorization;
-using OnlineConsulting.Modules.Identity.Infrastructure;
 using OnlineConsulting.ServiceDefaults;
 using OnlineConsulting.UserInterface.Areas.Admin.Features.AboutUs;
 using OnlineConsulting.UserInterface.Areas.Admin.Features.Breadcrumb;
@@ -55,7 +55,15 @@ builder.Services.AddControllersWithViews(options =>
     options.SuppressModelStateInvalidFilter = true;
 });
 
-builder.Services.AddIdentityModule(builder.Configuration);
+builder.Services.AddAuthentication(IdentityConstants.ApplicationScheme)
+    .AddCookie(IdentityConstants.ApplicationScheme, options =>
+    {
+        options.LoginPath = "/Account/Login";
+        options.LogoutPath = "/Account/Logout";
+        options.AccessDeniedPath = "/Account/AccessDenied";
+        options.ExpireTimeSpan = TimeSpan.FromDays(14);
+        options.SlidingExpiration = true;
+    });
 builder.Services.AddHttpContextAccessor();
 
 

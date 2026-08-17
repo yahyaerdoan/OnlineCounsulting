@@ -533,7 +533,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\OnlineConsulting.SharedKernel\OnlineConsulting.SharedKernel.csproj" />
-    <ProjectReference Include="..\Modules\Identity\OnlineConsulting.Modules.Identity.Infrastructure\OnlineConsulting.Modules.Identity.Infrastructure.csproj" />
     <ProjectReference Include="..\OnlineConsulting.ServiceDefaults\OnlineConsulting.ServiceDefaults.csproj" />
   </ItemGroup>
 
