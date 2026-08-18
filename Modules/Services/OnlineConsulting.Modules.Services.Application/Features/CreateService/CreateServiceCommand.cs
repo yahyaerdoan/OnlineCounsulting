@@ -11,7 +11,7 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Services.Application.Features.CreateService;
 
-public record CreateServiceCommand(Guid CategoryId, string Title, string Description, string DetailedDescription, decimal Price, bool FeaturedArea, int DiscountRate, int TaxRate, bool RequiresPrepayment = false, Guid? CoverMediaAssetId = null)
+public record CreateServiceCommand(Guid CategoryId, string Title, string Description, string DetailedDescription, decimal Price, bool FeaturedArea, int DiscountRate, int TaxRate, bool RequiresPrepayment = false, bool IsEmergencyAvailable = false, Guid? CoverMediaAssetId = null, string PriceType = ServicePriceTypes.Fixed, decimal? PriceMax = null)
     : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
     [JsonIgnore]
@@ -38,7 +38,10 @@ public class CreateServiceHandler(IServiceRepository repository) : IRequestHandl
             TaxRate = request.TaxRate,
             DiscountedPrice = ServicePriceCalculator.CalculateDiscountedPrice(request.Price, request.DiscountRate),
             RequiresPrepayment = request.RequiresPrepayment,
+            IsEmergencyAvailable = request.IsEmergencyAvailable,
             CoverMediaAssetId = request.CoverMediaAssetId,
+            PriceType = request.PriceType,
+            PriceMax = request.PriceMax,
         };
 
         await repository.AddAsync(service);

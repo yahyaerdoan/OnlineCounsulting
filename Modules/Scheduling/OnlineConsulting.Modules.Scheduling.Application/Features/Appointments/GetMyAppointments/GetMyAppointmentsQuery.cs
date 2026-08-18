@@ -19,7 +19,7 @@ public class GetMyAppointmentsHandler(IAppointmentRepository repository)
 
         var response = new Paginate<AppointmentResponse>
         {
-            Items = [.. appointments.Items.Select(AppointmentResponse.FromDomain)],
+            Items = [.. appointments.Items.Select(a => AppointmentResponse.FromDomain(a))],
             Index = appointments.Index,
             Size = appointments.Size,
             Count = appointments.Count,

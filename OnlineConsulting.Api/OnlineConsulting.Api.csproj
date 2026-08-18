@@ -59,6 +59,15 @@
     <ProjectReference Include="..\Modules\Media\OnlineConsulting.Modules.Media.Domain\OnlineConsulting.Modules.Media.Domain.csproj" />
     <ProjectReference Include="..\Modules\Media\OnlineConsulting.Modules.Media.Application\OnlineConsulting.Modules.Media.Application.csproj" />
     <ProjectReference Include="..\Modules\Media\OnlineConsulting.Modules.Media.Infrastructure\OnlineConsulting.Modules.Media.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Memberships\OnlineConsulting.Modules.Memberships.Domain\OnlineConsulting.Modules.Memberships.Domain.csproj" />
+    <ProjectReference Include="..\Modules\Memberships\OnlineConsulting.Modules.Memberships.Application\OnlineConsulting.Modules.Memberships.Application.csproj" />
+    <ProjectReference Include="..\Modules\Memberships\OnlineConsulting.Modules.Memberships.Infrastructure\OnlineConsulting.Modules.Memberships.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Referrals\OnlineConsulting.Modules.Referrals.Domain\OnlineConsulting.Modules.Referrals.Domain.csproj" />
+    <ProjectReference Include="..\Modules\Referrals\OnlineConsulting.Modules.Referrals.Application\OnlineConsulting.Modules.Referrals.Application.csproj" />
+    <ProjectReference Include="..\Modules\Referrals\OnlineConsulting.Modules.Referrals.Infrastructure\OnlineConsulting.Modules.Referrals.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Equipment\OnlineConsulting.Modules.Equipment.Domain\OnlineConsulting.Modules.Equipment.Domain.csproj" />
+    <ProjectReference Include="..\Modules\Equipment\OnlineConsulting.Modules.Equipment.Application\OnlineConsulting.Modules.Equipment.Application.csproj" />
+    <ProjectReference Include="..\Modules\Equipment\OnlineConsulting.Modules.Equipment.Infrastructure\OnlineConsulting.Modules.Equipment.Infrastructure.csproj" />
     <ProjectReference Include="..\OnlineConsulting.Notifications\OnlineConsulting.Notifications.csproj" />
     <ProjectReference Include="..\OnlineConsulting.Payments\OnlineConsulting.Payments.csproj" />
     <ProjectReference Include="..\OnlineConsulting.Storage\OnlineConsulting.Storage.csproj" />

@@ -20,6 +20,9 @@ public class SiteContentDbContext(DbContextOptions<SiteContentDbContext> options
     public DbSet<ServiceProcessStep> ServiceProcessSteps => Set<ServiceProcessStep>();
     public DbSet<ServiceOffering> ServiceOfferings => Set<ServiceOffering>();
     public DbSet<SocialLink> SocialLinks => Set<SocialLink>();
+    public DbSet<ServiceArea> ServiceAreas => Set<ServiceArea>();
+    public DbSet<FaqItem> FaqItems => Set<FaqItem>();
+    public DbSet<Promotion> Promotions => Set<Promotion>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -152,6 +155,36 @@ public class SiteContentDbContext(DbContextOptions<SiteContentDbContext> options
             builder.Property(x => x.Url).HasMaxLength(500).IsRequired();
             builder.Property(x => x.Icon).HasMaxLength(2000).IsRequired();
             builder.Property(x => x.IconColor).HasMaxLength(7);
+            builder.Property(x => x.RowVersion).IsRowVersion();
+            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+        });
+
+        modelBuilder.Entity<ServiceArea>(builder =>
+        {
+            builder.Property(x => x.Name).HasMaxLength(100).IsRequired();
+            builder.Property(x => x.State).HasMaxLength(50).IsRequired();
+            builder.Property(x => x.Slug).HasMaxLength(120).IsRequired();
+            builder.Property(x => x.IntroText).HasMaxLength(2000);
+            builder.Property(x => x.RowVersion).IsRowVersion();
+            builder.HasIndex(x => x.Slug).IsUnique();
+            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+        });
+
+        modelBuilder.Entity<FaqItem>(builder =>
+        {
+            builder.Property(x => x.Question).HasMaxLength(300).IsRequired();
+            builder.Property(x => x.Answer).HasMaxLength(2000).IsRequired();
+            builder.Property(x => x.RowVersion).IsRowVersion();
+            builder.HasIndex(x => x.ServiceId);
+            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+        });
+
+        modelBuilder.Entity<Promotion>(builder =>
+        {
+            builder.Property(x => x.Title).HasMaxLength(200).IsRequired();
+            builder.Property(x => x.Description).HasMaxLength(2000).IsRequired();
+            builder.Property(x => x.CtaText).HasMaxLength(100);
+            builder.Property(x => x.CtaUrl).HasMaxLength(500);
             builder.Property(x => x.RowVersion).IsRowVersion();
             builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });

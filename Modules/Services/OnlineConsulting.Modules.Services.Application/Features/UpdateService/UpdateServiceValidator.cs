@@ -1,4 +1,5 @@
 using FluentValidation;
+using OnlineConsulting.Modules.Services.Application.Features.Constants;
 
 namespace OnlineConsulting.Modules.Services.Application.Features.UpdateService;
 
@@ -14,5 +15,8 @@ public class UpdateServiceValidator : AbstractValidator<UpdateServiceCommand>
         RuleFor(x => x.Price).GreaterThan(0);
         RuleFor(x => x.DiscountRate).InclusiveBetween(0, 100);
         RuleFor(x => x.TaxRate).InclusiveBetween(0, 100);
+        RuleFor(x => x.PriceType).Must(t => ServicePriceTypes.All.Contains(t));
+        RuleFor(x => x.PriceMax).NotNull().GreaterThan(x => x.Price).When(x => x.PriceType == ServicePriceTypes.Range);
+        RuleFor(x => x.PriceMax).Null().When(x => x.PriceType != ServicePriceTypes.Range);
     }
 }

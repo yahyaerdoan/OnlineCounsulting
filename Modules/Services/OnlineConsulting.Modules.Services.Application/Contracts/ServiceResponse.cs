@@ -13,11 +13,14 @@ public class ServiceResponse : LinkedResponse
     public required string Description { get; init; }
     public required string DetailedDescription { get; init; }
     public required decimal Price { get; init; }
+    public required string PriceType { get; init; }
+    public decimal? PriceMax { get; init; }
     public required bool FeaturedArea { get; init; }
     public required int DiscountRate { get; init; }
     public required int TaxRate { get; init; }
     public required decimal DiscountedPrice { get; init; }
     public required bool RequiresPrepayment { get; init; }
+    public required bool IsEmergencyAvailable { get; init; }
     public Guid? CoverMediaAssetId { get; init; }
 
     /// <summary>The extended photo/video gallery - empty for list-view queries (GetServices, SearchServices, etc.) to avoid an N+1 join per row, populated only by GetServiceById/GetServiceBySlug where a single service's full detail is being fetched.</summary>
@@ -32,11 +35,14 @@ public class ServiceResponse : LinkedResponse
         Description = service.Description,
         DetailedDescription = service.DetailedDescription,
         Price = service.Price,
+        PriceType = service.PriceType,
+        PriceMax = service.PriceMax,
         FeaturedArea = service.FeaturedArea,
         DiscountRate = service.DiscountRate,
         TaxRate = service.TaxRate,
         DiscountedPrice = service.DiscountedPrice,
         RequiresPrepayment = service.RequiresPrepayment,
+        IsEmergencyAvailable = service.IsEmergencyAvailable,
         CoverMediaAssetId = service.CoverMediaAssetId,
         MediaItems = mediaItems ?? [],
     };

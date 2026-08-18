@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Api.Configurations.Extensions;
 using OnlineConsulting.Modules.Commerce.Application.Features.Baskets.MergeGuestBasket;
 using OnlineConsulting.Modules.Identity.Application.Features.Auth.Login;
 using OnlineConsulting.SharedKernel.GuestIdentity;
@@ -14,6 +15,7 @@ public class Login : IEndpoint
     {
         app.MapPost("/api/auth/login", Handle)
             .WithTags("Identity/Auth")
+            .RequireRateLimiting(ServiceRegistration.AuthRateLimiterPolicy)
             .WithName("Login")
             .WithDescription("Validates credentials and issues a JWT access token + refresh token.");
     }

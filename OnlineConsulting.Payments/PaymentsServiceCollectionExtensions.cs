@@ -17,14 +17,26 @@ public static class PaymentsServiceCollectionExtensions
         services.AddKeyedSingleton<IPaymentGateway, MockPaymentGateway>(PaymentProviderNames.Mock);
         services.AddKeyedSingleton<IPaymentGateway, StripePaymentGateway>(PaymentProviderNames.Stripe);
 
-        services.AddHttpClient<PayPalPaymentGateway>((serviceProvider, client) =>
+        services.AddHttpClient(nameof(PayPalPaymentGateway), (serviceProvider, client) =>
         {
             var payPalOptions = configuration.GetSection("Payment:PayPal").Get<PayPalOptions>() ?? new PayPalOptions();
             client.BaseAddress = new Uri(payPalOptions.UseSandbox ? "https://api-m.sandbox.paypal.com" : "https://api-m.paypal.com");
         });
-        services.AddKeyedSingleton<IPaymentGateway>(PaymentProviderNames.PayPal, (serviceProvider, _) => serviceProvider.GetRequiredService<PayPalPaymentGateway>());
+        services.AddKeyedSingleton<IPaymentGateway, PayPalPaymentGateway>(PaymentProviderNames.PayPal);
 
         services.AddSingleton(serviceProvider => serviceProvider.GetRequiredKeyedService<IPaymentGateway>(activeProvider));
+
+        services.AddKeyedSingleton<ISubscriptionGateway, MockSubscriptionGateway>(PaymentProviderNames.Mock);
+        services.AddKeyedSingleton<ISubscriptionGateway, StripeSubscriptionGateway>(PaymentProviderNames.Stripe);
+
+        services.AddHttpClient(nameof(PayPalSubscriptionGateway), (serviceProvider, client) =>
+        {
+            var payPalOptions = configuration.GetSection("Payment:PayPal").Get<PayPalOptions>() ?? new PayPalOptions();
+            client.BaseAddress = new Uri(payPalOptions.UseSandbox ? "https://api-m.sandbox.paypal.com" : "https://api-m.paypal.com");
+        });
+        services.AddKeyedSingleton<ISubscriptionGateway, PayPalSubscriptionGateway>(PaymentProviderNames.PayPal);
+
+        services.AddSingleton(serviceProvider => serviceProvider.GetRequiredKeyedService<ISubscriptionGateway>(activeProvider));
 
         return services;
     }

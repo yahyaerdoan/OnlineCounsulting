@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OnlineConsulting.Modules.SiteContent.Application;
 using OnlineConsulting.Modules.SiteContent.Application.Features.AboutUss.Abstractions;
+using OnlineConsulting.Modules.SiteContent.Application.Features.FaqItems.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Application.Features.FeatureHighlights.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Application.Features.FooterInfos.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryCategories.Abstractions;
@@ -13,6 +14,8 @@ using OnlineConsulting.Modules.SiteContent.Application.Features.HeroSlides.Abstr
 using OnlineConsulting.Modules.SiteContent.Application.Features.PageBanners.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Application.Features.Partnerships.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Application.Features.PartnershipSocialLinks.Abstractions;
+using OnlineConsulting.Modules.SiteContent.Application.Features.Promotions.Abstractions;
+using OnlineConsulting.Modules.SiteContent.Application.Features.ServiceAreas.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Application.Features.ServiceOfferings.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Application.Features.ServiceProcessSteps.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Application.Features.SocialLinks.Abstractions;
@@ -51,6 +54,9 @@ public static class SiteContentModule
         services.AddScoped<IServiceProcessStepRepository, ServiceProcessStepRepository>();
         services.AddScoped<IServiceOfferingRepository, ServiceOfferingRepository>();
         services.AddScoped<ISocialLinkRepository, SocialLinkRepository>();
+        services.AddScoped<IServiceAreaRepository, ServiceAreaRepository>();
+        services.AddScoped<IFaqItemRepository, FaqItemRepository>();
+        services.AddScoped<IPromotionRepository, PromotionRepository>();
 
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
         services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);

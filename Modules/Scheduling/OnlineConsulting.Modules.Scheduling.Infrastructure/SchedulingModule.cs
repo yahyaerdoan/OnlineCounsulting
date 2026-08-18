@@ -6,7 +6,11 @@ using Microsoft.Extensions.DependencyInjection;
 using OnlineConsulting.Modules.Scheduling.Application;
 using OnlineConsulting.Modules.Scheduling.Application.Common.Templates;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Abstractions;
+using OnlineConsulting.Modules.Scheduling.Application.Features.AppointmentMediaItems.Abstractions;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Availability.Abstractions;
+using OnlineConsulting.Modules.Scheduling.Application.Features.TechnicianTracking.Abstractions;
+using OnlineConsulting.Modules.Scheduling.Application.Features.WorkOrders.Abstractions;
+using OnlineConsulting.Modules.Scheduling.Infrastructure.Hubs;
 using OnlineConsulting.Modules.Scheduling.Infrastructure.Notifications;
 using OnlineConsulting.Modules.Scheduling.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Scheduling.Infrastructure.Pipelines;
@@ -32,8 +36,17 @@ public static class SchedulingModule
 
         services.AddScoped<IAppointmentRepository, AppointmentRepository>();
         services.AddScoped<IAvailabilityRuleRepository, AvailabilityRuleRepository>();
+        services.AddScoped<IWorkOrderRepository, WorkOrderRepository>();
+        services.AddScoped<IWorkOrderMediaItemRepository, WorkOrderMediaItemRepository>();
+        services.AddScoped<IAppointmentMediaItemRepository, AppointmentMediaItemRepository>();
         services.AddScoped<IEmailOutboxWriter, EmailOutboxWriter>();
         services.AddScoped<IEmailTemplate<AppointmentConfirmationEmailModel>, AppointmentConfirmationTemplate>();
+        services.AddScoped<ITechnicianTrackingHubService, TechnicianTrackingHubService>();
+
+        var redisConnection = configuration.GetConnectionString("Redis");
+        var signalRBuilder = services.AddSignalR();
+        if (!string.IsNullOrWhiteSpace(redisConnection))
+            signalRBuilder.AddStackExchangeRedis(redisConnection);
 
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
         services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);

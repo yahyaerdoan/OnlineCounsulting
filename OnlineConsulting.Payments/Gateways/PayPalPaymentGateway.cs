@@ -6,12 +6,14 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Payments.Gateways;
 
-/// <summary>Structurally complete PayPal Orders v2 implementation, proving IPaymentGateway isn't shaped around Stripe specifically - but untested end-to-end (no PayPal sandbox credentials configured in this environment). Uses raw REST calls instead of PayPal's SDK to keep the dependency light for a provider that isn't active yet.</summary>
-public class PayPalPaymentGateway(HttpClient httpClient, IOptions<PaymentOptions> options) : IPaymentGateway
+/// <summary>Structurally complete PayPal Orders v2 implementation, proving IPaymentGateway isn't shaped around Stripe specifically - but untested end-to-end (no PayPal sandbox credentials configured in this environment). Uses raw REST calls instead of PayPal's SDK to keep the dependency light for a provider that isn't active yet. Takes IHttpClientFactory (not a typed HttpClient) because this gateway is registered as a singleton - a constructor-captured HttpClient would pin one handler/connection pool for the app's whole lifetime instead of letting IHttpClientFactory rotate handlers.</summary>
+public class PayPalPaymentGateway(IHttpClientFactory httpClientFactory, IOptions<PaymentOptions> options) : IPaymentGateway
 {
     private readonly PayPalOptions _options = options.Value.PayPal;
 
     public string ProviderName => PaymentProviderNames.PayPal;
+
+    private HttpClient CreateClient() => httpClientFactory.CreateClient(nameof(PayPalPaymentGateway));
 
     public async Task<PaymentIntentResult> CreatePaymentIntentAsync(CreatePaymentIntentRequest request, CancellationToken cancellationToken = default)
     {
@@ -33,7 +35,8 @@ public class PayPalPaymentGateway(HttpClient httpClient, IOptions<PaymentOptions
             },
         });
 
-        using var response = await httpClient.SendAsync(httpRequest, cancellationToken);
+        using var client = CreateClient();
+        using var response = await client.SendAsync(httpRequest, cancellationToken);
         response.EnsureSuccessStatusCode();
         var order = await response.Content.ReadFromJsonAsync<PayPalOrder>(cancellationToken: cancellationToken)
             ?? throw new InvalidOperationException("PayPal returned an empty order response.");
@@ -51,7 +54,8 @@ public class PayPalPaymentGateway(HttpClient httpClient, IOptions<PaymentOptions
         using var httpRequest = new HttpRequestMessage(HttpMethod.Get, $"/v2/checkout/orders/{providerPaymentId}");
         httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
-        using var response = await httpClient.SendAsync(httpRequest, cancellationToken);
+        using var client = CreateClient();
+        using var response = await client.SendAsync(httpRequest, cancellationToken);
         response.EnsureSuccessStatusCode();
         var order = await response.Content.ReadFromJsonAsync<PayPalOrder>(cancellationToken: cancellationToken)
             ?? throw new InvalidOperationException("PayPal returned an empty order response.");
@@ -69,7 +73,8 @@ public class PayPalPaymentGateway(HttpClient httpClient, IOptions<PaymentOptions
         if (amount.HasValue)
             httpRequest.Content = JsonContent.Create(new { amount = new { currency_code = "USD", value = amount.Value.ToString("F2") } });
 
-        using var response = await httpClient.SendAsync(httpRequest, cancellationToken);
+        using var client = CreateClient();
+        using var response = await client.SendAsync(httpRequest, cancellationToken);
         response.EnsureSuccessStatusCode();
 
         return new PaymentStatusResult(providerPaymentId, PaymentStatuses.Refunded);
@@ -93,7 +98,8 @@ public class PayPalPaymentGateway(HttpClient httpClient, IOptions<PaymentOptions
         var credentials = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes($"{_options.ClientId}:{_options.ClientSecret}"));
         request.Headers.Authorization = new AuthenticationHeaderValue("Basic", credentials);
 
-        using var response = await httpClient.SendAsync(request, cancellationToken);
+        using var client = CreateClient();
+        using var response = await client.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
         var token = await response.Content.ReadFromJsonAsync<PayPalTokenResponse>(cancellationToken: cancellationToken);
 

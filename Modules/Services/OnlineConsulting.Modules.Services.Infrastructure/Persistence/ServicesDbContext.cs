@@ -20,6 +20,8 @@ public class ServicesDbContext(DbContextOptions<ServicesDbContext> options, ITen
             builder.Property(s => s.Description).HasMaxLength(2000).IsRequired();
             builder.Property(s => s.DetailedDescription).HasMaxLength(4000).IsRequired();
             builder.Property(s => s.Price).HasColumnType("decimal(18,2)");
+            builder.Property(s => s.PriceType).HasMaxLength(20).IsRequired();
+            builder.Property(s => s.PriceMax).HasColumnType("decimal(18,2)");
             builder.Property(s => s.DiscountedPrice).HasColumnType("decimal(18,2)");
             builder.Property(s => s.RowVersion).IsRowVersion();
             builder.HasIndex(s => s.CategoryId);

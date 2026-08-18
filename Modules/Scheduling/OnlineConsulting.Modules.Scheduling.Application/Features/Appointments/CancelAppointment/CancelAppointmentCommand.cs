@@ -4,6 +4,7 @@ using OnlineConsulting.Modules.Scheduling.Application.Common;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Abstractions;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Constants;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Rules;
+using OnlineConsulting.SharedKernel.Notifications;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -17,7 +18,7 @@ public record CancelAppointmentCommand(Guid Id, Guid UserId) : IRequest<Operatio
     public string[] Roles => [];
 }
 
-public class CancelAppointmentHandler(IAppointmentRepository repository) : IRequestHandler<CancelAppointmentCommand, OperationResult>
+public class CancelAppointmentHandler(IAppointmentRepository repository, IPushNotificationSender pushNotificationSender) : IRequestHandler<CancelAppointmentCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(CancelAppointmentCommand request, CancellationToken cancellationToken)
     {
@@ -30,6 +31,16 @@ public class CancelAppointmentHandler(IAppointmentRepository repository) : IRequ
 
         appointment.Status = AppointmentStatuses.Cancelled;
         await repository.UpdateAsync(appointment);
+
+        if (appointment.AssignedTechnicianUserId is { } technicianUserId)
+        {
+            await pushNotificationSender.SendToUserAsync(
+                technicianUserId,
+                "Appointment cancelled",
+                "A customer has cancelled an appointment that was assigned to you.",
+                new Dictionary<string, string> { ["appointmentId"] = appointment.Id.ToString() },
+                cancellationToken);
+        }
 
         return Result.Success("Appointment cancelled successfully.");
     }

@@ -66,8 +66,19 @@ namespace OnlineConsulting.Modules.Services.Infrastructure.Migrations
                     b.Property<bool>("FeaturedArea")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsEmergencyAvailable")
+                        .HasColumnType("bit");
+
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("PriceMax")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("PriceType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<bool>("RequiresPrepayment")
                         .HasColumnType("bit");

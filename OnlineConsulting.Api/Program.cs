@@ -5,11 +5,15 @@ using Core.ApplicationLayer.Pipelines.Validations.Concretions;
 using Core.CrossCuttingConcernLayer.ExceptionHandlings.Extensions;
 using Core.SecurityLayer.Authorization;
 using MediatR;
+using Microsoft.AspNetCore.HttpOverrides;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Api.Configurations.Extensions;
+using OnlineConsulting.Api.Seeding;
 using OnlineConsulting.Modules.Categories.Application.Features.Constants;
 using OnlineConsulting.Modules.Categories.Infrastructure;
 using OnlineConsulting.Modules.Commerce.Infrastructure;
+using OnlineConsulting.Modules.Equipment.Application.Common;
+using OnlineConsulting.Modules.Equipment.Infrastructure;
 using OnlineConsulting.Modules.FeatureFlags.Application.Features.Constants;
 using OnlineConsulting.Modules.FeatureFlags.Infrastructure;
 using OnlineConsulting.Modules.Identity.Application.Features.Roles.Constants;
@@ -22,8 +26,13 @@ using OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.Constan
 using OnlineConsulting.Modules.Inquiries.Infrastructure;
 using OnlineConsulting.Modules.Media.Application.Features.Constants;
 using OnlineConsulting.Modules.Media.Infrastructure;
+using OnlineConsulting.Modules.Memberships.Application.Common;
+using OnlineConsulting.Modules.Memberships.Infrastructure;
+using OnlineConsulting.Modules.Referrals.Application.Common;
+using OnlineConsulting.Modules.Referrals.Infrastructure;
 using OnlineConsulting.Modules.Scheduling.Application.Common;
 using OnlineConsulting.Modules.Scheduling.Infrastructure;
+using OnlineConsulting.Modules.Scheduling.Infrastructure.Hubs;
 using OnlineConsulting.Modules.Services.Application.Features.Constants;
 using OnlineConsulting.Modules.Services.Infrastructure;
 using OnlineConsulting.Modules.SiteContent.Application.Common;
@@ -67,6 +76,9 @@ builder.Services.AddSingleton<IPermissionCatalog>(new PermissionCatalog(new Dict
     ["Scheduling"] = SchedulingOperationClaims.All,
     ["Services"] = ServicesOperationClaims.All,
     ["SiteContent"] = SiteContentOperationClaims.All,
+    ["Memberships"] = MembershipsOperationClaims.All,
+    ["Referrals"] = ReferralsOperationClaims.All,
+    ["Equipment"] = EquipmentOperationClaims.All,
 }));
 
 builder.Services.AddCategoriesModule(builder.Configuration);
@@ -78,6 +90,9 @@ builder.Services.AddInquiriesModule(builder.Configuration);
 builder.Services.AddSchedulingModule(builder.Configuration);
 builder.Services.AddSiteContentModule(builder.Configuration);
 builder.Services.AddMediaModule(builder.Configuration);
+builder.Services.AddMembershipsModule(builder.Configuration);
+builder.Services.AddReferralsModule(builder.Configuration);
+builder.Services.AddEquipmentModule(builder.Configuration);
 builder.Services.AddStorageInfrastructure(builder.Configuration);
 builder.Services.PostConfigure<StorageOptions>(options =>
 {
@@ -89,13 +104,27 @@ builder.Services.AddPaymentsInfrastructure(builder.Configuration);
 
 builder.Services.AddApiServiceRegistration(builder.Configuration);
 
+// KnownNetworks/KnownProxies cleared because the reverse proxy's IP isn't known ahead of deployment
+// (nginx/k8s ingress/Azure App Service front end) - trusting the network boundary instead, since only
+// that proxy can reach this app. Without this, RemoteIpAddress (used for anonymous rate-limit
+// partitioning - see ServiceRegistration.GetPartitionKey) always resolves to the proxy, not the client.
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
 var app = builder.Build();
 
 await RoleSeeder.SeedAsync(app.Services);
+await HvacCatalogSeeder.SeedAsync(app.Services);
 
 app.MapDefaultEndpoints();
 
 app.UseConfigureCustomExceptionMiddleware();
+
+app.UseForwardedHeaders();
 
 if (app.Environment.IsDevelopment())
 {
@@ -108,7 +137,9 @@ app.UseStaticFiles();
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 
 app.MapEndpoints();
+app.MapHub<TechnicianTrackingHub>("/hubs/technician-tracking");
 
 app.Run();
