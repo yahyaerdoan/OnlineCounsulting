@@ -102,6 +102,14 @@ public class PayPalSubscriptionGateway(IHttpClientFactory httpClientFactory, IOp
         return new SubscriptionResult(providerSubscriptionId, PaymentStatuses.Refunded, DateTimeOffset.UtcNow);
     }
 
+    /// <summary>PayPal's Subscriptions API models a subscription as a single plan_id - there is no concept of independently-priced additional line items, so à la carte multi-module tenants aren't representable on this provider. Known, accepted limitation: PayPal isn't the active provider.</summary>
+    public Task<string> AddSubscriptionItemAsync(string providerSubscriptionId, string providerPriceId, CancellationToken cancellationToken = default) =>
+        throw new NotSupportedException("PayPal subscriptions do not support multiple line items.");
+
+    /// <summary>See AddSubscriptionItemAsync.</summary>
+    public Task RemoveSubscriptionItemAsync(string providerSubscriptionItemId, CancellationToken cancellationToken = default) =>
+        throw new NotSupportedException("PayPal subscriptions do not support multiple line items.");
+
     public async Task<SubscriptionWebhookEvent?> VerifyAndParseWebhookAsync(string rawBody, string? signatureHeader, CancellationToken cancellationToken = default)
     {
         await Task.CompletedTask;

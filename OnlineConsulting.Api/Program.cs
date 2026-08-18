@@ -37,6 +37,7 @@ using OnlineConsulting.Modules.Services.Application.Features.Constants;
 using OnlineConsulting.Modules.Services.Infrastructure;
 using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Infrastructure;
+using OnlineConsulting.Modules.Tenancy.Infrastructure;
 using OnlineConsulting.Notifications;
 using OnlineConsulting.Payments;
 using OnlineConsulting.ServiceDefaults;
@@ -51,6 +52,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ITenantProvider, TenantProvider>();
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationAddingBehavior<,>));
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(AuthorizationAddingBehavior<,>));
+builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TenantStatusCheckBehavior<,>));
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LogResultAddingBehavior<,>));
 
 var redisConnection = builder.Configuration.GetConnectionString("Redis");
@@ -93,6 +95,7 @@ builder.Services.AddMediaModule(builder.Configuration);
 builder.Services.AddMembershipsModule(builder.Configuration);
 builder.Services.AddReferralsModule(builder.Configuration);
 builder.Services.AddEquipmentModule(builder.Configuration);
+builder.Services.AddTenancyModule(builder.Configuration);
 builder.Services.AddStorageInfrastructure(builder.Configuration);
 builder.Services.PostConfigure<StorageOptions>(options =>
 {
@@ -119,6 +122,7 @@ var app = builder.Build();
 
 await RoleSeeder.SeedAsync(app.Services);
 await HvacCatalogSeeder.SeedAsync(app.Services);
+await SuperAdminSeeder.SeedAsync(app.Services, builder.Configuration);
 
 app.MapDefaultEndpoints();
 

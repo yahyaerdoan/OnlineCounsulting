@@ -18,6 +18,12 @@ public interface ISubscriptionGateway
     /// <summary>Cancels immediately (no cancel-at-period-end support in this phase).</summary>
     Task<SubscriptionResult> CancelSubscriptionAsync(string providerSubscriptionId, CancellationToken cancellationToken = default);
 
+    /// <summary>Adds one more line item (its own price) to an already-created subscription - billed immediately, prorated for the remainder of the current period. Returns the new provider-side subscription item id, which callers must persist to later remove that specific line. Not supported by every provider - see PayPalSubscriptionGateway.</summary>
+    Task<string> AddSubscriptionItemAsync(string providerSubscriptionId, string providerPriceId, CancellationToken cancellationToken = default);
+
+    /// <summary>Removes one line item from a subscription - prorated refund/credit for the remainder of the current period, same as AddSubscriptionItemAsync's proration direction. Not supported by every provider - see PayPalSubscriptionGateway.</summary>
+    Task RemoveSubscriptionItemAsync(string providerSubscriptionItemId, CancellationToken cancellationToken = default);
+
     /// <summary>Verifies the provider's webhook signature and normalizes the payload. Returns null if the payload isn't a subscription-lifecycle event this gateway cares about.</summary>
     Task<SubscriptionWebhookEvent?> VerifyAndParseWebhookAsync(string rawBody, string? signatureHeader, CancellationToken cancellationToken = default);
 }
@@ -33,8 +39,8 @@ public record SubscriptionPriceResult(string ProviderProductId, string ProviderP
 /// <summary>DiscountAmount is a one-time, first-invoice-only discount (e.g. account credit applied at subscribe time) - not a recurring price change. Ignored by providers with no such concept in this phase (PayPal - see PayPalSubscriptionGateway).</summary>
 public record CreateSubscriptionRequest(string ProviderCustomerId, string ProviderPriceId, string PaymentMethodId, string ReferenceId, decimal? DiscountAmount = null);
 
-/// <summary>ClientSecret mirrors PaymentIntentResult.ClientSecret's reuse across providers: null for Stripe (the payment method is already attached server-side, nothing left for the client to confirm), the subscriber's PayPal approval URL for PayPal (the payer must be redirected there before the subscription activates - PayPal has no server-side "attach card with a secret key alone" flow).</summary>
-public record SubscriptionResult(string ProviderSubscriptionId, string Status, DateTimeOffset CurrentPeriodEnd, string? ClientSecret = null);
+/// <summary>ClientSecret mirrors PaymentIntentResult.ClientSecret's reuse across providers: null for Stripe (the payment method is already attached server-side, nothing left for the client to confirm), the subscriber's PayPal approval URL for PayPal (the payer must be redirected there before the subscription activates - PayPal has no server-side "attach card with a secret key alone" flow). FirstItemProviderId is the provider-side subscription item id for the single line item CreateSubscriptionAsync creates - null for providers with no such concept (PayPal), lets multi-item callers (Tenancy) capture it without a redundant follow-up call.</summary>
+public record SubscriptionResult(string ProviderSubscriptionId, string Status, DateTimeOffset CurrentPeriodEnd, string? ClientSecret = null, string? FirstItemProviderId = null);
 
 /// <summary>ReferenceId round-trips whatever CreateSubscriptionRequest.ReferenceId was, so the webhook handler can map back to the CustomerMembership without querying the provider for it. NewRenewalDate is only set when EventKind is Renewed.</summary>
 public record SubscriptionWebhookEvent(string ProviderSubscriptionId, string ReferenceId, string EventKind, DateTimeOffset? NewRenewalDate = null);

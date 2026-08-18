@@ -74,6 +74,9 @@
     <ProjectReference Include="..\OnlineConsulting.SharedKernel\OnlineConsulting.SharedKernel.csproj" />
     <ProjectReference Include="..\OnlineConsulting.ServiceDefaults\OnlineConsulting.ServiceDefaults.csproj" />
     <ProjectReference Include="..\Modules\FeatureFlags\OnlineConsulting.Modules.FeatureFlags.Infrastructure\OnlineConsulting.Modules.FeatureFlags.Infrastructure.csproj" />
+    <ProjectReference Include="..\Modules\Tenancy\OnlineConsulting.Modules.Tenancy.Domain\OnlineConsulting.Modules.Tenancy.Domain.csproj" />
+    <ProjectReference Include="..\Modules\Tenancy\OnlineConsulting.Modules.Tenancy.Application\OnlineConsulting.Modules.Tenancy.Application.csproj" />
+    <ProjectReference Include="..\Modules\Tenancy\OnlineConsulting.Modules.Tenancy.Infrastructure\OnlineConsulting.Modules.Tenancy.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

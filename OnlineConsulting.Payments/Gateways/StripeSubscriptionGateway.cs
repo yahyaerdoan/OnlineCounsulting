@@ -98,6 +98,24 @@ public class StripeSubscriptionGateway : ISubscriptionGateway
         return ToSubscriptionResult(subscription);
     }
 
+    public async Task<string> AddSubscriptionItemAsync(string providerSubscriptionId, string providerPriceId, CancellationToken cancellationToken = default)
+    {
+        var service = new SubscriptionItemService(_client);
+        var item = await service.CreateAsync(new SubscriptionItemCreateOptions
+        {
+            Subscription = providerSubscriptionId,
+            Price = providerPriceId,
+        }, cancellationToken: cancellationToken);
+
+        return item.Id;
+    }
+
+    public async Task RemoveSubscriptionItemAsync(string providerSubscriptionItemId, CancellationToken cancellationToken = default)
+    {
+        var service = new SubscriptionItemService(_client);
+        await service.DeleteAsync(providerSubscriptionItemId, cancellationToken: cancellationToken);
+    }
+
     public Task<SubscriptionWebhookEvent?> VerifyAndParseWebhookAsync(string rawBody, string? signatureHeader, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(signatureHeader) || string.IsNullOrEmpty(rawBody))
@@ -154,7 +172,9 @@ public class StripeSubscriptionGateway : ISubscriptionGateway
             ? new DateTimeOffset(subscription.Items.Data[0].CurrentPeriodEnd, TimeSpan.Zero)
             : DateTimeOffset.UtcNow;
 
-        return new SubscriptionResult(subscription.Id, MapStatus(subscription.Status), currentPeriodEnd);
+        var firstItemProviderId = subscription.Items.Data.Count > 0 ? subscription.Items.Data[0].Id : null;
+
+        return new SubscriptionResult(subscription.Id, MapStatus(subscription.Status), currentPeriodEnd, FirstItemProviderId: firstItemProviderId);
     }
 
     private static long ToMinorUnits(decimal amount) => (long)(amount * 100);

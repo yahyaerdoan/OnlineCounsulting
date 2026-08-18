@@ -5,10 +5,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OnlineConsulting.Modules.FeatureFlags.Application;
 using OnlineConsulting.Modules.FeatureFlags.Application.Abstractions;
+using OnlineConsulting.Modules.FeatureFlags.Application.Features.SetFeatureFlag;
 using OnlineConsulting.Modules.FeatureFlags.Infrastructure.Caching;
 using OnlineConsulting.Modules.FeatureFlags.Infrastructure.Persistence;
 using OnlineConsulting.Modules.FeatureFlags.Infrastructure.Pipelines;
 using OnlineConsulting.Modules.FeatureFlags.Infrastructure.Repositories;
+using OnlineConsulting.Modules.FeatureFlags.Infrastructure.Writing;
 using OnlineConsulting.SharedKernel.Auditing;
 using OnlineConsulting.SharedKernel.FeatureFlags;
 using OnlineConsulting.SharedKernel.Tenancy;
@@ -33,6 +35,8 @@ public static class FeatureFlagsModule
         services.AddScoped<FeatureFlagCache>();
         services.AddScoped<IFeatureFlagReader>(sp => sp.GetRequiredService<FeatureFlagCache>());
         services.AddScoped<IFeatureFlagCacheInvalidator>(sp => sp.GetRequiredService<FeatureFlagCache>());
+        services.AddScoped<FeatureFlagUpserter>();
+        services.AddScoped<IFeatureFlagWriter, FeatureFlagWriter>();
 
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
         services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);

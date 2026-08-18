@@ -5,6 +5,7 @@ using OnlineConsulting.Modules.FeatureFlags.Application.Abstractions;
 using OnlineConsulting.Modules.FeatureFlags.Application.Contracts;
 using OnlineConsulting.Modules.FeatureFlags.Application.Features.Constants;
 using OnlineConsulting.SharedKernel.Persistence;
+using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -31,7 +32,7 @@ public record GetFeatureFlagsQuery(Guid TenantId) : IRequest<OperationDataResult
     public string? CacheGroupKey => $"FeatureFlags:{TenantId}";
 }
 
-public class GetFeatureFlagsHandler(IFeatureFlagRepository repository)
+public class GetFeatureFlagsHandler(IFeatureFlagRepository repository, ITenantModulePricingReader tenantModulePricingReader)
     : IRequestHandler<GetFeatureFlagsQuery, OperationDataResult<List<FeatureFlagResponse>>>
 {
     public async Task<OperationDataResult<List<FeatureFlagResponse>>> Handle(GetFeatureFlagsQuery request, CancellationToken cancellationToken)
@@ -39,8 +40,18 @@ public class GetFeatureFlagsHandler(IFeatureFlagRepository repository)
         var overrides = await repository.GetListAsync(size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
         var overridesByKey = overrides.Items.ToDictionary(f => f.Key, f => f.IsEnabled);
 
+        var pricingByKey = await tenantModulePricingReader.GetForTenantAsync(request.TenantId, cancellationToken);
+
         var response = FeatureFlagKeys.Defaults
-            .Select(kvp => new FeatureFlagResponse(kvp.Key, overridesByKey.GetValueOrDefault(kvp.Key, kvp.Value)))
+            .Select(kvp =>
+            {
+                var isPurchased = pricingByKey.TryGetValue(kvp.Key, out var pricing);
+                return new FeatureFlagResponse(
+                    kvp.Key,
+                    overridesByKey.GetValueOrDefault(kvp.Key, kvp.Value),
+                    isPurchased ? pricing.Price : null,
+                    isPurchased);
+            })
             .ToList();
 
         return Result.Success(response, "Feature flags retrieved successfully.");
