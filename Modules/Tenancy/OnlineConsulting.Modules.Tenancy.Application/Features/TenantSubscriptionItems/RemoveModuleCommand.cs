@@ -41,7 +41,7 @@ public class RemoveModuleHandler(
             return Result.BadRequest(TenantSubscriptionItemMessages.NoActiveSubscription);
 
         var item = await tenantSubscriptionItemRepository.GetAsync(
-            i => i.TenantSubscriptionId == tenantSubscription.Id && i.ModuleKey == request.ModuleKey && i.DeletedDate == null,
+            i => i.TenantSubscriptionId == tenantSubscription.Id && i.ModuleKey == request.ModuleKey && i.Status == TenantSubscriptionItemStatuses.Active,
             cancellationToken: cancellationToken);
         if (item is null)
             return Result.NotFound(TenantSubscriptionItemMessages.ModuleNotActive);

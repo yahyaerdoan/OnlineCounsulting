@@ -17,7 +17,7 @@ public static class MediaModule
 {
     public static IServiceCollection AddMediaModule(this IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString = configuration.GetSection("OnlineConsultingDbConnections:DevelopmentDbConnection").Value;
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
 
         services.AddScoped<TenantSaveChangesInterceptor>();
         services.AddScoped<AuditSaveChangesInterceptor>();

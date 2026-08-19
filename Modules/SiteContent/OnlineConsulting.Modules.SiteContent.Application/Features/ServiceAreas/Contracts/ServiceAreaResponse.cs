@@ -1,4 +1,4 @@
-using OnlineConsulting.Modules.SiteContent.Domain;
+using OnlineConsulting.Modules.SiteContent.Domain.Service;
 
 namespace OnlineConsulting.Modules.SiteContent.Application.Features.ServiceAreas.Contracts;
 

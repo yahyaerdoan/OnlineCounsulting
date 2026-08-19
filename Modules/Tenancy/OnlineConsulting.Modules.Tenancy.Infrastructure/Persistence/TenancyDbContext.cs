@@ -66,6 +66,7 @@ public class TenancyDbContext(DbContextOptions<TenancyDbContext> options) : DbCo
         modelBuilder.Entity<TenantSubscriptionItem>(builder =>
         {
             builder.Property(i => i.ModuleKey).HasMaxLength(100).IsRequired();
+            builder.Property(i => i.Status).HasMaxLength(30).IsRequired().HasDefaultValue(TenantSubscriptionItemStatuses.Active);
             builder.Property(i => i.ProviderSubscriptionItemId).HasMaxLength(100);
             builder.Property(i => i.PriceAtAddition).HasColumnType("decimal(18,2)");
             builder.Property(i => i.RowVersion).IsRowVersion();

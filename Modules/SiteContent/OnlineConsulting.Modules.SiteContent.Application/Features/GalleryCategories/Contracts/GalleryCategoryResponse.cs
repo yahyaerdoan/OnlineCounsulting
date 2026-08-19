@@ -1,4 +1,4 @@
-using OnlineConsulting.Modules.SiteContent.Domain;
+using OnlineConsulting.Modules.SiteContent.Domain.Gallery;
 
 namespace OnlineConsulting.Modules.SiteContent.Application.Features.GalleryCategories.Contracts;
 

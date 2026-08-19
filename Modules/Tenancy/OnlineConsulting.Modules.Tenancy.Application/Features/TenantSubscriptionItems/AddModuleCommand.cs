@@ -59,27 +59,73 @@ public class AddModuleHandler(
         var providerSubscriptionId = tenantSubscription.ProviderSubscriptionId
             ?? throw new InvalidOperationException($"TenantSubscription {tenantSubscription.Id} has no ProviderSubscriptionId.");
 
+        if (!subscriptionGateway.SupportsMultipleItems)
+        {
+            var hasAnyActiveItem = await tenantSubscriptionItemRepository.AnyAsync(
+                i => i.TenantSubscriptionId == tenantSubscription.Id && i.Status == TenantSubscriptionItemStatuses.Active,
+                cancellationToken: cancellationToken);
+            if (hasAnyActiveItem)
+                return Result.BadRequest(TenantSubscriptionItemMessages.MultipleModulesNotSupportedByProvider);
+        }
+
         var alreadyActive = await tenantSubscriptionItemRepository.AnyAsync(
-            i => i.TenantSubscriptionId == tenantSubscription.Id && i.ModuleKey == request.ModuleKey && i.DeletedDate == null,
+            i => i.TenantSubscriptionId == tenantSubscription.Id && i.ModuleKey == request.ModuleKey && i.Status == TenantSubscriptionItemStatuses.Active,
             cancellationToken: cancellationToken);
         if (alreadyActive)
             return Result.Conflict(TenantSubscriptionItemMessages.ModuleAlreadyAdded);
 
-        var providerSubscriptionItemId = await subscriptionGateway.AddSubscriptionItemAsync(providerSubscriptionId, moduleOfferingPriceId, cancellationToken);
+        var existingItem = await tenantSubscriptionItemRepository.GetAsync(
+            i => i.TenantSubscriptionId == tenantSubscription.Id && i.ModuleKey == request.ModuleKey &&
+                 (i.Status == TenantSubscriptionItemStatuses.Pending || i.Status == TenantSubscriptionItemStatuses.Failed),
+            cancellationToken: cancellationToken);
 
-        var item = new TenantSubscriptionItem
+        var item = existingItem ?? new TenantSubscriptionItem
         {
             Id = Guid.NewGuid(),
             TenantSubscriptionId = tenantSubscription.Id,
             ModuleKey = moduleOffering.Key,
-            ProviderSubscriptionItemId = providerSubscriptionItemId,
+            Status = TenantSubscriptionItemStatuses.Pending,
+            ProviderSubscriptionItemId = null,
             PriceAtAddition = moduleOffering.Price,
             AddedAt = DateTime.UtcNow,
         };
+        if (existingItem is null)
+            await tenantSubscriptionItemRepository.AddAsync(item);
 
-        await tenantSubscriptionItemRepository.AddAsync(item);
+        string providerSubscriptionItemId;
+        if (item.ProviderSubscriptionItemId is not null)
+        {
+            providerSubscriptionItemId = item.ProviderSubscriptionItemId;
+        }
+        else
+        {
+            try
+            {
+                providerSubscriptionItemId = await subscriptionGateway.AddSubscriptionItemAsync(
+                    providerSubscriptionId, moduleOfferingPriceId,
+                    idempotencyKey: $"tenant-add-module:{item.Id}",
+                    cancellationToken: cancellationToken);
+            }
+            catch (Exception)
+            {
+                item.Status = TenantSubscriptionItemStatuses.Failed;
+                await tenantSubscriptionItemRepository.UpdateAsync(item);
+                return Result.BadRequest(TenantSubscriptionItemMessages.ModuleBillingFailed);
+            }
+        }
 
-        await featureFlagWriter.SetAsync(request.TenantId, moduleOffering.Key, true, cancellationToken);
+        item.ProviderSubscriptionItemId = providerSubscriptionItemId;
+        item.Status = TenantSubscriptionItemStatuses.Active;
+        await tenantSubscriptionItemRepository.UpdateAsync(item);
+
+        try
+        {
+            await featureFlagWriter.SetAsync(request.TenantId, moduleOffering.Key, true, cancellationToken);
+        }
+        catch (Exception)
+        {
+            return Result.BadRequest(TenantSubscriptionItemMessages.ModuleFeatureFlagFailed);
+        }
 
         return Result.Created("Module added to the tenant's subscription.");
     }

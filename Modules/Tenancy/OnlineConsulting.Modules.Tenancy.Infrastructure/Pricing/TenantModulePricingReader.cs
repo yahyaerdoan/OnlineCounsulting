@@ -20,7 +20,7 @@ public class TenantModulePricingReader(
             return new Dictionary<string, (decimal Price, bool IsPurchased)>();
 
         var items = await tenantSubscriptionItemRepository.GetListAsync(
-            i => i.TenantSubscriptionId == tenantSubscription.Id && i.DeletedDate == null,
+            i => i.TenantSubscriptionId == tenantSubscription.Id && i.Status == TenantSubscriptionItemStatuses.Active,
             size: RepositoryQuerySize.Unbounded,
             cancellationToken: cancellationToken);
 

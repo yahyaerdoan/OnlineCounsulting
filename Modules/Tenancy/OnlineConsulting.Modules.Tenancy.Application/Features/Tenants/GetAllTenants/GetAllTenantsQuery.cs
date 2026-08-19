@@ -56,7 +56,7 @@ public class GetAllTenantsHandler(
         var subscriptionIds = subscriptionIdsByTenantId.Keys.ToList();
 
         var items = await tenantSubscriptionItemRepository.GetListAsync(
-            i => subscriptionIds.Contains(i.TenantSubscriptionId) && i.DeletedDate == null,
+            i => subscriptionIds.Contains(i.TenantSubscriptionId) && i.Status == TenantSubscriptionItemStatuses.Active,
             size: RepositoryQuerySize.Unbounded,
             cancellationToken: cancellationToken);
 

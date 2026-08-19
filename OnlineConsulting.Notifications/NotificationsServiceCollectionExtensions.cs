@@ -14,7 +14,7 @@ public static class NotificationsServiceCollectionExtensions
 {
     public static IServiceCollection AddNotificationsInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString = configuration.GetSection("OnlineConsultingDbConnections:DevelopmentDbConnection").Value;
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
         services.AddDbContext<NotificationsDbContext>(options => options.UseSqlServer(connectionString));
 
         services.Configure<EmailOptions>(configuration.GetSection("Email"));

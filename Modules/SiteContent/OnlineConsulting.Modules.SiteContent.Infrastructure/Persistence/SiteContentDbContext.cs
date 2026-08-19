@@ -1,5 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using OnlineConsulting.Modules.SiteContent.Domain;
+using OnlineConsulting.Modules.SiteContent.Domain.Gallery;
+using OnlineConsulting.Modules.SiteContent.Domain.Partnerships;
+using OnlineConsulting.Modules.SiteContent.Domain.Service;
 using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.SiteContent.Infrastructure.Persistence;

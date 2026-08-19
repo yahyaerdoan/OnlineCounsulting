@@ -23,6 +23,9 @@ using OnlineConsulting.Modules.SiteContent.Application.Features.Testimonials.Abs
 using OnlineConsulting.Modules.SiteContent.Infrastructure.Persistence;
 using OnlineConsulting.Modules.SiteContent.Infrastructure.Pipelines;
 using OnlineConsulting.Modules.SiteContent.Infrastructure.Repositories;
+using OnlineConsulting.Modules.SiteContent.Infrastructure.Repositories.Gallery;
+using OnlineConsulting.Modules.SiteContent.Infrastructure.Repositories.Partnerships;
+using OnlineConsulting.Modules.SiteContent.Infrastructure.Repositories.Service;
 using OnlineConsulting.SharedKernel.Auditing;
 using OnlineConsulting.SharedKernel.Tenancy;
 
@@ -32,7 +35,7 @@ public static class SiteContentModule
 {
     public static IServiceCollection AddSiteContentModule(this IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString = configuration.GetSection("OnlineConsultingDbConnections:DevelopmentDbConnection").Value;
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
 
         services.AddScoped<TenantSaveChangesInterceptor>();
         services.AddScoped<AuditSaveChangesInterceptor>();

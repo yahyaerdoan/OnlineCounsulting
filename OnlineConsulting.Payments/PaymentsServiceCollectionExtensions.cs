@@ -1,6 +1,8 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using OnlineConsulting.Payments.Gateways;
+using OnlineConsulting.Payments.Gateways.Mock;
+using OnlineConsulting.Payments.Gateways.PayPal;
+using OnlineConsulting.Payments.Gateways.Stripe;
 using OnlineConsulting.SharedKernel.Payments;
 
 namespace OnlineConsulting.Payments;

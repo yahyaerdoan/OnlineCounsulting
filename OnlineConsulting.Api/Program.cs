@@ -16,6 +16,7 @@ using OnlineConsulting.Modules.Equipment.Application.Common;
 using OnlineConsulting.Modules.Equipment.Infrastructure;
 using OnlineConsulting.Modules.FeatureFlags.Application.Features.Constants;
 using OnlineConsulting.Modules.FeatureFlags.Infrastructure;
+using OnlineConsulting.Modules.Identity.Application.Features.Invites.Constants;
 using OnlineConsulting.Modules.Identity.Application.Features.Roles.Constants;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Constants;
 using OnlineConsulting.Modules.Identity.Infrastructure;
@@ -71,6 +72,7 @@ builder.Services.AddSingleton<IPermissionCatalog>(new PermissionCatalog(new Dict
     ["FeatureFlags"] = FeatureFlagsOperationClaims.All,
     ["Roles"] = RolesOperationClaims.All,
     ["Users"] = UsersOperationClaims.All,
+    ["Invites"] = InvitesOperationClaims.All,
     ["Contact"] = ContactOperationClaims.All,
     ["Messages"] = MessagesOperationClaims.All,
     ["Newsletter"] = NewsletterOperationClaims.All,
@@ -122,7 +124,7 @@ var app = builder.Build();
 
 await RoleSeeder.SeedAsync(app.Services);
 await HvacCatalogSeeder.SeedAsync(app.Services);
-await SuperAdminSeeder.SeedAsync(app.Services, builder.Configuration);
+await SuperAdminSeeder.SeedAsync(app.Services);
 
 app.MapDefaultEndpoints();
 

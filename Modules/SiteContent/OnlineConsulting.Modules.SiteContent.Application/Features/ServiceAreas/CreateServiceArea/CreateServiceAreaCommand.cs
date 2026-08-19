@@ -2,7 +2,7 @@ using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.ServiceAreas.Abstractions;
-using OnlineConsulting.Modules.SiteContent.Domain;
+using OnlineConsulting.Modules.SiteContent.Domain.Service;
 using OnlineConsulting.SharedKernel.Slugs;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;

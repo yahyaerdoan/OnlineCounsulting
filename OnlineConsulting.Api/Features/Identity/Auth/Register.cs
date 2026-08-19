@@ -7,7 +7,7 @@ using ResultHandler.AspNetCore.Extensions;
 
 namespace OnlineConsulting.Api.Features.Identity.Auth;
 
-public class Register : IEndpoint
+public class Register : IDevOnlyEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {

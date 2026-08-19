@@ -17,7 +17,7 @@ public static class CategoriesModule
 {
     public static IServiceCollection AddCategoriesModule(this IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString = configuration.GetSection("OnlineConsultingDbConnections:DevelopmentDbConnection").Value;
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
 
         services.AddScoped<TenantSaveChangesInterceptor>();
         services.AddScoped<AuditSaveChangesInterceptor>();

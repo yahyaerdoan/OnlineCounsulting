@@ -1,4 +1,4 @@
-using OnlineConsulting.Modules.SiteContent.Domain;
+using OnlineConsulting.Modules.SiteContent.Domain.Partnerships;
 
 namespace OnlineConsulting.Modules.SiteContent.Application.Features.PartnershipSocialLinks.Contracts;
 

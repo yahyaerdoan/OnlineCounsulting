@@ -9,6 +9,7 @@ using OnlineConsulting.Modules.Tenancy.Application.Features.ModuleOfferings.Abst
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.Abstractions;
+using OnlineConsulting.Modules.Tenancy.Infrastructure.Cleanup;
 using OnlineConsulting.Modules.Tenancy.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Tenancy.Infrastructure.Pipelines;
 using OnlineConsulting.Modules.Tenancy.Infrastructure.Pricing;
@@ -24,7 +25,7 @@ public static class TenancyModule
     /// <summary>Tenant/ModuleOffering/Bundle/TenantSubscription/TenantSubscriptionItem are platform-owner data, not tenant-scoped - no TenantSaveChangesInterceptor is registered for this context.</summary>
     public static IServiceCollection AddTenancyModule(this IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString = configuration.GetSection("OnlineConsultingDbConnections:DevelopmentDbConnection").Value;
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
 
         services.AddScoped<AuditSaveChangesInterceptor>();
 
@@ -38,6 +39,10 @@ public static class TenancyModule
         services.AddScoped<ITenantSubscriptionItemRepository, TenantSubscriptionItemRepository>();
         services.AddScoped<ITenantStatusReader, TenantStatusReader>();
         services.AddScoped<ITenantModulePricingReader, TenantModulePricingReader>();
+        services.AddScoped<ITenantOwnershipReader, TenantOwnershipReader>();
+
+        services.Configure<TenancyCleanupOptions>(configuration.GetSection("Tenancy:OrphanCleanup"));
+        services.AddHostedService<OrphanedTenantCleanupService>();
 
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
         services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);

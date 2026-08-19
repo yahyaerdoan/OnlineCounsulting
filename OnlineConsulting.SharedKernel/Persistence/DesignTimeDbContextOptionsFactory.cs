@@ -12,7 +12,7 @@ public static class DesignTimeDbContextOptionsFactory
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json")
             .Build();
-        var connectionString = configuration.GetSection("OnlineConsultingDbConnections:DevelopmentDbConnection").Value;
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
 
         return new DbContextOptionsBuilder<TContext>().UseSqlServer(connectionString).Options;
     }

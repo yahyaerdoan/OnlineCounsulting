@@ -8,301 +8,312 @@ using OnlineConsulting.Modules.Tenancy.Infrastructure.Persistence;
 
 #nullable disable
 
-namespace OnlineConsulting.Modules.Tenancy.Infrastructure.Migrations;
-
-[DbContext(typeof(TenancyDbContext))]
-partial class TenancyDbContextModelSnapshot : ModelSnapshot
+namespace OnlineConsulting.Modules.Tenancy.Infrastructure.Migrations
 {
-    protected override void BuildModel(ModelBuilder modelBuilder)
+    [DbContext(typeof(TenancyDbContext))]
+    partial class TenancyDbContextModelSnapshot : ModelSnapshot
     {
+        protected override void BuildModel(ModelBuilder modelBuilder)
+        {
 #pragma warning disable 612, 618
-        modelBuilder
-            .HasDefaultSchema("Tenancy")
-            .HasAnnotation("ProductVersion", "10.0.10")
-            .HasAnnotation("Relational:MaxIdentifierLength", 128);
+            modelBuilder
+                .HasDefaultSchema("Tenancy")
+                .HasAnnotation("ProductVersion", "10.0.10")
+                .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
-        SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-        modelBuilder.Entity("OnlineConsulting.Modules.Tenancy.Domain.Bundle", b =>
-            {
-                b.Property<Guid>("Id")
-                    .ValueGeneratedOnAdd()
-                    .HasColumnType("uniqueidentifier");
+            modelBuilder.Entity("OnlineConsulting.Modules.Tenancy.Domain.Bundle", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
 
-                b.Property<string>("CreatedBy")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<DateTimeOffset>("CreatedDate")
-                    .HasColumnType("datetimeoffset");
+                    b.Property<DateTimeOffset>("CreatedDate")
+                        .HasColumnType("datetimeoffset");
 
-                b.Property<string>("DeletedBy")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<DateTimeOffset?>("DeletedDate")
-                    .HasColumnType("datetimeoffset");
+                    b.Property<DateTimeOffset?>("DeletedDate")
+                        .HasColumnType("datetimeoffset");
 
-                b.Property<bool>("IsPubliclyVisible")
-                    .HasColumnType("bit");
+                    b.Property<bool>("IsPubliclyVisible")
+                        .HasColumnType("bit");
 
-                b.Property<string>("ModuleKeys")
-                    .IsRequired()
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("ModuleKeys")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<string>("Name")
-                    .IsRequired()
-                    .HasMaxLength(200)
-                    .HasColumnType("nvarchar(200)");
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
-                b.Property<byte[]>("RowVersion")
-                    .IsConcurrencyToken()
-                    .ValueGeneratedOnAddOrUpdate()
-                    .HasColumnType("rowversion");
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
-                b.Property<string>("UpdatedBy")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<DateTimeOffset?>("UpdatedDate")
-                    .HasColumnType("datetimeoffset");
+                    b.Property<DateTimeOffset?>("UpdatedDate")
+                        .HasColumnType("datetimeoffset");
 
-                b.HasKey("Id");
+                    b.HasKey("Id");
 
-                b.ToTable("Bundles", "Tenancy");
-            });
+                    b.ToTable("Bundles", "Tenancy");
+                });
 
-        modelBuilder.Entity("OnlineConsulting.Modules.Tenancy.Domain.ModuleOffering", b =>
-            {
-                b.Property<Guid>("Id")
-                    .ValueGeneratedOnAdd()
-                    .HasColumnType("uniqueidentifier");
+            modelBuilder.Entity("OnlineConsulting.Modules.Tenancy.Domain.ModuleOffering", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
 
-                b.Property<string>("BillingCycle")
-                    .IsRequired()
-                    .HasMaxLength(30)
-                    .HasColumnType("nvarchar(30)");
+                    b.Property<string>("BillingCycle")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
-                b.Property<string>("CreatedBy")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<DateTimeOffset>("CreatedDate")
-                    .HasColumnType("datetimeoffset");
+                    b.Property<DateTimeOffset>("CreatedDate")
+                        .HasColumnType("datetimeoffset");
 
-                b.Property<string>("DeletedBy")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<DateTimeOffset?>("DeletedDate")
-                    .HasColumnType("datetimeoffset");
+                    b.Property<DateTimeOffset?>("DeletedDate")
+                        .HasColumnType("datetimeoffset");
 
-                b.Property<bool>("IsPubliclyVisible")
-                    .HasColumnType("bit");
+                    b.Property<bool>("IsPubliclyVisible")
+                        .HasColumnType("bit");
 
-                b.Property<string>("Key")
-                    .IsRequired()
-                    .HasMaxLength(100)
-                    .HasColumnType("nvarchar(100)");
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
-                b.Property<string>("Name")
-                    .IsRequired()
-                    .HasMaxLength(200)
-                    .HasColumnType("nvarchar(200)");
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
-                b.Property<decimal>("Price")
-                    .HasColumnType("decimal(18,2)");
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
 
-                b.Property<string>("ProviderPriceId")
-                    .HasMaxLength(100)
-                    .HasColumnType("nvarchar(100)");
+                    b.Property<string>("ProviderPriceId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
-                b.Property<string>("ProviderProductId")
-                    .HasMaxLength(100)
-                    .HasColumnType("nvarchar(100)");
+                    b.Property<string>("ProviderProductId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
-                b.Property<byte[]>("RowVersion")
-                    .IsConcurrencyToken()
-                    .ValueGeneratedOnAddOrUpdate()
-                    .HasColumnType("rowversion");
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
-                b.Property<string>("UpdatedBy")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<DateTimeOffset?>("UpdatedDate")
-                    .HasColumnType("datetimeoffset");
+                    b.Property<DateTimeOffset?>("UpdatedDate")
+                        .HasColumnType("datetimeoffset");
 
-                b.HasKey("Id");
+                    b.HasKey("Id");
 
-                b.HasIndex("Key")
-                    .IsUnique();
+                    b.HasIndex("Key")
+                        .IsUnique();
 
-                b.ToTable("ModuleOfferings", "Tenancy");
-            });
+                    b.ToTable("ModuleOfferings", "Tenancy");
+                });
 
-        modelBuilder.Entity("OnlineConsulting.Modules.Tenancy.Domain.Tenant", b =>
-            {
-                b.Property<Guid>("Id")
-                    .ValueGeneratedOnAdd()
-                    .HasColumnType("uniqueidentifier");
+            modelBuilder.Entity("OnlineConsulting.Modules.Tenancy.Domain.Tenant", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
 
-                b.Property<string>("CreatedBy")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<DateTimeOffset>("CreatedDate")
-                    .HasColumnType("datetimeoffset");
+                    b.Property<DateTimeOffset>("CreatedDate")
+                        .HasColumnType("datetimeoffset");
 
-                b.Property<string>("DeletedBy")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<DateTimeOffset?>("DeletedDate")
-                    .HasColumnType("datetimeoffset");
+                    b.Property<DateTimeOffset?>("DeletedDate")
+                        .HasColumnType("datetimeoffset");
 
-                b.Property<string>("Name")
-                    .IsRequired()
-                    .HasMaxLength(200)
-                    .HasColumnType("nvarchar(200)");
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
-                b.Property<string>("PrimaryContactEmail")
-                    .IsRequired()
-                    .HasMaxLength(256)
-                    .HasColumnType("nvarchar(256)");
+                    b.Property<Guid?>("OwnerUserId")
+                        .HasColumnType("uniqueidentifier");
 
-                b.Property<string>("ProviderCustomerId")
-                    .HasMaxLength(100)
-                    .HasColumnType("nvarchar(100)");
+                    b.Property<string>("PrimaryContactEmail")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
-                b.Property<byte[]>("RowVersion")
-                    .IsConcurrencyToken()
-                    .ValueGeneratedOnAddOrUpdate()
-                    .HasColumnType("rowversion");
+                    b.Property<string>("ProviderCustomerId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
-                b.Property<string>("Slug")
-                    .IsRequired()
-                    .HasMaxLength(200)
-                    .HasColumnType("nvarchar(200)");
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
-                b.Property<string>("Status")
-                    .IsRequired()
-                    .HasMaxLength(30)
-                    .HasColumnType("nvarchar(30)");
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
-                b.Property<string>("UpdatedBy")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
-                b.Property<DateTimeOffset?>("UpdatedDate")
-                    .HasColumnType("datetimeoffset");
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
 
-                b.HasKey("Id");
+                    b.Property<DateTimeOffset?>("UpdatedDate")
+                        .HasColumnType("datetimeoffset");
 
-                b.HasIndex("Slug")
-                    .IsUnique();
+                    b.HasKey("Id");
 
-                b.ToTable("Tenants", "Tenancy");
-            });
+                    b.HasIndex("Slug")
+                        .IsUnique();
 
-        modelBuilder.Entity("OnlineConsulting.Modules.Tenancy.Domain.TenantSubscription", b =>
-            {
-                b.Property<Guid>("Id")
-                    .ValueGeneratedOnAdd()
-                    .HasColumnType("uniqueidentifier");
+                    b.ToTable("Tenants", "Tenancy");
+                });
 
-                b.Property<string>("CreatedBy")
-                    .HasColumnType("nvarchar(max)");
+            modelBuilder.Entity("OnlineConsulting.Modules.Tenancy.Domain.TenantSubscription", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
 
-                b.Property<DateTimeOffset>("CreatedDate")
-                    .HasColumnType("datetimeoffset");
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<string>("DeletedBy")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<DateTimeOffset>("CreatedDate")
+                        .HasColumnType("datetimeoffset");
 
-                b.Property<DateTimeOffset?>("DeletedDate")
-                    .HasColumnType("datetimeoffset");
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<string>("ProviderSubscriptionId")
-                    .HasMaxLength(100)
-                    .HasColumnType("nvarchar(100)");
+                    b.Property<DateTimeOffset?>("DeletedDate")
+                        .HasColumnType("datetimeoffset");
 
-                b.Property<DateTime?>("RenewalDate")
-                    .HasColumnType("datetime2");
+                    b.Property<string>("ProviderSubscriptionId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
-                b.Property<byte[]>("RowVersion")
-                    .IsConcurrencyToken()
-                    .ValueGeneratedOnAddOrUpdate()
-                    .HasColumnType("rowversion");
+                    b.Property<DateTime?>("RenewalDate")
+                        .HasColumnType("datetime2");
 
-                b.Property<DateTime>("StartDate")
-                    .HasColumnType("datetime2");
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
-                b.Property<string>("Status")
-                    .IsRequired()
-                    .HasMaxLength(30)
-                    .HasColumnType("nvarchar(30)");
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
 
-                b.Property<Guid>("TenantId")
-                    .HasColumnType("uniqueidentifier");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
-                b.Property<string>("UpdatedBy")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uniqueidentifier");
 
-                b.Property<DateTimeOffset?>("UpdatedDate")
-                    .HasColumnType("datetimeoffset");
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
 
-                b.HasKey("Id");
+                    b.Property<DateTimeOffset?>("UpdatedDate")
+                        .HasColumnType("datetimeoffset");
 
-                b.HasIndex("TenantId");
+                    b.HasKey("Id");
 
-                b.ToTable("TenantSubscriptions", "Tenancy");
-            });
+                    b.HasIndex("TenantId");
 
-        modelBuilder.Entity("OnlineConsulting.Modules.Tenancy.Domain.TenantSubscriptionItem", b =>
-            {
-                b.Property<Guid>("Id")
-                    .ValueGeneratedOnAdd()
-                    .HasColumnType("uniqueidentifier");
+                    b.ToTable("TenantSubscriptions", "Tenancy");
+                });
 
-                b.Property<DateTime>("AddedAt")
-                    .HasColumnType("datetime2");
+            modelBuilder.Entity("OnlineConsulting.Modules.Tenancy.Domain.TenantSubscriptionItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
 
-                b.Property<string>("CreatedBy")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<DateTime>("AddedAt")
+                        .HasColumnType("datetime2");
 
-                b.Property<DateTimeOffset>("CreatedDate")
-                    .HasColumnType("datetimeoffset");
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<string>("DeletedBy")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<DateTimeOffset>("CreatedDate")
+                        .HasColumnType("datetimeoffset");
 
-                b.Property<DateTimeOffset?>("DeletedDate")
-                    .HasColumnType("datetimeoffset");
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
 
-                b.Property<string>("ModuleKey")
-                    .IsRequired()
-                    .HasMaxLength(100)
-                    .HasColumnType("nvarchar(100)");
+                    b.Property<DateTimeOffset?>("DeletedDate")
+                        .HasColumnType("datetimeoffset");
 
-                b.Property<decimal>("PriceAtAddition")
-                    .HasColumnType("decimal(18,2)");
+                    b.Property<string>("ModuleKey")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
-                b.Property<string>("ProviderSubscriptionItemId")
-                    .HasMaxLength(100)
-                    .HasColumnType("nvarchar(100)");
+                    b.Property<decimal>("PriceAtAddition")
+                        .HasColumnType("decimal(18,2)");
 
-                b.Property<byte[]>("RowVersion")
-                    .IsConcurrencyToken()
-                    .ValueGeneratedOnAddOrUpdate()
-                    .HasColumnType("rowversion");
+                    b.Property<string>("ProviderSubscriptionItemId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
-                b.Property<Guid>("TenantSubscriptionId")
-                    .HasColumnType("uniqueidentifier");
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
-                b.Property<string>("UpdatedBy")
-                    .HasColumnType("nvarchar(max)");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)")
+                        .HasDefaultValue("Active");
 
-                b.Property<DateTimeOffset?>("UpdatedDate")
-                    .HasColumnType("datetimeoffset");
+                    b.Property<Guid>("TenantSubscriptionId")
+                        .HasColumnType("uniqueidentifier");
 
-                b.HasKey("Id");
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
 
-                b.HasIndex("TenantSubscriptionId");
+                    b.Property<DateTimeOffset?>("UpdatedDate")
+                        .HasColumnType("datetimeoffset");
 
-                b.ToTable("TenantSubscriptionItems", "Tenancy");
-            });
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantSubscriptionId");
+
+                    b.ToTable("TenantSubscriptionItems", "Tenancy");
+                });
 #pragma warning restore 612, 618
+        }
     }
 }

@@ -11,6 +11,9 @@ public class TenantSubscriptionItem : Entity<Guid>
     /// <summary>Matches a FeatureFlagKeys value / ModuleOffering.Key.</summary>
     public required string ModuleKey { get; set; }
 
+    /// <summary>TenantSubscriptionItemStatuses value. Pending until billing succeeds, Failed if billing failed (row kept, not soft-deleted, so a retry can resume it under the same Id/idempotency key), Active once billed.</summary>
+    public required string Status { get; set; }
+
     /// <summary>Stripe SubscriptionItem id - add/remove operations go through this.</summary>
     public string? ProviderSubscriptionItemId { get; set; }
 

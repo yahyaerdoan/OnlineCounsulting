@@ -23,7 +23,7 @@ public static class CommerceModule
 {
     public static IServiceCollection AddCommerceModule(this IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString = configuration.GetSection("OnlineConsultingDbConnections:DevelopmentDbConnection").Value;
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
 
         services.AddScoped<TenantSaveChangesInterceptor>();
         services.AddScoped<AuditSaveChangesInterceptor>();

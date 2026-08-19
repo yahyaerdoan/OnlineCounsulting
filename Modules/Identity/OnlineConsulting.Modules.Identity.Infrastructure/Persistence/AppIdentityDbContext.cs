@@ -12,6 +12,7 @@ public class AppIdentityDbContext(DbContextOptions<AppIdentityDbContext> options
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<DeviceToken> DeviceTokens => Set<DeviceToken>();
     public DbSet<OutboxEmail> OutboxEmails => Set<OutboxEmail>();
+    public DbSet<Invite> Invites => Set<Invite>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -31,6 +32,16 @@ public class AppIdentityDbContext(DbContextOptions<AppIdentityDbContext> options
             builder.Property(d => d.Platform).HasMaxLength(20).IsRequired();
             builder.HasIndex(d => d.Token).IsUnique();
             builder.HasIndex(d => d.UserId);
+        });
+
+        modelBuilder.Entity<Invite>(builder =>
+        {
+            builder.Property(i => i.Email).HasMaxLength(256).IsRequired();
+            builder.Property(i => i.Token).HasMaxLength(200).IsRequired();
+            builder.Property(i => i.RoleName).HasMaxLength(256).IsRequired();
+            builder.Property(i => i.Status).HasMaxLength(20).IsRequired();
+            builder.HasIndex(i => i.Token).IsUnique();
+            builder.HasIndex(i => new { i.TenantId, i.Email });
         });
 
         modelBuilder.ConfigureOutboxEmail();

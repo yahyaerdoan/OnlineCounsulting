@@ -2,12 +2,15 @@
 using Core.ApplicationLayer.Pipelines.Loggings.Abstractions;
 using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using OnlineConsulting.Modules.Identity.Application.Common;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Constants;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Contracts;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Rules;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
+using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -20,13 +23,19 @@ public record AssignRoleToUserCommand(Guid UserId, List<RoleAssignmentRequest> R
     public string[] Roles => [UsersOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, UsersOperationClaims.Write];
 }
 
-public class AssignRoleToUserHandler(UserManager<User> userManager) : IRequestHandler<AssignRoleToUserCommand, OperationResult>
+public class AssignRoleToUserHandler(UserManager<User> userManager, ITenantOwnershipReader tenantOwnershipReader, IHttpContextAccessor httpContextAccessor)
+    : IRequestHandler<AssignRoleToUserCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(AssignRoleToUserCommand request, CancellationToken cancellationToken)
     {
         var user = await userManager.FindByIdAsync(request.UserId.ToString());
         if (user is null)
             return UserBusinessRules.UserNotFoundOrInvalidData();
+
+        var ownerGuardResult = await TenantOwnerProtection.EnsureCallerMayModifyAsync(
+            tenantOwnershipReader, httpContextAccessor, user.TenantId, user.Id, cancellationToken);
+        if (ownerGuardResult is not null)
+            return ownerGuardResult;
 
         foreach (var assignment in request.RoleAssignments)
         {

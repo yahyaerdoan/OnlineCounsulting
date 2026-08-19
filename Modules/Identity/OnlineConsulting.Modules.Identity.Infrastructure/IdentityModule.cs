@@ -12,6 +12,7 @@ using OnlineConsulting.Modules.Identity.Application;
 using OnlineConsulting.Modules.Identity.Application.Common.Templates;
 using OnlineConsulting.Modules.Identity.Application.Features.Auth;
 using OnlineConsulting.Modules.Identity.Application.Features.Auth.Abstractions;
+using OnlineConsulting.Modules.Identity.Application.Features.Invites.Abstractions;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Abstractions;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.Modules.Identity.Infrastructure.Notifications;
@@ -19,8 +20,11 @@ using OnlineConsulting.Modules.Identity.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Identity.Infrastructure.Pipelines;
 using OnlineConsulting.Modules.Identity.Infrastructure.Repositories;
 using OnlineConsulting.Modules.Identity.Infrastructure.Security;
+using OnlineConsulting.Modules.Identity.Infrastructure.Seeding;
+using OnlineConsulting.Modules.Identity.Infrastructure.Status;
 using OnlineConsulting.Modules.Identity.Infrastructure.Storage;
 using OnlineConsulting.SharedKernel.Auditing;
+using OnlineConsulting.SharedKernel.Identity;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
 using System.Text;
@@ -32,7 +36,7 @@ public static class IdentityModule
     /// <summary>Host-agnostic wiring, used by both Api and UserInterface. Leaves auth scheme as cookie (Identity's default) - call <see cref="AddIdentityModuleJwtBearer"/> too for JWT bearer hosts.</summary>
     public static IServiceCollection AddIdentityModule(this IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString = configuration.GetSection("OnlineConsultingDbConnections:DevelopmentDbConnection").Value;
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
 
         services.AddScoped<AuditSaveChangesInterceptor>();
 
@@ -51,12 +55,16 @@ public static class IdentityModule
         services.AddScoped<IRefreshTokenService, RefreshTokenService>();
         services.AddScoped<IUserImageStorage, UserImageStorage>();
         services.AddScoped<IDeviceTokenRepository, DeviceTokenRepository>();
+        services.AddScoped<IInviteRepository, InviteRepository>();
+        services.AddScoped<IUserExistenceReader, UserExistenceReader>();
 
         services.AddScoped<IEmailOutboxWriter, EmailOutboxWriter>();
         services.AddScoped<IEmailTemplate<ConfirmEmailEmailModel>, ConfirmEmailTemplate>();
         services.AddScoped<IEmailTemplate<WelcomeEmailModel>, WelcomeTemplate>();
         services.AddScoped<IEmailTemplate<PolicyNoticeEmailModel>, PolicyNoticeTemplate>();
+        services.AddScoped<IEmailTemplate<InviteEmailModel>, InviteTemplate>();
         services.Configure<AuthEmailOptions>(configuration.GetSection("Auth"));
+        services.Configure<SuperAdminSeedOptions>(configuration.GetSection("Seed:SuperAdmin"));
 
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
         services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);

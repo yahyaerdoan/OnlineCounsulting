@@ -26,7 +26,7 @@ public static class SchedulingModule
 {
     public static IServiceCollection AddSchedulingModule(this IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString = configuration.GetSection("OnlineConsultingDbConnections:DevelopmentDbConnection").Value;
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
 
         services.AddScoped<TenantSaveChangesInterceptor>();
         services.AddScoped<AuditSaveChangesInterceptor>();

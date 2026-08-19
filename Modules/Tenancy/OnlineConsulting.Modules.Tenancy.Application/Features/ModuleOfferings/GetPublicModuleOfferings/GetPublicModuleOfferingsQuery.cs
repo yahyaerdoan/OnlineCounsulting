@@ -7,7 +7,7 @@ using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.ModuleOfferings.GetPublicModuleOfferings;
 
-/// <summary>Public, no login required - pricing-page data source for the signup form. Only IsPubliclyVisible offerings, same catalog gate SignUpTenantCommand/AddModuleCommand use.</summary>
+/// <summary>Public, no login required - pricing-page data source for the signup form. Only IsPubliclyVisible offerings, same catalog gate ReserveTenantCommand/AddModuleCommand use.</summary>
 public record GetPublicModuleOfferingsQuery : IRequest<OperationDataResult<List<ModuleOfferingResponse>>>;
 
 public class GetPublicModuleOfferingsHandler(IModuleOfferingRepository moduleOfferingRepository)

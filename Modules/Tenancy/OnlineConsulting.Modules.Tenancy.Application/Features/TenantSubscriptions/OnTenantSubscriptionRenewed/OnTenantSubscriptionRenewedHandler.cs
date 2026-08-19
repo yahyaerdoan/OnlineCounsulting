@@ -6,7 +6,7 @@ using OnlineConsulting.SharedKernel.Payments;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.OnTenantSubscriptionRenewed;
 
-/// <summary>ReferenceId is opaque to the webhook - only handled here because SignUpTenantHandler set CreateSubscriptionRequest.ReferenceId to a TenantSubscription id, so it round-trips to a lookup by Id. The same broadcast notification also reaches Memberships' own handler - each ignores ids it doesn't recognize, so a no-op TryParse/lookup miss here is expected, not an error. Also brings Tenant.Status back to Active (unless Suspended/Cancelled) - a renewal is the natural recovery path for a tenant that had gone PastDue on a failed payment.</summary>
+/// <summary>ReferenceId is opaque to the webhook - only handled here because ActivateTenantSubscriptionHandler set CreateSubscriptionRequest.ReferenceId to a TenantSubscription id, so it round-trips to a lookup by Id. The same broadcast notification also reaches Memberships' own handler - each ignores ids it doesn't recognize, so a no-op TryParse/lookup miss here is expected, not an error. Also brings Tenant.Status back to Active (unless Suspended/Cancelled) - a renewal is the natural recovery path for a tenant that had gone PastDue on a failed payment.</summary>
 public class OnTenantSubscriptionRenewedHandler(ITenantSubscriptionRepository subscriptionRepository, ITenantRepository tenantRepository) : INotificationHandler<SubscriptionRenewedNotification>
 {
     public async Task Handle(SubscriptionRenewedNotification notification, CancellationToken cancellationToken)
