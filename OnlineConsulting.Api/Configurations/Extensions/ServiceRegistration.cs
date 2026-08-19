@@ -1,6 +1,5 @@
-using Core.CrossCuttingConcernLayer.Loggings.Serilogs.Loggers;
+﻿using Core.CrossCuttingConcernLayer.Loggings.Serilogs.Loggers;
 using Core.CrossCuttingConcernLayer.Loggings.Serilogs.Services;
-using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.OpenApi;
 using OnlineConsulting.SharedKernel.DependencyInjection;
 using System.Threading.RateLimiting;

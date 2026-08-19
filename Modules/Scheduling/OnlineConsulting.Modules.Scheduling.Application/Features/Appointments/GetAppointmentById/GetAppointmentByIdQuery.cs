@@ -1,9 +1,9 @@
-using MediatR;
+﻿using MediatR;
+using OnlineConsulting.Modules.Scheduling.Application.Features.AppointmentMediaItems.Abstractions;
+using OnlineConsulting.Modules.Scheduling.Application.Features.AppointmentMediaItems.Contracts;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Abstractions;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Contracts;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Rules;
-using OnlineConsulting.Modules.Scheduling.Application.Features.AppointmentMediaItems.Abstractions;
-using OnlineConsulting.Modules.Scheduling.Application.Features.AppointmentMediaItems.Contracts;
 using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;

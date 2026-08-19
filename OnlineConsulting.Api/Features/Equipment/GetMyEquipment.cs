@@ -1,7 +1,7 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
-using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
 using OnlineConsulting.Modules.Equipment.Application.Features.EquipmentItems.GetMyEquipment;
+using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
 using ResultHandler.AspNetCore.Extensions;
 
 namespace OnlineConsulting.Api.Features.Equipment;

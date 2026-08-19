@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using OnlineConsulting.SharedKernel.Payments;
 using Stripe;
 
@@ -136,33 +136,33 @@ public class StripeSubscriptionGateway : ISubscriptionGateway
         switch (stripeEvent.Type)
         {
             case "customer.subscription.deleted":
-            {
-                if (stripeEvent.Data.Object is not Subscription subscription)
-                    return Task.FromResult<SubscriptionWebhookEvent?>(null);
+                {
+                    if (stripeEvent.Data.Object is not Subscription subscription)
+                        return Task.FromResult<SubscriptionWebhookEvent?>(null);
 
-                var referenceId = subscription.Metadata.GetValueOrDefault("ReferenceId");
-                return referenceId is null
-                    ? Task.FromResult<SubscriptionWebhookEvent?>(null)
-                    : Task.FromResult<SubscriptionWebhookEvent?>(new SubscriptionWebhookEvent(subscription.Id, referenceId, SubscriptionEventKinds.Cancelled));
-            }
+                    var referenceId = subscription.Metadata.GetValueOrDefault("ReferenceId");
+                    return referenceId is null
+                        ? Task.FromResult<SubscriptionWebhookEvent?>(null)
+                        : Task.FromResult<SubscriptionWebhookEvent?>(new SubscriptionWebhookEvent(subscription.Id, referenceId, SubscriptionEventKinds.Cancelled));
+                }
             case "invoice.payment_failed":
             case "invoice.paid":
-            {
-                if (stripeEvent.Data.Object is not Invoice invoice)
-                    return Task.FromResult<SubscriptionWebhookEvent?>(null);
+                {
+                    if (stripeEvent.Data.Object is not Invoice invoice)
+                        return Task.FromResult<SubscriptionWebhookEvent?>(null);
 
-                var subscriptionDetails = invoice.Parent?.SubscriptionDetails;
-                var referenceId = subscriptionDetails?.Metadata?.GetValueOrDefault("ReferenceId");
-                if (subscriptionDetails?.SubscriptionId is null || referenceId is null)
-                    return Task.FromResult<SubscriptionWebhookEvent?>(null);
+                    var subscriptionDetails = invoice.Parent?.SubscriptionDetails;
+                    var referenceId = subscriptionDetails?.Metadata?.GetValueOrDefault("ReferenceId");
+                    if (subscriptionDetails?.SubscriptionId is null || referenceId is null)
+                        return Task.FromResult<SubscriptionWebhookEvent?>(null);
 
-                var eventKind = stripeEvent.Type == "invoice.paid" ? SubscriptionEventKinds.Renewed : SubscriptionEventKinds.PaymentFailed;
-                var newRenewalDate = eventKind == SubscriptionEventKinds.Renewed && invoice.Lines.Data.Count > 0
-                    ? new DateTimeOffset(invoice.Lines.Data[0].Period.End, TimeSpan.Zero)
-                    : (DateTimeOffset?)null;
+                    var eventKind = stripeEvent.Type == "invoice.paid" ? SubscriptionEventKinds.Renewed : SubscriptionEventKinds.PaymentFailed;
+                    var newRenewalDate = eventKind == SubscriptionEventKinds.Renewed && invoice.Lines.Data.Count > 0
+                        ? new DateTimeOffset(invoice.Lines.Data[0].Period.End, TimeSpan.Zero)
+                        : (DateTimeOffset?)null;
 
-                return Task.FromResult<SubscriptionWebhookEvent?>(new SubscriptionWebhookEvent(subscriptionDetails.SubscriptionId, referenceId, eventKind, newRenewalDate));
-            }
+                    return Task.FromResult<SubscriptionWebhookEvent?>(new SubscriptionWebhookEvent(subscriptionDetails.SubscriptionId, referenceId, eventKind, newRenewalDate));
+                }
             default:
                 return Task.FromResult<SubscriptionWebhookEvent?>(null);
         }

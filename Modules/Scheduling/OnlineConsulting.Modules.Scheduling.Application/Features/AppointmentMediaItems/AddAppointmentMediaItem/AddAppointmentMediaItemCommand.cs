@@ -1,8 +1,8 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
+using OnlineConsulting.Modules.Scheduling.Application.Features.AppointmentMediaItems.Abstractions;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Abstractions;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Rules;
-using OnlineConsulting.Modules.Scheduling.Application.Features.AppointmentMediaItems.Abstractions;
 using OnlineConsulting.Modules.Scheduling.Domain;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
