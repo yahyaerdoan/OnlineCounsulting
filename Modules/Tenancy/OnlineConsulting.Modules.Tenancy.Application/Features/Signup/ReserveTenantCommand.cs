@@ -8,6 +8,7 @@ using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.
 using OnlineConsulting.Modules.Tenancy.Domain;
 using OnlineConsulting.SharedKernel.Payments;
 using OnlineConsulting.SharedKernel.Persistence;
+using OnlineConsulting.SharedKernel.Slugs;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
@@ -69,7 +70,12 @@ public class ReserveTenantHandler(
 
         if (tenant is null)
         {
-            var slug = Slugify(request.CompanyName);
+            var slug = SlugGenerator.Slugify(request.CompanyName);
+            if (string.IsNullOrEmpty(slug))
+            {
+                slug = Guid.NewGuid().ToString("N");
+            }
+
             var slugAlreadyTaken = await tenantRepository.AnyAsync(t => t.Slug == slug, cancellationToken: cancellationToken);
             if (slugAlreadyTaken)
             {
@@ -128,12 +134,5 @@ public class ReserveTenantHandler(
         }
 
         return Result.Created(new ReserveTenantResult(tenant.Id), "Tenant reserved successfully.");
-    }
-
-    private static string Slugify(string companyName)
-    {
-        var lowered = companyName.Trim().ToLowerInvariant();
-        var hyphenated = System.Text.RegularExpressions.Regex.Replace(lowered, @"[^a-z0-9]+", "-").Trim('-');
-        return string.IsNullOrEmpty(hyphenated) ? Guid.NewGuid().ToString("N") : hyphenated;
     }
 }

@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.ServiceAreas.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Application.Features.ServiceAreas.Contracts;
 using ResultHandler.Core.Base;
@@ -14,7 +15,7 @@ public class GetServiceAreaBySlugHandler(IServiceAreaRepository repository) : IR
     {
         var entity = await repository.GetAsync(s => s.Slug == request.Slug, enableTracking: false, cancellationToken: cancellationToken);
         return entity is null
-            ? Result.NotFound<ServiceAreaResponse>($"Service area '{request.Slug}' was not found.")
+            ? Result.NotFound<ServiceAreaResponse>(string.Format(SiteContentMessages.NotFoundFormat, "Service area", $"'{request.Slug}'"))
             : Result.Success(ServiceAreaResponse.FromDomain(entity), "Service area retrieved successfully.");
     }
 }

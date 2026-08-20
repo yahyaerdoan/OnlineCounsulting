@@ -2,6 +2,7 @@
 using MediatR;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Messages.Abstractions;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Messages.Constants;
+using OnlineConsulting.Modules.Inquiries.Application.Features.Messages.Rules;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -21,7 +22,7 @@ public class DeleteMessageHandler(IMessageRepository repository) : IRequestHandl
         var message = await repository.GetAsync(m => m.Id == request.Id, cancellationToken: cancellationToken);
         if (message is null)
         {
-            return Result.NotFound($"Message {request.Id} was not found.");
+            return MessageBusinessRules.MessageNotFound(request.Id);
         }
 
         _ = await repository.DeleteAsync(message);

@@ -19,6 +19,8 @@ public record GetOrCreateReferralCodeCommand(Guid UserId) : IRequest<OperationDa
 public class GetOrCreateReferralCodeHandler(IReferralCodeRepository repository) : IRequestHandler<GetOrCreateReferralCodeCommand, OperationDataResult<string>>
 {
     private const string Alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    private const int CodeLength = 8;
+    private const int MaxGenerationAttempts = 10;
 
     public async Task<OperationDataResult<string>> Handle(GetOrCreateReferralCodeCommand request, CancellationToken cancellationToken)
     {
@@ -28,23 +30,36 @@ public class GetOrCreateReferralCodeHandler(IReferralCodeRepository repository) 
             return Result.Success(existing.Code, "Referral code retrieved successfully.");
         }
 
-        string code;
-        do
+        var code = await GenerateUniqueCodeAsync(cancellationToken);
+        if (code is null)
         {
-            code = GenerateCode();
+            return Result.InternalServerError<string>("Could not generate a unique referral code. Please try again.");
         }
-        while (await repository.AnyAsync(c => c.Code == code, cancellationToken: cancellationToken));
 
         _ = await repository.AddAsync(new ReferralCode { Id = Guid.NewGuid(), UserId = request.UserId, Code = code });
 
         return Result.Created(code, "Referral code created successfully.");
     }
 
-    private static string GenerateCode() => string.Create(8, 0, (span, _) =>
+    private async Task<string?> GenerateUniqueCodeAsync(CancellationToken cancellationToken)
     {
-        for (var i = 0; i < span.Length; i++)
+        for (var attempt = 0; attempt < MaxGenerationAttempts; attempt++)
         {
-            span[i] = Alphabet[RandomNumberGenerator.GetInt32(Alphabet.Length)];
+            var code = GenerateCode();
+            if (!await repository.AnyAsync(c => c.Code == code, cancellationToken: cancellationToken))
+            {
+                return code;
+            }
+        }
+
+        return null;
+    }
+
+    private static string GenerateCode() => string.Create(CodeLength, 0, (span, _) =>
+    {
+        foreach (ref var c in span)
+        {
+            c = Alphabet[RandomNumberGenerator.GetInt32(Alphabet.Length)];
         }
     });
 }

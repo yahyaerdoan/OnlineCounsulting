@@ -2,6 +2,7 @@
 using MediatR;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.Abstractions;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.Constants;
+using OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.Rules;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -21,7 +22,7 @@ public class UnsubscribeHandler(INewsletterSubscriberRepository repository) : IR
         var subscriber = await repository.GetAsync(s => s.Id == request.Id, cancellationToken: cancellationToken);
         if (subscriber is null)
         {
-            return Result.NotFound($"Subscriber {request.Id} was not found.");
+            return NewsletterBusinessRules.SubscriberNotFound(request.Id);
         }
 
         _ = await repository.DeleteAsync(subscriber);

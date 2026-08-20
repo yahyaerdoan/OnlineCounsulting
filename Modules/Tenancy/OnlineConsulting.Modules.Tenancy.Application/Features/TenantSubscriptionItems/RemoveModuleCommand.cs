@@ -2,7 +2,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.Abstractions;
-using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.Constants;
+using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.Rules;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Domain;
 using OnlineConsulting.SharedKernel.FeatureFlags;
@@ -34,14 +34,14 @@ public class RemoveModuleHandler(
     {
         if (!TenantOwnershipGuard.CallerMayManage(request.TenantId, tenantProvider.TenantId, httpContextAccessor))
         {
-            return Result.Forbidden(TenantSubscriptionItemMessages.NotAuthorizedForTenant);
+            return TenantSubscriptionItemBusinessRules.NotAuthorizedForTenant();
         }
 
         var tenantSubscription = await tenantSubscriptionRepository.GetAsync(
             s => s.TenantId == request.TenantId && s.Status != TenantSubscriptionStatuses.Cancelled, cancellationToken: cancellationToken);
         if (tenantSubscription is null)
         {
-            return Result.BadRequest(TenantSubscriptionItemMessages.NoActiveSubscription);
+            return TenantSubscriptionItemBusinessRules.NoActiveSubscription();
         }
 
         var item = await tenantSubscriptionItemRepository.GetAsync(
@@ -49,7 +49,7 @@ public class RemoveModuleHandler(
             cancellationToken: cancellationToken);
         if (item is null)
         {
-            return Result.NotFound(TenantSubscriptionItemMessages.ModuleNotActive);
+            return TenantSubscriptionItemBusinessRules.ModuleNotActive();
         }
 
         var providerSubscriptionItemId = item.ProviderSubscriptionItemId

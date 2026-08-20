@@ -8,6 +8,7 @@ public static partial class SlugGenerator
 {
     private const int MaxLength = 80;
     private const char TurkishDotlessI = 'ı';
+    private const int MaxSequentialAttempts = 50;
 
     public static string Slugify(string value, int maxLength = MaxLength)
     {
@@ -36,15 +37,20 @@ public static partial class SlugGenerator
     {
         var baseSlug = Slugify(value, maxLength);
         var slug = baseSlug;
-        var suffix = 1;
 
-        while (await existsAsync(slug))
+        for (var suffix = 1; suffix <= MaxSequentialAttempts; suffix++)
         {
+            if (!await existsAsync(slug))
+            {
+                return slug;
+            }
+
             slug = $"{baseSlug}-{suffix}";
-            suffix++;
         }
 
-        return slug;
+        return await existsAsync(slug)
+            ? Truncate($"{baseSlug}-{Guid.NewGuid():N}", maxLength)
+            : slug;
     }
 
     private static string Truncate(string slug, int maxLength)

@@ -47,6 +47,7 @@ public class OrphanedTenantCleanupService(IServiceScopeFactory scopeFactory, IOp
 
         var candidates = await tenantRepository.GetListAsync(
             predicate: t => (t.Status == TenantStatuses.PendingPayment || t.Status == TenantStatuses.Failed) && t.CreatedDate <= cutoff,
+            orderBy: q => q.OrderBy(t => t.CreatedDate),
             size: RepositoryQuerySize.Unbounded,
             cancellationToken: cancellationToken);
 
@@ -77,6 +78,7 @@ public class OrphanedTenantCleanupService(IServiceScopeFactory scopeFactory, IOp
             {
                 var items = await tenantSubscriptionItemRepository.GetListAsync(
                     predicate: i => i.TenantSubscriptionId == subscription.Id,
+                    orderBy: q => q.OrderBy(i => i.Id),
                     size: RepositoryQuerySize.Unbounded,
                     cancellationToken: cancellationToken);
 

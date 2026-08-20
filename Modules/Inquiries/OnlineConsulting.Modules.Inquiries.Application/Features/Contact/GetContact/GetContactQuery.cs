@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Contact.Abstractions;
+using OnlineConsulting.Modules.Inquiries.Application.Features.Contact.Constants;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Contact.Contracts;
 using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
@@ -17,7 +18,7 @@ public class GetContactHandler(ICompanyContactRepository repository) : IRequestH
         var contact = contacts.Items.FirstOrDefault();
 
         return contact is null
-            ? Result.NotFound<CompanyContactResponse>("Contact information has not been configured yet.")
+            ? Result.NotFound<CompanyContactResponse>(ContactMessages.ContactNotConfigured)
             : Result.Success(CompanyContactResponse.FromDomain(contact), "Contact information retrieved successfully.");
     }
 }

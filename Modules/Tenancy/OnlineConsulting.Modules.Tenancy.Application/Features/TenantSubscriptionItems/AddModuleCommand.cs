@@ -5,6 +5,7 @@ using OnlineConsulting.Modules.Tenancy.Application.Features.ModuleOfferings.Abst
 using OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.Constants;
+using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.Rules;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Domain;
 using OnlineConsulting.SharedKernel.FeatureFlags;
@@ -38,20 +39,20 @@ public class AddModuleHandler(
     {
         if (!TenantOwnershipGuard.CallerMayManage(request.TenantId, tenantProvider.TenantId, httpContextAccessor))
         {
-            return Result.Forbidden(TenantSubscriptionItemMessages.NotAuthorizedForTenant);
+            return TenantSubscriptionItemBusinessRules.NotAuthorizedForTenant();
         }
 
         var tenant = await tenantRepository.GetAsync(t => t.Id == request.TenantId, cancellationToken: cancellationToken);
         if (tenant is null)
         {
-            return Result.NotFound(TenantSubscriptionItemMessages.TenantNotFound);
+            return TenantSubscriptionItemBusinessRules.TenantNotFound();
         }
 
         var moduleOffering = await moduleOfferingRepository.GetAsync(
             m => m.Key == request.ModuleKey && m.IsPubliclyVisible, cancellationToken: cancellationToken);
         if (moduleOffering is null)
         {
-            return Result.BadRequest(TenantSubscriptionItemMessages.ModuleNotFound);
+            return TenantSubscriptionItemBusinessRules.ModuleNotFound();
         }
 
         var moduleOfferingPriceId = moduleOffering.ProviderPriceId
@@ -61,7 +62,7 @@ public class AddModuleHandler(
             s => s.TenantId == request.TenantId && s.Status != TenantSubscriptionStatuses.Cancelled, cancellationToken: cancellationToken);
         if (tenantSubscription is null)
         {
-            return Result.BadRequest(TenantSubscriptionItemMessages.NoActiveSubscription);
+            return TenantSubscriptionItemBusinessRules.NoActiveSubscription();
         }
 
         var providerSubscriptionId = tenantSubscription.ProviderSubscriptionId
@@ -74,7 +75,7 @@ public class AddModuleHandler(
                 cancellationToken: cancellationToken);
             if (hasAnyActiveItem)
             {
-                return Result.BadRequest(TenantSubscriptionItemMessages.MultipleModulesNotSupportedByProvider);
+                return TenantSubscriptionItemBusinessRules.MultipleModulesNotSupportedByProvider();
             }
         }
 
@@ -83,7 +84,7 @@ public class AddModuleHandler(
             cancellationToken: cancellationToken);
         if (alreadyActive)
         {
-            return Result.Conflict(TenantSubscriptionItemMessages.ModuleAlreadyAdded);
+            return TenantSubscriptionItemBusinessRules.ModuleAlreadyAdded();
         }
 
         var existingItem = await tenantSubscriptionItemRepository.GetAsync(
