@@ -17,7 +17,9 @@ public static class EndpointExtensions
                 ?? throw new InvalidOperationException($"{endpointType.Name} could not be instantiated as an IEndpoint.");
 
             if (endpoint is IDevOnlyEndpoint && !app.Environment.IsDevelopment())
+            {
                 continue;
+            }
 
             endpoint.MapEndpoint(app);
         }

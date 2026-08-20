@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems;
 using ResultHandler.AspNetCore.Extensions;
@@ -10,7 +10,7 @@ public class RemoveModule : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapDelete("/api/tenancy/{tenantId:guid}/modules/{key}", Handle)
+        _ = app.MapDelete("/api/tenancy/{tenantId:guid}/modules/{key}", Handle)
             .WithTags("Tenancy")
             .RequireAuthorization()
             .WithName("RemoveModule")

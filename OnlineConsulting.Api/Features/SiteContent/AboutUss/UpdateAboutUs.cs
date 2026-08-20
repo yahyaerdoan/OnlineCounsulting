@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.AboutUss.UpdateAboutUs;
@@ -10,7 +10,7 @@ public class UpdateAboutUs : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPut("/api/site-content/about-us/{id:guid}", Handle)
+        _ = app.MapPut("/api/site-content/about-us/{id:guid}", Handle)
             .WithTags("SiteContent/AboutUs")
             .RequireAuthorization()
             .WithName("UpdateAboutUs")

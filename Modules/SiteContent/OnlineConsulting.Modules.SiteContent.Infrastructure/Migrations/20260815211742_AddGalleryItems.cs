@@ -10,7 +10,7 @@ public partial class AddGalleryItems : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.CreateTable(
+        _ = migrationBuilder.CreateTable(
             name: "GalleryCategories",
             schema: "SiteContent",
             columns: table => new
@@ -26,10 +26,10 @@ public partial class AddGalleryItems : Migration
             },
             constraints: table =>
             {
-                table.PrimaryKey("PK_GalleryCategories", x => x.Id);
+                _ = table.PrimaryKey("PK_GalleryCategories", x => x.Id);
             });
 
-        migrationBuilder.CreateTable(
+        _ = migrationBuilder.CreateTable(
             name: "GalleryItemCategories",
             schema: "SiteContent",
             columns: table => new
@@ -45,10 +45,10 @@ public partial class AddGalleryItems : Migration
             },
             constraints: table =>
             {
-                table.PrimaryKey("PK_GalleryItemCategories", x => x.Id);
+                _ = table.PrimaryKey("PK_GalleryItemCategories", x => x.Id);
             });
 
-        migrationBuilder.CreateTable(
+        _ = migrationBuilder.CreateTable(
             name: "GalleryItems",
             schema: "SiteContent",
             columns: table => new
@@ -66,10 +66,10 @@ public partial class AddGalleryItems : Migration
             },
             constraints: table =>
             {
-                table.PrimaryKey("PK_GalleryItems", x => x.Id);
+                _ = table.PrimaryKey("PK_GalleryItems", x => x.Id);
             });
 
-        migrationBuilder.CreateIndex(
+        _ = migrationBuilder.CreateIndex(
             name: "IX_GalleryItemCategories_TenantId_GalleryItemId_GalleryCategoryId",
             schema: "SiteContent",
             table: "GalleryItemCategories",
@@ -80,15 +80,15 @@ public partial class AddGalleryItems : Migration
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.DropTable(
+        _ = migrationBuilder.DropTable(
             name: "GalleryCategories",
             schema: "SiteContent");
 
-        migrationBuilder.DropTable(
+        _ = migrationBuilder.DropTable(
             name: "GalleryItemCategories",
             schema: "SiteContent");
 
-        migrationBuilder.DropTable(
+        _ = migrationBuilder.DropTable(
             name: "GalleryItems",
             schema: "SiteContent");
     }

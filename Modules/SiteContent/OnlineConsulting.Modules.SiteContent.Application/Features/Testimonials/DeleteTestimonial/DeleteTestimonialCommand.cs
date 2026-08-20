@@ -20,9 +20,11 @@ public class DeleteTestimonialHandler(ITestimonialRepository repository) : IRequ
     {
         var entity = await repository.GetAsync(x => x.Id == request.Id, cancellationToken: cancellationToken);
         if (entity is null)
+        {
             return SiteContentBusinessRules.NotFound("Testimonial", request.Id);
+        }
 
-        await repository.DeleteAsync(entity);
+        _ = await repository.DeleteAsync(entity);
 
         return Result.Success("Testimonial deleted successfully.");
     }

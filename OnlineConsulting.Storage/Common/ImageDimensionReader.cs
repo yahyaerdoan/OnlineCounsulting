@@ -1,4 +1,4 @@
-using SixLabors.ImageSharp;
+﻿using SixLabors.ImageSharp;
 
 namespace OnlineConsulting.Storage.Common;
 
@@ -8,7 +8,9 @@ public static class ImageDimensionReader
     public static async Task<(int? Width, int? Height)> TryReadAsync(Stream seekableStream, string contentType, CancellationToken cancellationToken)
     {
         if (!contentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+        {
             return (null, null);
+        }
 
         var startPosition = seekableStream.Position;
         try

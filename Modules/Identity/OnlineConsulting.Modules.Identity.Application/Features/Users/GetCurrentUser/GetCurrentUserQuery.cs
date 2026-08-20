@@ -21,15 +21,21 @@ public class GetCurrentUserHandler(IHttpContextAccessor httpContextAccessor, Use
     {
         var identity = httpContextAccessor.HttpContext?.User?.Identity;
         if (identity is not { IsAuthenticated: true })
+        {
             return Result.Unauthorized<UserResponse>("User not found. Please log in and try again.");
+        }
 
         var username = identity.Name ?? httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Name)?.Value;
         if (string.IsNullOrEmpty(username))
+        {
             return Result.NotFound<UserResponse>(UserMessages.UserNotFound);
+        }
 
         var user = await userManager.FindByNameAsync(username);
         if (user is null)
+        {
             return Result.BadRequest<UserResponse>(UserMessages.UserNotFoundOrInvalidData);
+        }
 
         var roles = await userManager.GetRolesAsync(user);
         var permissions = RolePermissionResolver.ExpandForDisplay(await RolePermissionResolver.ResolvePermissionsAsync(roleManager, roles), permissionCatalog);

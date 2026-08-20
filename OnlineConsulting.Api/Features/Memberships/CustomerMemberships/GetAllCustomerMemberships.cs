@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.GetAllCustomerMemberships;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class GetAllCustomerMemberships : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/memberships", Handle)
+        _ = app.MapGet("/api/memberships", Handle)
             .WithTags("Memberships/CustomerMemberships")
             .RequireAuthorization()
             .WithName("GetAllCustomerMemberships")

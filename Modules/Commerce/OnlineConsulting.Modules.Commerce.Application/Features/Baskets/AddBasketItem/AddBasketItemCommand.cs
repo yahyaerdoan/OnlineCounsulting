@@ -22,7 +22,7 @@ public class AddBasketItemHandler(IBasketRepository basketRepository, IBasketIte
         if (basket is null)
         {
             basket = new Basket { Id = Guid.NewGuid(), UserId = request.UserId, GuestId = request.GuestId };
-            await basketRepository.AddAsync(basket);
+            _ = await basketRepository.AddAsync(basket);
         }
 
         var existingItem = await basketItemRepository.GetAsync(i => i.BasketId == basket.Id && i.ServiceId == request.ServiceId, cancellationToken: cancellationToken);
@@ -31,7 +31,7 @@ public class AddBasketItemHandler(IBasketRepository basketRepository, IBasketIte
             existingItem.Quantity = request.Quantity;
             (existingItem.SubTotalPrice, existingItem.TaxAmount, existingItem.TotalPrice) =
                 TaxCalculator.Calculate(existingItem.Price, existingItem.Quantity, existingItem.TaxRate);
-            await basketItemRepository.UpdateAsync(existingItem);
+            _ = await basketItemRepository.UpdateAsync(existingItem);
         }
         else
         {
@@ -48,7 +48,7 @@ public class AddBasketItemHandler(IBasketRepository basketRepository, IBasketIte
                 TaxAmount = taxAmount,
                 TotalPrice = totalPrice,
             };
-            await basketItemRepository.AddAsync(item);
+            _ = await basketItemRepository.AddAsync(item);
         }
 
         await UpdateBasketTotalsAsync(basket, cancellationToken);
@@ -60,6 +60,6 @@ public class AddBasketItemHandler(IBasketRepository basketRepository, IBasketIte
     {
         var items = await basketItemRepository.GetListAsync(i => i.BasketId == basket.Id, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
         (basket.Quantity, basket.SubTotalPrice, basket.TotalPrice) = BasketTotalsCalculator.Calculate(items.Items);
-        await basketRepository.UpdateAsync(basket);
+        _ = await basketRepository.UpdateAsync(basket);
     }
 }

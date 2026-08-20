@@ -20,7 +20,9 @@ public class UpdatePageBannerHandler(IPageBannerRepository repository) : IReques
     {
         var entity = await repository.GetAsync(x => x.Id == request.Id, cancellationToken: cancellationToken);
         if (entity is null)
+        {
             return SiteContentBusinessRules.NotFound("Page banner", request.Id);
+        }
 
         entity.Title = request.Title;
         entity.Description = request.Description;
@@ -28,7 +30,7 @@ public class UpdatePageBannerHandler(IPageBannerRepository repository) : IReques
         entity.DisplayOrder = request.DisplayOrder;
         entity.Metadata = MetadataSerializer.Serialize(request.Metadata);
 
-        await repository.UpdateAsync(entity);
+        _ = await repository.UpdateAsync(entity);
 
         return Result.Success("Page banner updated successfully.");
     }

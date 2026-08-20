@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.AboutUss.DeleteAboutUs;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class DeleteAboutUs : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapDelete("/api/site-content/about-us/{id:guid}", Handle)
+        _ = app.MapDelete("/api/site-content/about-us/{id:guid}", Handle)
             .WithTags("SiteContent/AboutUs")
             .RequireAuthorization()
             .WithName("DeleteAboutUs")

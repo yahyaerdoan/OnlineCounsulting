@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using OnlineConsulting.Modules.SiteContent.Domain;
 using OnlineConsulting.Modules.SiteContent.Domain.Gallery;
 using OnlineConsulting.Modules.SiteContent.Domain.Partnerships;
@@ -29,167 +29,167 @@ public class SiteContentDbContext(DbContextOptions<SiteContentDbContext> options
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasDefaultSchema("SiteContent");
+        _ = modelBuilder.HasDefaultSchema("SiteContent");
 
-        modelBuilder.Entity<AboutUs>(builder =>
+        _ = modelBuilder.Entity<AboutUs>(builder =>
         {
-            builder.Property(x => x.Title).HasMaxLength(200).IsRequired();
-            builder.Property(x => x.Description).HasMaxLength(4000).IsRequired();
-            builder.Property(x => x.CoverImage).HasMaxLength(500);
-            builder.Property(x => x.VideoUrl).HasMaxLength(500);
-            builder.Property(x => x.RowVersion).IsRowVersion();
-            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.Property(x => x.Title).HasMaxLength(200).IsRequired();
+            _ = builder.Property(x => x.Description).HasMaxLength(4000).IsRequired();
+            _ = builder.Property(x => x.CoverImage).HasMaxLength(500);
+            _ = builder.Property(x => x.VideoUrl).HasMaxLength(500);
+            _ = builder.Property(x => x.RowVersion).IsRowVersion();
+            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
-        modelBuilder.Entity<FooterInfo>(builder =>
+        _ = modelBuilder.Entity<FooterInfo>(builder =>
         {
-            builder.Property(x => x.ImageUrl).HasMaxLength(500).IsRequired();
-            builder.Property(x => x.Description).HasMaxLength(2000).IsRequired();
-            builder.Property(x => x.RowVersion).IsRowVersion();
-            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.Property(x => x.ImageUrl).HasMaxLength(500).IsRequired();
+            _ = builder.Property(x => x.Description).HasMaxLength(2000).IsRequired();
+            _ = builder.Property(x => x.RowVersion).IsRowVersion();
+            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
-        modelBuilder.Entity<FeatureHighlight>(builder =>
+        _ = modelBuilder.Entity<FeatureHighlight>(builder =>
         {
-            builder.Property(x => x.Title).HasMaxLength(200).IsRequired();
-            builder.Property(x => x.Description).HasMaxLength(2000).IsRequired();
-            builder.Property(x => x.ImageUrl).HasMaxLength(500).IsRequired();
-            builder.Property(x => x.RowVersion).IsRowVersion();
-            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.Property(x => x.Title).HasMaxLength(200).IsRequired();
+            _ = builder.Property(x => x.Description).HasMaxLength(2000).IsRequired();
+            _ = builder.Property(x => x.ImageUrl).HasMaxLength(500).IsRequired();
+            _ = builder.Property(x => x.RowVersion).IsRowVersion();
+            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
-        modelBuilder.Entity<PageBanner>(builder =>
+        _ = modelBuilder.Entity<PageBanner>(builder =>
         {
-            builder.Property(x => x.Title).HasMaxLength(200).IsRequired();
-            builder.Property(x => x.Description).HasMaxLength(2000).IsRequired();
-            builder.Property(x => x.ImageUrl).HasMaxLength(500).IsRequired();
-            builder.Property(x => x.RowVersion).IsRowVersion();
-            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.Property(x => x.Title).HasMaxLength(200).IsRequired();
+            _ = builder.Property(x => x.Description).HasMaxLength(2000).IsRequired();
+            _ = builder.Property(x => x.ImageUrl).HasMaxLength(500).IsRequired();
+            _ = builder.Property(x => x.RowVersion).IsRowVersion();
+            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
-        modelBuilder.Entity<HeroSlide>(builder =>
+        _ = modelBuilder.Entity<HeroSlide>(builder =>
         {
-            builder.Property(x => x.Title).HasMaxLength(200).IsRequired();
-            builder.Property(x => x.Description).HasMaxLength(2000).IsRequired();
-            builder.Property(x => x.ImageUrl).HasMaxLength(500).IsRequired();
-            builder.Property(x => x.RowVersion).IsRowVersion();
-            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.Property(x => x.Title).HasMaxLength(200).IsRequired();
+            _ = builder.Property(x => x.Description).HasMaxLength(2000).IsRequired();
+            _ = builder.Property(x => x.ImageUrl).HasMaxLength(500).IsRequired();
+            _ = builder.Property(x => x.RowVersion).IsRowVersion();
+            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
-        modelBuilder.Entity<Testimonial>(builder =>
+        _ = modelBuilder.Entity<Testimonial>(builder =>
         {
-            builder.Property(x => x.FirstName).HasMaxLength(100).IsRequired();
-            builder.Property(x => x.LastName).HasMaxLength(100).IsRequired();
-            builder.Property(x => x.Title).HasMaxLength(200).IsRequired();
-            builder.Property(x => x.Description).HasMaxLength(2000).IsRequired();
-            builder.Property(x => x.ImageUrl).HasMaxLength(500).IsRequired();
-            builder.Property(x => x.RowVersion).IsRowVersion();
-            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.Property(x => x.FirstName).HasMaxLength(100).IsRequired();
+            _ = builder.Property(x => x.LastName).HasMaxLength(100).IsRequired();
+            _ = builder.Property(x => x.Title).HasMaxLength(200).IsRequired();
+            _ = builder.Property(x => x.Description).HasMaxLength(2000).IsRequired();
+            _ = builder.Property(x => x.ImageUrl).HasMaxLength(500).IsRequired();
+            _ = builder.Property(x => x.RowVersion).IsRowVersion();
+            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
-        modelBuilder.Entity<Partnership>(builder =>
+        _ = modelBuilder.Entity<Partnership>(builder =>
         {
-            builder.Property(x => x.FirstName).HasMaxLength(100).IsRequired();
-            builder.Property(x => x.LastName).HasMaxLength(100).IsRequired();
-            builder.Property(x => x.Email).HasMaxLength(200).IsRequired();
-            builder.Property(x => x.Title).HasMaxLength(200).IsRequired();
-            builder.Property(x => x.CompanyName).HasMaxLength(200).IsRequired();
-            builder.Property(x => x.Description).HasMaxLength(2000).IsRequired();
-            builder.Property(x => x.WebsiteUrl).HasMaxLength(500).IsRequired();
-            builder.Property(x => x.RowVersion).IsRowVersion();
-            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.Property(x => x.FirstName).HasMaxLength(100).IsRequired();
+            _ = builder.Property(x => x.LastName).HasMaxLength(100).IsRequired();
+            _ = builder.Property(x => x.Email).HasMaxLength(200).IsRequired();
+            _ = builder.Property(x => x.Title).HasMaxLength(200).IsRequired();
+            _ = builder.Property(x => x.CompanyName).HasMaxLength(200).IsRequired();
+            _ = builder.Property(x => x.Description).HasMaxLength(2000).IsRequired();
+            _ = builder.Property(x => x.WebsiteUrl).HasMaxLength(500).IsRequired();
+            _ = builder.Property(x => x.RowVersion).IsRowVersion();
+            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
-        modelBuilder.Entity<PartnershipSocialLink>(builder =>
+        _ = modelBuilder.Entity<PartnershipSocialLink>(builder =>
         {
-            builder.Property(x => x.Name).HasMaxLength(100).IsRequired();
-            builder.Property(x => x.Url).HasMaxLength(500).IsRequired();
-            builder.Property(x => x.Icon).HasMaxLength(2000).IsRequired();
-            builder.Property(x => x.IconColor).HasMaxLength(7);
-            builder.Property(x => x.RowVersion).IsRowVersion();
-            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.Property(x => x.Name).HasMaxLength(100).IsRequired();
+            _ = builder.Property(x => x.Url).HasMaxLength(500).IsRequired();
+            _ = builder.Property(x => x.Icon).HasMaxLength(2000).IsRequired();
+            _ = builder.Property(x => x.IconColor).HasMaxLength(7);
+            _ = builder.Property(x => x.RowVersion).IsRowVersion();
+            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
-        modelBuilder.Entity<GalleryCategory>(builder =>
+        _ = modelBuilder.Entity<GalleryCategory>(builder =>
         {
-            builder.Property(x => x.Name).HasMaxLength(100).IsRequired();
-            builder.Property(x => x.Description).HasMaxLength(500);
-            builder.Property(x => x.RowVersion).IsRowVersion();
-            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.Property(x => x.Name).HasMaxLength(100).IsRequired();
+            _ = builder.Property(x => x.Description).HasMaxLength(500);
+            _ = builder.Property(x => x.RowVersion).IsRowVersion();
+            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
-        modelBuilder.Entity<GalleryItem>(builder =>
+        _ = modelBuilder.Entity<GalleryItem>(builder =>
         {
-            builder.Property(x => x.Description).HasMaxLength(2000).IsRequired();
-            builder.Property(x => x.RowVersion).IsRowVersion();
-            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.Property(x => x.Description).HasMaxLength(2000).IsRequired();
+            _ = builder.Property(x => x.RowVersion).IsRowVersion();
+            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
-        modelBuilder.Entity<GalleryItemCategory>(builder =>
+        _ = modelBuilder.Entity<GalleryItemCategory>(builder =>
         {
-            builder.HasIndex(x => new { x.TenantId, x.GalleryItemId, x.GalleryCategoryId }).IsUnique();
-            builder.Property(x => x.RowVersion).IsRowVersion();
-            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.HasIndex(x => new { x.TenantId, x.GalleryItemId, x.GalleryCategoryId }).IsUnique();
+            _ = builder.Property(x => x.RowVersion).IsRowVersion();
+            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
-        modelBuilder.Entity<ServiceProcessStep>(builder =>
+        _ = modelBuilder.Entity<ServiceProcessStep>(builder =>
         {
-            builder.Property(x => x.Title).HasMaxLength(200).IsRequired();
-            builder.Property(x => x.Description).HasMaxLength(2000).IsRequired();
-            builder.Property(x => x.Icon).HasMaxLength(2000).IsRequired();
-            builder.Property(x => x.IconColor).HasMaxLength(7);
-            builder.Property(x => x.RowVersion).IsRowVersion();
-            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.Property(x => x.Title).HasMaxLength(200).IsRequired();
+            _ = builder.Property(x => x.Description).HasMaxLength(2000).IsRequired();
+            _ = builder.Property(x => x.Icon).HasMaxLength(2000).IsRequired();
+            _ = builder.Property(x => x.IconColor).HasMaxLength(7);
+            _ = builder.Property(x => x.RowVersion).IsRowVersion();
+            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
-        modelBuilder.Entity<ServiceOffering>(builder =>
+        _ = modelBuilder.Entity<ServiceOffering>(builder =>
         {
-            builder.Property(x => x.Title).HasMaxLength(200).IsRequired();
-            builder.Property(x => x.Description).HasMaxLength(2000).IsRequired();
-            builder.Property(x => x.Icon).HasMaxLength(2000).IsRequired();
-            builder.Property(x => x.IconColor).HasMaxLength(7);
-            builder.Property(x => x.RowVersion).IsRowVersion();
-            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.Property(x => x.Title).HasMaxLength(200).IsRequired();
+            _ = builder.Property(x => x.Description).HasMaxLength(2000).IsRequired();
+            _ = builder.Property(x => x.Icon).HasMaxLength(2000).IsRequired();
+            _ = builder.Property(x => x.IconColor).HasMaxLength(7);
+            _ = builder.Property(x => x.RowVersion).IsRowVersion();
+            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
-        modelBuilder.Entity<SocialLink>(builder =>
+        _ = modelBuilder.Entity<SocialLink>(builder =>
         {
-            builder.Property(x => x.Name).HasMaxLength(100).IsRequired();
-            builder.Property(x => x.Url).HasMaxLength(500).IsRequired();
-            builder.Property(x => x.Icon).HasMaxLength(2000).IsRequired();
-            builder.Property(x => x.IconColor).HasMaxLength(7);
-            builder.Property(x => x.RowVersion).IsRowVersion();
-            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.Property(x => x.Name).HasMaxLength(100).IsRequired();
+            _ = builder.Property(x => x.Url).HasMaxLength(500).IsRequired();
+            _ = builder.Property(x => x.Icon).HasMaxLength(2000).IsRequired();
+            _ = builder.Property(x => x.IconColor).HasMaxLength(7);
+            _ = builder.Property(x => x.RowVersion).IsRowVersion();
+            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
-        modelBuilder.Entity<ServiceArea>(builder =>
+        _ = modelBuilder.Entity<ServiceArea>(builder =>
         {
-            builder.Property(x => x.Name).HasMaxLength(100).IsRequired();
-            builder.Property(x => x.State).HasMaxLength(50).IsRequired();
-            builder.Property(x => x.Slug).HasMaxLength(120).IsRequired();
-            builder.Property(x => x.IntroText).HasMaxLength(2000);
-            builder.Property(x => x.RowVersion).IsRowVersion();
-            builder.HasIndex(x => x.Slug).IsUnique();
-            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.Property(x => x.Name).HasMaxLength(100).IsRequired();
+            _ = builder.Property(x => x.State).HasMaxLength(50).IsRequired();
+            _ = builder.Property(x => x.Slug).HasMaxLength(120).IsRequired();
+            _ = builder.Property(x => x.IntroText).HasMaxLength(2000);
+            _ = builder.Property(x => x.RowVersion).IsRowVersion();
+            _ = builder.HasIndex(x => x.Slug).IsUnique();
+            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
-        modelBuilder.Entity<FaqItem>(builder =>
+        _ = modelBuilder.Entity<FaqItem>(builder =>
         {
-            builder.Property(x => x.Question).HasMaxLength(300).IsRequired();
-            builder.Property(x => x.Answer).HasMaxLength(2000).IsRequired();
-            builder.Property(x => x.RowVersion).IsRowVersion();
-            builder.HasIndex(x => x.ServiceId);
-            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.Property(x => x.Question).HasMaxLength(300).IsRequired();
+            _ = builder.Property(x => x.Answer).HasMaxLength(2000).IsRequired();
+            _ = builder.Property(x => x.RowVersion).IsRowVersion();
+            _ = builder.HasIndex(x => x.ServiceId);
+            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
-        modelBuilder.Entity<Promotion>(builder =>
+        _ = modelBuilder.Entity<Promotion>(builder =>
         {
-            builder.Property(x => x.Title).HasMaxLength(200).IsRequired();
-            builder.Property(x => x.Description).HasMaxLength(2000).IsRequired();
-            builder.Property(x => x.CtaText).HasMaxLength(100);
-            builder.Property(x => x.CtaUrl).HasMaxLength(500);
-            builder.Property(x => x.RowVersion).IsRowVersion();
-            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.Property(x => x.Title).HasMaxLength(200).IsRequired();
+            _ = builder.Property(x => x.Description).HasMaxLength(2000).IsRequired();
+            _ = builder.Property(x => x.CtaText).HasMaxLength(100);
+            _ = builder.Property(x => x.CtaUrl).HasMaxLength(500);
+            _ = builder.Property(x => x.RowVersion).IsRowVersion();
+            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
         base.OnModelCreating(modelBuilder);

@@ -23,7 +23,9 @@ public class GetAppointmentByIdHandler(IAppointmentRepository appointmentReposit
             a => a.Id == request.Id && (a.UserId == request.UserId || a.AssignedTechnicianUserId == request.UserId),
             cancellationToken: cancellationToken);
         if (appointment is null)
+        {
             return AppointmentBusinessRules.AppointmentNotFound(request.Id).ToErrorDataResult<AppointmentResponse>();
+        }
 
         var mediaItems = await mediaItemRepository.GetListAsync(m => m.AppointmentId == appointment.Id, orderBy: q => q.OrderBy(m => m.DisplayOrder), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
 

@@ -37,16 +37,22 @@ public class AddModuleHandler(
     public async Task<OperationResult> Handle(AddModuleCommand request, CancellationToken cancellationToken)
     {
         if (!TenantOwnershipGuard.CallerMayManage(request.TenantId, tenantProvider.TenantId, httpContextAccessor))
+        {
             return Result.Forbidden(TenantSubscriptionItemMessages.NotAuthorizedForTenant);
+        }
 
         var tenant = await tenantRepository.GetAsync(t => t.Id == request.TenantId, cancellationToken: cancellationToken);
         if (tenant is null)
+        {
             return Result.NotFound(TenantSubscriptionItemMessages.TenantNotFound);
+        }
 
         var moduleOffering = await moduleOfferingRepository.GetAsync(
             m => m.Key == request.ModuleKey && m.IsPubliclyVisible, cancellationToken: cancellationToken);
         if (moduleOffering is null)
+        {
             return Result.BadRequest(TenantSubscriptionItemMessages.ModuleNotFound);
+        }
 
         var moduleOfferingPriceId = moduleOffering.ProviderPriceId
             ?? throw new InvalidOperationException($"ModuleOffering {moduleOffering.Key} has no ProviderPriceId.");
@@ -54,7 +60,9 @@ public class AddModuleHandler(
         var tenantSubscription = await tenantSubscriptionRepository.GetAsync(
             s => s.TenantId == request.TenantId && s.Status != TenantSubscriptionStatuses.Cancelled, cancellationToken: cancellationToken);
         if (tenantSubscription is null)
+        {
             return Result.BadRequest(TenantSubscriptionItemMessages.NoActiveSubscription);
+        }
 
         var providerSubscriptionId = tenantSubscription.ProviderSubscriptionId
             ?? throw new InvalidOperationException($"TenantSubscription {tenantSubscription.Id} has no ProviderSubscriptionId.");
@@ -65,14 +73,18 @@ public class AddModuleHandler(
                 i => i.TenantSubscriptionId == tenantSubscription.Id && i.Status == TenantSubscriptionItemStatuses.Active,
                 cancellationToken: cancellationToken);
             if (hasAnyActiveItem)
+            {
                 return Result.BadRequest(TenantSubscriptionItemMessages.MultipleModulesNotSupportedByProvider);
+            }
         }
 
         var alreadyActive = await tenantSubscriptionItemRepository.AnyAsync(
             i => i.TenantSubscriptionId == tenantSubscription.Id && i.ModuleKey == request.ModuleKey && i.Status == TenantSubscriptionItemStatuses.Active,
             cancellationToken: cancellationToken);
         if (alreadyActive)
+        {
             return Result.Conflict(TenantSubscriptionItemMessages.ModuleAlreadyAdded);
+        }
 
         var existingItem = await tenantSubscriptionItemRepository.GetAsync(
             i => i.TenantSubscriptionId == tenantSubscription.Id && i.ModuleKey == request.ModuleKey &&
@@ -90,7 +102,9 @@ public class AddModuleHandler(
             AddedAt = DateTime.UtcNow,
         };
         if (existingItem is null)
-            await tenantSubscriptionItemRepository.AddAsync(item);
+        {
+            _ = await tenantSubscriptionItemRepository.AddAsync(item);
+        }
 
         string providerSubscriptionItemId;
         if (item.ProviderSubscriptionItemId is not null)
@@ -109,14 +123,14 @@ public class AddModuleHandler(
             catch (Exception)
             {
                 item.Status = TenantSubscriptionItemStatuses.Failed;
-                await tenantSubscriptionItemRepository.UpdateAsync(item);
+                _ = await tenantSubscriptionItemRepository.UpdateAsync(item);
                 return Result.BadRequest(TenantSubscriptionItemMessages.ModuleBillingFailed);
             }
         }
 
         item.ProviderSubscriptionItemId = providerSubscriptionItemId;
         item.Status = TenantSubscriptionItemStatuses.Active;
-        await tenantSubscriptionItemRepository.UpdateAsync(item);
+        _ = await tenantSubscriptionItemRepository.UpdateAsync(item);
 
         try
         {

@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.CancelMembership;
@@ -10,7 +10,7 @@ public class CancelMembership : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/memberships/cancel", Handle)
+        _ = app.MapPost("/api/memberships/cancel", Handle)
             .WithTags("Memberships/CustomerMemberships")
             .RequireAuthorization()
             .WithName("CancelMembership")
@@ -21,7 +21,9 @@ public class CancelMembership : IEndpoint
     {
         var currentUser = await sender.Send(new GetCurrentUserQuery());
         if (!currentUser.IsSuccessful || currentUser.Data is null)
+        {
             return currentUser.ToEnvelopedResult(httpContext);
+        }
 
         var result = await sender.Send(new CancelMembershipCommand(currentUser.Data.Id));
         return result.ToEnvelopedResult(httpContext);

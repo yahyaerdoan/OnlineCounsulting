@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.SharedKernel.Payments;
 
@@ -9,7 +9,7 @@ public class SubscriptionWebhook : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/payments/webhooks/{provider}/subscriptions", Handle)
+        _ = app.MapPost("/api/payments/webhooks/{provider}/subscriptions", Handle)
             .WithTags("Payments")
             .WithName("SubscriptionWebhook")
             .WithDescription("Receives async subscription-lifecycle callbacks (renewed/cancelled/payment failed) from a provider and notifies the owning module (Memberships) once verified.");
@@ -19,7 +19,9 @@ public class SubscriptionWebhook : IEndpoint
     {
         var gateway = serviceProvider.GetKeyedService<ISubscriptionGateway>(provider);
         if (gateway is null)
+        {
             return Results.NotFound($"Unknown payment provider '{provider}'.");
+        }
 
         using var reader = new StreamReader(httpContext.Request.Body);
         var rawBody = await reader.ReadToEndAsync(cancellationToken);
@@ -27,7 +29,9 @@ public class SubscriptionWebhook : IEndpoint
 
         var webhookEvent = await gateway.VerifyAndParseWebhookAsync(rawBody, signatureHeader, cancellationToken);
         if (webhookEvent is null)
+        {
             return Results.Ok();
+        }
 
         switch (webhookEvent.EventKind)
         {

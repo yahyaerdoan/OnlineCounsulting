@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using OnlineConsulting.Modules.Tenancy.Domain;
 
@@ -15,35 +15,35 @@ public class TenancyDbContext(DbContextOptions<TenancyDbContext> options) : DbCo
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasDefaultSchema("Tenancy");
+        _ = modelBuilder.HasDefaultSchema("Tenancy");
 
-        modelBuilder.Entity<Tenant>(builder =>
+        _ = modelBuilder.Entity<Tenant>(builder =>
         {
-            builder.Property(t => t.Name).HasMaxLength(200).IsRequired();
-            builder.Property(t => t.Slug).HasMaxLength(200).IsRequired();
-            builder.Property(t => t.Status).HasMaxLength(30).IsRequired();
-            builder.Property(t => t.PrimaryContactEmail).HasMaxLength(256).IsRequired();
-            builder.Property(t => t.ProviderCustomerId).HasMaxLength(100);
-            builder.Property(t => t.RowVersion).IsRowVersion();
-            builder.HasIndex(t => t.Slug).IsUnique();
+            _ = builder.Property(t => t.Name).HasMaxLength(200).IsRequired();
+            _ = builder.Property(t => t.Slug).HasMaxLength(200).IsRequired();
+            _ = builder.Property(t => t.Status).HasMaxLength(30).IsRequired();
+            _ = builder.Property(t => t.PrimaryContactEmail).HasMaxLength(256).IsRequired();
+            _ = builder.Property(t => t.ProviderCustomerId).HasMaxLength(100);
+            _ = builder.Property(t => t.RowVersion).IsRowVersion();
+            _ = builder.HasIndex(t => t.Slug).IsUnique();
         });
 
-        modelBuilder.Entity<ModuleOffering>(builder =>
+        _ = modelBuilder.Entity<ModuleOffering>(builder =>
         {
-            builder.Property(m => m.Key).HasMaxLength(100).IsRequired();
-            builder.Property(m => m.Name).HasMaxLength(200).IsRequired();
-            builder.Property(m => m.BillingCycle).HasMaxLength(30).IsRequired();
-            builder.Property(m => m.Price).HasColumnType("decimal(18,2)");
-            builder.Property(m => m.ProviderProductId).HasMaxLength(100);
-            builder.Property(m => m.ProviderPriceId).HasMaxLength(100);
-            builder.Property(m => m.RowVersion).IsRowVersion();
-            builder.HasIndex(m => m.Key).IsUnique();
+            _ = builder.Property(m => m.Key).HasMaxLength(100).IsRequired();
+            _ = builder.Property(m => m.Name).HasMaxLength(200).IsRequired();
+            _ = builder.Property(m => m.BillingCycle).HasMaxLength(30).IsRequired();
+            _ = builder.Property(m => m.Price).HasColumnType("decimal(18,2)");
+            _ = builder.Property(m => m.ProviderProductId).HasMaxLength(100);
+            _ = builder.Property(m => m.ProviderPriceId).HasMaxLength(100);
+            _ = builder.Property(m => m.RowVersion).IsRowVersion();
+            _ = builder.HasIndex(m => m.Key).IsUnique();
         });
 
-        modelBuilder.Entity<Bundle>(builder =>
+        _ = modelBuilder.Entity<Bundle>(builder =>
         {
-            builder.Property(b => b.Name).HasMaxLength(200).IsRequired();
-            builder.Property(b => b.RowVersion).IsRowVersion();
+            _ = builder.Property(b => b.Name).HasMaxLength(200).IsRequired();
+            _ = builder.Property(b => b.RowVersion).IsRowVersion();
 
             builder.Property(b => b.ModuleKeys)
                 .HasConversion(
@@ -55,22 +55,22 @@ public class TenancyDbContext(DbContextOptions<TenancyDbContext> options) : DbCo
                     v => v.ToList()));
         });
 
-        modelBuilder.Entity<TenantSubscription>(builder =>
+        _ = modelBuilder.Entity<TenantSubscription>(builder =>
         {
-            builder.Property(s => s.Status).HasMaxLength(30).IsRequired();
-            builder.Property(s => s.ProviderSubscriptionId).HasMaxLength(100);
-            builder.Property(s => s.RowVersion).IsRowVersion();
-            builder.HasIndex(s => s.TenantId);
+            _ = builder.Property(s => s.Status).HasMaxLength(30).IsRequired();
+            _ = builder.Property(s => s.ProviderSubscriptionId).HasMaxLength(100);
+            _ = builder.Property(s => s.RowVersion).IsRowVersion();
+            _ = builder.HasIndex(s => s.TenantId);
         });
 
-        modelBuilder.Entity<TenantSubscriptionItem>(builder =>
+        _ = modelBuilder.Entity<TenantSubscriptionItem>(builder =>
         {
-            builder.Property(i => i.ModuleKey).HasMaxLength(100).IsRequired();
-            builder.Property(i => i.Status).HasMaxLength(30).IsRequired().HasDefaultValue(TenantSubscriptionItemStatuses.Active);
-            builder.Property(i => i.ProviderSubscriptionItemId).HasMaxLength(100);
-            builder.Property(i => i.PriceAtAddition).HasColumnType("decimal(18,2)");
-            builder.Property(i => i.RowVersion).IsRowVersion();
-            builder.HasIndex(i => i.TenantSubscriptionId);
+            _ = builder.Property(i => i.ModuleKey).HasMaxLength(100).IsRequired();
+            _ = builder.Property(i => i.Status).HasMaxLength(30).IsRequired().HasDefaultValue(TenantSubscriptionItemStatuses.Active);
+            _ = builder.Property(i => i.ProviderSubscriptionItemId).HasMaxLength(100);
+            _ = builder.Property(i => i.PriceAtAddition).HasColumnType("decimal(18,2)");
+            _ = builder.Property(i => i.RowVersion).IsRowVersion();
+            _ = builder.HasIndex(i => i.TenantSubscriptionId);
         });
 
         base.OnModelCreating(modelBuilder);

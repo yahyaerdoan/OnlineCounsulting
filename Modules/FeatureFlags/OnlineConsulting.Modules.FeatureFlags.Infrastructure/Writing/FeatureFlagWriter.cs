@@ -1,4 +1,4 @@
-using OnlineConsulting.Modules.FeatureFlags.Application.Features.SetFeatureFlag;
+﻿using OnlineConsulting.Modules.FeatureFlags.Application.Features.SetFeatureFlag;
 using OnlineConsulting.SharedKernel.FeatureFlags;
 using OnlineConsulting.SharedKernel.Tenancy;
 
@@ -13,6 +13,8 @@ public class FeatureFlagWriter(FeatureFlagUpserter upserter) : IFeatureFlagWrite
 
         var result = await upserter.UpsertAsync(key, isEnabled, cancellationToken);
         if (!result.IsSuccessful)
+        {
             throw new InvalidOperationException($"Failed to set feature flag '{key}' for tenant {tenantId}: {result.Title}");
+        }
     }
 }

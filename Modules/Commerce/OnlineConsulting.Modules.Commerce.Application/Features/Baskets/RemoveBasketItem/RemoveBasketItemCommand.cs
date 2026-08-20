@@ -19,17 +19,21 @@ public class RemoveBasketItemHandler(IBasketRepository basketRepository, IBasket
     {
         var basket = await basketRepository.GetAsync(BasketOwnerLookup.Predicate(request.UserId, request.GuestId), cancellationToken: cancellationToken);
         if (basket is null)
+        {
             return BasketBusinessRules.BasketNotFound();
+        }
 
         var item = await basketItemRepository.GetAsync(i => i.Id == request.BasketItemId && i.BasketId == basket.Id, cancellationToken: cancellationToken);
         if (item is null)
+        {
             return BasketBusinessRules.BasketItemNotFound(request.BasketItemId);
+        }
 
-        await basketItemRepository.DeleteAsync(item);
+        _ = await basketItemRepository.DeleteAsync(item);
 
         var remainingItems = await basketItemRepository.GetListAsync(i => i.BasketId == basket.Id, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
         (basket.Quantity, basket.SubTotalPrice, basket.TotalPrice) = BasketTotalsCalculator.Calculate(remainingItems.Items);
-        await basketRepository.UpdateAsync(basket);
+        _ = await basketRepository.UpdateAsync(basket);
 
         return Result.Success("Basket item removed successfully.");
     }

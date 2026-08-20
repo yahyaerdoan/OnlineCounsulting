@@ -27,7 +27,7 @@ public class CreateUserAddressHandler(IUserAddressRepository repository) : IRequ
             if (oldShipping is not null)
             {
                 oldShipping.IsShippingAddress = false;
-                await repository.UpdateAsync(oldShipping);
+                _ = await repository.UpdateAsync(oldShipping);
             }
         }
 
@@ -37,7 +37,7 @@ public class CreateUserAddressHandler(IUserAddressRepository repository) : IRequ
             if (oldBilling is not null)
             {
                 oldBilling.IsBillingAddress = false;
-                await repository.UpdateAsync(oldBilling);
+                _ = await repository.UpdateAsync(oldBilling);
             }
         }
 
@@ -56,7 +56,7 @@ public class CreateUserAddressHandler(IUserAddressRepository repository) : IRequ
             IsShippingAddress = request.IsShippingAddress,
             IsBillingAddress = request.IsBillingAddress,
         };
-        await repository.AddAsync(address);
+        _ = await repository.AddAsync(address);
 
         return Result.Created(address.Id, "Address created successfully.");
     }

@@ -33,7 +33,10 @@ public class AccountController(IAccountService accountService, IToastNotificatio
         if (!result.IsSuccessful)
         {
             foreach (var error in result.Errors)
+            {
                 ModelState.AddModelError(string.Empty, error);
+            }
+
             return View(model);
         }
 
@@ -63,7 +66,9 @@ public class AccountController(IAccountService accountService, IToastNotificatio
         if (result.IsSuccessful)
         {
             if (!string.IsNullOrWhiteSpace(returnUrl))
+            {
                 return LocalRedirect(returnUrl);
+            }
 
             // No single login page per role anymore (see ARCHITECTURE_MIGRATION.md's admin-login-unification
             // entry) - everyone logs in here, the post-login destination is what differs.

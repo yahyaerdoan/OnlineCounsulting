@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Categories.Application.Features.GetCategories;
 using ResultHandler.AspNetCore.Extensions;
@@ -10,7 +10,7 @@ public class GetCategories : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/categories", Handle)
+        _ = app.MapGet("/api/categories", Handle)
             .WithTags("Categories")
             .WithName("GetCategories")
             .WithDescription("Returns the current tenant's categories, paginated.");

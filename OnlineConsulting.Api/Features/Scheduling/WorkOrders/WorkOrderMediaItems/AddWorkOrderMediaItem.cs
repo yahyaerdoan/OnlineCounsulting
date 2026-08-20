@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Scheduling.Application.Features.WorkOrders.WorkOrderMediaItems.AddWorkOrderMediaItem;
@@ -10,7 +10,7 @@ public class AddWorkOrderMediaItem : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/work-orders/{workOrderId:guid}/media-items", Handle)
+        _ = app.MapPost("/api/work-orders/{workOrderId:guid}/media-items", Handle)
             .WithTags("Scheduling/WorkOrders")
             .RequireAuthorization()
             .WithName("AddWorkOrderMediaItem")

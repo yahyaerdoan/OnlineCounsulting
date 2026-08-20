@@ -35,7 +35,9 @@ public class ReserveTenantHandler(
         var requestedKeys = request.ModuleKeys.Distinct().ToList();
 
         if (requestedKeys.Count > 1 && !subscriptionGateway.SupportsMultipleItems)
+        {
             return Result.BadRequest<ReserveTenantResult>(SignupMessages.MultipleModulesNotSupportedByProvider);
+        }
 
         var offerings = await moduleOfferingRepository.GetListAsync(
             predicate: m => requestedKeys.Contains(m.Key) && m.IsPubliclyVisible,
@@ -46,12 +48,16 @@ public class ReserveTenantHandler(
 
         var missingKeys = requestedKeys.Where(k => !offeringsByKey.ContainsKey(k)).ToList();
         if (missingKeys.Count > 0)
+        {
             return Result.BadRequest<ReserveTenantResult>(string.Format(SignupMessages.UnknownOrUnavailableModuleKeysFormat, string.Join(", ", missingKeys)));
+        }
 
         var selectedOfferings = requestedKeys.Select(k => offeringsByKey[k]).ToList();
         var invalidOffering = selectedOfferings.FirstOrDefault(o => o.ProviderPriceId is null);
         if (invalidOffering is not null)
+        {
             return Result.BadRequest<ReserveTenantResult>(string.Format(SignupMessages.UnknownOrUnavailableModuleKeysFormat, invalidOffering.Key));
+        }
 
         var tenant = await tenantRepository.GetAsync(
             t => t.PrimaryContactEmail == request.AdminEmail &&
@@ -66,7 +72,9 @@ public class ReserveTenantHandler(
             var slug = Slugify(request.CompanyName);
             var slugAlreadyTaken = await tenantRepository.AnyAsync(t => t.Slug == slug, cancellationToken: cancellationToken);
             if (slugAlreadyTaken)
+            {
                 return Result.BadRequest<ReserveTenantResult>(SignupMessages.SlugAlreadyTaken);
+            }
 
             tenant = new Tenant
             {
@@ -85,8 +93,8 @@ public class ReserveTenantHandler(
                 StartDate = DateTime.UtcNow,
             };
 
-            await tenantRepository.AddAsync(tenant);
-            await tenantSubscriptionRepository.AddAsync(tenantSubscription);
+            _ = await tenantRepository.AddAsync(tenant);
+            _ = await tenantSubscriptionRepository.AddAsync(tenantSubscription);
             existingItems = [];
         }
         else
@@ -116,7 +124,7 @@ public class ReserveTenantHandler(
                 PriceAtAddition = offering.Price,
                 AddedAt = DateTime.UtcNow,
             };
-            await tenantSubscriptionItemRepository.AddAsync(item);
+            _ = await tenantSubscriptionItemRepository.AddAsync(item);
         }
 
         return Result.Created(new ReserveTenantResult(tenant.Id), "Tenant reserved successfully.");

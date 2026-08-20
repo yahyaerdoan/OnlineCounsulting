@@ -29,7 +29,7 @@ public class CreateAvailabilityRuleHandler(IAvailabilityRuleRepository repositor
             SlotDurationMinutes = request.SlotDurationMinutes,
         };
 
-        await repository.AddAsync(rule);
+        _ = await repository.AddAsync(rule);
 
         return Result.Created(rule.Id, "Availability rule created successfully.");
     }

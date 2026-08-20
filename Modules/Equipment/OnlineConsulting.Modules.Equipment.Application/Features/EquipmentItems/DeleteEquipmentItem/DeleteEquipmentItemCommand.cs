@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Equipment.Application.Common;
 using OnlineConsulting.Modules.Equipment.Application.Features.EquipmentItems.Abstractions;
@@ -20,9 +20,11 @@ public class DeleteEquipmentItemHandler(IEquipmentItemRepository repository) : I
     {
         var entity = await repository.GetAsync(x => x.Id == request.Id, cancellationToken: cancellationToken);
         if (entity is null)
+        {
             return Result.NotFound(string.Format(EquipmentMessages.EquipmentItemNotFoundFormat, request.Id));
+        }
 
-        await repository.DeleteAsync(entity);
+        _ = await repository.DeleteAsync(entity);
 
         return Result.Success("Equipment item deleted successfully.");
     }

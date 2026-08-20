@@ -10,7 +10,7 @@ public class CreateCategory : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/categories", Handle)
+        _ = app.MapPost("/api/categories", Handle)
             .WithTags("Categories")
             .RequireAuthorization()
             .WithName("CreateCategory")

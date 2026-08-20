@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using OnlineConsulting.Modules.Identity.Application.Features.Invites.Abstractions;
@@ -22,20 +22,26 @@ public class AcceptInviteHandler(IInviteRepository inviteRepository, UserManager
     {
         var invite = await inviteRepository.GetAsync(i => i.Token == request.Token, cancellationToken: cancellationToken);
         if (invite is null)
+        {
             return Result.NotFound(InviteMessages.InviteNotFound);
+        }
 
         if (invite.Status != InviteStatuses.Pending)
+        {
             return Result.BadRequest(InviteMessages.InviteNotUsable);
+        }
 
         if (invite.ExpiresAt < DateTime.UtcNow)
         {
             invite.Status = InviteStatuses.Expired;
-            await inviteRepository.UpdateAsync(invite);
+            _ = await inviteRepository.UpdateAsync(invite);
             return Result.BadRequest(InviteMessages.InviteExpired);
         }
 
         if (await userManager.FindByEmailAsync(invite.Email) is not null)
+        {
             return Result.Conflict(InviteMessages.EmailAlreadyRegistered);
+        }
 
         var user = new User
         {
@@ -51,15 +57,19 @@ public class AcceptInviteHandler(IInviteRepository inviteRepository, UserManager
 
         var createResult = await userManager.CreateAsync(user, request.Password);
         if (!createResult.Succeeded)
+        {
             return Result.Invalid([.. createResult.Errors.Select(e => e.Description)]);
+        }
 
         var roleResult = await userManager.AddToRoleAsync(user, invite.RoleName);
         if (!roleResult.Succeeded)
+        {
             return Result.Invalid([.. roleResult.Errors.Select(e => e.Description)]);
+        }
 
         invite.Status = InviteStatuses.Accepted;
         invite.AcceptedAt = DateTime.UtcNow;
-        await inviteRepository.UpdateAsync(invite);
+        _ = await inviteRepository.UpdateAsync(invite);
 
         return Result.Created("Your account has been created. You can now log in.");
     }

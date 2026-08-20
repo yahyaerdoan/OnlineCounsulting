@@ -10,10 +10,10 @@ public partial class InitialCreate : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.EnsureSchema(
+        _ = migrationBuilder.EnsureSchema(
             name: "Tenancy");
 
-        migrationBuilder.CreateTable(
+        _ = migrationBuilder.CreateTable(
             name: "Bundles",
             schema: "Tenancy",
             columns: table => new
@@ -32,10 +32,10 @@ public partial class InitialCreate : Migration
             },
             constraints: table =>
             {
-                table.PrimaryKey("PK_Bundles", x => x.Id);
+                _ = table.PrimaryKey("PK_Bundles", x => x.Id);
             });
 
-        migrationBuilder.CreateTable(
+        _ = migrationBuilder.CreateTable(
             name: "ModuleOfferings",
             schema: "Tenancy",
             columns: table => new
@@ -58,10 +58,10 @@ public partial class InitialCreate : Migration
             },
             constraints: table =>
             {
-                table.PrimaryKey("PK_ModuleOfferings", x => x.Id);
+                _ = table.PrimaryKey("PK_ModuleOfferings", x => x.Id);
             });
 
-        migrationBuilder.CreateTable(
+        _ = migrationBuilder.CreateTable(
             name: "Tenants",
             schema: "Tenancy",
             columns: table => new
@@ -82,10 +82,10 @@ public partial class InitialCreate : Migration
             },
             constraints: table =>
             {
-                table.PrimaryKey("PK_Tenants", x => x.Id);
+                _ = table.PrimaryKey("PK_Tenants", x => x.Id);
             });
 
-        migrationBuilder.CreateTable(
+        _ = migrationBuilder.CreateTable(
             name: "TenantSubscriptionItems",
             schema: "Tenancy",
             columns: table => new
@@ -106,10 +106,10 @@ public partial class InitialCreate : Migration
             },
             constraints: table =>
             {
-                table.PrimaryKey("PK_TenantSubscriptionItems", x => x.Id);
+                _ = table.PrimaryKey("PK_TenantSubscriptionItems", x => x.Id);
             });
 
-        migrationBuilder.CreateTable(
+        _ = migrationBuilder.CreateTable(
             name: "TenantSubscriptions",
             schema: "Tenancy",
             columns: table => new
@@ -130,30 +130,30 @@ public partial class InitialCreate : Migration
             },
             constraints: table =>
             {
-                table.PrimaryKey("PK_TenantSubscriptions", x => x.Id);
+                _ = table.PrimaryKey("PK_TenantSubscriptions", x => x.Id);
             });
 
-        migrationBuilder.CreateIndex(
+        _ = migrationBuilder.CreateIndex(
             name: "IX_ModuleOfferings_Key",
             schema: "Tenancy",
             table: "ModuleOfferings",
             column: "Key",
             unique: true);
 
-        migrationBuilder.CreateIndex(
+        _ = migrationBuilder.CreateIndex(
             name: "IX_Tenants_Slug",
             schema: "Tenancy",
             table: "Tenants",
             column: "Slug",
             unique: true);
 
-        migrationBuilder.CreateIndex(
+        _ = migrationBuilder.CreateIndex(
             name: "IX_TenantSubscriptionItems_TenantSubscriptionId",
             schema: "Tenancy",
             table: "TenantSubscriptionItems",
             column: "TenantSubscriptionId");
 
-        migrationBuilder.CreateIndex(
+        _ = migrationBuilder.CreateIndex(
             name: "IX_TenantSubscriptions_TenantId",
             schema: "Tenancy",
             table: "TenantSubscriptions",
@@ -163,23 +163,23 @@ public partial class InitialCreate : Migration
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.DropTable(
+        _ = migrationBuilder.DropTable(
             name: "Bundles",
             schema: "Tenancy");
 
-        migrationBuilder.DropTable(
+        _ = migrationBuilder.DropTable(
             name: "ModuleOfferings",
             schema: "Tenancy");
 
-        migrationBuilder.DropTable(
+        _ = migrationBuilder.DropTable(
             name: "Tenants",
             schema: "Tenancy");
 
-        migrationBuilder.DropTable(
+        _ = migrationBuilder.DropTable(
             name: "TenantSubscriptionItems",
             schema: "Tenancy");
 
-        migrationBuilder.DropTable(
+        _ = migrationBuilder.DropTable(
             name: "TenantSubscriptions",
             schema: "Tenancy");
     }

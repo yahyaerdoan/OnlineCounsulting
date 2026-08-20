@@ -18,17 +18,17 @@ public static class MembershipsModule
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-        services.AddScoped<TenantSaveChangesInterceptor>();
-        services.AddScoped<AuditSaveChangesInterceptor>();
+        _ = services.AddScoped<TenantSaveChangesInterceptor>();
+        _ = services.AddScoped<AuditSaveChangesInterceptor>();
 
-        services.AddDbContext<MembershipsDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
+        _ = services.AddDbContext<MembershipsDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
             .AddInterceptors(serviceProvider.GetRequiredService<TenantSaveChangesInterceptor>(), serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>()));
 
-        services.AddScoped<IMembershipPlanRepository, MembershipPlanRepository>();
-        services.AddScoped<ICustomerMembershipRepository, CustomerMembershipRepository>();
+        _ = services.AddScoped<IMembershipPlanRepository, MembershipPlanRepository>();
+        _ = services.AddScoped<ICustomerMembershipRepository, CustomerMembershipRepository>();
 
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
-        services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
+        _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
+        _ = services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
 
         return services;
     }

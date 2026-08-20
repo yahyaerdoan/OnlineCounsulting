@@ -44,7 +44,7 @@ public class CreateServiceHandler(IServiceRepository repository) : IRequestHandl
             PriceMax = request.PriceMax,
         };
 
-        await repository.AddAsync(service);
+        _ = await repository.AddAsync(service);
 
         return Result.Created(service.Id, "Service created successfully.");
     }

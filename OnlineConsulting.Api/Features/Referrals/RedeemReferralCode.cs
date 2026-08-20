@@ -12,7 +12,7 @@ public class RedeemReferralCode : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/referrals/redeem", Handle)
+        _ = app.MapPost("/api/referrals/redeem", Handle)
             .WithTags("Referrals")
             .RequireAuthorization()
             .RequireRateLimiting(ServiceRegistration.ReferralRedeemRateLimiterPolicy)
@@ -24,7 +24,9 @@ public class RedeemReferralCode : IEndpoint
     {
         var currentUser = await sender.Send(new GetCurrentUserQuery());
         if (!currentUser.IsSuccessful || currentUser.Data is null)
+        {
             return currentUser.ToEnvelopedResult(httpContext);
+        }
 
         var result = await sender.Send(command with { ReferredUserId = currentUser.Data.Id });
         return result.ToEnvelopedResult(httpContext);

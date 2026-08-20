@@ -25,7 +25,9 @@ public class ContactController(IContactService contactService, IToastNotificatio
     public async Task<IActionResult> Update(ContactViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
+        {
             return View(model);
+        }
 
         var result = await contactService.UpdateAsync(model, cancellationToken);
         toastNotification.ShowResult(result);

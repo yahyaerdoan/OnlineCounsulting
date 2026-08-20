@@ -11,29 +11,29 @@ public class ServicesDbContext(DbContextOptions<ServicesDbContext> options, ITen
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasDefaultSchema("Services");
+        _ = modelBuilder.HasDefaultSchema("Services");
 
-        modelBuilder.Entity<Service>(builder =>
+        _ = modelBuilder.Entity<Service>(builder =>
         {
-            builder.Property(s => s.Title).HasMaxLength(200).IsRequired();
-            builder.Property(s => s.Slug).HasMaxLength(220).IsRequired();
-            builder.Property(s => s.Description).HasMaxLength(2000).IsRequired();
-            builder.Property(s => s.DetailedDescription).HasMaxLength(4000).IsRequired();
-            builder.Property(s => s.Price).HasColumnType("decimal(18,2)");
-            builder.Property(s => s.PriceType).HasMaxLength(20).IsRequired();
-            builder.Property(s => s.PriceMax).HasColumnType("decimal(18,2)");
-            builder.Property(s => s.DiscountedPrice).HasColumnType("decimal(18,2)");
-            builder.Property(s => s.RowVersion).IsRowVersion();
-            builder.HasIndex(s => s.CategoryId);
-            builder.HasIndex(s => new { s.TenantId, s.Slug }).IsUnique().HasFilter("[DeletedDate] IS NULL");
-            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.Property(s => s.Title).HasMaxLength(200).IsRequired();
+            _ = builder.Property(s => s.Slug).HasMaxLength(220).IsRequired();
+            _ = builder.Property(s => s.Description).HasMaxLength(2000).IsRequired();
+            _ = builder.Property(s => s.DetailedDescription).HasMaxLength(4000).IsRequired();
+            _ = builder.Property(s => s.Price).HasColumnType("decimal(18,2)");
+            _ = builder.Property(s => s.PriceType).HasMaxLength(20).IsRequired();
+            _ = builder.Property(s => s.PriceMax).HasColumnType("decimal(18,2)");
+            _ = builder.Property(s => s.DiscountedPrice).HasColumnType("decimal(18,2)");
+            _ = builder.Property(s => s.RowVersion).IsRowVersion();
+            _ = builder.HasIndex(s => s.CategoryId);
+            _ = builder.HasIndex(s => new { s.TenantId, s.Slug }).IsUnique().HasFilter("[DeletedDate] IS NULL");
+            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
-        modelBuilder.Entity<ServiceMediaItem>(builder =>
+        _ = modelBuilder.Entity<ServiceMediaItem>(builder =>
         {
-            builder.Property(m => m.RowVersion).IsRowVersion();
-            builder.HasIndex(m => m.ServiceId);
-            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.Property(m => m.RowVersion).IsRowVersion();
+            _ = builder.HasIndex(m => m.ServiceId);
+            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
         base.OnModelCreating(modelBuilder);

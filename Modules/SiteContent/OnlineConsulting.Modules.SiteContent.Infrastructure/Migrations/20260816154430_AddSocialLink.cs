@@ -10,7 +10,7 @@ public partial class AddSocialLink : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.CreateTable(
+        _ = migrationBuilder.CreateTable(
             name: "SocialLinks",
             schema: "SiteContent",
             columns: table => new
@@ -29,14 +29,14 @@ public partial class AddSocialLink : Migration
             },
             constraints: table =>
             {
-                table.PrimaryKey("PK_SocialLinks", x => x.Id);
+                _ = table.PrimaryKey("PK_SocialLinks", x => x.Id);
             });
     }
 
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.DropTable(
+        _ = migrationBuilder.DropTable(
             name: "SocialLinks",
             schema: "SiteContent");
     }

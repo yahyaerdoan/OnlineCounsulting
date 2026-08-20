@@ -21,7 +21,9 @@ public class GalleryCategoryController(IAdminGalleryCategoryService galleryCateg
     public async Task<IActionResult> Create(CreateGalleryCategoryViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
+        {
             return View(model);
+        }
 
         var result = await galleryCategoryService.CreateAsync(model, cancellationToken);
         toastNotification.ShowResult(result);
@@ -40,7 +42,9 @@ public class GalleryCategoryController(IAdminGalleryCategoryService galleryCateg
     public async Task<IActionResult> Update(UpdateGalleryCategoryViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
+        {
             return View(model);
+        }
 
         var result = await galleryCategoryService.UpdateAsync(model, cancellationToken);
         toastNotification.ShowResult(result);

@@ -49,7 +49,9 @@ public class AdminServiceCatalogService(
     {
         var service = await serviceCatalogService.GetByIdAsync(id, cancellationToken);
         if (service is null)
+        {
             return null;
+        }
 
         var model = new UpdateServiceViewModel
         {
@@ -87,10 +89,14 @@ public class AdminServiceCatalogService(
             assetIds.FirstOrDefault(), cancellationToken);
 
         if (!created.IsSuccessful || created.ResultData == default)
+        {
             return created.WithoutData();
+        }
 
         foreach (var assetId in assetIds.Skip(1))
-            await serviceCatalogService.AddMediaItemAsync(created.ResultData, assetId, cancellationToken: cancellationToken);
+        {
+            _ = await serviceCatalogService.AddMediaItemAsync(created.ResultData, assetId, cancellationToken: cancellationToken);
+        }
 
         return created.WithoutData();
     }
@@ -107,10 +113,14 @@ public class AdminServiceCatalogService(
             coverMediaAssetId, cancellationToken);
 
         if (!result.IsSuccessful)
+        {
             return result;
+        }
 
         foreach (var assetId in assetIds.Where(id => id != coverMediaAssetId))
-            await serviceCatalogService.AddMediaItemAsync(model.Id, assetId, cancellationToken: cancellationToken);
+        {
+            _ = await serviceCatalogService.AddMediaItemAsync(model.Id, assetId, cancellationToken: cancellationToken);
+        }
 
         return result;
     }
@@ -122,25 +132,24 @@ public class AdminServiceCatalogService(
     {
         var assetId = await mediaService.UploadAsync(image, cancellationToken);
         if (assetId is null)
+        {
             return new ApiEnvelope(false, StatusCodes.Status400BadRequest, "No image was selected.", null);
+        }
 
         var service = await serviceCatalogService.GetByIdAsync(serviceId, cancellationToken);
-        if (service is null)
-            return new ApiEnvelope(false, StatusCodes.Status404NotFound, "Service not found.", null);
-
-        if (service.CoverMediaAssetId is null)
-            return await SetCoverAsync(service, assetId, cancellationToken);
-
-        return (await serviceCatalogService.AddMediaItemAsync(serviceId, assetId.Value, cancellationToken: cancellationToken)).WithoutData();
+        return service is null
+            ? new ApiEnvelope(false, StatusCodes.Status404NotFound, "Service not found.", null)
+            : service.CoverMediaAssetId is null
+            ? await SetCoverAsync(service, assetId, cancellationToken)
+            : (await serviceCatalogService.AddMediaItemAsync(serviceId, assetId.Value, cancellationToken: cancellationToken)).WithoutData();
     }
 
     public async Task<ApiEnvelope> RemoveImageAsync(Guid serviceId, Guid imageId, CancellationToken cancellationToken = default)
     {
         var service = await serviceCatalogService.GetByIdAsync(serviceId, cancellationToken);
-        if (service is null)
-            return new ApiEnvelope(false, StatusCodes.Status404NotFound, "Service not found.", null);
-
-        return service.CoverMediaAssetId == imageId
+        return service is null
+            ? new ApiEnvelope(false, StatusCodes.Status404NotFound, "Service not found.", null)
+            : service.CoverMediaAssetId == imageId
             ? await SetCoverAsync(service, null, cancellationToken)
             : await serviceCatalogService.RemoveMediaItemAsync(imageId, cancellationToken);
     }
@@ -158,7 +167,9 @@ public class AdminServiceCatalogService(
         {
             var assetId = await mediaService.UploadAsync(file, cancellationToken);
             if (assetId is { } id)
+            {
                 assetIds.Add(id);
+            }
         }
 
         return assetIds;
@@ -170,13 +181,17 @@ public class AdminServiceCatalogService(
 
         var coverUrl = await mediaService.ResolveUrlAsync(service.CoverMediaAssetId, cancellationToken);
         if (coverUrl is not null && service.CoverMediaAssetId is { } coverId)
+        {
             images.Add(new ServiceImageViewModel(coverId, coverUrl, true));
+        }
 
         foreach (var mediaItem in service.MediaItems.OrderBy(m => m.DisplayOrder))
         {
             var url = await mediaService.ResolveUrlAsync(mediaItem.MediaAssetId, cancellationToken);
             if (url is not null)
+            {
                 images.Add(new ServiceImageViewModel(mediaItem.Id, url, false));
+            }
         }
 
         return images;

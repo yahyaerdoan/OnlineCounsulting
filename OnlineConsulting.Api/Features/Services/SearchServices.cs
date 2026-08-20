@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Services.Application.Features.SearchServices;
 using ResultHandler.AspNetCore.Extensions;
@@ -10,7 +10,7 @@ public class SearchServices : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/services/search", Handle)
+        _ = app.MapGet("/api/services/search", Handle)
             .WithTags("Services")
             .WithName("SearchServices")
             .WithDescription("Searches services by title/description. Public - no login required.");
@@ -23,7 +23,9 @@ public class SearchServices : IEndpoint
             .OnSuccess(items =>
             {
                 foreach (var service in items)
+                {
                     service.Links = GetServiceById.BuildLinks(httpContext, linkGenerator, service.Id);
+                }
             })
             .ToEnvelopedResult(httpContext);
     }

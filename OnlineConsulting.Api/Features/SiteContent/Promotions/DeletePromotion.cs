@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.Promotions.DeletePromotion;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class DeletePromotion : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapDelete("/api/site-content/promotions/{id:guid}", Handle)
+        _ = app.MapDelete("/api/site-content/promotions/{id:guid}", Handle)
             .WithTags("SiteContent/Promotions")
             .RequireAuthorization()
             .WithName("DeletePromotion")

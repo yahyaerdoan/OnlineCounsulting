@@ -27,12 +27,16 @@ public class DeleteUserHandler(UserManager<User> userManager, ITenantOwnershipRe
     {
         var user = await userManager.FindByIdAsync(request.UserId.ToString());
         if (user is null)
+        {
             return UserBusinessRules.NoUserDataFound();
+        }
 
         var ownerGuardResult = await TenantOwnerProtection.EnsureCallerMayModifyAsync(
             tenantOwnershipReader, httpContextAccessor, user.TenantId, user.Id, cancellationToken);
         if (ownerGuardResult is not null)
+        {
             return ownerGuardResult;
+        }
 
         var result = await userManager.DeleteAsync(user);
 

@@ -21,7 +21,9 @@ public class GetAvailabilityHandler(IAvailabilityRuleRepository ruleRepository, 
         var rules = await ruleRepository.GetListAsync(r => r.DayOfWeek == dayOfWeek, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
 
         if (rules.Items.Count == 0)
+        {
             return Result.Success(new List<AvailableSlotResponse>(), "No working hours configured for this day.");
+        }
 
         // Rule StartTime/EndTime are combined with the requested date as UTC. The tenant's own business
         // timezone isn't modeled yet (open question from the Scheduling design discussion) - until it is,
@@ -47,7 +49,9 @@ public class GetAvailabilityHandler(IAvailabilityRuleRepository ruleRepository, 
                 var isTaken = existingAppointments.Items.Any(a => a.ScheduledStart < slotEnd && a.ScheduledEnd > cursor);
 
                 if (!isTaken)
+                {
                     slots.Add(new AvailableSlotResponse(cursor, slotEnd));
+                }
 
                 cursor = slotEnd;
             }

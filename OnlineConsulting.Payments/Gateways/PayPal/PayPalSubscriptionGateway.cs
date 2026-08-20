@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using OnlineConsulting.SharedKernel.Payments;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -31,7 +31,7 @@ public class PayPalSubscriptionGateway(IHttpClientFactory httpClientFactory, IOp
 
         using var client = CreateClient();
         using var productResponse = await client.SendAsync(productRequest, cancellationToken);
-        productResponse.EnsureSuccessStatusCode();
+        _ = productResponse.EnsureSuccessStatusCode();
         var product = await productResponse.Content.ReadFromJsonAsync<PayPalProduct>(cancellationToken: cancellationToken)
             ?? throw new InvalidOperationException("PayPal returned an empty product response.");
 
@@ -56,7 +56,7 @@ public class PayPalSubscriptionGateway(IHttpClientFactory httpClientFactory, IOp
         });
 
         using var planResponse = await client.SendAsync(planRequest, cancellationToken);
-        planResponse.EnsureSuccessStatusCode();
+        _ = planResponse.EnsureSuccessStatusCode();
         var plan = await planResponse.Content.ReadFromJsonAsync<PayPalPlan>(cancellationToken: cancellationToken)
             ?? throw new InvalidOperationException("PayPal returned an empty plan response.");
 
@@ -80,7 +80,7 @@ public class PayPalSubscriptionGateway(IHttpClientFactory httpClientFactory, IOp
 
         using var client = CreateClient();
         using var response = await client.SendAsync(httpRequest, cancellationToken);
-        response.EnsureSuccessStatusCode();
+        _ = response.EnsureSuccessStatusCode();
         var subscription = await response.Content.ReadFromJsonAsync<PayPalSubscription>(cancellationToken: cancellationToken)
             ?? throw new InvalidOperationException("PayPal returned an empty subscription response.");
 
@@ -99,7 +99,7 @@ public class PayPalSubscriptionGateway(IHttpClientFactory httpClientFactory, IOp
 
         using var client = CreateClient();
         using var response = await client.SendAsync(httpRequest, cancellationToken);
-        response.EnsureSuccessStatusCode();
+        _ = response.EnsureSuccessStatusCode();
 
         return new SubscriptionResult(providerSubscriptionId, PaymentStatuses.Refunded, DateTimeOffset.UtcNow);
     }

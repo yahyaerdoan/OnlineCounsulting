@@ -10,7 +10,7 @@ public partial class AddPartnerships : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.CreateTable(
+        _ = migrationBuilder.CreateTable(
             name: "Partnerships",
             schema: "SiteContent",
             columns: table => new
@@ -34,10 +34,10 @@ public partial class AddPartnerships : Migration
             },
             constraints: table =>
             {
-                table.PrimaryKey("PK_Partnerships", x => x.Id);
+                _ = table.PrimaryKey("PK_Partnerships", x => x.Id);
             });
 
-        migrationBuilder.CreateTable(
+        _ = migrationBuilder.CreateTable(
             name: "PartnershipSocialLinks",
             schema: "SiteContent",
             columns: table => new
@@ -56,18 +56,18 @@ public partial class AddPartnerships : Migration
             },
             constraints: table =>
             {
-                table.PrimaryKey("PK_PartnershipSocialLinks", x => x.Id);
+                _ = table.PrimaryKey("PK_PartnershipSocialLinks", x => x.Id);
             });
     }
 
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.DropTable(
+        _ = migrationBuilder.DropTable(
             name: "Partnerships",
             schema: "SiteContent");
 
-        migrationBuilder.DropTable(
+        _ = migrationBuilder.DropTable(
             name: "PartnershipSocialLinks",
             schema: "SiteContent");
     }

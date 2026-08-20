@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Memberships.Application.Common;
 using OnlineConsulting.Modules.Memberships.Application.Features.MembershipPlans.Abstractions;
@@ -40,7 +40,7 @@ public class CreateMembershipPlanHandler(IMembershipPlanRepository repository, I
         plan.ProviderProductId = priceResult.ProviderProductId;
         plan.ProviderPriceId = priceResult.ProviderPriceId;
 
-        await repository.AddAsync(plan);
+        _ = await repository.AddAsync(plan);
 
         return Result.Created(plan.Id, "Membership plan created successfully.");
     }

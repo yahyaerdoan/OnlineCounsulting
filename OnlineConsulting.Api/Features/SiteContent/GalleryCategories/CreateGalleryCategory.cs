@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryCategories.CreateGalleryCategory;
@@ -10,7 +10,7 @@ public class CreateGalleryCategory : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/site-content/gallery-categories", Handle)
+        _ = app.MapPost("/api/site-content/gallery-categories", Handle)
             .WithTags("SiteContent/GalleryCategories")
             .RequireAuthorization()
             .WithName("CreateGalleryCategory")

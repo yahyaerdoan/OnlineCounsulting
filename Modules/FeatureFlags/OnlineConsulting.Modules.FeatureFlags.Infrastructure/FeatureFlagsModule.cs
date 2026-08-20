@@ -23,24 +23,24 @@ public static class FeatureFlagsModule
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-        services.AddScoped<TenantSaveChangesInterceptor>();
-        services.AddScoped<AuditSaveChangesInterceptor>();
+        _ = services.AddScoped<TenantSaveChangesInterceptor>();
+        _ = services.AddScoped<AuditSaveChangesInterceptor>();
 
-        services.AddDbContext<FeatureFlagsDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
+        _ = services.AddDbContext<FeatureFlagsDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
             .AddInterceptors(serviceProvider.GetRequiredService<TenantSaveChangesInterceptor>(), serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>()));
 
-        services.AddMemoryCache();
+        _ = services.AddMemoryCache();
 
-        services.AddScoped<IFeatureFlagRepository, FeatureFlagRepository>();
-        services.AddScoped<FeatureFlagCache>();
-        services.AddScoped<IFeatureFlagReader>(sp => sp.GetRequiredService<FeatureFlagCache>());
-        services.AddScoped<IFeatureFlagCacheInvalidator>(sp => sp.GetRequiredService<FeatureFlagCache>());
-        services.AddScoped<FeatureFlagUpserter>();
-        services.AddScoped<IFeatureFlagWriter, FeatureFlagWriter>();
+        _ = services.AddScoped<IFeatureFlagRepository, FeatureFlagRepository>();
+        _ = services.AddScoped<FeatureFlagCache>();
+        _ = services.AddScoped<IFeatureFlagReader>(sp => sp.GetRequiredService<FeatureFlagCache>());
+        _ = services.AddScoped<IFeatureFlagCacheInvalidator>(sp => sp.GetRequiredService<FeatureFlagCache>());
+        _ = services.AddScoped<FeatureFlagUpserter>();
+        _ = services.AddScoped<IFeatureFlagWriter, FeatureFlagWriter>();
 
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
-        services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
-        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(FeatureFlagsTransactionAddingBehavior<,>));
+        _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
+        _ = services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
+        _ = services.AddTransient(typeof(IPipelineBehavior<,>), typeof(FeatureFlagsTransactionAddingBehavior<,>));
 
         return services;
     }

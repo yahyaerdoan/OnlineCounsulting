@@ -25,23 +25,23 @@ public static class CommerceModule
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-        services.AddScoped<TenantSaveChangesInterceptor>();
-        services.AddScoped<AuditSaveChangesInterceptor>();
+        _ = services.AddScoped<TenantSaveChangesInterceptor>();
+        _ = services.AddScoped<AuditSaveChangesInterceptor>();
 
-        services.AddDbContext<CommerceDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
+        _ = services.AddDbContext<CommerceDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
             .AddInterceptors(serviceProvider.GetRequiredService<TenantSaveChangesInterceptor>(), serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>()));
 
-        services.AddScoped<IUserAddressRepository, UserAddressRepository>();
-        services.AddScoped<IBasketRepository, BasketRepository>();
-        services.AddScoped<IBasketItemRepository, BasketItemRepository>();
-        services.AddScoped<IOrderRepository, OrderRepository>();
-        services.AddScoped<IOrderItemRepository, OrderItemRepository>();
-        services.AddScoped<IEmailOutboxWriter, EmailOutboxWriter>();
-        services.AddScoped<IEmailTemplate<OrderConfirmationEmailModel>, OrderConfirmationTemplate>();
+        _ = services.AddScoped<IUserAddressRepository, UserAddressRepository>();
+        _ = services.AddScoped<IBasketRepository, BasketRepository>();
+        _ = services.AddScoped<IBasketItemRepository, BasketItemRepository>();
+        _ = services.AddScoped<IOrderRepository, OrderRepository>();
+        _ = services.AddScoped<IOrderItemRepository, OrderItemRepository>();
+        _ = services.AddScoped<IEmailOutboxWriter, EmailOutboxWriter>();
+        _ = services.AddScoped<IEmailTemplate<OrderConfirmationEmailModel>, OrderConfirmationTemplate>();
 
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
-        services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
-        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CommerceTransactionAddingBehavior<,>));
+        _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
+        _ = services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
+        _ = services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CommerceTransactionAddingBehavior<,>));
 
         return services;
     }

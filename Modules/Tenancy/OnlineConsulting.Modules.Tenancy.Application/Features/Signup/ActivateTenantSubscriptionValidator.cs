@@ -1,4 +1,4 @@
-using FluentValidation;
+﻿using FluentValidation;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.Signup;
 
@@ -6,7 +6,7 @@ public class ActivateTenantSubscriptionValidator : AbstractValidator<ActivateTen
 {
     public ActivateTenantSubscriptionValidator()
     {
-        RuleFor(x => x.TenantId).NotEmpty();
-        RuleFor(x => x.PaymentMethodId).NotEmpty();
+        _ = RuleFor(x => x.TenantId).NotEmpty();
+        _ = RuleFor(x => x.PaymentMethodId).NotEmpty();
     }
 }

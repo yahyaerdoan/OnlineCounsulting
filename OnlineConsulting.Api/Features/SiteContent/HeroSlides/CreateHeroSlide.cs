@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.HeroSlides.CreateHeroSlide;
@@ -10,7 +10,7 @@ public class CreateHeroSlide : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/site-content/hero-slides", Handle)
+        _ = app.MapPost("/api/site-content/hero-slides", Handle)
             .WithTags("SiteContent/HeroSlides")
             .RequireAuthorization()
             .WithName("CreateHeroSlide")

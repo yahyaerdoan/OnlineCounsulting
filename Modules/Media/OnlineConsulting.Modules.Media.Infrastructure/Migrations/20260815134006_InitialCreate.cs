@@ -10,10 +10,10 @@ public partial class InitialCreate : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.EnsureSchema(
+        _ = migrationBuilder.EnsureSchema(
             name: "Media");
 
-        migrationBuilder.CreateTable(
+        _ = migrationBuilder.CreateTable(
             name: "MediaAssets",
             schema: "Media",
             columns: table => new
@@ -35,14 +35,14 @@ public partial class InitialCreate : Migration
             },
             constraints: table =>
             {
-                table.PrimaryKey("PK_MediaAssets", x => x.Id);
+                _ = table.PrimaryKey("PK_MediaAssets", x => x.Id);
             });
     }
 
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.DropTable(
+        _ = migrationBuilder.DropTable(
             name: "MediaAssets",
             schema: "Media");
     }

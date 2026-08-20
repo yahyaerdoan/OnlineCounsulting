@@ -21,7 +21,9 @@ public class FooterAboutController(IFooterAboutService footerAboutService, IToas
     public async Task<IActionResult> Create(CreateFooterAboutViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
+        {
             return View(model);
+        }
 
         var result = await footerAboutService.CreateAsync(model, cancellationToken);
         toastNotification.ShowResult(result);
@@ -40,7 +42,9 @@ public class FooterAboutController(IFooterAboutService footerAboutService, IToas
     public async Task<IActionResult> Update(UpdateFooterAboutViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
+        {
             return View(model);
+        }
 
         var result = await footerAboutService.UpdateAsync(model, cancellationToken);
         toastNotification.ShowResult(result);

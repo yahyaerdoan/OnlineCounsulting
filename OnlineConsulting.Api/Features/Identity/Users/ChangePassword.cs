@@ -11,7 +11,7 @@ public class ChangePassword : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPut("/api/users/me/password", Handle)
+        _ = app.MapPut("/api/users/me/password", Handle)
             .WithTags("Identity/Users")
             .RequireAuthorization()
             .WithName("ChangePassword")
@@ -22,7 +22,9 @@ public class ChangePassword : IEndpoint
     {
         var currentUser = await sender.Send(new GetCurrentUserQuery());
         if (!currentUser.IsSuccessful || currentUser.Data is null)
+        {
             return currentUser.ToEnvelopedResult(httpContext);
+        }
 
         var result = await sender.Send(command with { UserId = currentUser.Data.Id });
         return result.ToEnvelopedResult(httpContext);

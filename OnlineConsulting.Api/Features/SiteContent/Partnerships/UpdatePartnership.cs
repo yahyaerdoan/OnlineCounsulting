@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.Partnerships.UpdatePartnership;
@@ -10,7 +10,7 @@ public class UpdatePartnership : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPut("/api/site-content/partnerships/{id:guid}", Handle)
+        _ = app.MapPut("/api/site-content/partnerships/{id:guid}", Handle)
             .WithTags("SiteContent/Partnerships")
             .RequireAuthorization()
             .WithName("UpdatePartnership")

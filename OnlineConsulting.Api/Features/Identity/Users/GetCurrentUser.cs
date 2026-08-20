@@ -12,7 +12,7 @@ public class GetCurrentUser : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/users/me", Handle)
+        _ = app.MapGet("/api/users/me", Handle)
             .WithTags("Identity/Users")
             .RequireAuthorization()
             .WithName("GetCurrentUser")
@@ -33,7 +33,7 @@ public class GetCurrentUser : IEndpoint
         var builder = httpContext.Links(linkGenerator);
         if (includeSelf)
         {
-            builder.Add("self", "GetCurrentUser", "GET");
+            _ = builder.Add("self", "GetCurrentUser", "GET");
         }
         return builder
             .AddCustom("assign-roles", "AssignRoleToUser", "PUT", new { id })

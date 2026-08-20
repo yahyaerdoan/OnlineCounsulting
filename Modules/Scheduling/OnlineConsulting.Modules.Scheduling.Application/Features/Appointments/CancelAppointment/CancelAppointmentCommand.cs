@@ -24,13 +24,17 @@ public class CancelAppointmentHandler(IAppointmentRepository repository, IPushNo
     {
         var appointment = await repository.GetAsync(a => a.Id == request.Id && a.UserId == request.UserId, cancellationToken: cancellationToken);
         if (appointment is null)
+        {
             return AppointmentBusinessRules.AppointmentNotFound(request.Id);
+        }
 
         if (appointment.Status is not (AppointmentStatuses.Pending or AppointmentStatuses.Confirmed))
+        {
             return Result.BadRequest(SchedulingMessages.OnlyPendingOrConfirmedCanBeCancelled);
+        }
 
         appointment.Status = AppointmentStatuses.Cancelled;
-        await repository.UpdateAsync(appointment);
+        _ = await repository.UpdateAsync(appointment);
 
         if (appointment.AssignedTechnicianUserId is { } technicianUserId)
         {

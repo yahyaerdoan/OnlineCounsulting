@@ -21,15 +21,21 @@ public class LoginHandler(UserManager<User> userManager, RoleManager<Role> roleM
             ?? await userManager.Users.FirstOrDefaultAsync(u => u.Email == request.UserNameOrEmail, cancellationToken);
 
         if (user is null)
+        {
             return Result.BadRequest<AuthTokensResponse>(AuthMessages.InvalidCredentials);
+        }
 
         var signInResult = await signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: true);
 
         if (signInResult.IsLockedOut)
+        {
             return Result.Forbidden<AuthTokensResponse>(AuthMessages.AccountLocked);
+        }
 
         if (!signInResult.Succeeded)
+        {
             return Result.BadRequest<AuthTokensResponse>(AuthMessages.InvalidCredentials);
+        }
 
         var roles = await userManager.GetRolesAsync(user);
         var permissions = await RolePermissionResolver.ResolvePermissionsAsync(roleManager, roles);

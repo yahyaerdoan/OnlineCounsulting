@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.FaqItems.Abstractions;
@@ -20,9 +20,11 @@ public class DeleteFaqItemHandler(IFaqItemRepository repository) : IRequestHandl
     {
         var entity = await repository.GetAsync(x => x.Id == request.Id, cancellationToken: cancellationToken);
         if (entity is null)
+        {
             return SiteContentBusinessRules.NotFound("FaqItem", request.Id);
+        }
 
-        await repository.DeleteAsync(entity);
+        _ = await repository.DeleteAsync(entity);
 
         return Result.Success("FAQ item deleted successfully.");
     }

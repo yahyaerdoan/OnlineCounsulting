@@ -12,21 +12,27 @@ public class OnTenantSubscriptionRenewedHandler(ITenantSubscriptionRepository su
     public async Task Handle(SubscriptionRenewedNotification notification, CancellationToken cancellationToken)
     {
         if (!Guid.TryParse(notification.ReferenceId, out var tenantSubscriptionId))
+        {
             return;
+        }
 
         var tenantSubscription = await subscriptionRepository.GetAsync(s => s.Id == tenantSubscriptionId, cancellationToken: cancellationToken);
         if (tenantSubscription is null)
+        {
             return;
+        }
 
         tenantSubscription.RenewalDate = notification.CurrentPeriodEnd.UtcDateTime;
         tenantSubscription.Status = TenantSubscriptionStatuses.Active;
-        await subscriptionRepository.UpdateAsync(tenantSubscription);
+        _ = await subscriptionRepository.UpdateAsync(tenantSubscription);
 
         var tenant = await tenantRepository.GetAsync(t => t.Id == tenantSubscription.TenantId, cancellationToken: cancellationToken);
         if (tenant is null || tenant.Status is TenantStatuses.Suspended or TenantStatuses.Cancelled)
+        {
             return;
+        }
 
         tenant.Status = TenantStatuses.Active;
-        await tenantRepository.UpdateAsync(tenant);
+        _ = await tenantRepository.UpdateAsync(tenant);
     }
 }

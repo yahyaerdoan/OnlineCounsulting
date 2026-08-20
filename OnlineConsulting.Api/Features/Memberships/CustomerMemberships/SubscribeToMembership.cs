@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
@@ -14,7 +14,7 @@ public class SubscribeToMembership : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/memberships/subscribe", Handle)
+        _ = app.MapPost("/api/memberships/subscribe", Handle)
             .WithTags("Memberships/CustomerMemberships")
             .RequireAuthorization()
             .WithName("SubscribeToMembership")
@@ -25,14 +25,18 @@ public class SubscribeToMembership : IEndpoint
     {
         var currentUser = await sender.Send(new GetCurrentUserQuery());
         if (!currentUser.IsSuccessful || currentUser.Data is null)
+        {
             return currentUser.ToEnvelopedResult(httpContext);
+        }
 
         var requestedCreditAmount = 0m;
         if (command.CreditToApplyAmount is > 0)
         {
             var creditSummary = await sender.Send(new GetMyAccountCreditQuery(currentUser.Data.Id));
             if (!creditSummary.IsSuccessful || creditSummary.Data is null)
+            {
                 return creditSummary.ToEnvelopedResult(httpContext);
+            }
 
             requestedCreditAmount = Math.Min(command.CreditToApplyAmount.Value, creditSummary.Data.Balance);
         }
@@ -46,7 +50,7 @@ public class SubscribeToMembership : IEndpoint
 
         if (result.IsSuccessful && result.Data is not null && result.Data.AppliedCreditAmount is > 0)
         {
-            await sender.Send(new SpendAccountCreditCommand(
+            _ = await sender.Send(new SpendAccountCreditCommand(
                 currentUser.Data.Id,
                 result.Data.AppliedCreditAmount.Value,
                 "Applied to membership subscription",

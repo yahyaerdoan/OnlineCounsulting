@@ -1,4 +1,4 @@
-using Core.SecurityLayer.Extensions;
+﻿using Core.SecurityLayer.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using OnlineConsulting.SharedKernel.Authorization;
@@ -21,16 +21,19 @@ public class TenantStatusCheckBehavior<TRequest, TResponse>(
     {
         var tenantId = tenantProvider.TenantId;
         if (tenantId == TenantDefaults.DefaultTenantId)
+        {
             return await next(cancellationToken);
+        }
 
         var roles = httpContextAccessor.HttpContext?.User.ClaimRoles() ?? [];
         if (roles.Contains(GlobalOperationClaims.SuperAdmin))
+        {
             return await next(cancellationToken);
+        }
 
         var isSuspended = await tenantStatusReader.IsSuspendedAsync(tenantId, cancellationToken);
-        if (isSuspended)
-            return ResultFailureFactory.Forbidden<TResponse>("Subscription inactive - please update your billing to restore access.");
-
-        return await next(cancellationToken);
+        return isSuspended
+            ? ResultFailureFactory.Forbidden<TResponse>("Subscription inactive - please update your billing to restore access.")
+            : await next(cancellationToken);
     }
 }

@@ -23,7 +23,9 @@ public class DeleteRoleHandler(RoleManager<Role> roleManager) : IRequestHandler<
     {
         var role = await roleManager.FindByIdAsync(request.RoleId.ToString());
         if (role is null)
+        {
             return RoleBusinessRules.NoRoleDataFound();
+        }
 
         var result = await roleManager.DeleteAsync(role);
 

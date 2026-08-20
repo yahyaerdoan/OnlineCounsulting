@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Requests.Page;
+﻿using Core.ApplicationLayer.Requests.Page;
 using FluentValidation;
 
 namespace OnlineConsulting.SharedKernel.Validation;
@@ -10,7 +10,7 @@ public class PageRequestValidator : AbstractValidator<PageRequest>
 
     public PageRequestValidator()
     {
-        RuleFor(p => p.PageIndex).GreaterThanOrEqualTo(0).WithMessage("Page index must be {ComparisonValue} or greater.");
-        RuleFor(p => p.PageSize).InclusiveBetween(1, MaxPageSize).WithMessage("Page size must be between {From} and {To}.");
+        _ = RuleFor(p => p.PageIndex).GreaterThanOrEqualTo(0).WithMessage("Page index must be {ComparisonValue} or greater.");
+        _ = RuleFor(p => p.PageSize).InclusiveBetween(1, MaxPageSize).WithMessage("Page size must be between {From} and {To}.");
     }
 }

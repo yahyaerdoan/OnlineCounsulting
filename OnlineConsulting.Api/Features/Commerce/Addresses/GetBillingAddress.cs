@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.GetBillingAddress;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
@@ -11,7 +11,7 @@ public class GetBillingAddress : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/addresses/billing", Handle)
+        _ = app.MapGet("/api/addresses/billing", Handle)
             .WithTags("Commerce/Addresses")
             .RequireAuthorization()
             .WithName("GetBillingAddress")
@@ -22,7 +22,9 @@ public class GetBillingAddress : IEndpoint
     {
         var currentUser = await sender.Send(new GetCurrentUserQuery());
         if (!currentUser.IsSuccessful || currentUser.Data is null)
+        {
             return currentUser.ToEnvelopedResult(httpContext);
+        }
 
         var result = await sender.Send(new GetBillingAddressQuery(currentUser.Data.Id));
         return result

@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.CreateUserAddress;
@@ -11,7 +11,7 @@ public class CreateUserAddress : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/addresses", Handle)
+        _ = app.MapPost("/api/addresses", Handle)
             .WithTags("Commerce/Addresses")
             .RequireAuthorization()
             .WithName("CreateUserAddress")
@@ -22,7 +22,9 @@ public class CreateUserAddress : IEndpoint
     {
         var currentUser = await sender.Send(new GetCurrentUserQuery());
         if (!currentUser.IsSuccessful || currentUser.Data is null)
+        {
             return currentUser.ToEnvelopedResult(httpContext);
+        }
 
         var result = await sender.Send(command with { UserId = currentUser.Data.Id });
         return result.ToEnvelopedResult(httpContext);

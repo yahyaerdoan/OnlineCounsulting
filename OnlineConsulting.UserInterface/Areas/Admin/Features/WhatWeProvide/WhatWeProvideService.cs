@@ -1,4 +1,4 @@
-using OnlineConsulting.UserInterface.Infrastructure.Api;
+﻿using OnlineConsulting.UserInterface.Infrastructure.Api;
 using OnlineConsulting.UserInterface.Infrastructure.Media;
 
 namespace OnlineConsulting.UserInterface.Areas.Admin.Features.WhatWeProvide;
@@ -16,16 +16,15 @@ public class WhatWeProvideService(IApiClient apiClient, IMediaService mediaServi
     public async Task<UpdateWhatWeProvideViewModel?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var highlight = await FindAsync(id, cancellationToken);
-        if (highlight is null)
-            return null;
-
-        return new UpdateWhatWeProvideViewModel
-        {
-            Id = highlight.Id,
-            Title = highlight.Title,
-            Description = highlight.Description,
-            ImageUrl = highlight.ImageUrl,
-        };
+        return highlight is null
+            ? null
+            : new UpdateWhatWeProvideViewModel
+            {
+                Id = highlight.Id,
+                Title = highlight.Title,
+                Description = highlight.Description,
+                ImageUrl = highlight.ImageUrl,
+            };
     }
 
     public async Task<ApiEnvelope> CreateAsync(CreateWhatWeProvideViewModel model, CancellationToken cancellationToken = default)

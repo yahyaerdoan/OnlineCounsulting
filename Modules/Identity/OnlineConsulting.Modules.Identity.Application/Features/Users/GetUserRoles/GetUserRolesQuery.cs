@@ -25,11 +25,15 @@ public class GetUserRolesHandler(UserManager<User> userManager, RoleManager<Role
     {
         var user = await userManager.FindByIdAsync(request.UserId.ToString());
         if (user is null)
+        {
             return Result.NotFound<List<RoleAssignmentResponse>>(UserMessages.UserNotFound);
+        }
 
         var allRoles = await roleManager.Roles.ToListAsync(cancellationToken);
         if (allRoles.Count == 0)
+        {
             return Result.NotFound<List<RoleAssignmentResponse>>("Roles not found.");
+        }
 
         var userRoleNames = await userManager.GetRolesAsync(user);
 

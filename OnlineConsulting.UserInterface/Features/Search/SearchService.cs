@@ -1,4 +1,4 @@
-using OnlineConsulting.UserInterface.Infrastructure.Api;
+﻿using OnlineConsulting.UserInterface.Infrastructure.Api;
 using OnlineConsulting.UserInterface.Infrastructure.Media;
 
 namespace OnlineConsulting.UserInterface.Features.Search;
@@ -8,7 +8,9 @@ public class SearchService(IApiClient apiClient, IMediaService mediaService) : I
     public async Task<List<SearchResultItemViewModel>> SearchAsync(string query, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(query))
+        {
             return [];
+        }
 
         var result = await apiClient.GetAsync<List<ServiceResponse>>($"/api/services/search?query={Uri.EscapeDataString(query)}", cancellationToken);
         var services = result.ResultData ?? [];

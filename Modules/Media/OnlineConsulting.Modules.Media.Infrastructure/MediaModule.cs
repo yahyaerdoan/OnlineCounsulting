@@ -19,17 +19,17 @@ public static class MediaModule
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-        services.AddScoped<TenantSaveChangesInterceptor>();
-        services.AddScoped<AuditSaveChangesInterceptor>();
+        _ = services.AddScoped<TenantSaveChangesInterceptor>();
+        _ = services.AddScoped<AuditSaveChangesInterceptor>();
 
-        services.AddDbContext<MediaDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
+        _ = services.AddDbContext<MediaDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
             .AddInterceptors(serviceProvider.GetRequiredService<TenantSaveChangesInterceptor>(), serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>()));
 
-        services.AddScoped<IMediaAssetRepository, MediaAssetRepository>();
+        _ = services.AddScoped<IMediaAssetRepository, MediaAssetRepository>();
 
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
-        services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
-        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(MediaTransactionAddingBehavior<,>));
+        _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
+        _ = services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
+        _ = services.AddTransient(typeof(IPipelineBehavior<,>), typeof(MediaTransactionAddingBehavior<,>));
 
         return services;
     }

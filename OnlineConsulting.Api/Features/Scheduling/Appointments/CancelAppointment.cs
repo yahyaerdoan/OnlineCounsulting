@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.CancelAppointment;
@@ -10,7 +10,7 @@ public class CancelAppointment : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/appointments/{id:guid}/cancel", Handle)
+        _ = app.MapPost("/api/appointments/{id:guid}/cancel", Handle)
             .WithTags("Scheduling/Appointments")
             .RequireAuthorization()
             .WithName("CancelAppointment")
@@ -21,7 +21,9 @@ public class CancelAppointment : IEndpoint
     {
         var currentUser = await sender.Send(new GetCurrentUserQuery());
         if (!currentUser.IsSuccessful || currentUser.Data is null)
+        {
             return currentUser.ToEnvelopedResult(httpContext);
+        }
 
         var result = await sender.Send(new CancelAppointmentCommand(id, currentUser.Data.Id));
         return result.ToEnvelopedResult(httpContext);

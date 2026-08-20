@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.ServiceAreas.Abstractions;
@@ -20,9 +20,11 @@ public class DeleteServiceAreaHandler(IServiceAreaRepository repository) : IRequ
     {
         var entity = await repository.GetAsync(x => x.Id == request.Id, cancellationToken: cancellationToken);
         if (entity is null)
+        {
             return SiteContentBusinessRules.NotFound("ServiceArea", request.Id);
+        }
 
-        await repository.DeleteAsync(entity);
+        _ = await repository.DeleteAsync(entity);
 
         return Result.Success("Service area deleted successfully.");
     }

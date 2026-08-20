@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.Testimonials.UpdateTestimonial;
@@ -10,7 +10,7 @@ public class UpdateTestimonial : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPut("/api/site-content/testimonials/{id:guid}", Handle)
+        _ = app.MapPut("/api/site-content/testimonials/{id:guid}", Handle)
             .WithTags("SiteContent/Testimonials")
             .RequireAuthorization()
             .WithName("UpdateTestimonial")

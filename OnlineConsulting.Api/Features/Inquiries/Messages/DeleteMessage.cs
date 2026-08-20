@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Messages.DeleteMessage;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class DeleteMessage : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapDelete("/api/inquiries/messages/{id:guid}", Handle)
+        _ = app.MapDelete("/api/inquiries/messages/{id:guid}", Handle)
             .WithTags("Inquiries/Messages")
             .RequireAuthorization()
             .WithName("DeleteMessage")

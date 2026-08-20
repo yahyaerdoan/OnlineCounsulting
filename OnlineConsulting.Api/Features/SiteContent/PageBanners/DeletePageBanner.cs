@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.PageBanners.DeletePageBanner;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class DeletePageBanner : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapDelete("/api/site-content/page-banners/{id:guid}", Handle)
+        _ = app.MapDelete("/api/site-content/page-banners/{id:guid}", Handle)
             .WithTags("SiteContent/PageBanners")
             .RequireAuthorization()
             .WithName("DeletePageBanner")

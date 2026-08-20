@@ -31,7 +31,7 @@ public class CreateServiceProcessStepHandler(IServiceProcessStepRepository repos
             Metadata = MetadataSerializer.Serialize(request.Metadata),
         };
 
-        await repository.AddAsync(entity);
+        _ = await repository.AddAsync(entity);
 
         return Result.Created(entity.Id, "Service process step created successfully.");
     }

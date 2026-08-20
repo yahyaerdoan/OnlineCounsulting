@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Services.Application.Features.UpdateService;
@@ -10,7 +10,7 @@ public class UpdateService : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPut("/api/services/{id:guid}", Handle)
+        _ = app.MapPut("/api/services/{id:guid}", Handle)
             .WithTags("Services")
             .RequireAuthorization()
             .WithName("UpdateService")

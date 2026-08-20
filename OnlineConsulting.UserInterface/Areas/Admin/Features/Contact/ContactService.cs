@@ -1,4 +1,4 @@
-using OnlineConsulting.UserInterface.Infrastructure.Api;
+﻿using OnlineConsulting.UserInterface.Infrastructure.Api;
 
 namespace OnlineConsulting.UserInterface.Areas.Admin.Features.Contact;
 
@@ -10,17 +10,16 @@ public class ContactService(IApiClient apiClient) : IContactService
     {
         var result = await apiClient.GetAsync<CompanyContactResponse>(ContactPath, cancellationToken);
         var contact = result.ResultData;
-        if (contact is null)
-            return null;
-
-        return new ContactViewModel
-        {
-            Email = contact.Email,
-            Phone = contact.Phone,
-            Address = contact.Address,
-            Description = contact.Description,
-            WorkingHours = contact.WorkingHours,
-        };
+        return contact is null
+            ? null
+            : new ContactViewModel
+            {
+                Email = contact.Email,
+                Phone = contact.Phone,
+                Address = contact.Address,
+                Description = contact.Description,
+                WorkingHours = contact.WorkingHours,
+            };
     }
 
     public Task<ApiEnvelope> UpdateAsync(ContactViewModel model, CancellationToken cancellationToken = default) =>

@@ -12,7 +12,9 @@ public class TenantProvider(IHttpContextAccessor httpContextAccessor) : ITenantP
         get
         {
             if (TenantContextOverride.TenantId is { } overriddenTenantId)
+            {
                 return overriddenTenantId;
+            }
 
             var claimValue = httpContextAccessor.HttpContext?.User.FindFirst(TenantClaimType)?.Value;
 

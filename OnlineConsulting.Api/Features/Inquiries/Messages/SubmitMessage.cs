@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Messages.SubmitMessage;
@@ -10,7 +10,7 @@ public class SubmitMessage : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/inquiries/messages", Handle)
+        _ = app.MapPost("/api/inquiries/messages", Handle)
             .WithTags("Inquiries/Messages")
             .WithName("SubmitMessage")
             .WithDescription("Submits a contact-form message. Public - no login required.");

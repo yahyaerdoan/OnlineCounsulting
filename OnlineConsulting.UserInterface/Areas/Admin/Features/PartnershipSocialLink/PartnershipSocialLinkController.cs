@@ -30,7 +30,9 @@ public class PartnershipSocialLinkController(IPartnershipSocialLinkService partn
         ViewBag.PartnershipId = partnershipId;
         model.PartnershipId = partnershipId;
         if (!ModelState.IsValid)
+        {
             return View(model);
+        }
 
         var result = await partnershipSocialLinkService.CreateAsync(model, cancellationToken);
         toastNotification.ShowResult(result);
@@ -52,7 +54,9 @@ public class PartnershipSocialLinkController(IPartnershipSocialLinkService partn
         ViewBag.PartnershipId = partnershipId;
         model.PartnershipId = partnershipId;
         if (!ModelState.IsValid)
+        {
             return View(model);
+        }
 
         var result = await partnershipSocialLinkService.UpdateAsync(model, cancellationToken);
         toastNotification.ShowResult(result);

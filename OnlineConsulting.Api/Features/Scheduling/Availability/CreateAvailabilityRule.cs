@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Availability.CreateAvailabilityRule;
@@ -10,7 +10,7 @@ public class CreateAvailabilityRule : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/scheduling/availability-rules", Handle)
+        _ = app.MapPost("/api/scheduling/availability-rules", Handle)
             .WithTags("Scheduling/Availability")
             .RequireAuthorization()
             .WithName("CreateAvailabilityRule")

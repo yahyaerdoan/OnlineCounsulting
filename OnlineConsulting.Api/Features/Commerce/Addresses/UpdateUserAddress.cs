@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.UpdateUserAddress;
@@ -11,7 +11,7 @@ public class UpdateUserAddress : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPut("/api/addresses/{id:guid}", Handle)
+        _ = app.MapPut("/api/addresses/{id:guid}", Handle)
             .WithTags("Commerce/Addresses")
             .RequireAuthorization()
             .WithName("UpdateUserAddress")
@@ -22,7 +22,9 @@ public class UpdateUserAddress : IEndpoint
     {
         var currentUser = await sender.Send(new GetCurrentUserQuery());
         if (!currentUser.IsSuccessful || currentUser.Data is null)
+        {
             return currentUser.ToEnvelopedResult(httpContext);
+        }
 
         var result = await sender.Send(command with { Id = id, UserId = currentUser.Data.Id });
         return result.ToEnvelopedResult(httpContext);

@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Signup;
@@ -17,7 +17,7 @@ public class ActivateTenantSubscription : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/tenancy/{tenantId:guid}/activate", Handle)
+        _ = app.MapPost("/api/tenancy/{tenantId:guid}/activate", Handle)
             .WithTags("Tenancy")
             .RequireAuthorization()
             .WithName("ActivateTenantSubscription")
@@ -29,7 +29,9 @@ public class ActivateTenantSubscription : IEndpoint
         ITenantProvider tenantProvider, IHttpContextAccessor httpContextAccessor, HttpContext httpContext)
     {
         if (!TenantOwnershipGuard.CallerMayManage(tenantId, tenantProvider.TenantId, httpContextAccessor))
+        {
             return Result.Forbidden<ActivateTenantSubscriptionResult>(TenantSubscriptionItemMessages.NotAuthorizedForTenant).ToEnvelopedResult(httpContext);
+        }
 
         var result = await sender.Send(new ActivateTenantSubscriptionCommand(tenantId, request.PaymentMethodId));
         return result.ToEnvelopedResult(httpContext);

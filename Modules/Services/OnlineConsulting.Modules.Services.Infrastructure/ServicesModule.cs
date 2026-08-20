@@ -20,18 +20,18 @@ public static class ServicesModule
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-        services.AddScoped<TenantSaveChangesInterceptor>();
-        services.AddScoped<AuditSaveChangesInterceptor>();
+        _ = services.AddScoped<TenantSaveChangesInterceptor>();
+        _ = services.AddScoped<AuditSaveChangesInterceptor>();
 
-        services.AddDbContext<ServicesDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
+        _ = services.AddDbContext<ServicesDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
             .AddInterceptors(serviceProvider.GetRequiredService<TenantSaveChangesInterceptor>(), serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>()));
 
-        services.AddScoped<IServiceRepository, ServiceRepository>();
-        services.AddScoped<IServiceMediaItemRepository, ServiceMediaItemRepository>();
+        _ = services.AddScoped<IServiceRepository, ServiceRepository>();
+        _ = services.AddScoped<IServiceMediaItemRepository, ServiceMediaItemRepository>();
 
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
-        services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
-        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ServicesTransactionAddingBehavior<,>));
+        _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
+        _ = services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
+        _ = services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ServicesTransactionAddingBehavior<,>));
 
         return services;
     }

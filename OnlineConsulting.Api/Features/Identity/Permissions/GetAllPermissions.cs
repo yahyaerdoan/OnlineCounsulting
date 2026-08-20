@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Identity.Application.Features.Permissions.GetAllPermissions;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class GetAllPermissions : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/permissions", Handle)
+        _ = app.MapGet("/api/permissions", Handle)
             .WithTags("Identity/Permissions")
             .RequireAuthorization()
             .WithName("GetAllPermissions")

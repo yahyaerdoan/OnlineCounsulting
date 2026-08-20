@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.HeroSlides.UpdateHeroSlide;
@@ -10,7 +10,7 @@ public class UpdateHeroSlide : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPut("/api/site-content/hero-slides/{id:guid}", Handle)
+        _ = app.MapPut("/api/site-content/hero-slides/{id:guid}", Handle)
             .WithTags("SiteContent/HeroSlides")
             .RequireAuthorization()
             .WithName("UpdateHeroSlide")

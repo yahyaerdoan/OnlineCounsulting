@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.FaqItems.DeleteFaqItem;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class DeleteFaqItem : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapDelete("/api/site-content/faq-items/{id:guid}", Handle)
+        _ = app.MapDelete("/api/site-content/faq-items/{id:guid}", Handle)
             .WithTags("SiteContent/FaqItems")
             .RequireAuthorization()
             .WithName("DeleteFaqItem")

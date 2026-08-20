@@ -20,9 +20,11 @@ public class DeletePartnershipHandler(IPartnershipRepository repository) : IRequ
     {
         var entity = await repository.GetAsync(x => x.Id == request.Id, cancellationToken: cancellationToken);
         if (entity is null)
+        {
             return SiteContentBusinessRules.NotFound("Partnership", request.Id);
+        }
 
-        await repository.DeleteAsync(entity);
+        _ = await repository.DeleteAsync(entity);
 
         return Result.Success("Partnership deleted successfully.");
     }

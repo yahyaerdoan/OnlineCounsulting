@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.ServiceAreas.Abstractions;
@@ -33,7 +33,7 @@ public class CreateServiceAreaHandler(IServiceAreaRepository repository) : IRequ
             DisplayOrder = request.DisplayOrder,
         };
 
-        await repository.AddAsync(entity);
+        _ = await repository.AddAsync(entity);
 
         return Result.Created(entity.Id, "Service area created successfully.");
     }

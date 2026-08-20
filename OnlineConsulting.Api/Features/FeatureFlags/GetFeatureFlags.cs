@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.FeatureFlags.Application.Features.GetFeatureFlags;
 using OnlineConsulting.SharedKernel.Tenancy;
@@ -10,7 +10,7 @@ public class GetFeatureFlags : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/admin/feature-flags", Handle)
+        _ = app.MapGet("/api/admin/feature-flags", Handle)
             .WithTags("FeatureFlags")
             .RequireAuthorization()
             .WithName("GetFeatureFlags")

@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Scheduling.Application.Common;
@@ -31,11 +31,15 @@ public class CreateWorkOrderHandler(IWorkOrderRepository workOrderRepository, IA
     {
         var appointment = await appointmentRepository.GetAsync(a => a.Id == request.AppointmentId, cancellationToken: cancellationToken);
         if (appointment is null)
+        {
             return AppointmentBusinessRules.AppointmentNotFound(request.AppointmentId).ToErrorDataResult<Guid>();
+        }
 
         var alreadyExists = await workOrderRepository.AnyAsync(w => w.AppointmentId == request.AppointmentId, cancellationToken: cancellationToken);
         if (alreadyExists)
+        {
             return WorkOrderBusinessRules.WorkOrderAlreadyExistsForAppointment().ToErrorDataResult<Guid>();
+        }
 
         var workOrder = new WorkOrder
         {
@@ -48,10 +52,10 @@ public class CreateWorkOrderHandler(IWorkOrderRepository workOrderRepository, IA
             EquipmentId = request.EquipmentId,
         };
 
-        await workOrderRepository.AddAsync(workOrder);
+        _ = await workOrderRepository.AddAsync(workOrder);
 
         appointment.Status = AppointmentStatuses.Completed;
-        await appointmentRepository.UpdateAsync(appointment);
+        _ = await appointmentRepository.UpdateAsync(appointment);
 
         await pushNotificationSender.SendToUserAsync(
             appointment.UserId,

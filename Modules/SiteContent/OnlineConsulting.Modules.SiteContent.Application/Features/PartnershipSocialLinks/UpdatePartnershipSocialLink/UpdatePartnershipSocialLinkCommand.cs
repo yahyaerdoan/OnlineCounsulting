@@ -21,14 +21,16 @@ public class UpdatePartnershipSocialLinkHandler(IPartnershipSocialLinkRepository
     {
         var entity = await repository.GetAsync(x => x.Id == request.Id, cancellationToken: cancellationToken);
         if (entity is null)
+        {
             return SiteContentBusinessRules.NotFound("Partnership social link", request.Id);
+        }
 
         entity.Name = request.Name;
         entity.Url = request.Url;
         entity.Icon = request.Icon;
         entity.IconColor = request.IconColor;
 
-        await repository.UpdateAsync(entity);
+        _ = await repository.UpdateAsync(entity);
 
         return Result.Success("Partnership social link updated successfully.");
     }

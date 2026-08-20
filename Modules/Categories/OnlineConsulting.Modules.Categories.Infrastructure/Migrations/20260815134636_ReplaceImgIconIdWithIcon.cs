@@ -10,12 +10,12 @@ public partial class ReplaceImgIconIdWithIcon : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.DropColumn(
+        _ = migrationBuilder.DropColumn(
             name: "ImgIconId",
             schema: "Categories",
             table: "Categories");
 
-        migrationBuilder.AddColumn<string>(
+        _ = migrationBuilder.AddColumn<string>(
             name: "Icon",
             schema: "Categories",
             table: "Categories",
@@ -24,7 +24,7 @@ public partial class ReplaceImgIconIdWithIcon : Migration
             nullable: false,
             defaultValue: "");
 
-        migrationBuilder.AddColumn<string>(
+        _ = migrationBuilder.AddColumn<string>(
             name: "IconColor",
             schema: "Categories",
             table: "Categories",
@@ -36,17 +36,17 @@ public partial class ReplaceImgIconIdWithIcon : Migration
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.DropColumn(
+        _ = migrationBuilder.DropColumn(
             name: "Icon",
             schema: "Categories",
             table: "Categories");
 
-        migrationBuilder.DropColumn(
+        _ = migrationBuilder.DropColumn(
             name: "IconColor",
             schema: "Categories",
             table: "Categories");
 
-        migrationBuilder.AddColumn<Guid>(
+        _ = migrationBuilder.AddColumn<Guid>(
             name: "ImgIconId",
             schema: "Categories",
             table: "Categories",

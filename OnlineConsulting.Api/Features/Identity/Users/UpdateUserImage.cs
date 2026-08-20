@@ -10,7 +10,7 @@ public class UpdateUserImage : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/users/me/image", Handle)
+        _ = app.MapPost("/api/users/me/image", Handle)
             .WithTags("Identity/Users")
             .RequireAuthorization()
             .WithName("UpdateUserImage")
@@ -22,7 +22,9 @@ public class UpdateUserImage : IEndpoint
     {
         var currentUser = await sender.Send(new GetCurrentUserQuery());
         if (!currentUser.IsSuccessful || currentUser.Data is null)
+        {
             return currentUser.ToEnvelopedResult(httpContext);
+        }
 
         var result = await sender.Send(new UpdateUserImageCommand(currentUser.Data.Id, image));
         return result.ToEnvelopedResult(httpContext);

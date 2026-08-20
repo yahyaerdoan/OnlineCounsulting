@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.DeleteUserAddress;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
@@ -10,7 +10,7 @@ public class DeleteUserAddress : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapDelete("/api/addresses/{id:guid}", Handle)
+        _ = app.MapDelete("/api/addresses/{id:guid}", Handle)
             .WithTags("Commerce/Addresses")
             .RequireAuthorization()
             .WithName("DeleteUserAddress")
@@ -21,7 +21,9 @@ public class DeleteUserAddress : IEndpoint
     {
         var currentUser = await sender.Send(new GetCurrentUserQuery());
         if (!currentUser.IsSuccessful || currentUser.Data is null)
+        {
             return currentUser.ToEnvelopedResult(httpContext);
+        }
 
         var result = await sender.Send(new DeleteUserAddressCommand(id, currentUser.Data.Id));
         return result.ToEnvelopedResult(httpContext);

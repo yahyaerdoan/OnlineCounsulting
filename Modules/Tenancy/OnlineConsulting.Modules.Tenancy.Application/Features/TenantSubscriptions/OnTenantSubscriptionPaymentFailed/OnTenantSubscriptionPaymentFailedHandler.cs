@@ -14,21 +14,27 @@ public class OnTenantSubscriptionPaymentFailedHandler(ITenantSubscriptionReposit
     public async Task Handle(SubscriptionPaymentFailedNotification notification, CancellationToken cancellationToken)
     {
         if (!Guid.TryParse(notification.ReferenceId, out var tenantSubscriptionId))
+        {
             return;
+        }
 
         var tenantSubscription = await subscriptionRepository.GetAsync(s => s.Id == tenantSubscriptionId, cancellationToken: cancellationToken);
         if (tenantSubscription is null || tenantSubscription.Status == TenantSubscriptionStatuses.Cancelled)
+        {
             return;
+        }
 
         tenantSubscription.Status = TenantSubscriptionStatuses.PastDue;
-        await subscriptionRepository.UpdateAsync(tenantSubscription);
+        _ = await subscriptionRepository.UpdateAsync(tenantSubscription);
 
         var tenant = await tenantRepository.GetAsync(t => t.Id == tenantSubscription.TenantId, cancellationToken: cancellationToken);
         if (tenant is null || tenant.Status is TenantStatuses.Suspended or TenantStatuses.Cancelled)
+        {
             return;
+        }
 
         tenant.Status = TenantStatuses.PastDue;
-        await tenantRepository.UpdateAsync(tenant);
+        _ = await tenantRepository.UpdateAsync(tenant);
 
         outboxWriter.Enqueue(
             tenant.PrimaryContactEmail,

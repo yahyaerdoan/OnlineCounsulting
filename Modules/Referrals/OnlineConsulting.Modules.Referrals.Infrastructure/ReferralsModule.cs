@@ -1,4 +1,4 @@
-using FluentValidation;
+﻿using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -21,19 +21,19 @@ public static class ReferralsModule
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-        services.AddScoped<TenantSaveChangesInterceptor>();
-        services.AddScoped<AuditSaveChangesInterceptor>();
+        _ = services.AddScoped<TenantSaveChangesInterceptor>();
+        _ = services.AddScoped<AuditSaveChangesInterceptor>();
 
-        services.AddDbContext<ReferralsDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
+        _ = services.AddDbContext<ReferralsDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
             .AddInterceptors(serviceProvider.GetRequiredService<TenantSaveChangesInterceptor>(), serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>()));
 
-        services.AddScoped<IReferralCodeRepository, ReferralCodeRepository>();
-        services.AddScoped<IReferralRepository, ReferralRepository>();
-        services.AddScoped<IAccountCreditRepository, AccountCreditRepository>();
+        _ = services.AddScoped<IReferralCodeRepository, ReferralCodeRepository>();
+        _ = services.AddScoped<IReferralRepository, ReferralRepository>();
+        _ = services.AddScoped<IAccountCreditRepository, AccountCreditRepository>();
 
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
-        services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
-        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ReferralsTransactionAddingBehavior<,>));
+        _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
+        _ = services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
+        _ = services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ReferralsTransactionAddingBehavior<,>));
 
         return services;
     }

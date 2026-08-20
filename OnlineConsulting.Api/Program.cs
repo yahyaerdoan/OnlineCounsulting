@@ -58,10 +58,9 @@ builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LogResultAddi
 
 var redisConnection = builder.Configuration.GetConnectionString("Redis");
 
-if (string.IsNullOrWhiteSpace(redisConnection))
-    builder.Services.AddDistributedMemoryCache();
-else
-    builder.Services.AddStackExchangeRedisCache(options => options.Configuration = redisConnection);
+_ = string.IsNullOrWhiteSpace(redisConnection)
+    ? builder.Services.AddDistributedMemoryCache()
+    : builder.Services.AddStackExchangeRedisCache(options => options.Configuration = redisConnection);
 
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CacheAddingBehavior<,>));
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CacheRemovingBehavior<,>));
@@ -102,7 +101,9 @@ builder.Services.AddStorageInfrastructure(builder.Configuration);
 builder.Services.PostConfigure<StorageOptions>(options =>
 {
     if (string.IsNullOrEmpty(options.Local.RootPath))
+    {
         options.Local.RootPath = Path.Combine(builder.Environment.WebRootPath, "media");
+    }
 });
 builder.Services.AddNotificationsInfrastructure(builder.Configuration);
 builder.Services.AddPaymentsInfrastructure(builder.Configuration);
@@ -134,8 +135,8 @@ app.UseForwardedHeaders();
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    _ = app.UseSwagger();
+    _ = app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();

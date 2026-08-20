@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Abstractions;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Constants;
@@ -31,7 +31,9 @@ public class SubscribeToMembershipHandler(
     {
         var plan = await planRepository.GetAsync(p => p.Id == request.MembershipPlanId, cancellationToken: cancellationToken);
         if (plan is null || plan.ProviderPriceId is null)
+        {
             return Result.NotFound<SubscribeToMembershipResult>(string.Format(CustomerMembershipMessages.MembershipPlanNotFoundFormat, request.MembershipPlanId));
+        }
 
         var membership = await membershipRepository.GetAsync(m =>
             m.UserId == request.UserId &&
@@ -50,10 +52,12 @@ public class SubscribeToMembershipHandler(
             if (stalePlanMembership is not null)
             {
                 if (stalePlanMembership.ProviderSubscriptionId is not null)
+                {
                     return Result.BadRequest<SubscribeToMembershipResult>(CustomerMembershipMessages.PreviousAttemptNeedsSupport);
+                }
 
                 stalePlanMembership.MembershipPlanId = request.MembershipPlanId;
-                await membershipRepository.UpdateAsync(stalePlanMembership);
+                _ = await membershipRepository.UpdateAsync(stalePlanMembership);
                 membership = stalePlanMembership;
             }
         }
@@ -66,7 +70,9 @@ public class SubscribeToMembershipHandler(
                 cancellationToken: cancellationToken);
 
             if (hasActiveMembership)
+            {
                 return Result.BadRequest<SubscribeToMembershipResult>(CustomerMembershipMessages.AlreadyHasActiveMembership);
+            }
         }
 
         var appliedCreditAmount = request.CreditToApplyAmount is > 0
@@ -84,7 +90,7 @@ public class SubscribeToMembershipHandler(
                 StartDate = DateTimeOffset.UtcNow,
             };
 
-            await membershipRepository.AddAsync(membership);
+            _ = await membershipRepository.AddAsync(membership);
         }
 
         string? clientSecret;
@@ -103,7 +109,7 @@ public class SubscribeToMembershipHandler(
                     cancellationToken: cancellationToken);
                 providerCustomerId = customer.ProviderCustomerId;
                 membership.ProviderCustomerId = providerCustomerId;
-                await membershipRepository.UpdateAsync(membership);
+                _ = await membershipRepository.UpdateAsync(membership);
             }
 
             if (membership.ProviderSubscriptionId is null)
@@ -121,7 +127,7 @@ public class SubscribeToMembershipHandler(
                     PaymentStatuses.Failed => CustomerMembershipStatuses.PastDue,
                     _ => CustomerMembershipStatuses.PendingPayment,
                 };
-                await membershipRepository.UpdateAsync(membership);
+                _ = await membershipRepository.UpdateAsync(membership);
 
                 clientSecret = subscription.ClientSecret;
             }
@@ -131,7 +137,7 @@ public class SubscribeToMembershipHandler(
                 {
                     // ProviderSubscriptionId only gets set once CreateSubscriptionAsync genuinely succeeds, so a Failed status here is stale, not a real failure.
                     membership.Status = CustomerMembershipStatuses.Active;
-                    await membershipRepository.UpdateAsync(membership);
+                    _ = await membershipRepository.UpdateAsync(membership);
                 }
 
                 clientSecret = null;
@@ -140,7 +146,7 @@ public class SubscribeToMembershipHandler(
         catch (Exception)
         {
             membership.Status = CustomerMembershipStatuses.Failed;
-            await membershipRepository.UpdateAsync(membership);
+            _ = await membershipRepository.UpdateAsync(membership);
             return Result.BadRequest<SubscribeToMembershipResult>(CustomerMembershipMessages.PaymentSetupFailed);
         }
 

@@ -1,4 +1,4 @@
-using FluentValidation;
+﻿using FluentValidation;
 
 namespace OnlineConsulting.Modules.Referrals.Application.Features.AccountCredits.SpendAccountCredit;
 
@@ -6,10 +6,10 @@ public class SpendAccountCreditValidator : AbstractValidator<SpendAccountCreditC
 {
     public SpendAccountCreditValidator()
     {
-        RuleFor(x => x.UserId).NotEmpty();
-        RuleFor(x => x.Amount).GreaterThan(0);
-        RuleFor(x => x.Reason).NotEmpty();
-        RuleFor(x => x.SourceType).NotEmpty();
-        RuleFor(x => x.SourceId).NotEmpty();
+        _ = RuleFor(x => x.UserId).NotEmpty();
+        _ = RuleFor(x => x.Amount).GreaterThan(0);
+        _ = RuleFor(x => x.Reason).NotEmpty();
+        _ = RuleFor(x => x.SourceType).NotEmpty();
+        _ = RuleFor(x => x.SourceId).NotEmpty();
     }
 }

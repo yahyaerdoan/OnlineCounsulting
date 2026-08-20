@@ -32,7 +32,9 @@ public class ServiceController(IAdminServiceCatalogService serviceCatalogService
         toastNotification.ShowResult(result);
 
         if (result.IsSuccessful)
+        {
             return RedirectToAction("Index");
+        }
 
         await serviceCatalogService.FillCategoriesAsync(model, cancellationToken);
         return View(model);
@@ -58,7 +60,9 @@ public class ServiceController(IAdminServiceCatalogService serviceCatalogService
         toastNotification.ShowResult(result);
 
         if (result.IsSuccessful)
+        {
             return RedirectToAction("Index");
+        }
 
         await serviceCatalogService.FillCategoriesAsync(model, cancellationToken);
         return View(model);

@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.AssignTechnician;
@@ -10,7 +10,7 @@ public class AssignTechnician : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/appointments/{id:guid}/assign-technician", Handle)
+        _ = app.MapPost("/api/appointments/{id:guid}/assign-technician", Handle)
             .WithTags("Scheduling/Appointments")
             .RequireAuthorization()
             .WithName("AssignTechnician")

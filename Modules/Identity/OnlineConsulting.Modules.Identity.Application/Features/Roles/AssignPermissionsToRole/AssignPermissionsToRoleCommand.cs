@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
 using Core.SecurityLayer.Authorization;
 using Core.SecurityLayer.Constants;
@@ -28,15 +28,21 @@ public class AssignPermissionsToRoleHandler(RoleManager<Role> roleManager, IHttp
     {
         if (request.Permissions.Contains(PermissionClaimTypes.FullAccess)
             && !(httpContextAccessor.HttpContext?.User.ClaimPermissions()?.Contains(PermissionClaimTypes.FullAccess) ?? false))
+        {
             return Result.Forbidden("Only an existing full-access role holder can grant full access to another role.");
+        }
 
         var unknownPermissions = request.Permissions.Where(p => p != PermissionClaimTypes.FullAccess && !permissionCatalog.AllPermissions.Contains(p)).ToList();
         if (unknownPermissions.Count > 0)
+        {
             return Result.BadRequest($"Unknown permission(s): {string.Join(", ", unknownPermissions)}.");
+        }
 
         var role = await roleManager.FindByIdAsync(request.RoleId.ToString());
         if (role is null)
+        {
             return Result.NotFound(RoleMessages.NoRoleDataFound);
+        }
 
         var existingPermissionClaims = (await roleManager.GetClaimsAsync(role))
             .Where(c => c.Type == PermissionClaimTypes.Type)
@@ -46,14 +52,18 @@ public class AssignPermissionsToRoleHandler(RoleManager<Role> roleManager, IHttp
         {
             var removeResult = await roleManager.RemoveClaimAsync(role, claim);
             if (!removeResult.Succeeded)
+            {
                 return Result.BadRequest($"{string.Join("; ", removeResult.Errors.Select(e => e.Description))} errors occurred while updating permissions.");
+            }
         }
 
         foreach (var permission in request.Permissions.Where(p => existingPermissionClaims.TrueForAll(c => c.Value != p)))
         {
             var addResult = await roleManager.AddClaimAsync(role, new Claim(PermissionClaimTypes.Type, permission));
             if (!addResult.Succeeded)
+            {
                 return Result.BadRequest($"{string.Join("; ", addResult.Errors.Select(e => e.Description))} errors occurred while updating permissions.");
+            }
         }
 
         return Result.Success("Role permissions updated successfully.");

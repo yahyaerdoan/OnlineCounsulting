@@ -26,26 +26,26 @@ public static class InquiriesModule
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-        services.AddScoped<TenantSaveChangesInterceptor>();
-        services.AddScoped<AuditSaveChangesInterceptor>();
+        _ = services.AddScoped<TenantSaveChangesInterceptor>();
+        _ = services.AddScoped<AuditSaveChangesInterceptor>();
 
-        services.AddDbContext<InquiriesDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
+        _ = services.AddDbContext<InquiriesDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
             .AddInterceptors(serviceProvider.GetRequiredService<TenantSaveChangesInterceptor>(), serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>()));
 
-        services.AddScoped<IMessageRepository, MessageRepository>();
-        services.AddScoped<INewsletterSubscriberRepository, NewsletterSubscriberRepository>();
-        services.AddScoped<ICompanyContactRepository, CompanyContactRepository>();
-        services.AddScoped<IEmailOutboxWriter, EmailOutboxWriter>();
+        _ = services.AddScoped<IMessageRepository, MessageRepository>();
+        _ = services.AddScoped<INewsletterSubscriberRepository, NewsletterSubscriberRepository>();
+        _ = services.AddScoped<ICompanyContactRepository, CompanyContactRepository>();
+        _ = services.AddScoped<IEmailOutboxWriter, EmailOutboxWriter>();
 
-        services.AddScoped<IEmailTemplate<MessageReceivedEmailModel>, MessageReceivedTemplate>();
-        services.AddScoped<IEmailTemplate<NewInquiryNotificationEmailModel>, NewInquiryNotificationTemplate>();
-        services.AddScoped<IEmailTemplate<NewsletterSubscribedEmailModel>, NewsletterSubscribedTemplate>();
+        _ = services.AddScoped<IEmailTemplate<MessageReceivedEmailModel>, MessageReceivedTemplate>();
+        _ = services.AddScoped<IEmailTemplate<NewInquiryNotificationEmailModel>, NewInquiryNotificationTemplate>();
+        _ = services.AddScoped<IEmailTemplate<NewsletterSubscribedEmailModel>, NewsletterSubscribedTemplate>();
 
-        services.Configure<InquiriesOptions>(configuration.GetSection("Inquiries"));
+        _ = services.Configure<InquiriesOptions>(configuration.GetSection("Inquiries"));
 
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
-        services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
-        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(InquiriesTransactionAddingBehavior<,>));
+        _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
+        _ = services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
+        _ = services.AddTransient(typeof(IPipelineBehavior<,>), typeof(InquiriesTransactionAddingBehavior<,>));
 
         return services;
     }

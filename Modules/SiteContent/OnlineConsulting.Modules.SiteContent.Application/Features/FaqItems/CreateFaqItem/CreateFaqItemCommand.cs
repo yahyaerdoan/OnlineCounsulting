@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.FaqItems.Abstractions;
@@ -29,7 +29,7 @@ public class CreateFaqItemHandler(IFaqItemRepository repository) : IRequestHandl
             DisplayOrder = request.DisplayOrder,
         };
 
-        await repository.AddAsync(entity);
+        _ = await repository.AddAsync(entity);
 
         return Result.Created(entity.Id, "FAQ item created successfully.");
     }

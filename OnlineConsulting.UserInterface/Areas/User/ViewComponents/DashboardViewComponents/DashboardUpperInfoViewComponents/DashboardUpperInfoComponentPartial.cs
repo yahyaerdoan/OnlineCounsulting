@@ -13,7 +13,9 @@ public class DashboardUpperInfoComponentPartial(ICartService cartService, IApiCl
     {
         var userResult = await apiClient.GetAsync<CurrentUserResponse>("/api/users/me");
         if (!userResult.IsSuccessful || userResult.ResultData is null)
+        {
             return Content(string.Empty);
+        }
 
         ViewBag.TotalBasketItemsCount = await cartService.GetItemsCountAsync();
 

@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.RefundOrder;
@@ -10,7 +10,7 @@ public class RefundOrder : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/orders/{id:guid}/refund", Handle)
+        _ = app.MapPost("/api/orders/{id:guid}/refund", Handle)
             .WithTags("Commerce/Orders")
             .RequireAuthorization()
             .WithName("RefundOrder")

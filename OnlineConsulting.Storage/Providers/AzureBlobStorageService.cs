@@ -1,4 +1,4 @@
-using Azure.Storage.Blobs;
+﻿using Azure.Storage.Blobs;
 using Microsoft.Extensions.Options;
 using OnlineConsulting.SharedKernel.Media;
 using OnlineConsulting.Storage.Common;
@@ -28,7 +28,7 @@ public class AzureBlobStorageService : IStorageService
         var storedFileName = SafeFileNaming.GenerateStoredFileName(fileName);
         var blobClient = _container.GetBlobClient(storedFileName);
 
-        await blobClient.UploadAsync(buffer, new Azure.Storage.Blobs.Models.BlobHttpHeaders { ContentType = contentType }, cancellationToken: cancellationToken);
+        _ = await blobClient.UploadAsync(buffer, new Azure.Storage.Blobs.Models.BlobHttpHeaders { ContentType = contentType }, cancellationToken: cancellationToken);
 
         return new UploadResult(blobClient.Uri.ToString(), buffer.Length, width, height);
     }
@@ -36,6 +36,6 @@ public class AzureBlobStorageService : IStorageService
     public async Task DeleteAsync(string url, CancellationToken cancellationToken = default)
     {
         var blobName = Path.GetFileName(url);
-        await _container.DeleteBlobIfExistsAsync(blobName, cancellationToken: cancellationToken);
+        _ = await _container.DeleteBlobIfExistsAsync(blobName, cancellationToken: cancellationToken);
     }
 }

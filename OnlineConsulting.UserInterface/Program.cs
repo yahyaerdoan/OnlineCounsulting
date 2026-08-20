@@ -129,8 +129,8 @@ app.MapDefaultEndpoints();
 
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
+    _ = app.UseExceptionHandler("/Home/Error");
+    _ = app.UseHsts();
 }
 
 //Nice error pages for error status codes (401/403/404/405/500 etc.)

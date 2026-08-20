@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using OnlineConsulting.Modules.Identity.Domain;
@@ -18,12 +18,16 @@ public static class SuperAdminSeeder
         var password = seedOptions.Password;
 
         if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+        {
             return;
+        }
 
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
 
         if (await userManager.FindByEmailAsync(email) is not null)
+        {
             return;
+        }
 
         var user = new User
         {
@@ -38,8 +42,10 @@ public static class SuperAdminSeeder
 
         var createResult = await userManager.CreateAsync(user, password);
         if (!createResult.Succeeded)
+        {
             return;
+        }
 
-        await userManager.AddToRoleAsync(user, GlobalOperationClaims.SuperAdmin);
+        _ = await userManager.AddToRoleAsync(user, GlobalOperationClaims.SuperAdmin);
     }
 }

@@ -1,4 +1,4 @@
-using FluentValidation;
+﻿using FluentValidation;
 
 namespace OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.Subscribe;
 
@@ -6,6 +6,6 @@ public class SubscribeNewsletterValidator : AbstractValidator<SubscribeNewslette
 {
     public SubscribeNewsletterValidator()
     {
-        RuleFor(x => x.Email).NotEmpty().EmailAddress().MaximumLength(320);
+        _ = RuleFor(x => x.Email).NotEmpty().EmailAddress().MaximumLength(320);
     }
 }

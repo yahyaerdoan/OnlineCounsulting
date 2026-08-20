@@ -1,4 +1,4 @@
-using OnlineConsulting.UserInterface.Infrastructure.Api;
+﻿using OnlineConsulting.UserInterface.Infrastructure.Api;
 using SharedCategoryService = OnlineConsulting.UserInterface.Features.Category.ICategoryService;
 
 namespace OnlineConsulting.UserInterface.Areas.Admin.Features.Category;
@@ -18,17 +18,16 @@ public class AdminCategoryService(SharedCategoryService categoryService) : IAdmi
     public async Task<UpdateCategoryViewModel?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var category = await categoryService.GetByIdAsync(id, cancellationToken);
-        if (category is null)
-            return null;
-
-        return new UpdateCategoryViewModel
-        {
-            Id = category.Id,
-            Title = category.Title,
-            Description = category.Description,
-            Icon = category.Icon,
-            IconColor = category.IconColor,
-        };
+        return category is null
+            ? null
+            : new UpdateCategoryViewModel
+            {
+                Id = category.Id,
+                Title = category.Title,
+                Description = category.Description,
+                Icon = category.Icon,
+                IconColor = category.IconColor,
+            };
     }
 
     public async Task<ApiEnvelope> CreateAsync(CreateCategoryViewModel model, CancellationToken cancellationToken = default) =>

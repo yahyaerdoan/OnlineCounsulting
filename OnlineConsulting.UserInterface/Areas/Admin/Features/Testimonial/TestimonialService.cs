@@ -1,4 +1,4 @@
-using OnlineConsulting.UserInterface.Infrastructure.Api;
+﻿using OnlineConsulting.UserInterface.Infrastructure.Api;
 using OnlineConsulting.UserInterface.Infrastructure.Media;
 
 namespace OnlineConsulting.UserInterface.Areas.Admin.Features.Testimonial;
@@ -16,18 +16,17 @@ public class TestimonialService(IApiClient apiClient, IMediaService mediaService
     public async Task<UpdateTestimonialViewModel?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var testimonial = await FindAsync(id, cancellationToken);
-        if (testimonial is null)
-            return null;
-
-        return new UpdateTestimonialViewModel
-        {
-            Id = testimonial.Id,
-            FirstName = testimonial.FirstName,
-            LastName = testimonial.LastName,
-            Title = testimonial.Title,
-            Description = testimonial.Description,
-            ImageUrl = testimonial.ImageUrl,
-        };
+        return testimonial is null
+            ? null
+            : new UpdateTestimonialViewModel
+            {
+                Id = testimonial.Id,
+                FirstName = testimonial.FirstName,
+                LastName = testimonial.LastName,
+                Title = testimonial.Title,
+                Description = testimonial.Description,
+                ImageUrl = testimonial.ImageUrl,
+            };
     }
 
     public async Task<ApiEnvelope> CreateAsync(CreateTestimonialViewModel model, CancellationToken cancellationToken = default)

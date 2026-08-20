@@ -23,9 +23,11 @@ public class DeleteCategoryHandler(ICategoryRepository repository) : IRequestHan
         var category = await repository.GetAsync(c => c.Id == request.Id, cancellationToken: cancellationToken);
 
         if (category is null)
+        {
             return CategoryBusinessRules.CategoryNotFound(request.Id);
+        }
 
-        await repository.DeleteAsync(category);
+        _ = await repository.DeleteAsync(category);
 
         return Result.Success("Category deleted successfully.");
     }

@@ -17,11 +17,11 @@ public class RefreshTokenService(IRefreshTokenRepository repository, IJwtTokenHe
         {
             existing.TokenHash = refreshToken.HashedToken;
             existing.ExpiresAt = refreshToken.Expires;
-            await repository.UpdateAsync(existing);
+            _ = await repository.UpdateAsync(existing);
         }
         else
         {
-            await repository.AddAsync(new RefreshToken
+            _ = await repository.AddAsync(new RefreshToken
             {
                 Id = Guid.NewGuid(),
                 UserId = user.Id,
@@ -38,7 +38,9 @@ public class RefreshTokenService(IRefreshTokenRepository repository, IJwtTokenHe
         var stored = await repository.GetAsync(rt => rt.UserId == user.Id, cancellationToken: cancellationToken);
 
         if (stored is null || stored.ExpiresAt < DateTime.UtcNow)
+        {
             return false;
+        }
 
         // Constant-time compare to avoid a timing side-channel - Core.SecurityLayer only provides the hash.
         return CryptographicOperations.FixedTimeEquals(Convert.FromHexString(TokenHashingHelper.Hash(rawToken)), Convert.FromHexString(stored.TokenHash));

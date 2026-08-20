@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 
 namespace OnlineConsulting.Modules.Scheduling.Infrastructure.Hubs;
 
@@ -13,7 +13,9 @@ internal static class TechnicianLocationThrottle
         var now = DateTimeOffset.UtcNow;
         var last = LastPushAt.GetOrAdd(connectionId, DateTimeOffset.MinValue);
         if (now - last < MinInterval)
+        {
             return false;
+        }
 
         LastPushAt[connectionId] = now;
         return true;

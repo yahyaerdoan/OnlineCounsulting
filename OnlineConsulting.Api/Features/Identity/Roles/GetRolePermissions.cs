@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Identity.Application.Features.Roles.GetRolePermissions;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class GetRolePermissions : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/roles/{id:guid}/permissions", Handle)
+        _ = app.MapGet("/api/roles/{id:guid}/permissions", Handle)
             .WithTags("Identity/Roles")
             .RequireAuthorization()
             .WithName("GetRolePermissions")

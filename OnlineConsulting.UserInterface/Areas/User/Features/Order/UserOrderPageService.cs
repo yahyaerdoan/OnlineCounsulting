@@ -1,4 +1,4 @@
-using OnlineConsulting.UserInterface.Areas.User.Features.UserAddress;
+﻿using OnlineConsulting.UserInterface.Areas.User.Features.UserAddress;
 using OnlineConsulting.UserInterface.Features.Category;
 using OnlineConsulting.UserInterface.Features.Service;
 using OnlineConsulting.UserInterface.Infrastructure.Media;
@@ -25,7 +25,9 @@ public class UserOrderPageService(
     {
         var detail = await orderService.GetDetailAsync(orderId, cancellationToken);
         if (detail is null)
+        {
             return new UserOrderDetailViewModel();
+        }
 
         var addresses = await userAddressService.GetAllAsync(cancellationToken);
 

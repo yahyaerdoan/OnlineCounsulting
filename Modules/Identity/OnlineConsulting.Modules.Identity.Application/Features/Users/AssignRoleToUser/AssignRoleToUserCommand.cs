@@ -30,12 +30,16 @@ public class AssignRoleToUserHandler(UserManager<User> userManager, ITenantOwner
     {
         var user = await userManager.FindByIdAsync(request.UserId.ToString());
         if (user is null)
+        {
             return UserBusinessRules.UserNotFoundOrInvalidData();
+        }
 
         var ownerGuardResult = await TenantOwnerProtection.EnsureCallerMayModifyAsync(
             tenantOwnershipReader, httpContextAccessor, user.TenantId, user.Id, cancellationToken);
         if (ownerGuardResult is not null)
+        {
             return ownerGuardResult;
+        }
 
         foreach (var assignment in request.RoleAssignments)
         {
@@ -43,14 +47,18 @@ public class AssignRoleToUserHandler(UserManager<User> userManager, ITenantOwner
             // (e.g. "User is not in role X") when asked to apply a no-op, which would otherwise abort
             // every save that didn't touch every single role.
             if (await userManager.IsInRoleAsync(user, assignment.RoleName) == assignment.IsAssigned)
+            {
                 continue;
+            }
 
             var result = assignment.IsAssigned
                 ? await userManager.AddToRoleAsync(user, assignment.RoleName)
                 : await userManager.RemoveFromRoleAsync(user, assignment.RoleName);
 
             if (!result.Succeeded)
+            {
                 return Result.BadRequest($"{string.Join("; ", result.Errors.Select(e => e.Description))} errors occurred while updating role \"{assignment.RoleName}\".");
+            }
         }
 
         return Result.Success("New permissions added successfully.");

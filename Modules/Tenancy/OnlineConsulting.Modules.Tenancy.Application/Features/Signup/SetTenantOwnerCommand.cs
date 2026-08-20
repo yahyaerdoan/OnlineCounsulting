@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Signup.Constants;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.Abstractions;
 using ResultHandler.Core.Base;
@@ -19,10 +19,12 @@ public class SetTenantOwnerHandler(ITenantRepository tenantRepository) : IReques
     {
         var tenant = await tenantRepository.GetAsync(t => t.Id == request.TenantId, cancellationToken: cancellationToken);
         if (tenant is null)
+        {
             return Result.NotFound(SignupMessages.TenantNotFound);
+        }
 
         tenant.OwnerUserId = request.OwnerUserId;
-        await tenantRepository.UpdateAsync(tenant);
+        _ = await tenantRepository.UpdateAsync(tenant);
 
         return Result.Success("Tenant owner recorded successfully.");
     }

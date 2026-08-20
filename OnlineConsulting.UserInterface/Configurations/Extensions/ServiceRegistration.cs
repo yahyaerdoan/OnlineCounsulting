@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using NToastNotify;
 using OnlineConsulting.SharedKernel.DependencyInjection;
 using System.Globalization;
@@ -9,15 +9,15 @@ public static class ServiceRegistration
 {
     public static void AddUserInterfaceServiceRegistration(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddSharedKernel();
+        _ = services.AddSharedKernel();
 
-        services.AddRouting(options =>
+        _ = services.AddRouting(options =>
         {
             options.LowercaseUrls = true;
             options.LowercaseQueryStrings = true;
         });
 
-        services.AddMvc().AddNToastNotifyToastr(new ToastrOptions
+        _ = services.AddMvc().AddNToastNotifyToastr(new ToastrOptions
         {
             ProgressBar = true,
             PositionClass = ToastPositions.BottomLeft,
@@ -27,14 +27,14 @@ public static class ServiceRegistration
             TimeOut = 3000
         });
 
-        services.AddSession(options =>
+        _ = services.AddSession(options =>
         {
             options.IdleTimeout = TimeSpan.FromMinutes(20);
             options.Cookie.HttpOnly = true;
             options.Cookie.IsEssential = true;
             options.Cookie.SameSite = SameSiteMode.Strict;
         });
-        services.ConfigureApplicationCookie(options =>
+        _ = services.ConfigureApplicationCookie(options =>
         {
             var cookieBuilder = new CookieBuilder
             {
@@ -53,13 +53,13 @@ public static class ServiceRegistration
             options.SlidingExpiration = true;
         });
 
-        services.Configure<IdentityOptions>(options =>
+        _ = services.Configure<IdentityOptions>(options =>
         {
             options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(20);
             options.Lockout.MaxFailedAccessAttempts = 5;
             options.Lockout.AllowedForNewUsers = true;
         });
-        services.AddCors(opt => opt.AddDefaultPolicy(policy => policy
+        _ = services.AddCors(opt => opt.AddDefaultPolicy(policy => policy
        .WithOrigins("http://localhost:4200", "https://localhost:4200", "https://localhost:7113").AllowAnyHeader().AllowAnyMethod().AllowCredentials()));
 
     }

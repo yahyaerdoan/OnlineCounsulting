@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.FeatureHighlights.DeleteFeatureHighlight;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class DeleteFeatureHighlight : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapDelete("/api/site-content/feature-highlights/{id:guid}", Handle)
+        _ = app.MapDelete("/api/site-content/feature-highlights/{id:guid}", Handle)
             .WithTags("SiteContent/FeatureHighlights")
             .RequireAuthorization()
             .WithName("DeleteFeatureHighlight")

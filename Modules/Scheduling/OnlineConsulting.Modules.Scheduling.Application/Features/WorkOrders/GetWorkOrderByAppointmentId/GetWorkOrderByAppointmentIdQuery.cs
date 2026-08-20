@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Modules.Scheduling.Application.Features.WorkOrders.Abstractions;
 using OnlineConsulting.Modules.Scheduling.Application.Features.WorkOrders.Contracts;
 using OnlineConsulting.Modules.Scheduling.Application.Features.WorkOrders.Rules;
@@ -17,7 +17,9 @@ public class GetWorkOrderByAppointmentIdHandler(IWorkOrderRepository workOrderRe
     {
         var workOrder = await workOrderRepository.GetAsync(w => w.AppointmentId == request.AppointmentId, cancellationToken: cancellationToken);
         if (workOrder is null)
+        {
             return WorkOrderBusinessRules.WorkOrderNotFoundForAppointment(request.AppointmentId).ToErrorDataResult<WorkOrderResponse>();
+        }
 
         var mediaItems = await mediaItemRepository.GetListAsync(m => m.WorkOrderId == workOrder.Id, size: 100, cancellationToken: cancellationToken);
 

@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Abstractions;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Constants;
 using OnlineConsulting.SharedKernel.Notifications;
@@ -11,14 +11,18 @@ public class OnSubscriptionPaymentFailedHandler(ICustomerMembershipRepository re
     public async Task Handle(SubscriptionPaymentFailedNotification notification, CancellationToken cancellationToken)
     {
         if (!Guid.TryParse(notification.ReferenceId, out var membershipId))
+        {
             return;
+        }
 
         var membership = await repository.GetAsync(m => m.Id == membershipId, cancellationToken: cancellationToken);
         if (membership is null || membership.Status == CustomerMembershipStatuses.Cancelled)
+        {
             return;
+        }
 
         membership.Status = CustomerMembershipStatuses.PastDue;
-        await repository.UpdateAsync(membership);
+        _ = await repository.UpdateAsync(membership);
 
         await pushNotificationSender.SendToUserAsync(
             membership.UserId,

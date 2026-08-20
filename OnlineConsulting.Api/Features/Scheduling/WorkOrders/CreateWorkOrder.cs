@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Equipment.Application.Features.EquipmentItems.CreateEquipmentItem;
@@ -31,7 +31,7 @@ public class CreateWorkOrder : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/work-orders", Handle)
+        _ = app.MapPost("/api/work-orders", Handle)
             .WithTags("Scheduling/WorkOrders")
             .RequireAuthorization()
             .WithName("CreateWorkOrder")
@@ -50,7 +50,9 @@ public class CreateWorkOrder : IEndpoint
                 newEquipment.SerialNumber, newEquipment.InstallDate, newEquipment.WarrantyExpiresAt, newEquipment.Notes));
 
             if (!createEquipmentResult.IsSuccessful)
+            {
                 return createEquipmentResult.ToEnvelopedResult(httpContext);
+            }
 
             equipmentId = createEquipmentResult.Data;
         }

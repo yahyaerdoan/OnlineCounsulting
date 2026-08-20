@@ -38,7 +38,7 @@ public class UploadMediaAssetHandler(IMediaAssetRepository repository, IStorageS
             Metadata = MetadataSerializer.Serialize(request.Metadata),
         };
 
-        await repository.AddAsync(entity);
+        _ = await repository.AddAsync(entity);
 
         return Result.Created(entity.Id, "Media asset uploaded successfully.");
     }

@@ -36,7 +36,7 @@ public class PayPalPaymentGateway(IHttpClientFactory httpClientFactory, IOptions
 
         using var client = CreateClient();
         using var response = await client.SendAsync(httpRequest, cancellationToken);
-        response.EnsureSuccessStatusCode();
+        _ = response.EnsureSuccessStatusCode();
         var order = await response.Content.ReadFromJsonAsync<PayPalOrder>(cancellationToken: cancellationToken)
             ?? throw new InvalidOperationException("PayPal returned an empty order response.");
 
@@ -55,7 +55,7 @@ public class PayPalPaymentGateway(IHttpClientFactory httpClientFactory, IOptions
 
         using var client = CreateClient();
         using var response = await client.SendAsync(httpRequest, cancellationToken);
-        response.EnsureSuccessStatusCode();
+        _ = response.EnsureSuccessStatusCode();
         var order = await response.Content.ReadFromJsonAsync<PayPalOrder>(cancellationToken: cancellationToken)
             ?? throw new InvalidOperationException("PayPal returned an empty order response.");
 
@@ -70,11 +70,13 @@ public class PayPalPaymentGateway(IHttpClientFactory httpClientFactory, IOptions
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"/v2/payments/captures/{providerPaymentId}/refund");
         httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
         if (amount.HasValue)
+        {
             httpRequest.Content = JsonContent.Create(new { amount = new { currency_code = "USD", value = amount.Value.ToString("F2") } });
+        }
 
         using var client = CreateClient();
         using var response = await client.SendAsync(httpRequest, cancellationToken);
-        response.EnsureSuccessStatusCode();
+        _ = response.EnsureSuccessStatusCode();
 
         return new PaymentStatusResult(providerPaymentId, PaymentStatuses.Refunded);
     }

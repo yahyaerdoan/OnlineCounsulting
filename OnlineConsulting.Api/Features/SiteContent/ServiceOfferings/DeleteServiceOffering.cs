@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.ServiceOfferings.DeleteServiceOffering;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class DeleteServiceOffering : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapDelete("/api/site-content/service-offerings/{id:guid}", Handle)
+        _ = app.MapDelete("/api/site-content/service-offerings/{id:guid}", Handle)
             .WithTags("SiteContent/ServiceOfferings")
             .RequireAuthorization()
             .WithName("DeleteServiceOffering")

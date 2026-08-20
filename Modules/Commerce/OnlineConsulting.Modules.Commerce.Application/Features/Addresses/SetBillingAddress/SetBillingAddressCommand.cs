@@ -20,17 +20,19 @@ public class SetBillingAddressHandler(IUserAddressRepository repository) : IRequ
     {
         var newAddress = await repository.GetAsync(a => a.Id == request.AddressId && a.UserId == request.UserId, cancellationToken: cancellationToken);
         if (newAddress is null)
+        {
             return Result.NotFound($"Address {request.AddressId} was not found.");
+        }
 
         var oldAddress = await repository.GetAsync(a => a.UserId == request.UserId && a.IsBillingAddress, cancellationToken: cancellationToken);
         if (oldAddress is not null && oldAddress.Id != newAddress.Id)
         {
             oldAddress.IsBillingAddress = false;
-            await repository.UpdateAsync(oldAddress);
+            _ = await repository.UpdateAsync(oldAddress);
         }
 
         newAddress.IsBillingAddress = true;
-        await repository.UpdateAsync(newAddress);
+        _ = await repository.UpdateAsync(newAddress);
 
         return Result.Success("Billing address set successfully.");
     }

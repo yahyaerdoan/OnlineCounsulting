@@ -57,12 +57,16 @@ public class OutboxDispatcher(IServiceScopeFactory scopeFactory, IOptions<Outbox
             .ToListAsync(cancellationToken);
 
         if (due.Count == 0)
+        {
             return;
+        }
 
         foreach (var email in due)
+        {
             await DispatchOneAsync(email, emailSender, settings, cancellationToken);
+        }
 
-        await context.SaveChangesAsync(cancellationToken);
+        _ = await context.SaveChangesAsync(cancellationToken);
     }
 
     private async Task DispatchOneAsync(OutboxEmail email, IEmailSender emailSender, OutboxDispatcherOptions settings, CancellationToken cancellationToken)

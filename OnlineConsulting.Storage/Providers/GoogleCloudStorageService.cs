@@ -1,4 +1,4 @@
-using Google.Apis.Auth.OAuth2;
+﻿using Google.Apis.Auth.OAuth2;
 using Google.Cloud.Storage.V1;
 using Microsoft.Extensions.Options;
 using OnlineConsulting.SharedKernel.Media;
@@ -31,7 +31,7 @@ public class GoogleCloudStorageService : IStorageService
 
         var storedFileName = SafeFileNaming.GenerateStoredFileName(fileName);
 
-        await _client.UploadObjectAsync(_options.BucketName, storedFileName, contentType, buffer, cancellationToken: cancellationToken);
+        _ = await _client.UploadObjectAsync(_options.BucketName, storedFileName, contentType, buffer, cancellationToken: cancellationToken);
 
         var baseUrl = string.IsNullOrEmpty(_options.PublicBaseUrl)
             ? $"https://storage.googleapis.com/{_options.BucketName}"

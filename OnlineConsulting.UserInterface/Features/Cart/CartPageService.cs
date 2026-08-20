@@ -9,7 +9,9 @@ public class CartPageService(ICartService cartService, IServiceCatalogService se
     {
         var cart = await cartService.GetAsync(cancellationToken);
         if (cart is null)
+        {
             return null;
+        }
 
         var lines = new List<CartLineViewModel>();
         foreach (var item in cart.Items)
@@ -25,7 +27,9 @@ public class CartPageService(ICartService cartService, IServiceCatalogService se
     {
         var service = await serviceCatalogService.GetBySlugAsync(slug, cancellationToken);
         if (service is null)
+        {
             return new ApiEnvelope(false, StatusCodes.Status404NotFound, "Service not found.", null);
+        }
 
         // Priced at the service's already-discounted price, matching what the customer actually pays.
         return await cartService.AddItemAsync(service.Id, 1, service.DiscountedPrice, service.TaxRate, cancellationToken);

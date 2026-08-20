@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.GetAllTenants;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class GetAllTenants : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/tenancy/admin/tenants", Handle)
+        _ = app.MapGet("/api/tenancy/admin/tenants", Handle)
             .WithTags("Tenancy")
             .RequireAuthorization()
             .WithName("GetAllTenants")

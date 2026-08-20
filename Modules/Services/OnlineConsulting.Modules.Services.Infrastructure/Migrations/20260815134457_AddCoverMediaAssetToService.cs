@@ -10,7 +10,7 @@ public partial class AddCoverMediaAssetToService : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.AddColumn<Guid>(
+        _ = migrationBuilder.AddColumn<Guid>(
             name: "CoverMediaAssetId",
             schema: "Services",
             table: "Services",
@@ -21,7 +21,7 @@ public partial class AddCoverMediaAssetToService : Migration
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.DropColumn(
+        _ = migrationBuilder.DropColumn(
             name: "CoverMediaAssetId",
             schema: "Services",
             table: "Services");

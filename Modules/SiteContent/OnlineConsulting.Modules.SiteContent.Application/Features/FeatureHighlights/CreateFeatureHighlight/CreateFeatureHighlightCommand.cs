@@ -21,7 +21,7 @@ public class CreateFeatureHighlightHandler(IFeatureHighlightRepository repositor
     {
         var entity = new FeatureHighlight { Id = Guid.NewGuid(), Title = request.Title, Description = request.Description, ImageUrl = request.ImageUrl, DisplayOrder = request.DisplayOrder, Metadata = MetadataSerializer.Serialize(request.Metadata) };
 
-        await repository.AddAsync(entity);
+        _ = await repository.AddAsync(entity);
 
         return Result.Created(entity.Id, "Feature highlight created successfully.");
     }

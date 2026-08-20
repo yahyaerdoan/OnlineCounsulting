@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Identity.Application.Features.DeviceTokens.RemoveDeviceToken;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class RemoveDeviceToken : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapDelete("/api/device-tokens/{token}", Handle)
+        _ = app.MapDelete("/api/device-tokens/{token}", Handle)
             .WithTags("Identity/DeviceTokens")
             .RequireAuthorization()
             .WithName("RemoveDeviceToken")

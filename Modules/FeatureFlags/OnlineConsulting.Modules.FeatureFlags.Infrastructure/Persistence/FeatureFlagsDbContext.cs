@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using OnlineConsulting.Modules.FeatureFlags.Domain;
 using OnlineConsulting.SharedKernel.Tenancy;
 
@@ -10,14 +10,14 @@ public class FeatureFlagsDbContext(DbContextOptions<FeatureFlagsDbContext> optio
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasDefaultSchema("FeatureFlags");
+        _ = modelBuilder.HasDefaultSchema("FeatureFlags");
 
-        modelBuilder.Entity<FeatureFlag>(builder =>
+        _ = modelBuilder.Entity<FeatureFlag>(builder =>
         {
-            builder.Property(f => f.Key).HasMaxLength(200).IsRequired();
-            builder.HasIndex(f => new { f.TenantId, f.Key }).IsUnique();
-            builder.Property(f => f.RowVersion).IsRowVersion();
-            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.Property(f => f.Key).HasMaxLength(200).IsRequired();
+            _ = builder.HasIndex(f => new { f.TenantId, f.Key }).IsUnique();
+            _ = builder.Property(f => f.RowVersion).IsRowVersion();
+            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
         base.OnModelCreating(modelBuilder);

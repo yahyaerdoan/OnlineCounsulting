@@ -27,26 +27,26 @@ public static class TenancyModule
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-        services.AddScoped<AuditSaveChangesInterceptor>();
+        _ = services.AddScoped<AuditSaveChangesInterceptor>();
 
-        services.AddDbContext<TenancyDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
+        _ = services.AddDbContext<TenancyDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
             .AddInterceptors(serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>()));
 
-        services.AddScoped<ITenantRepository, TenantRepository>();
-        services.AddScoped<IModuleOfferingRepository, ModuleOfferingRepository>();
-        services.AddScoped<IBundleRepository, BundleRepository>();
-        services.AddScoped<ITenantSubscriptionRepository, TenantSubscriptionRepository>();
-        services.AddScoped<ITenantSubscriptionItemRepository, TenantSubscriptionItemRepository>();
-        services.AddScoped<ITenantStatusReader, TenantStatusReader>();
-        services.AddScoped<ITenantModulePricingReader, TenantModulePricingReader>();
-        services.AddScoped<ITenantOwnershipReader, TenantOwnershipReader>();
+        _ = services.AddScoped<ITenantRepository, TenantRepository>();
+        _ = services.AddScoped<IModuleOfferingRepository, ModuleOfferingRepository>();
+        _ = services.AddScoped<IBundleRepository, BundleRepository>();
+        _ = services.AddScoped<ITenantSubscriptionRepository, TenantSubscriptionRepository>();
+        _ = services.AddScoped<ITenantSubscriptionItemRepository, TenantSubscriptionItemRepository>();
+        _ = services.AddScoped<ITenantStatusReader, TenantStatusReader>();
+        _ = services.AddScoped<ITenantModulePricingReader, TenantModulePricingReader>();
+        _ = services.AddScoped<ITenantOwnershipReader, TenantOwnershipReader>();
 
-        services.Configure<TenancyCleanupOptions>(configuration.GetSection("Tenancy:OrphanCleanup"));
-        services.AddHostedService<OrphanedTenantCleanupService>();
+        _ = services.Configure<TenancyCleanupOptions>(configuration.GetSection("Tenancy:OrphanCleanup"));
+        _ = services.AddHostedService<OrphanedTenantCleanupService>();
 
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
-        services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
-        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TenancyTransactionAddingBehavior<,>));
+        _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
+        _ = services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
+        _ = services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TenancyTransactionAddingBehavior<,>));
 
         return services;
     }

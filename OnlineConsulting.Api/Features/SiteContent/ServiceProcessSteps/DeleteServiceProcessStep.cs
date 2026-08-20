@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.ServiceProcessSteps.DeleteServiceProcessStep;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class DeleteServiceProcessStep : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapDelete("/api/site-content/service-process-steps/{id:guid}", Handle)
+        _ = app.MapDelete("/api/site-content/service-process-steps/{id:guid}", Handle)
             .WithTags("SiteContent/ServiceProcessSteps")
             .RequireAuthorization()
             .WithName("DeleteServiceProcessStep")

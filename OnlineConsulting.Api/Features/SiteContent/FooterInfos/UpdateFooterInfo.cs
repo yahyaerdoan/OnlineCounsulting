@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.FooterInfos.UpdateFooterInfo;
@@ -10,7 +10,7 @@ public class UpdateFooterInfo : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPut("/api/site-content/footer-info/{id:guid}", Handle)
+        _ = app.MapPut("/api/site-content/footer-info/{id:guid}", Handle)
             .WithTags("SiteContent/FooterInfo")
             .RequireAuthorization()
             .WithName("UpdateFooterInfo")

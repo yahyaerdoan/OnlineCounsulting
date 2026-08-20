@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Scheduling.Application.Common;
 using OnlineConsulting.Modules.Scheduling.Application.Features.WorkOrders.Abstractions;
@@ -26,7 +26,9 @@ public class AddWorkOrderMediaItemHandler(IWorkOrderMediaItemRepository mediaIte
     {
         var workOrderExists = await workOrderRepository.AnyAsync(w => w.Id == request.WorkOrderId, cancellationToken: cancellationToken);
         if (!workOrderExists)
+        {
             return WorkOrderBusinessRules.WorkOrderNotFound(request.WorkOrderId).ToErrorDataResult<Guid>();
+        }
 
         var entity = new WorkOrderMediaItem
         {
@@ -37,7 +39,7 @@ public class AddWorkOrderMediaItemHandler(IWorkOrderMediaItemRepository mediaIte
             DisplayOrder = request.DisplayOrder,
         };
 
-        await mediaItemRepository.AddAsync(entity);
+        _ = await mediaItemRepository.AddAsync(entity);
 
         return Result.Created(entity.Id, "Work order media item added successfully.");
     }

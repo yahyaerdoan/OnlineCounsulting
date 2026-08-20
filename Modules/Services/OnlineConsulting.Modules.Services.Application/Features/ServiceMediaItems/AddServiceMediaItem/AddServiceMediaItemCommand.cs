@@ -26,11 +26,13 @@ public class AddServiceMediaItemHandler(IServiceMediaItemRepository repository, 
     {
         var serviceExists = await serviceRepository.AnyAsync(s => s.Id == request.ServiceId, cancellationToken: cancellationToken);
         if (!serviceExists)
+        {
             return ServiceBusinessRules.ServiceNotFound(request.ServiceId).ToErrorDataResult<Guid>();
+        }
 
         var entity = new ServiceMediaItem { Id = Guid.NewGuid(), ServiceId = request.ServiceId, MediaAssetId = request.MediaAssetId, DisplayOrder = request.DisplayOrder };
 
-        await repository.AddAsync(entity);
+        _ = await repository.AddAsync(entity);
 
         return Result.Created(entity.Id, "Service media item added successfully.");
     }

@@ -21,7 +21,9 @@ public class UpdateUserAddressHandler(IUserAddressRepository repository) : IRequ
     {
         var address = await repository.GetAsync(a => a.Id == request.Id && a.UserId == request.UserId, cancellationToken: cancellationToken);
         if (address is null)
+        {
             return Result.NotFound($"Address {request.Id} was not found.");
+        }
 
         // See CreateUserAddressCommand for why claiming shipping/billing here unsets whichever other address holds that flag.
         if (request.IsShippingAddress && !address.IsShippingAddress)
@@ -30,7 +32,7 @@ public class UpdateUserAddressHandler(IUserAddressRepository repository) : IRequ
             if (oldShipping is not null)
             {
                 oldShipping.IsShippingAddress = false;
-                await repository.UpdateAsync(oldShipping);
+                _ = await repository.UpdateAsync(oldShipping);
             }
         }
 
@@ -40,7 +42,7 @@ public class UpdateUserAddressHandler(IUserAddressRepository repository) : IRequ
             if (oldBilling is not null)
             {
                 oldBilling.IsBillingAddress = false;
-                await repository.UpdateAsync(oldBilling);
+                _ = await repository.UpdateAsync(oldBilling);
             }
         }
 
@@ -55,7 +57,7 @@ public class UpdateUserAddressHandler(IUserAddressRepository repository) : IRequ
         address.IsShippingAddress = request.IsShippingAddress;
         address.IsBillingAddress = request.IsBillingAddress;
 
-        await repository.UpdateAsync(address);
+        _ = await repository.UpdateAsync(address);
 
         return Result.Success("Address updated successfully.");
     }

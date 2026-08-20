@@ -21,7 +21,7 @@ public class CreateFooterInfoHandler(IFooterInfoRepository repository) : IReques
     {
         var entity = new FooterInfo { Id = Guid.NewGuid(), ImageUrl = request.ImageUrl, Description = request.Description, DisplayOrder = request.DisplayOrder, Metadata = MetadataSerializer.Serialize(request.Metadata) };
 
-        await repository.AddAsync(entity);
+        _ = await repository.AddAsync(entity);
 
         return Result.Created(entity.Id, "Footer info created successfully.");
     }

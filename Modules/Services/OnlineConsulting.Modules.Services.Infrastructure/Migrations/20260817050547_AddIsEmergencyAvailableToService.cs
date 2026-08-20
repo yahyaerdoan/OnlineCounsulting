@@ -2,30 +2,29 @@
 
 #nullable disable
 
-namespace OnlineConsulting.Modules.Services.Infrastructure.Migrations
+namespace OnlineConsulting.Modules.Services.Infrastructure.Migrations;
+
+/// <inheritdoc />
+public partial class AddIsEmergencyAvailableToService : Migration
 {
     /// <inheritdoc />
-    public partial class AddIsEmergencyAvailableToService : Migration
+    protected override void Up(MigrationBuilder migrationBuilder)
     {
-        /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.AddColumn<bool>(
-                name: "IsEmergencyAvailable",
-                schema: "Services",
-                table: "Services",
-                type: "bit",
-                nullable: false,
-                defaultValue: false);
-        }
+        _ = migrationBuilder.AddColumn<bool>(
+            name: "IsEmergencyAvailable",
+            schema: "Services",
+            table: "Services",
+            type: "bit",
+            nullable: false,
+            defaultValue: false);
+    }
 
-        /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropColumn(
-                name: "IsEmergencyAvailable",
-                schema: "Services",
-                table: "Services");
-        }
+    /// <inheritdoc />
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        _ = migrationBuilder.DropColumn(
+            name: "IsEmergencyAvailable",
+            schema: "Services",
+            table: "Services");
     }
 }

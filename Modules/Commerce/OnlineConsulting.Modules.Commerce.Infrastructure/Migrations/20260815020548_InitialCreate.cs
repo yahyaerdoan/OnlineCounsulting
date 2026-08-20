@@ -10,10 +10,10 @@ public partial class InitialCreate : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.EnsureSchema(
+        _ = migrationBuilder.EnsureSchema(
             name: "Commerce");
 
-        migrationBuilder.CreateTable(
+        _ = migrationBuilder.CreateTable(
             name: "BasketItems",
             schema: "Commerce",
             columns: table => new
@@ -35,10 +35,10 @@ public partial class InitialCreate : Migration
             },
             constraints: table =>
             {
-                table.PrimaryKey("PK_BasketItems", x => x.Id);
+                _ = table.PrimaryKey("PK_BasketItems", x => x.Id);
             });
 
-        migrationBuilder.CreateTable(
+        _ = migrationBuilder.CreateTable(
             name: "Baskets",
             schema: "Commerce",
             columns: table => new
@@ -57,10 +57,10 @@ public partial class InitialCreate : Migration
             },
             constraints: table =>
             {
-                table.PrimaryKey("PK_Baskets", x => x.Id);
+                _ = table.PrimaryKey("PK_Baskets", x => x.Id);
             });
 
-        migrationBuilder.CreateTable(
+        _ = migrationBuilder.CreateTable(
             name: "OrderItems",
             schema: "Commerce",
             columns: table => new
@@ -82,10 +82,10 @@ public partial class InitialCreate : Migration
             },
             constraints: table =>
             {
-                table.PrimaryKey("PK_OrderItems", x => x.Id);
+                _ = table.PrimaryKey("PK_OrderItems", x => x.Id);
             });
 
-        migrationBuilder.CreateTable(
+        _ = migrationBuilder.CreateTable(
             name: "Orders",
             schema: "Commerce",
             columns: table => new
@@ -105,10 +105,10 @@ public partial class InitialCreate : Migration
             },
             constraints: table =>
             {
-                table.PrimaryKey("PK_Orders", x => x.Id);
+                _ = table.PrimaryKey("PK_Orders", x => x.Id);
             });
 
-        migrationBuilder.CreateTable(
+        _ = migrationBuilder.CreateTable(
             name: "UserAddresses",
             schema: "Commerce",
             columns: table => new
@@ -133,40 +133,40 @@ public partial class InitialCreate : Migration
             },
             constraints: table =>
             {
-                table.PrimaryKey("PK_UserAddresses", x => x.Id);
+                _ = table.PrimaryKey("PK_UserAddresses", x => x.Id);
             });
 
-        migrationBuilder.CreateIndex(
+        _ = migrationBuilder.CreateIndex(
             name: "IX_BasketItems_BasketId",
             schema: "Commerce",
             table: "BasketItems",
             column: "BasketId");
 
-        migrationBuilder.CreateIndex(
+        _ = migrationBuilder.CreateIndex(
             name: "IX_Baskets_GuestId",
             schema: "Commerce",
             table: "Baskets",
             column: "GuestId");
 
-        migrationBuilder.CreateIndex(
+        _ = migrationBuilder.CreateIndex(
             name: "IX_Baskets_UserId",
             schema: "Commerce",
             table: "Baskets",
             column: "UserId");
 
-        migrationBuilder.CreateIndex(
+        _ = migrationBuilder.CreateIndex(
             name: "IX_OrderItems_OrderId",
             schema: "Commerce",
             table: "OrderItems",
             column: "OrderId");
 
-        migrationBuilder.CreateIndex(
+        _ = migrationBuilder.CreateIndex(
             name: "IX_Orders_UserId",
             schema: "Commerce",
             table: "Orders",
             column: "UserId");
 
-        migrationBuilder.CreateIndex(
+        _ = migrationBuilder.CreateIndex(
             name: "IX_UserAddresses_UserId",
             schema: "Commerce",
             table: "UserAddresses",
@@ -176,23 +176,23 @@ public partial class InitialCreate : Migration
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.DropTable(
+        _ = migrationBuilder.DropTable(
             name: "BasketItems",
             schema: "Commerce");
 
-        migrationBuilder.DropTable(
+        _ = migrationBuilder.DropTable(
             name: "Baskets",
             schema: "Commerce");
 
-        migrationBuilder.DropTable(
+        _ = migrationBuilder.DropTable(
             name: "OrderItems",
             schema: "Commerce");
 
-        migrationBuilder.DropTable(
+        _ = migrationBuilder.DropTable(
             name: "Orders",
             schema: "Commerce");
 
-        migrationBuilder.DropTable(
+        _ = migrationBuilder.DropTable(
             name: "UserAddresses",
             schema: "Commerce");
     }

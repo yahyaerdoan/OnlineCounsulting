@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.Subscribe;
@@ -10,7 +10,7 @@ public class SubscribeNewsletter : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/inquiries/newsletter", Handle)
+        _ = app.MapPost("/api/inquiries/newsletter", Handle)
             .WithTags("Inquiries/Newsletter")
             .WithName("SubscribeNewsletter")
             .WithDescription("Subscribes an email address to the newsletter. Public - no login required.");

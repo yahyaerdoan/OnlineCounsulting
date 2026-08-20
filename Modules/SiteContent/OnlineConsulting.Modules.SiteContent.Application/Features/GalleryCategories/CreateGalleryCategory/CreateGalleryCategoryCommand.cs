@@ -21,7 +21,7 @@ public class CreateGalleryCategoryHandler(IGalleryCategoryRepository repository)
     {
         var entity = new GalleryCategory { Id = Guid.NewGuid(), Name = request.Name, Description = request.Description };
 
-        await repository.AddAsync(entity);
+        _ = await repository.AddAsync(entity);
 
         return Result.Created(entity.Id, "Gallery category created successfully.");
     }

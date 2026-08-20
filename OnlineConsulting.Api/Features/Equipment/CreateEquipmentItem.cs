@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Equipment.Application.Features.EquipmentItems.CreateEquipmentItem;
@@ -10,7 +10,7 @@ public class CreateEquipmentItem : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/equipment", Handle)
+        _ = app.MapPost("/api/equipment", Handle)
             .WithTags("Equipment")
             .RequireAuthorization()
             .WithName("CreateEquipmentItem")

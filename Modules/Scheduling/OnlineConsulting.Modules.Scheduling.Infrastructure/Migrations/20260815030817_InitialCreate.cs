@@ -10,10 +10,10 @@ public partial class InitialCreate : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.EnsureSchema(
+        _ = migrationBuilder.EnsureSchema(
             name: "Scheduling");
 
-        migrationBuilder.CreateTable(
+        _ = migrationBuilder.CreateTable(
             name: "Appointments",
             schema: "Scheduling",
             columns: table => new
@@ -34,10 +34,10 @@ public partial class InitialCreate : Migration
             },
             constraints: table =>
             {
-                table.PrimaryKey("PK_Appointments", x => x.Id);
+                _ = table.PrimaryKey("PK_Appointments", x => x.Id);
             });
 
-        migrationBuilder.CreateTable(
+        _ = migrationBuilder.CreateTable(
             name: "AvailabilityRules",
             schema: "Scheduling",
             columns: table => new
@@ -55,28 +55,28 @@ public partial class InitialCreate : Migration
             },
             constraints: table =>
             {
-                table.PrimaryKey("PK_AvailabilityRules", x => x.Id);
+                _ = table.PrimaryKey("PK_AvailabilityRules", x => x.Id);
             });
 
-        migrationBuilder.CreateIndex(
+        _ = migrationBuilder.CreateIndex(
             name: "IX_Appointments_ServiceId",
             schema: "Scheduling",
             table: "Appointments",
             column: "ServiceId");
 
-        migrationBuilder.CreateIndex(
+        _ = migrationBuilder.CreateIndex(
             name: "IX_Appointments_TenantId_ScheduledStart",
             schema: "Scheduling",
             table: "Appointments",
             columns: new[] { "TenantId", "ScheduledStart" });
 
-        migrationBuilder.CreateIndex(
+        _ = migrationBuilder.CreateIndex(
             name: "IX_Appointments_UserId",
             schema: "Scheduling",
             table: "Appointments",
             column: "UserId");
 
-        migrationBuilder.CreateIndex(
+        _ = migrationBuilder.CreateIndex(
             name: "IX_AvailabilityRules_TenantId_DayOfWeek",
             schema: "Scheduling",
             table: "AvailabilityRules",
@@ -86,11 +86,11 @@ public partial class InitialCreate : Migration
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.DropTable(
+        _ = migrationBuilder.DropTable(
             name: "Appointments",
             schema: "Scheduling");
 
-        migrationBuilder.DropTable(
+        _ = migrationBuilder.DropTable(
             name: "AvailabilityRules",
             schema: "Scheduling");
     }

@@ -17,7 +17,9 @@ public class GetOrderDetailHandler(IOrderRepository orderRepository, IOrderItemR
         // Read-only lookup - no mutation follows, so track nothing.
         var order = await orderRepository.GetAsync(o => o.Id == request.OrderId && o.UserId == request.UserId, enableTracking: false, cancellationToken: cancellationToken);
         if (order is null)
+        {
             return Result.NotFound<OrderDetailResponse>($"Order {request.OrderId} was not found.");
+        }
 
         var items = await orderItemRepository.GetListAsync(i => i.OrderId == order.Id, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
         var totalPrice = items.Items.Sum(i => i.TotalPrice);

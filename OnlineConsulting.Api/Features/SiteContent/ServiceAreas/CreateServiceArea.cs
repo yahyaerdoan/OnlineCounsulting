@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.ServiceAreas.CreateServiceArea;
@@ -10,7 +10,7 @@ public class CreateServiceArea : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/site-content/service-areas", Handle)
+        _ = app.MapPost("/api/site-content/service-areas", Handle)
             .WithTags("SiteContent/ServiceAreas")
             .RequireAuthorization()
             .WithName("CreateServiceArea")

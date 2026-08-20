@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Scheduling.Application.Features.WorkOrders.GetWorkOrdersByEquipmentId;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class GetWorkOrdersByEquipmentId : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/equipment/{equipmentId:guid}/work-orders", Handle)
+        _ = app.MapGet("/api/equipment/{equipmentId:guid}/work-orders", Handle)
             .WithTags("Scheduling/WorkOrders")
             .RequireAuthorization()
             .WithName("GetWorkOrdersByEquipmentId")

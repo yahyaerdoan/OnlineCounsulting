@@ -1,4 +1,4 @@
-using FluentValidation;
+﻿using FluentValidation;
 
 namespace OnlineConsulting.Modules.Scheduling.Application.Features.Availability.CreateAvailabilityRule;
 
@@ -6,7 +6,7 @@ public class CreateAvailabilityRuleValidator : AbstractValidator<CreateAvailabil
 {
     public CreateAvailabilityRuleValidator()
     {
-        RuleFor(x => x.EndTime).GreaterThan(x => x.StartTime);
-        RuleFor(x => x.SlotDurationMinutes).InclusiveBetween(5, 480);
+        _ = RuleFor(x => x.EndTime).GreaterThan(x => x.StartTime);
+        _ = RuleFor(x => x.SlotDurationMinutes).InclusiveBetween(5, 480);
     }
 }

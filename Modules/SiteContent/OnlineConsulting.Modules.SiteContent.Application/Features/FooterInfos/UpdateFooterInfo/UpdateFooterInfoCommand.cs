@@ -20,14 +20,16 @@ public class UpdateFooterInfoHandler(IFooterInfoRepository repository) : IReques
     {
         var entity = await repository.GetAsync(x => x.Id == request.Id, cancellationToken: cancellationToken);
         if (entity is null)
+        {
             return SiteContentBusinessRules.NotFound("Footer info", request.Id);
+        }
 
         entity.ImageUrl = request.ImageUrl;
         entity.Description = request.Description;
         entity.DisplayOrder = request.DisplayOrder;
         entity.Metadata = MetadataSerializer.Serialize(request.Metadata);
 
-        await repository.UpdateAsync(entity);
+        _ = await repository.UpdateAsync(entity);
 
         return Result.Success("Footer info updated successfully.");
     }

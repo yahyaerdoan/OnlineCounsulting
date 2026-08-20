@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.Testimonials.DeleteTestimonial;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class DeleteTestimonial : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapDelete("/api/site-content/testimonials/{id:guid}", Handle)
+        _ = app.MapDelete("/api/site-content/testimonials/{id:guid}", Handle)
             .WithTags("SiteContent/Testimonials")
             .RequireAuthorization()
             .WithName("DeleteTestimonial")

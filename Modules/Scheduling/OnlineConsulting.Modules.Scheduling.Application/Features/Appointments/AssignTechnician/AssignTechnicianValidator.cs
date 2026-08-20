@@ -1,4 +1,4 @@
-using FluentValidation;
+﻿using FluentValidation;
 
 namespace OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.AssignTechnician;
 
@@ -6,7 +6,7 @@ public class AssignTechnicianValidator : AbstractValidator<AssignTechnicianComma
 {
     public AssignTechnicianValidator()
     {
-        RuleFor(x => x.Id).NotEmpty();
-        RuleFor(x => x.TechnicianUserId).NotEmpty();
+        _ = RuleFor(x => x.Id).NotEmpty();
+        _ = RuleFor(x => x.TechnicianUserId).NotEmpty();
     }
 }

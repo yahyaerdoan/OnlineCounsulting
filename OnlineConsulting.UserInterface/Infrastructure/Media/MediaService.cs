@@ -1,4 +1,4 @@
-using OnlineConsulting.UserInterface.Infrastructure.Api;
+﻿using OnlineConsulting.UserInterface.Infrastructure.Api;
 using System.Net.Http.Headers;
 
 namespace OnlineConsulting.UserInterface.Infrastructure.Media;
@@ -10,7 +10,9 @@ public class MediaService(IApiClient apiClient) : IMediaService
     public async Task<Guid?> UploadAsync(IFormFile? file, CancellationToken cancellationToken = default)
     {
         if (file is not { Length: > 0 })
+        {
             return null;
+        }
 
         using var content = new MultipartFormDataContent();
         using var stream = file.OpenReadStream();
@@ -27,7 +29,9 @@ public class MediaService(IApiClient apiClient) : IMediaService
     public async Task<string?> ResolveUrlAsync(Guid? mediaAssetId, CancellationToken cancellationToken = default)
     {
         if (mediaAssetId is null)
+        {
             return null;
+        }
 
         var result = await apiClient.GetAsync<MediaAssetResponse>($"{MediaPath}/{mediaAssetId}", cancellationToken);
         return result.ResultData?.Url;

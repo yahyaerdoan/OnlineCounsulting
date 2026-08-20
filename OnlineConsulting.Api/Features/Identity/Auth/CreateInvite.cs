@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Identity.Application.Features.Invites.CreateInvite;
@@ -10,7 +10,7 @@ public class CreateInvite : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/auth/invites", Handle)
+        _ = app.MapPost("/api/auth/invites", Handle)
             .WithTags("Identity/Auth")
             .RequireAuthorization()
             .WithName("CreateInvite")

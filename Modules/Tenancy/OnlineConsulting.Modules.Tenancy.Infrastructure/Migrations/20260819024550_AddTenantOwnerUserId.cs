@@ -2,29 +2,28 @@
 
 #nullable disable
 
-namespace OnlineConsulting.Modules.Tenancy.Infrastructure.Migrations
+namespace OnlineConsulting.Modules.Tenancy.Infrastructure.Migrations;
+
+/// <inheritdoc />
+public partial class AddTenantOwnerUserId : Migration
 {
     /// <inheritdoc />
-    public partial class AddTenantOwnerUserId : Migration
+    protected override void Up(MigrationBuilder migrationBuilder)
     {
-        /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.AddColumn<Guid>(
-                name: "OwnerUserId",
-                schema: "Tenancy",
-                table: "Tenants",
-                type: "uniqueidentifier",
-                nullable: true);
-        }
+        _ = migrationBuilder.AddColumn<Guid>(
+            name: "OwnerUserId",
+            schema: "Tenancy",
+            table: "Tenants",
+            type: "uniqueidentifier",
+            nullable: true);
+    }
 
-        /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropColumn(
-                name: "OwnerUserId",
-                schema: "Tenancy",
-                table: "Tenants");
-        }
+    /// <inheritdoc />
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        _ = migrationBuilder.DropColumn(
+            name: "OwnerUserId",
+            schema: "Tenancy",
+            table: "Tenants");
     }
 }

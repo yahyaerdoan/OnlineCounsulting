@@ -9,7 +9,7 @@ public class DeleteUser : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapDelete("/api/users/{id:guid}", Handle)
+        _ = app.MapDelete("/api/users/{id:guid}", Handle)
             .WithTags("Identity/Users")
             .RequireAuthorization()
             .WithName("DeleteUser")

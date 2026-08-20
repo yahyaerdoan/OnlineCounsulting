@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Services.Application.Features.GetServicesByCategory;
 using ResultHandler.AspNetCore.Extensions;
@@ -10,7 +10,7 @@ public class GetServicesByCategory : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/categories/{categoryId:guid}/services", Handle)
+        _ = app.MapGet("/api/categories/{categoryId:guid}/services", Handle)
             .WithTags("Services")
             .WithName("GetServicesByCategory")
             .WithDescription("Returns a category's services, paginated. Public - no login required.");
@@ -23,7 +23,9 @@ public class GetServicesByCategory : IEndpoint
             .OnSuccess(page =>
             {
                 foreach (var service in page.Items)
+                {
                     service.Links = GetServiceById.BuildLinks(httpContext, linkGenerator, service.Id);
+                }
             })
             .ToEnvelopedResult(httpContext);
     }

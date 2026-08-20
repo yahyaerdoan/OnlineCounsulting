@@ -21,7 +21,9 @@ public class HowIGetServiceController(IHowIGetServiceService howIGetServiceServi
     public async Task<IActionResult> Create(CreateHowIGetServiceViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
+        {
             return View(model);
+        }
 
         var result = await howIGetServiceService.CreateAsync(model, cancellationToken);
         toastNotification.ShowResult(result);
@@ -40,7 +42,9 @@ public class HowIGetServiceController(IHowIGetServiceService howIGetServiceServi
     public async Task<IActionResult> Update(UpdateHowIGetServiceViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
+        {
             return View(model);
+        }
 
         var result = await howIGetServiceService.UpdateAsync(model, cancellationToken);
         toastNotification.ShowResult(result);

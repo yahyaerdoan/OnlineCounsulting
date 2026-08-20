@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Scheduling.Application.Features.WorkOrders.GetWorkOrderByAppointmentId;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class GetWorkOrderByAppointmentId : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/appointments/{appointmentId:guid}/work-order", Handle)
+        _ = app.MapGet("/api/appointments/{appointmentId:guid}/work-order", Handle)
             .WithTags("Scheduling/WorkOrders")
             .RequireAuthorization()
             .WithName("GetWorkOrderByAppointmentId")

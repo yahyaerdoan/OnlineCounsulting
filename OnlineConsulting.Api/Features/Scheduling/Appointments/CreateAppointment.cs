@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
@@ -11,7 +11,7 @@ public class CreateAppointment : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/appointments", Handle)
+        _ = app.MapPost("/api/appointments", Handle)
             .WithTags("Scheduling/Appointments")
             .RequireAuthorization()
             .WithName("CreateAppointment")
@@ -22,7 +22,9 @@ public class CreateAppointment : IEndpoint
     {
         var currentUser = await sender.Send(new GetCurrentUserQuery());
         if (!currentUser.IsSuccessful || currentUser.Data is null)
+        {
             return currentUser.ToEnvelopedResult(httpContext);
+        }
 
         var result = await sender.Send(command with { UserId = currentUser.Data.Id, Email = currentUser.Data.Email });
         return result.ToEnvelopedResult(httpContext);

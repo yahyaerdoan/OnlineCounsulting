@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Services.Application.Features.ServiceMediaItems.RemoveServiceMediaItem;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class RemoveServiceMediaItem : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapDelete("/api/services/media-items/{id:guid}", Handle)
+        _ = app.MapDelete("/api/services/media-items/{id:guid}", Handle)
             .WithTags("Services")
             .RequireAuthorization()
             .WithName("RemoveServiceMediaItem")

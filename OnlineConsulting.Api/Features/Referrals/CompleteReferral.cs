@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Referrals.Application.Features.Referrals.CompleteReferral;
@@ -10,7 +10,7 @@ public class CompleteReferral : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/referrals/{id:guid}/complete", Handle)
+        _ = app.MapPost("/api/referrals/{id:guid}/complete", Handle)
             .WithTags("Referrals")
             .RequireAuthorization()
             .WithName("CompleteReferral")

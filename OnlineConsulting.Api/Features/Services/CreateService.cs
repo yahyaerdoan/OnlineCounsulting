@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Services.Application.Features.CreateService;
@@ -10,7 +10,7 @@ public class CreateService : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/services", Handle)
+        _ = app.MapPost("/api/services", Handle)
             .WithTags("Services")
             .RequireAuthorization()
             .WithName("CreateService")

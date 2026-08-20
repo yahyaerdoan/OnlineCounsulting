@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.ServiceAreas.UpdateServiceArea;
@@ -10,7 +10,7 @@ public class UpdateServiceArea : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPut("/api/site-content/service-areas/{id:guid}", Handle)
+        _ = app.MapPut("/api/site-content/service-areas/{id:guid}", Handle)
             .WithTags("SiteContent/ServiceAreas")
             .RequireAuthorization()
             .WithName("UpdateServiceArea")

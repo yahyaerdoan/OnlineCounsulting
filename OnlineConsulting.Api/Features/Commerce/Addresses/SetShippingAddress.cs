@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.SetShippingAddress;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
@@ -10,7 +10,7 @@ public class SetShippingAddress : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPut("/api/addresses/{id:guid}/shipping", Handle)
+        _ = app.MapPut("/api/addresses/{id:guid}/shipping", Handle)
             .WithTags("Commerce/Addresses")
             .RequireAuthorization()
             .WithName("SetShippingAddress")
@@ -21,7 +21,9 @@ public class SetShippingAddress : IEndpoint
     {
         var currentUser = await sender.Send(new GetCurrentUserQuery());
         if (!currentUser.IsSuccessful || currentUser.Data is null)
+        {
             return currentUser.ToEnvelopedResult(httpContext);
+        }
 
         var result = await sender.Send(new SetShippingAddressCommand(currentUser.Data.Id, id));
         return result.ToEnvelopedResult(httpContext);

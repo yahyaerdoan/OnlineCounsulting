@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryCategories.GetAllGalleryCategories;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class GetAllGalleryCategories : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/site-content/gallery-categories", Handle)
+        _ = app.MapGet("/api/site-content/gallery-categories", Handle)
             .WithTags("SiteContent/GalleryCategories")
             .WithName("GetAllGalleryCategories")
             .WithDescription("Returns the tenant's gallery category tags.");

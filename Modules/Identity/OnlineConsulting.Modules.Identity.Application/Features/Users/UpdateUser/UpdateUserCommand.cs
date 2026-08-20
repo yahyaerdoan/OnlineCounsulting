@@ -22,7 +22,9 @@ public class UpdateUserHandler(UserManager<User> userManager) : IRequestHandler<
     {
         var user = await userManager.FindByIdAsync(request.Id.ToString());
         if (user is null)
+        {
             return Result.BadRequest("Failed to map the provided user data. Please ensure the input is valid and try again.");
+        }
 
         user.FirstName = request.FirstName;
         user.LastName = request.LastName;

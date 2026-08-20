@@ -37,33 +37,33 @@ public static class SiteContentModule
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-        services.AddScoped<TenantSaveChangesInterceptor>();
-        services.AddScoped<AuditSaveChangesInterceptor>();
+        _ = services.AddScoped<TenantSaveChangesInterceptor>();
+        _ = services.AddScoped<AuditSaveChangesInterceptor>();
 
-        services.AddDbContext<SiteContentDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
+        _ = services.AddDbContext<SiteContentDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
             .AddInterceptors(serviceProvider.GetRequiredService<TenantSaveChangesInterceptor>(), serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>()));
 
-        services.AddScoped<IAboutUsRepository, AboutUsRepository>();
-        services.AddScoped<IFooterInfoRepository, FooterInfoRepository>();
-        services.AddScoped<IFeatureHighlightRepository, FeatureHighlightRepository>();
-        services.AddScoped<IPageBannerRepository, PageBannerRepository>();
-        services.AddScoped<IHeroSlideRepository, HeroSlideRepository>();
-        services.AddScoped<ITestimonialRepository, TestimonialRepository>();
-        services.AddScoped<IPartnershipRepository, PartnershipRepository>();
-        services.AddScoped<IPartnershipSocialLinkRepository, PartnershipSocialLinkRepository>();
-        services.AddScoped<IGalleryCategoryRepository, GalleryCategoryRepository>();
-        services.AddScoped<IGalleryItemRepository, GalleryItemRepository>();
-        services.AddScoped<IGalleryItemCategoryRepository, GalleryItemCategoryRepository>();
-        services.AddScoped<IServiceProcessStepRepository, ServiceProcessStepRepository>();
-        services.AddScoped<IServiceOfferingRepository, ServiceOfferingRepository>();
-        services.AddScoped<ISocialLinkRepository, SocialLinkRepository>();
-        services.AddScoped<IServiceAreaRepository, ServiceAreaRepository>();
-        services.AddScoped<IFaqItemRepository, FaqItemRepository>();
-        services.AddScoped<IPromotionRepository, PromotionRepository>();
+        _ = services.AddScoped<IAboutUsRepository, AboutUsRepository>();
+        _ = services.AddScoped<IFooterInfoRepository, FooterInfoRepository>();
+        _ = services.AddScoped<IFeatureHighlightRepository, FeatureHighlightRepository>();
+        _ = services.AddScoped<IPageBannerRepository, PageBannerRepository>();
+        _ = services.AddScoped<IHeroSlideRepository, HeroSlideRepository>();
+        _ = services.AddScoped<ITestimonialRepository, TestimonialRepository>();
+        _ = services.AddScoped<IPartnershipRepository, PartnershipRepository>();
+        _ = services.AddScoped<IPartnershipSocialLinkRepository, PartnershipSocialLinkRepository>();
+        _ = services.AddScoped<IGalleryCategoryRepository, GalleryCategoryRepository>();
+        _ = services.AddScoped<IGalleryItemRepository, GalleryItemRepository>();
+        _ = services.AddScoped<IGalleryItemCategoryRepository, GalleryItemCategoryRepository>();
+        _ = services.AddScoped<IServiceProcessStepRepository, ServiceProcessStepRepository>();
+        _ = services.AddScoped<IServiceOfferingRepository, ServiceOfferingRepository>();
+        _ = services.AddScoped<ISocialLinkRepository, SocialLinkRepository>();
+        _ = services.AddScoped<IServiceAreaRepository, ServiceAreaRepository>();
+        _ = services.AddScoped<IFaqItemRepository, FaqItemRepository>();
+        _ = services.AddScoped<IPromotionRepository, PromotionRepository>();
 
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
-        services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
-        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(SiteContentTransactionAddingBehavior<,>));
+        _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
+        _ = services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
+        _ = services.AddTransient(typeof(IPipelineBehavior<,>), typeof(SiteContentTransactionAddingBehavior<,>));
 
         return services;
     }

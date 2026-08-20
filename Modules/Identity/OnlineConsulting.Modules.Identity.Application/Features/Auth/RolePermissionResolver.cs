@@ -1,4 +1,4 @@
-using Core.SecurityLayer.Authorization;
+﻿using Core.SecurityLayer.Authorization;
 using Core.SecurityLayer.Constants;
 using Microsoft.AspNetCore.Identity;
 using OnlineConsulting.Modules.Identity.Domain;
@@ -17,7 +17,9 @@ public static class RolePermissionResolver
         {
             var role = await roleManager.FindByNameAsync(roleName);
             if (role is null)
+            {
                 continue;
+            }
 
             var claims = await roleManager.GetClaimsAsync(role);
             permissions.AddRange(claims.Where(c => c.Type == PermissionClaimTypes.Type).Select(c => c.Value));

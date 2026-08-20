@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
 using Core.SecurityLayer.Constants;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
@@ -36,11 +36,15 @@ public class CreateTenantAdminHandler(UserManager<User> userManager, IEmailOutbo
 
         var createResult = await userManager.CreateAsync(user, request.Password);
         if (!createResult.Succeeded)
+        {
             return Result.Invalid<CreateTenantAdminResult>([.. createResult.Errors.Select(e => e.Description)]);
+        }
 
         var roleResult = await userManager.AddToRoleAsync(user, GeneralOperationClaims.Admin);
         if (!roleResult.Succeeded)
+        {
             return Result.Invalid<CreateTenantAdminResult>([.. roleResult.Errors.Select(e => e.Description)]);
+        }
 
         var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
         var confirmationUrl = $"{emailOptions.Value.ClientOrigin}/confirm-email?userId={user.Id}&token={Uri.EscapeDataString(token)}";

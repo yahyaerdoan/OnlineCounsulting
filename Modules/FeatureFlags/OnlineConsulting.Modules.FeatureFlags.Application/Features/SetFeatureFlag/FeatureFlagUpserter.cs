@@ -1,4 +1,4 @@
-using OnlineConsulting.Modules.FeatureFlags.Application.Abstractions;
+﻿using OnlineConsulting.Modules.FeatureFlags.Application.Abstractions;
 using OnlineConsulting.Modules.FeatureFlags.Application.Features.Constants;
 using OnlineConsulting.Modules.FeatureFlags.Application.Features.Rules;
 using OnlineConsulting.Modules.FeatureFlags.Domain;
@@ -13,18 +13,20 @@ public class FeatureFlagUpserter(IFeatureFlagRepository repository, IFeatureFlag
     public async Task<OperationResult> UpsertAsync(string key, bool isEnabled, CancellationToken cancellationToken)
     {
         if (!FeatureFlagKeys.Defaults.ContainsKey(key))
+        {
             return FeatureFlagBusinessRules.UnknownKey(key);
+        }
 
         var existing = await repository.GetAsync(f => f.Key == key, cancellationToken: cancellationToken);
 
         if (existing is null)
         {
-            await repository.AddAsync(new FeatureFlag { Id = Guid.NewGuid(), Key = key, IsEnabled = isEnabled });
+            _ = await repository.AddAsync(new FeatureFlag { Id = Guid.NewGuid(), Key = key, IsEnabled = isEnabled });
         }
         else
         {
             existing.IsEnabled = isEnabled;
-            await repository.UpdateAsync(existing);
+            _ = await repository.UpdateAsync(existing);
         }
 
         // Invalidates IFeatureFlagReader's own IMemoryCache (the cross-module hot-path reader, outside MediatR entirely - see FeatureFlagCache.cs). SetFeatureFlagCommand's own ICacheRemoveRequest separately clears GetFeatureFlagsQuery's CacheGroupKey via CacheRemovingBehavior; these are two independent caches serving two different call paths, not a duplicate of each other.

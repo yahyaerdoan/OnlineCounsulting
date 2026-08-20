@@ -21,7 +21,9 @@ public class UpdateSocialLinkHandler(ISocialLinkRepository repository) : IReques
     {
         var entity = await repository.GetAsync(x => x.Id == request.Id, cancellationToken: cancellationToken);
         if (entity is null)
+        {
             return SiteContentBusinessRules.NotFound("SocialLink", request.Id);
+        }
 
         entity.Name = request.Name;
         entity.Url = request.Url;
@@ -29,7 +31,7 @@ public class UpdateSocialLinkHandler(ISocialLinkRepository repository) : IReques
         entity.IconColor = request.IconColor;
         entity.DisplayOrder = request.DisplayOrder;
 
-        await repository.UpdateAsync(entity);
+        _ = await repository.UpdateAsync(entity);
 
         return Result.Success("Social link updated successfully.");
     }

@@ -18,7 +18,9 @@ public class SubscribeNewsletterHandler(INewsletterSubscriberRepository reposito
     {
         var alreadySubscribed = await repository.AnyAsync(s => s.Email == request.Email, cancellationToken: cancellationToken);
         if (alreadySubscribed)
+        {
             return Result.Success("Already subscribed.");
+        }
 
         var subscriber = new NewsletterSubscriber { Id = Guid.NewGuid(), Email = request.Email };
 
@@ -26,7 +28,7 @@ public class SubscribeNewsletterHandler(INewsletterSubscriberRepository reposito
 
         outboxWriter.Enqueue(request.Email, template.Subject(model), template.Build(model), sourceReference: $"NewsletterSubscriber:{subscriber.Id}");
 
-        await repository.AddAsync(subscriber);
+        _ = await repository.AddAsync(subscriber);
 
         return Result.Created("Subscribed successfully.");
     }

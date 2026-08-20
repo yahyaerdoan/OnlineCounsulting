@@ -11,7 +11,7 @@ public class Register : IDevOnlyEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/auth/register", Handle)
+        _ = app.MapPost("/api/auth/register", Handle)
             .WithTags("Identity/Auth")
             .RequireRateLimiting(ServiceRegistration.AuthRateLimiterPolicy)
             .WithName("Register")

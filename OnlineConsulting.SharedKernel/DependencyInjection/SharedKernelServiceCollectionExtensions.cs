@@ -1,4 +1,4 @@
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using OnlineConsulting.SharedKernel.CurrentUser;
 using OnlineConsulting.SharedKernel.GuestIdentity;
 
@@ -10,8 +10,8 @@ public static class SharedKernelServiceCollectionExtensions
     /// up without a reference to a specific module.</summary>
     public static IServiceCollection AddSharedKernel(this IServiceCollection services)
     {
-        services.AddScoped<ICurrentUserAccessor, CurrentUserAccessor>();
-        services.AddScoped<IGuestIdAccessor, GuestIdAccessor>();
+        _ = services.AddScoped<ICurrentUserAccessor, CurrentUserAccessor>();
+        _ = services.AddScoped<IGuestIdAccessor, GuestIdAccessor>();
 
         return services;
     }

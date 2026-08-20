@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Api.Configurations.Extensions;
@@ -13,7 +13,7 @@ public class Login : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/auth/login", Handle)
+        _ = app.MapPost("/api/auth/login", Handle)
             .WithTags("Identity/Auth")
             .RequireRateLimiting(ServiceRegistration.AuthRateLimiterPolicy)
             .WithName("Login")
@@ -24,12 +24,14 @@ public class Login : IEndpoint
     {
         var result = await sender.Send(command);
         if (!result.IsSuccessful || result.Data is null)
+        {
             return result.ToEnvelopedResult(httpContext);
+        }
 
         // Guest cookie is only meaningful while unauthenticated, so fold any guest basket into the user's basket now.
         if (guestIdAccessor.TryGetGuestId() is { } guestId)
         {
-            await sender.Send(new MergeGuestBasketCommand(result.Data.UserId, guestId));
+            _ = await sender.Send(new MergeGuestBasketCommand(result.Data.UserId, guestId));
             guestIdAccessor.ClearGuestId();
         }
 

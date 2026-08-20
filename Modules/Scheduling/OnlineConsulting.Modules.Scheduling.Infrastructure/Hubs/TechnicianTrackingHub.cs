@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Abstractions;
 using System.Security.Claims;
@@ -14,7 +14,9 @@ public class TechnicianTrackingHub(IAppointmentRepository appointmentRepository)
         var userId = GetUserId();
         var appointment = await appointmentRepository.GetAsync(a => a.Id == appointmentId);
         if (appointment is null || (appointment.UserId != userId && appointment.AssignedTechnicianUserId != userId))
+        {
             throw new HubException("Not authorized for this appointment.");
+        }
 
         await Groups.AddToGroupAsync(Context.ConnectionId, GroupName(appointmentId));
     }
@@ -25,12 +27,16 @@ public class TechnicianTrackingHub(IAppointmentRepository appointmentRepository)
     public async Task PushLocation(Guid appointmentId, double latitude, double longitude)
     {
         if (!TechnicianLocationThrottle.TryAcquire(Context.ConnectionId))
+        {
             throw new HubException("Too many location updates - please slow down.");
+        }
 
         var userId = GetUserId();
         var appointment = await appointmentRepository.GetAsync(a => a.Id == appointmentId);
         if (appointment is null || appointment.AssignedTechnicianUserId != userId)
+        {
             throw new HubException("Not authorized to push a location for this appointment.");
+        }
 
         await Clients.Group(GroupName(appointmentId)).SendAsync("ReceivedTechnicianLocation", new
         {

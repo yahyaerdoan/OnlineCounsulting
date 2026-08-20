@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Contact.GetContact;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class GetContact : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/contact", Handle)
+        _ = app.MapGet("/api/contact", Handle)
             .WithTags("Inquiries/Contact")
             .WithName("GetContact")
             .WithDescription("Returns the company's contact information. Public - no login required.");

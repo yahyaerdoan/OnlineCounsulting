@@ -1,4 +1,4 @@
-using FirebaseAdmin.Messaging;
+﻿using FirebaseAdmin.Messaging;
 using Microsoft.Extensions.Logging;
 using OnlineConsulting.SharedKernel.Notifications;
 
@@ -11,7 +11,9 @@ public class FcmPushNotificationSender(IDeviceTokenRepository deviceTokenReposit
     {
         var tokens = await deviceTokenRepository.GetTokensForUserAsync(userId, cancellationToken);
         if (tokens.Count == 0)
+        {
             return;
+        }
 
         foreach (var token in tokens)
         {
@@ -24,7 +26,7 @@ public class FcmPushNotificationSender(IDeviceTokenRepository deviceTokenReposit
 
             try
             {
-                await FirebaseMessaging.DefaultInstance.SendAsync(message, cancellationToken);
+                _ = await FirebaseMessaging.DefaultInstance.SendAsync(message, cancellationToken);
             }
             catch (FirebaseMessagingException ex) when (ex.MessagingErrorCode is MessagingErrorCode.Unregistered)
             {

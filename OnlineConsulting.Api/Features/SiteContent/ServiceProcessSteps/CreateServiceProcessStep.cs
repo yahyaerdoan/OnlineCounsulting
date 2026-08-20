@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.ServiceProcessSteps.CreateServiceProcessStep;
@@ -10,7 +10,7 @@ public class CreateServiceProcessStep : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/site-content/service-process-steps", Handle)
+        _ = app.MapPost("/api/site-content/service-process-steps", Handle)
             .WithTags("SiteContent/ServiceProcessSteps")
             .RequireAuthorization()
             .WithName("CreateServiceProcessStep")

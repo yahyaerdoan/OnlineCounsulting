@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Referrals.Application.Features.Referrals.GetAllReferrals;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class GetAllReferrals : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/referrals", Handle)
+        _ = app.MapGet("/api/referrals", Handle)
             .WithTags("Referrals")
             .RequireAuthorization()
             .WithName("GetAllReferrals")

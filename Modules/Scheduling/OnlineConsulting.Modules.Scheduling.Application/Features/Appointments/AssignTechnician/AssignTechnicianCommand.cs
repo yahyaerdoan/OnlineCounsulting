@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Scheduling.Application.Common;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Abstractions;
@@ -25,13 +25,17 @@ public class AssignTechnicianHandler(IAppointmentRepository repository, ITechnic
     {
         var appointment = await repository.GetAsync(a => a.Id == request.Id, cancellationToken: cancellationToken);
         if (appointment is null)
+        {
             return AppointmentBusinessRules.AppointmentNotFound(request.Id);
+        }
 
         if (appointment.Status is AppointmentStatuses.Cancelled or AppointmentStatuses.Completed)
+        {
             return Result.BadRequest(SchedulingMessages.CannotAssignTechnicianToClosedAppointment);
+        }
 
         appointment.AssignedTechnicianUserId = request.TechnicianUserId;
-        await repository.UpdateAsync(appointment);
+        _ = await repository.UpdateAsync(appointment);
 
         await hubService.NotifyTechnicianAssignedAsync(appointment.Id, appointment.UserId, request.TechnicianUserId, cancellationToken);
 

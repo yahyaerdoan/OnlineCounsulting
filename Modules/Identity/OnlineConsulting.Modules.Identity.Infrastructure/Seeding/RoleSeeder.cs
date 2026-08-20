@@ -1,4 +1,4 @@
-using Core.SecurityLayer.Constants;
+﻿using Core.SecurityLayer.Constants;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using OnlineConsulting.Modules.Identity.Domain;
@@ -20,7 +20,9 @@ public static class RoleSeeder
         foreach (var roleName in Roles)
         {
             if (!await roleManager.RoleExistsAsync(roleName))
-                await roleManager.CreateAsync(new Role { Name = roleName });
+            {
+                _ = await roleManager.CreateAsync(new Role { Name = roleName });
+            }
         }
 
         await GrantPermissionAsync(roleManager, GeneralOperationClaims.Admin, PermissionClaimTypes.FullAccess);
@@ -31,10 +33,14 @@ public static class RoleSeeder
     {
         var role = await roleManager.FindByNameAsync(roleName);
         if (role is null)
+        {
             return;
+        }
 
         var existingClaims = await roleManager.GetClaimsAsync(role);
         if (!existingClaims.Any(c => c.Type == PermissionClaimTypes.Type && c.Value == permission))
-            await roleManager.AddClaimAsync(role, new Claim(PermissionClaimTypes.Type, permission));
+        {
+            _ = await roleManager.AddClaimAsync(role, new Claim(PermissionClaimTypes.Type, permission));
+        }
     }
 }

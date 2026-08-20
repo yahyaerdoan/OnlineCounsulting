@@ -21,7 +21,9 @@ public class SystemRoleController(ISystemRoleService systemRoleService, IToastNo
     public async Task<IActionResult> Create(CreateSystemRoleViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
+        {
             return View(model);
+        }
 
         var result = await systemRoleService.CreateAsync(model, cancellationToken);
         toastNotification.ShowResult(result);
@@ -40,7 +42,9 @@ public class SystemRoleController(ISystemRoleService systemRoleService, IToastNo
     public async Task<IActionResult> Update(UpdateSystemRoleViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
+        {
             return View(model);
+        }
 
         var result = await systemRoleService.UpdateAsync(model, cancellationToken);
         toastNotification.ShowResult(result);

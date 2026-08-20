@@ -30,7 +30,7 @@ public class CreateSocialLinkHandler(ISocialLinkRepository repository) : IReques
             DisplayOrder = request.DisplayOrder,
         };
 
-        await repository.AddAsync(entity);
+        _ = await repository.AddAsync(entity);
 
         return Result.Created(entity.Id, "Social link created successfully.");
     }

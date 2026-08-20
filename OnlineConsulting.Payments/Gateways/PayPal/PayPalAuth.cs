@@ -16,7 +16,7 @@ internal static class PayPalAuth
         request.Headers.Authorization = new AuthenticationHeaderValue("Basic", credentials);
 
         using var response = await client.SendAsync(request, cancellationToken);
-        response.EnsureSuccessStatusCode();
+        _ = response.EnsureSuccessStatusCode();
         var token = await response.Content.ReadFromJsonAsync<PayPalTokenResponse>(cancellationToken: cancellationToken);
 
         return token?.AccessToken ?? throw new InvalidOperationException("PayPal did not return an access token.");

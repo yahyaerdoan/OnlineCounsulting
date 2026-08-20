@@ -1,4 +1,4 @@
-using Core.PersistenceLayer.Repositories.Entities;
+﻿using Core.PersistenceLayer.Repositories.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using OnlineConsulting.SharedKernel.CurrentUser;
@@ -22,7 +22,9 @@ public class AuditSaveChangesInterceptor(ICurrentUserAccessor currentUserAccesso
     private void Stamp(DbContext? context)
     {
         if (context is null)
+        {
             return;
+        }
 
         var userId = currentUserAccessor.UserId;
         var now = DateTimeOffset.UtcNow;
@@ -37,7 +39,9 @@ public class AuditSaveChangesInterceptor(ICurrentUserAccessor currentUserAccesso
             }
 
             if (entry.State != EntityState.Modified)
+            {
                 continue;
+            }
 
             var isSoftDelete = entry.Property(nameof(IEntityAuditor.DeletedDate)).IsModified && entry.Entity.DeletedDate.HasValue;
             if (isSoftDelete)

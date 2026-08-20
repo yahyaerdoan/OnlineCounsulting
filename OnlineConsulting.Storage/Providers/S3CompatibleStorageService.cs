@@ -1,4 +1,4 @@
-using Amazon.Runtime;
+﻿using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Microsoft.Extensions.Options;
@@ -40,7 +40,7 @@ public class S3CompatibleStorageService : IStorageService
 
         var storedFileName = SafeFileNaming.GenerateStoredFileName(fileName);
 
-        await _client.PutObjectAsync(new PutObjectRequest
+        _ = await _client.PutObjectAsync(new PutObjectRequest
         {
             BucketName = _options.BucketName,
             Key = storedFileName,
@@ -58,7 +58,7 @@ public class S3CompatibleStorageService : IStorageService
     {
         var key = Path.GetFileName(url);
 
-        await _client.DeleteObjectAsync(new DeleteObjectRequest
+        _ = await _client.DeleteObjectAsync(new DeleteObjectRequest
         {
             BucketName = _options.BucketName,
             Key = key,

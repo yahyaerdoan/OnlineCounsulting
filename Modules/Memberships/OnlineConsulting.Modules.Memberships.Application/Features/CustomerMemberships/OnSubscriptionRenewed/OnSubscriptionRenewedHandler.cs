@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Abstractions;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Constants;
 using OnlineConsulting.SharedKernel.Payments;
@@ -11,14 +11,18 @@ public class OnSubscriptionRenewedHandler(ICustomerMembershipRepository reposito
     public async Task Handle(SubscriptionRenewedNotification notification, CancellationToken cancellationToken)
     {
         if (!Guid.TryParse(notification.ReferenceId, out var membershipId))
+        {
             return;
+        }
 
         var membership = await repository.GetAsync(m => m.Id == membershipId, cancellationToken: cancellationToken);
         if (membership is null)
+        {
             return;
+        }
 
         membership.RenewalDate = notification.CurrentPeriodEnd;
         membership.Status = CustomerMembershipStatuses.Active;
-        await repository.UpdateAsync(membership);
+        _ = await repository.UpdateAsync(membership);
     }
 }

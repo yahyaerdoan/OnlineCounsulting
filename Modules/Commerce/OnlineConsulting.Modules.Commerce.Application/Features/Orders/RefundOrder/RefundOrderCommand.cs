@@ -24,22 +24,30 @@ public class RefundOrderHandler(IOrderRepository orderRepository, IServiceProvid
     {
         var order = await orderRepository.GetAsync(o => o.Id == request.OrderId, cancellationToken: cancellationToken);
         if (order is null)
+        {
             return Result.NotFound($"Order {request.OrderId} was not found.");
+        }
 
         if (order.PaymentStatus != OrderPaymentStatuses.Paid)
+        {
             return Result.BadRequest($"Order {request.OrderId} cannot be refunded from payment status '{order.PaymentStatus}' - only a paid order can be refunded.");
+        }
 
         if (order.PaymentProvider is null || order.ProviderPaymentId is null)
+        {
             return Result.BadRequest($"Order {request.OrderId} has no recorded payment to refund.");
+        }
 
         var gateway = serviceProvider.GetKeyedService<IPaymentGateway>(order.PaymentProvider);
         if (gateway is null)
+        {
             return Result.BadRequest($"Unknown payment provider '{order.PaymentProvider}' - cannot route the refund.");
+        }
 
-        await gateway.RefundAsync(order.ProviderPaymentId, request.Amount, cancellationToken);
+        _ = await gateway.RefundAsync(order.ProviderPaymentId, request.Amount, cancellationToken);
 
         order.PaymentStatus = OrderPaymentStatuses.Refunded;
-        await orderRepository.UpdateAsync(order);
+        _ = await orderRepository.UpdateAsync(order);
 
         return Result.Success("Order refunded successfully.");
     }

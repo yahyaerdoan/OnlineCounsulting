@@ -28,29 +28,31 @@ public static class SchedulingModule
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-        services.AddScoped<TenantSaveChangesInterceptor>();
-        services.AddScoped<AuditSaveChangesInterceptor>();
+        _ = services.AddScoped<TenantSaveChangesInterceptor>();
+        _ = services.AddScoped<AuditSaveChangesInterceptor>();
 
-        services.AddDbContext<SchedulingDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
+        _ = services.AddDbContext<SchedulingDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
             .AddInterceptors(serviceProvider.GetRequiredService<TenantSaveChangesInterceptor>(), serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>()));
 
-        services.AddScoped<IAppointmentRepository, AppointmentRepository>();
-        services.AddScoped<IAvailabilityRuleRepository, AvailabilityRuleRepository>();
-        services.AddScoped<IWorkOrderRepository, WorkOrderRepository>();
-        services.AddScoped<IWorkOrderMediaItemRepository, WorkOrderMediaItemRepository>();
-        services.AddScoped<IAppointmentMediaItemRepository, AppointmentMediaItemRepository>();
-        services.AddScoped<IEmailOutboxWriter, EmailOutboxWriter>();
-        services.AddScoped<IEmailTemplate<AppointmentConfirmationEmailModel>, AppointmentConfirmationTemplate>();
-        services.AddScoped<ITechnicianTrackingHubService, TechnicianTrackingHubService>();
+        _ = services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+        _ = services.AddScoped<IAvailabilityRuleRepository, AvailabilityRuleRepository>();
+        _ = services.AddScoped<IWorkOrderRepository, WorkOrderRepository>();
+        _ = services.AddScoped<IWorkOrderMediaItemRepository, WorkOrderMediaItemRepository>();
+        _ = services.AddScoped<IAppointmentMediaItemRepository, AppointmentMediaItemRepository>();
+        _ = services.AddScoped<IEmailOutboxWriter, EmailOutboxWriter>();
+        _ = services.AddScoped<IEmailTemplate<AppointmentConfirmationEmailModel>, AppointmentConfirmationTemplate>();
+        _ = services.AddScoped<ITechnicianTrackingHubService, TechnicianTrackingHubService>();
 
         var redisConnection = configuration.GetConnectionString("Redis");
         var signalRBuilder = services.AddSignalR();
         if (!string.IsNullOrWhiteSpace(redisConnection))
-            signalRBuilder.AddStackExchangeRedis(redisConnection);
+        {
+            _ = signalRBuilder.AddStackExchangeRedis(redisConnection);
+        }
 
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
-        services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
-        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(SchedulingTransactionAddingBehavior<,>));
+        _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
+        _ = services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
+        _ = services.AddTransient(typeof(IPipelineBehavior<,>), typeof(SchedulingTransactionAddingBehavior<,>));
 
         return services;
     }

@@ -35,21 +35,29 @@ public class CreateOrderFromBasketHandler(IBasketRepository basketRepository, IB
     {
         var basket = await basketRepository.GetAsync(b => b.UserId == request.UserId, cancellationToken: cancellationToken);
         if (basket is null)
+        {
             return Result.BadRequest<CreateOrderResult>(BasketMessages.BasketNotFoundOrEmpty);
+        }
 
         var basketItems = await basketItemRepository.GetListAsync(i => i.BasketId == basket.Id, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
         if (basketItems.Items.Count == 0)
+        {
             return Result.BadRequest<CreateOrderResult>(BasketMessages.BasketNotFoundOrEmpty);
+        }
 
         var shippingAddress = await userAddressRepository.GetAsync(a => a.UserId == request.UserId && a.IsShippingAddress,
             enableTracking: false, cancellationToken: cancellationToken);
         if (shippingAddress is null)
+        {
             return Result.BadRequest<CreateOrderResult>(AddressMessages.ShippingAddressNotFound);
+        }
 
         var billingAddress = await userAddressRepository.GetAsync(a => a.UserId == request.UserId && a.IsBillingAddress, enableTracking: false, cancellationToken: cancellationToken);
 
         if (billingAddress is null)
+        {
             return Result.BadRequest<CreateOrderResult>(AddressMessages.BillingAddressNotFound);
+        }
 
         var orderId = Guid.NewGuid();
         var total = basketItems.Items.Sum(i => TaxCalculator.Calculate(i.Price, i.Quantity, i.TaxRate).TotalPrice);
@@ -68,9 +76,11 @@ public class CreateOrderFromBasketHandler(IBasketRepository basketRepository, IB
         outboxWriter.Enqueue(request.Email, confirmationTemplate.Subject(confirmationModel), confirmationTemplate.Build(confirmationModel), sourceReference: $"Order:{order.Id}");
 
         foreach (var basketItem in basketItems.Items)
-            await basketItemRepository.DeleteAsync(basketItem);
+        {
+            _ = await basketItemRepository.DeleteAsync(basketItem);
+        }
 
-        await basketRepository.DeleteAsync(basket);
+        _ = await basketRepository.DeleteAsync(basket);
 
         return Result.Created(new CreateOrderResult(order.Id, paymentIntent.ClientSecret, order.OrderNumber), $"Order created: {order.OrderNumber}");
     }
@@ -89,12 +99,12 @@ public class CreateOrderFromBasketHandler(IBasketRepository basketRepository, IB
             ShippingAddressId = shippingAddressId,
             InvoiceAddressId = billingAddressId,
         };
-        await orderRepository.AddAsync(order);
+        _ = await orderRepository.AddAsync(order);
 
         foreach (var basketItem in basketItems)
         {
             var (subTotalPrice, taxAmount, totalPrice) = TaxCalculator.Calculate(basketItem.Price, basketItem.Quantity, basketItem.TaxRate);
-            await orderItemRepository.AddAsync(new OrderItem
+            _ = await orderItemRepository.AddAsync(new OrderItem
             {
                 Id = Guid.NewGuid(),
                 OrderId = order.Id,

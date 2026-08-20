@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.GetSubscribers;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class GetSubscribers : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/inquiries/newsletter", Handle)
+        _ = app.MapGet("/api/inquiries/newsletter", Handle)
             .WithTags("Inquiries/Newsletter")
             .RequireAuthorization()
             .WithName("GetSubscribers")

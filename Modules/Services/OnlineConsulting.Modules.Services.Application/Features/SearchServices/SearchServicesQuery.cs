@@ -14,7 +14,9 @@ public class SearchServicesHandler(IServiceRepository repository) : IRequestHand
     public async Task<OperationDataResult<List<ServiceResponse>>> Handle(SearchServicesQuery request, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(request.Query))
+        {
             return Result.Success(new List<ServiceResponse>(), "No search query provided.");
+        }
 
         var services = await repository.GetListAsync(s => s.Title.Contains(request.Query) || s.Description.Contains(request.Query), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
 

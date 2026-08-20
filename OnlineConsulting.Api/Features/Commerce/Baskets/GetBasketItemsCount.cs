@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Baskets.GetBasketItemsCount;
 using OnlineConsulting.SharedKernel.GuestIdentity;
@@ -10,7 +10,7 @@ public class GetBasketItemsCount : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/basket/count", Handle)
+        _ = app.MapGet("/api/basket/count", Handle)
             .WithTags("Commerce/Baskets")
             .WithName("GetBasketItemsCount")
             .WithDescription("Returns the number of items in the current user's (or guest's) basket.");
@@ -20,7 +20,9 @@ public class GetBasketItemsCount : IEndpoint
     {
         var (userId, guestId, error) = await BasketOwnerResolver.ResolveAsync(sender, httpContext, guestIdAccessor);
         if (error is not null)
+        {
             return error;
+        }
 
         var result = await sender.Send(new GetBasketItemsCountQuery(userId, guestId));
         return result.ToEnvelopedResult(httpContext);

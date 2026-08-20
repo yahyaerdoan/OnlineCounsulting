@@ -62,7 +62,7 @@ public class StripeSubscriptionGateway : ISubscriptionGateway
         }, cancellationToken: cancellationToken);
 
         var customerService = new CustomerService(_client);
-        await customerService.UpdateAsync(request.ProviderCustomerId, new CustomerUpdateOptions
+        _ = await customerService.UpdateAsync(request.ProviderCustomerId, new CustomerUpdateOptions
         {
             InvoiceSettings = new CustomerInvoiceSettingsOptions { DefaultPaymentMethod = attachedPaymentMethod.Id },
         }, cancellationToken: cancellationToken);
@@ -115,13 +115,15 @@ public class StripeSubscriptionGateway : ISubscriptionGateway
     public async Task RemoveSubscriptionItemAsync(string providerSubscriptionItemId, CancellationToken cancellationToken = default)
     {
         var service = new SubscriptionItemService(_client);
-        await service.DeleteAsync(providerSubscriptionItemId, cancellationToken: cancellationToken);
+        _ = await service.DeleteAsync(providerSubscriptionItemId, cancellationToken: cancellationToken);
     }
 
     public Task<SubscriptionWebhookEvent?> VerifyAndParseWebhookAsync(string rawBody, string? signatureHeader, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(signatureHeader) || string.IsNullOrEmpty(rawBody))
+        {
             return Task.FromResult<SubscriptionWebhookEvent?>(null);
+        }
 
         Event stripeEvent;
         try
@@ -138,7 +140,9 @@ public class StripeSubscriptionGateway : ISubscriptionGateway
             case "customer.subscription.deleted":
                 {
                     if (stripeEvent.Data.Object is not Subscription subscription)
+                    {
                         return Task.FromResult<SubscriptionWebhookEvent?>(null);
+                    }
 
                     var referenceId = subscription.Metadata.GetValueOrDefault("ReferenceId");
                     return referenceId is null
@@ -149,12 +153,16 @@ public class StripeSubscriptionGateway : ISubscriptionGateway
             case "invoice.paid":
                 {
                     if (stripeEvent.Data.Object is not Invoice invoice)
+                    {
                         return Task.FromResult<SubscriptionWebhookEvent?>(null);
+                    }
 
                     var subscriptionDetails = invoice.Parent?.SubscriptionDetails;
                     var referenceId = subscriptionDetails?.Metadata?.GetValueOrDefault("ReferenceId");
                     if (subscriptionDetails?.SubscriptionId is null || referenceId is null)
+                    {
                         return Task.FromResult<SubscriptionWebhookEvent?>(null);
+                    }
 
                     var eventKind = stripeEvent.Type == "invoice.paid" ? SubscriptionEventKinds.Renewed : SubscriptionEventKinds.PaymentFailed;
                     var newRenewalDate = eventKind == SubscriptionEventKinds.Renewed && invoice.Lines.Data.Count > 0

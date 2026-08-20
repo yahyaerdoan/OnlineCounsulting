@@ -22,15 +22,19 @@ public class DeleteMediaAssetHandler(IMediaAssetRepository repository, IStorageS
     {
         var entity = await repository.GetAsync(x => x.Id == request.Id, cancellationToken: cancellationToken);
         if (entity is null)
+        {
             return MediaBusinessRules.NotFound(request.Id);
+        }
 
         // Only physically delete the file if this asset was actually stored by the currently active
         // provider - deleting via the wrong backend's API would either no-op or throw depending on
         // provider, neither of which is what we want here.
         if (entity.StorageProvider == storageService.ProviderName)
+        {
             await storageService.DeleteAsync(entity.Url, cancellationToken);
+        }
 
-        await repository.DeleteAsync(entity);
+        _ = await repository.DeleteAsync(entity);
 
         return Result.Success("Media asset deleted successfully.");
     }

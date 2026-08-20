@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.GetAppointmentById;
@@ -10,7 +10,7 @@ public class GetAppointmentById : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/appointments/{id:guid}", Handle)
+        _ = app.MapGet("/api/appointments/{id:guid}", Handle)
             .WithTags("Scheduling/Appointments")
             .RequireAuthorization()
             .WithName("GetAppointmentById")
@@ -21,7 +21,9 @@ public class GetAppointmentById : IEndpoint
     {
         var currentUser = await sender.Send(new GetCurrentUserQuery());
         if (!currentUser.IsSuccessful || currentUser.Data is null)
+        {
             return currentUser.ToEnvelopedResult(httpContext);
+        }
 
         var result = await sender.Send(new GetAppointmentByIdQuery(id, currentUser.Data.Id));
         return result.ToEnvelopedResult(httpContext);

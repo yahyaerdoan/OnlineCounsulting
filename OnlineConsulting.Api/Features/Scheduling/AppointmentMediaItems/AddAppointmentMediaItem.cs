@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
@@ -11,7 +11,7 @@ public class AddAppointmentMediaItem : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/appointments/media-items", Handle)
+        _ = app.MapPost("/api/appointments/media-items", Handle)
             .WithTags("Scheduling/Appointments")
             .RequireAuthorization()
             .WithName("AddAppointmentMediaItem")
@@ -22,7 +22,9 @@ public class AddAppointmentMediaItem : IEndpoint
     {
         var currentUser = await sender.Send(new GetCurrentUserQuery());
         if (!currentUser.IsSuccessful || currentUser.Data is null)
+        {
             return currentUser.ToEnvelopedResult(httpContext);
+        }
 
         var result = await sender.Send(command with { UserId = currentUser.Data.Id });
         return result.ToEnvelopedResult(httpContext);

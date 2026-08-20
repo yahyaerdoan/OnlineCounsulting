@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryCategories.DeleteGalleryCategory;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class DeleteGalleryCategory : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapDelete("/api/site-content/gallery-categories/{id:guid}", Handle)
+        _ = app.MapDelete("/api/site-content/gallery-categories/{id:guid}", Handle)
             .WithTags("SiteContent/GalleryCategories")
             .RequireAuthorization()
             .WithName("DeleteGalleryCategory")

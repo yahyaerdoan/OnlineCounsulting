@@ -32,7 +32,9 @@ public static class HvacCatalogSeeder
         foreach (var categorySeed in CatalogSeed.Categories)
         {
             if (await categoryRepository.AnyAsync(c => c.Title == categorySeed.Title))
+            {
                 continue;
+            }
 
             var category = new Category
             {
@@ -42,7 +44,7 @@ public static class HvacCatalogSeeder
                 Description = categorySeed.Description,
                 Icon = categorySeed.Icon,
             };
-            await categoryRepository.AddAsync(category);
+            _ = await categoryRepository.AddAsync(category);
 
             foreach (var serviceTitle in categorySeed.ServiceTitles)
             {
@@ -66,7 +68,7 @@ public static class HvacCatalogSeeder
                     RequiresPrepayment = false,
                     IsEmergencyAvailable = categorySeed.EmergencyServiceTitles.Contains(serviceTitle),
                 };
-                await serviceRepository.AddAsync(service);
+                _ = await serviceRepository.AddAsync(service);
             }
         }
     }

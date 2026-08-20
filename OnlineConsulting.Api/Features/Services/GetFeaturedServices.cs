@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Services.Application.Features.GetFeaturedServices;
 using ResultHandler.AspNetCore.Extensions;
@@ -10,7 +10,7 @@ public class GetFeaturedServices : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/services/featured", Handle)
+        _ = app.MapGet("/api/services/featured", Handle)
             .WithTags("Services")
             .WithName("GetFeaturedServices")
             .WithDescription("Returns services marked as featured. Public - no login required.");
@@ -23,7 +23,9 @@ public class GetFeaturedServices : IEndpoint
             .OnSuccess(items =>
             {
                 foreach (var service in items)
+                {
                     service.Links = GetServiceById.BuildLinks(httpContext, linkGenerator, service.Id);
+                }
             })
             .ToEnvelopedResult(httpContext);
     }

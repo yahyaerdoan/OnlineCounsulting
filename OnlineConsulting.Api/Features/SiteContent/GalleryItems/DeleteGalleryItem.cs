@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryItems.DeleteGalleryItem;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class DeleteGalleryItem : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapDelete("/api/site-content/gallery-items/{id:guid}", Handle)
+        _ = app.MapDelete("/api/site-content/gallery-items/{id:guid}", Handle)
             .WithTags("SiteContent/GalleryItems")
             .RequireAuthorization()
             .WithName("DeleteGalleryItem")

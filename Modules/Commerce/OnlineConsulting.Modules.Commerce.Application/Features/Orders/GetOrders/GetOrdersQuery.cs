@@ -16,7 +16,9 @@ public class GetOrdersHandler(IOrderRepository orderRepository, IOrderItemReposi
     {
         var orders = await orderRepository.GetListAsync(o => o.UserId == request.UserId, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
         if (orders.Items.Count == 0)
+        {
             return Result.Success(new List<OrderResponse>(), "No orders found for this user.");
+        }
 
         var orderIds = orders.Items.Select(o => o.Id).ToList();
         var items = await orderItemRepository.GetListAsync(i => orderIds.Contains(i.OrderId), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);

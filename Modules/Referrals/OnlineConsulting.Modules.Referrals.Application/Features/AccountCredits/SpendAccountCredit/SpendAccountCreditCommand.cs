@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Referrals.Application.Common;
 using OnlineConsulting.Modules.Referrals.Application.Features.AccountCredits.Abstractions;
@@ -25,7 +25,9 @@ public class SpendAccountCreditHandler(IAccountCreditRepository creditRepository
         var balance = entries.Items.Sum(c => c.Amount);
 
         if (request.Amount > balance)
+        {
             return Result.BadRequest<Guid>(ReferralsMessages.InsufficientCredit);
+        }
 
         var entry = new AccountCredit
         {
@@ -37,7 +39,7 @@ public class SpendAccountCreditHandler(IAccountCreditRepository creditRepository
             SourceId = request.SourceId,
         };
 
-        await creditRepository.AddAsync(entry);
+        _ = await creditRepository.AddAsync(entry);
 
         return Result.Created(entry.Id, "Account credit spent successfully.");
     }

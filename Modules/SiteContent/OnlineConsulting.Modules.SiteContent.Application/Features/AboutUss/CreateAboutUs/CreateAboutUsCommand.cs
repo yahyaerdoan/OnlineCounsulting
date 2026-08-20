@@ -31,7 +31,7 @@ public class CreateAboutUsHandler(IAboutUsRepository repository) : IRequestHandl
             Metadata = MetadataSerializer.Serialize(request.Metadata),
         };
 
-        await repository.AddAsync(entity);
+        _ = await repository.AddAsync(entity);
 
         return Result.Created(entity.Id, "About Us content created successfully.");
     }

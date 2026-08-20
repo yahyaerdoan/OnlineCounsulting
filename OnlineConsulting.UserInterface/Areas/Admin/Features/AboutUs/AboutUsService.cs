@@ -1,4 +1,4 @@
-using OnlineConsulting.UserInterface.Infrastructure.Api;
+﻿using OnlineConsulting.UserInterface.Infrastructure.Api;
 using OnlineConsulting.UserInterface.Infrastructure.Media;
 
 namespace OnlineConsulting.UserInterface.Areas.Admin.Features.AboutUs;
@@ -16,17 +16,16 @@ public class AboutUsService(IApiClient apiClient, IMediaService mediaService) : 
     public async Task<UpdateAboutUsViewModel?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var aboutUs = await FindAsync(id, cancellationToken);
-        if (aboutUs is null)
-            return null;
-
-        return new UpdateAboutUsViewModel
-        {
-            Id = aboutUs.Id,
-            Title = aboutUs.Title,
-            Description = aboutUs.Description,
-            VideoUrl = aboutUs.VideoUrl,
-            CoverImage = aboutUs.CoverImage,
-        };
+        return aboutUs is null
+            ? null
+            : new UpdateAboutUsViewModel
+            {
+                Id = aboutUs.Id,
+                Title = aboutUs.Title,
+                Description = aboutUs.Description,
+                VideoUrl = aboutUs.VideoUrl,
+                CoverImage = aboutUs.CoverImage,
+            };
     }
 
     public async Task<ApiEnvelope> CreateAsync(CreateAboutUsViewModel model, CancellationToken cancellationToken = default)

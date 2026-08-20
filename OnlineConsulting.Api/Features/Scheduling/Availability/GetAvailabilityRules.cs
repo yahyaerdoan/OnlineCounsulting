@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Availability.GetAvailabilityRules;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class GetAvailabilityRules : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/scheduling/availability-rules", Handle)
+        _ = app.MapGet("/api/scheduling/availability-rules", Handle)
             .WithTags("Scheduling/Availability")
             .RequireAuthorization()
             .WithName("GetAvailabilityRules")

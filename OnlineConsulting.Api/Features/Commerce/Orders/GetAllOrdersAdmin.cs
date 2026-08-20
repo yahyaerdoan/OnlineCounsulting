@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.GetAllOrdersAdmin;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.GetAllUsers;
@@ -14,7 +14,7 @@ public class GetAllOrdersAdmin : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/orders/admin", Handle)
+        _ = app.MapGet("/api/orders/admin", Handle)
             .WithTags("Commerce/Orders")
             .RequireAuthorization()
             .WithName("GetAllOrdersAdmin")
@@ -25,14 +25,16 @@ public class GetAllOrdersAdmin : IEndpoint
     {
         var ordersResult = await sender.Send(new GetAllOrdersAdminQuery());
         if (!ordersResult.IsSuccessful || ordersResult.Data is null)
+        {
             return ordersResult.ToEnvelopedResult(httpContext);
+        }
 
         var usersResult = await sender.Send(new GetAllUsersQuery());
         var usersById = (usersResult.IsSuccessful ? usersResult.Data : null)?.ToDictionary(u => u.Id) ?? [];
 
         var responses = ordersResult.Data.Select(o =>
         {
-            usersById.TryGetValue(o.UserId, out var user);
+            _ = usersById.TryGetValue(o.UserId, out var user);
             return new AdminOrderResponse(o.Id, o.OrderNumber, o.OrderStatus, o.PaymentStatus, o.TotalPrice, o.CreatedDate, o.UserId, user?.Email, user?.UserName);
         }).ToList();
 

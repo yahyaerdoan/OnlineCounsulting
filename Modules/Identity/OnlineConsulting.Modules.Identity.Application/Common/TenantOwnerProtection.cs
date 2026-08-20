@@ -19,7 +19,9 @@ public static class TenantOwnerProtection
     {
         var callerRoles = httpContextAccessor.HttpContext?.User.ClaimRoles() ?? [];
         if (callerRoles.Contains(GlobalOperationClaims.SuperAdmin))
+        {
             return null;
+        }
 
         var targetIsOwner = await tenantOwnershipReader.IsOwnerAsync(tenantId, targetUserId, cancellationToken);
         return targetIsOwner

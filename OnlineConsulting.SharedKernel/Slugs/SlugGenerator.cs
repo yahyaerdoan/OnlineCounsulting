@@ -12,7 +12,9 @@ public static partial class SlugGenerator
     public static string Slugify(string value, int maxLength = MaxLength)
     {
         if (string.IsNullOrWhiteSpace(value))
+        {
             return string.Empty;
+        }
 
         var normalized = value.Replace(TurkishDotlessI, 'i').Normalize(NormalizationForm.FormKD);
 
@@ -20,7 +22,9 @@ public static partial class SlugGenerator
         foreach (var ch in normalized)
         {
             if (CharUnicodeInfo.GetUnicodeCategory(ch) != UnicodeCategory.NonSpacingMark)
-                withoutDiacritics.Append(ch);
+            {
+                _ = withoutDiacritics.Append(ch);
+            }
         }
 
         var slug = NonAlphanumeric().Replace(withoutDiacritics.ToString().ToLowerInvariant(), "-").Trim('-');
@@ -46,7 +50,9 @@ public static partial class SlugGenerator
     private static string Truncate(string slug, int maxLength)
     {
         if (slug.Length <= maxLength)
+        {
             return slug;
+        }
 
         var truncated = slug[..maxLength];
         var lastDash = truncated.LastIndexOf('-');

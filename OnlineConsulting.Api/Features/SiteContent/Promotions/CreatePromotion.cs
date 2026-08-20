@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.Promotions.CreatePromotion;
@@ -10,7 +10,7 @@ public class CreatePromotion : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/site-content/promotions", Handle)
+        _ = app.MapPost("/api/site-content/promotions", Handle)
             .WithTags("SiteContent/Promotions")
             .RequireAuthorization()
             .WithName("CreatePromotion")

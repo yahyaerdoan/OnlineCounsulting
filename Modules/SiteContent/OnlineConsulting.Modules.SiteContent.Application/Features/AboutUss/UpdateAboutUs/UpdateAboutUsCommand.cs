@@ -21,7 +21,9 @@ public class UpdateAboutUsHandler(IAboutUsRepository repository) : IRequestHandl
     {
         var entity = await repository.GetAsync(x => x.Id == request.Id, cancellationToken: cancellationToken);
         if (entity is null)
+        {
             return SiteContentBusinessRules.NotFound("About Us", request.Id);
+        }
 
         entity.Title = request.Title;
         entity.Description = request.Description;
@@ -30,7 +32,7 @@ public class UpdateAboutUsHandler(IAboutUsRepository repository) : IRequestHandl
         entity.DisplayOrder = request.DisplayOrder;
         entity.Metadata = MetadataSerializer.Serialize(request.Metadata);
 
-        await repository.UpdateAsync(entity);
+        _ = await repository.UpdateAsync(entity);
 
         return Result.Success("About Us content updated successfully.");
     }

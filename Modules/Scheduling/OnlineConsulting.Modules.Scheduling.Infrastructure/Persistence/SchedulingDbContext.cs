@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using OnlineConsulting.Modules.Scheduling.Domain;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Tenancy;
@@ -16,51 +16,51 @@ public class SchedulingDbContext(DbContextOptions<SchedulingDbContext> options, 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasDefaultSchema("Scheduling");
+        _ = modelBuilder.HasDefaultSchema("Scheduling");
 
-        modelBuilder.Entity<Appointment>(builder =>
+        _ = modelBuilder.Entity<Appointment>(builder =>
         {
-            builder.Property(a => a.Status).HasMaxLength(30).IsRequired();
-            builder.Property(a => a.CustomerNote).HasMaxLength(1000);
-            builder.Property(a => a.ServiceAddress).HasMaxLength(500);
-            builder.Property(a => a.RowVersion).IsRowVersion();
-            builder.HasIndex(a => a.UserId);
-            builder.HasIndex(a => a.ServiceId);
-            builder.HasIndex(a => a.AssignedTechnicianUserId);
-            builder.HasIndex(a => new { a.TenantId, a.ScheduledStart });
-            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.Property(a => a.Status).HasMaxLength(30).IsRequired();
+            _ = builder.Property(a => a.CustomerNote).HasMaxLength(1000);
+            _ = builder.Property(a => a.ServiceAddress).HasMaxLength(500);
+            _ = builder.Property(a => a.RowVersion).IsRowVersion();
+            _ = builder.HasIndex(a => a.UserId);
+            _ = builder.HasIndex(a => a.ServiceId);
+            _ = builder.HasIndex(a => a.AssignedTechnicianUserId);
+            _ = builder.HasIndex(a => new { a.TenantId, a.ScheduledStart });
+            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
-        modelBuilder.Entity<AvailabilityRule>(builder =>
+        _ = modelBuilder.Entity<AvailabilityRule>(builder =>
         {
-            builder.Property(r => r.RowVersion).IsRowVersion();
-            builder.HasIndex(r => new { r.TenantId, r.DayOfWeek });
-            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.Property(r => r.RowVersion).IsRowVersion();
+            _ = builder.HasIndex(r => new { r.TenantId, r.DayOfWeek });
+            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
-        modelBuilder.Entity<WorkOrder>(builder =>
+        _ = modelBuilder.Entity<WorkOrder>(builder =>
         {
-            builder.Property(w => w.PartsUsed).HasMaxLength(2000);
-            builder.Property(w => w.TechnicianNotes).HasMaxLength(2000);
-            builder.Property(w => w.RowVersion).IsRowVersion();
-            builder.HasIndex(w => w.AppointmentId).IsUnique();
-            builder.HasIndex(w => w.TechnicianUserId);
-            builder.HasIndex(w => w.EquipmentId);
-            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.Property(w => w.PartsUsed).HasMaxLength(2000);
+            _ = builder.Property(w => w.TechnicianNotes).HasMaxLength(2000);
+            _ = builder.Property(w => w.RowVersion).IsRowVersion();
+            _ = builder.HasIndex(w => w.AppointmentId).IsUnique();
+            _ = builder.HasIndex(w => w.TechnicianUserId);
+            _ = builder.HasIndex(w => w.EquipmentId);
+            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
-        modelBuilder.Entity<WorkOrderMediaItem>(builder =>
+        _ = modelBuilder.Entity<WorkOrderMediaItem>(builder =>
         {
-            builder.Property(m => m.RowVersion).IsRowVersion();
-            builder.HasIndex(m => m.WorkOrderId);
-            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.Property(m => m.RowVersion).IsRowVersion();
+            _ = builder.HasIndex(m => m.WorkOrderId);
+            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
-        modelBuilder.Entity<AppointmentMediaItem>(builder =>
+        _ = modelBuilder.Entity<AppointmentMediaItem>(builder =>
         {
-            builder.Property(m => m.RowVersion).IsRowVersion();
-            builder.HasIndex(m => m.AppointmentId);
-            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.Property(m => m.RowVersion).IsRowVersion();
+            _ = builder.HasIndex(m => m.AppointmentId);
+            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
         modelBuilder.ConfigureOutboxEmail();

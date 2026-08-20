@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.UserInterface.Common;
 using OnlineConsulting.UserInterface.Infrastructure.Api;
 
@@ -10,7 +10,9 @@ public class AdminLayoutSidebarProfileComponentPartial(IApiClient apiClient) : V
     {
         var userResult = await apiClient.GetAsync<CurrentUserResponse>("/api/users/me");
         if (!userResult.IsSuccessful || userResult.ResultData is null)
+        {
             return Content(string.Empty);
+        }
 
         var user = userResult.ResultData.ToUserSummaryViewModel();
         var roleResult = await apiClient.GetAsync<List<RoleAssignmentResponse>>($"/api/users/{userResult.ResultData.Id}/roles");

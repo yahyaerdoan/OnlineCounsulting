@@ -20,9 +20,11 @@ public class DeletePageBannerHandler(IPageBannerRepository repository) : IReques
     {
         var entity = await repository.GetAsync(x => x.Id == request.Id, cancellationToken: cancellationToken);
         if (entity is null)
+        {
             return SiteContentBusinessRules.NotFound("Page banner", request.Id);
+        }
 
-        await repository.DeleteAsync(entity);
+        _ = await repository.DeleteAsync(entity);
 
         return Result.Success("Page banner deleted successfully.");
     }

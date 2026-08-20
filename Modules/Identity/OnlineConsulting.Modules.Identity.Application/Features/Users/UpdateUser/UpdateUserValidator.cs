@@ -6,8 +6,8 @@ public class UpdateUserValidator : AbstractValidator<UpdateUserCommand>
 {
     public UpdateUserValidator()
     {
-        RuleFor(x => x.Id).NotEmpty();
-        RuleFor(x => x.FirstName).NotEmpty();
-        RuleFor(x => x.LastName).NotEmpty();
+        _ = RuleFor(x => x.Id).NotEmpty();
+        _ = RuleFor(x => x.FirstName).NotEmpty();
+        _ = RuleFor(x => x.LastName).NotEmpty();
     }
 }

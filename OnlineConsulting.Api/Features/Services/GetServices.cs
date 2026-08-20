@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Services.Application.Features.GetServices;
 using ResultHandler.AspNetCore.Extensions;
@@ -10,7 +10,7 @@ public class GetServices : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/services", Handle)
+        _ = app.MapGet("/api/services", Handle)
             .WithTags("Services")
             .WithName("GetServices")
             .WithDescription("Returns the current tenant's services, paginated. Public - no login required.");
@@ -23,7 +23,9 @@ public class GetServices : IEndpoint
             .OnSuccess(page =>
             {
                 foreach (var service in page.Items)
+                {
                     service.Links = GetServiceById.BuildLinks(httpContext, linkGenerator, service.Id);
+                }
             })
             .ToEnvelopedResult(httpContext);
     }

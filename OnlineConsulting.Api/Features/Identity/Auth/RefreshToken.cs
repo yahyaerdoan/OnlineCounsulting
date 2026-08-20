@@ -10,7 +10,7 @@ public class RefreshTokenEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/auth/refresh", Handle)
+        _ = app.MapPost("/api/auth/refresh", Handle)
             .WithTags("Identity/Auth")
             .WithName("RefreshToken")
             .WithDescription("Exchanges an expired access token + valid refresh token for a new pair.");

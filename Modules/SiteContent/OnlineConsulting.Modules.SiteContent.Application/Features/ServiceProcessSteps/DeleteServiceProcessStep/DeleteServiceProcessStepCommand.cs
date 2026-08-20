@@ -20,9 +20,11 @@ public class DeleteServiceProcessStepHandler(IServiceProcessStepRepository repos
     {
         var entity = await repository.GetAsync(x => x.Id == request.Id, cancellationToken: cancellationToken);
         if (entity is null)
+        {
             return SiteContentBusinessRules.NotFound("Service process step", request.Id);
+        }
 
-        await repository.DeleteAsync(entity);
+        _ = await repository.DeleteAsync(entity);
 
         return Result.Success("Service process step deleted successfully.");
     }

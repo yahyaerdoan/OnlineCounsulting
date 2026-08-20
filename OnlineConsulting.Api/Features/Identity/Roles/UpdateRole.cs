@@ -10,7 +10,7 @@ public class UpdateRole : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPut("/api/roles/{id:guid}", Handle)
+        _ = app.MapPut("/api/roles/{id:guid}", Handle)
             .WithTags("Identity/Roles")
             .RequireAuthorization()
             .WithName("UpdateRole")

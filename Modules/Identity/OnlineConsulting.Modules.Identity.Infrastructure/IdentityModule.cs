@@ -38,37 +38,37 @@ public static class IdentityModule
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-        services.AddScoped<AuditSaveChangesInterceptor>();
+        _ = services.AddScoped<AuditSaveChangesInterceptor>();
 
-        services.AddDbContext<AppIdentityDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
+        _ = services.AddDbContext<AppIdentityDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
             .AddInterceptors(serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>()));
 
-        services.AddIdentity<User, Role>(options => options.Password.RequiredLength = 6)
+        _ = services.AddIdentity<User, Role>(options => options.Password.RequiredLength = 6)
             .AddEntityFrameworkStores<AppIdentityDbContext>()
             .AddDefaultTokenProviders();
 
-        services.Configure<TokenOption>(configuration.GetSection("TokenOptions"));
-        services.AddScoped<IJwtTokenHelper, JwtTokenHelper>();
+        _ = services.Configure<TokenOption>(configuration.GetSection("TokenOptions"));
+        _ = services.AddScoped<IJwtTokenHelper, JwtTokenHelper>();
 
-        services.AddScoped<ITokenService, TokenManager>();
-        services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
-        services.AddScoped<IRefreshTokenService, RefreshTokenService>();
-        services.AddScoped<IUserImageStorage, UserImageStorage>();
-        services.AddScoped<IDeviceTokenRepository, DeviceTokenRepository>();
-        services.AddScoped<IInviteRepository, InviteRepository>();
-        services.AddScoped<IUserExistenceReader, UserExistenceReader>();
+        _ = services.AddScoped<ITokenService, TokenManager>();
+        _ = services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+        _ = services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+        _ = services.AddScoped<IUserImageStorage, UserImageStorage>();
+        _ = services.AddScoped<IDeviceTokenRepository, DeviceTokenRepository>();
+        _ = services.AddScoped<IInviteRepository, InviteRepository>();
+        _ = services.AddScoped<IUserExistenceReader, UserExistenceReader>();
 
-        services.AddScoped<IEmailOutboxWriter, EmailOutboxWriter>();
-        services.AddScoped<IEmailTemplate<ConfirmEmailEmailModel>, ConfirmEmailTemplate>();
-        services.AddScoped<IEmailTemplate<WelcomeEmailModel>, WelcomeTemplate>();
-        services.AddScoped<IEmailTemplate<PolicyNoticeEmailModel>, PolicyNoticeTemplate>();
-        services.AddScoped<IEmailTemplate<InviteEmailModel>, InviteTemplate>();
-        services.Configure<AuthEmailOptions>(configuration.GetSection("Auth"));
-        services.Configure<SuperAdminSeedOptions>(configuration.GetSection("Seed:SuperAdmin"));
+        _ = services.AddScoped<IEmailOutboxWriter, EmailOutboxWriter>();
+        _ = services.AddScoped<IEmailTemplate<ConfirmEmailEmailModel>, ConfirmEmailTemplate>();
+        _ = services.AddScoped<IEmailTemplate<WelcomeEmailModel>, WelcomeTemplate>();
+        _ = services.AddScoped<IEmailTemplate<PolicyNoticeEmailModel>, PolicyNoticeTemplate>();
+        _ = services.AddScoped<IEmailTemplate<InviteEmailModel>, InviteTemplate>();
+        _ = services.Configure<AuthEmailOptions>(configuration.GetSection("Auth"));
+        _ = services.Configure<SuperAdminSeedOptions>(configuration.GetSection("Seed:SuperAdmin"));
 
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
-        services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
-        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(IdentityTransactionAddingBehavior<,>));
+        _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
+        _ = services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
+        _ = services.AddTransient(typeof(IPipelineBehavior<,>), typeof(IdentityTransactionAddingBehavior<,>));
 
         return services;
     }
@@ -77,7 +77,7 @@ public static class IdentityModule
     {
         var tokenOption = configuration.GetSection("TokenOptions").Get<TokenOption>() ?? new TokenOption();
 
-        services.AddAuthentication(options =>
+        _ = services.AddAuthentication(options =>
         {
             options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
             options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -102,7 +102,9 @@ public static class IdentityModule
                 {
                     var accessToken = context.Request.Query["access_token"];
                     if (!string.IsNullOrEmpty(accessToken) && context.HttpContext.Request.Path.StartsWithSegments("/hubs"))
+                    {
                         context.Token = accessToken;
+                    }
 
                     return Task.CompletedTask;
                 },

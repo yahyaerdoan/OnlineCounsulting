@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.PageBanners.CreatePageBanner;
@@ -10,7 +10,7 @@ public class CreatePageBanner : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/site-content/page-banners", Handle)
+        _ = app.MapPost("/api/site-content/page-banners", Handle)
             .WithTags("SiteContent/PageBanners")
             .RequireAuthorization()
             .WithName("CreatePageBanner")

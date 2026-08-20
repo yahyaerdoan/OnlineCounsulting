@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.Modules.Identity.Infrastructure.Persistence;
 using OnlineConsulting.SharedKernel.Notifications;
@@ -18,7 +18,7 @@ public class DeviceTokenRepository(AppIdentityDbContext context) : IDeviceTokenR
         }
         else
         {
-            context.DeviceTokens.Add(new DeviceToken
+            _ = context.DeviceTokens.Add(new DeviceToken
             {
                 Id = Guid.NewGuid(),
                 UserId = userId,
@@ -28,17 +28,19 @@ public class DeviceTokenRepository(AppIdentityDbContext context) : IDeviceTokenR
             });
         }
 
-        await context.SaveChangesAsync(cancellationToken);
+        _ = await context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task RemoveAsync(string token, CancellationToken cancellationToken = default)
     {
         var existing = await context.DeviceTokens.FirstOrDefaultAsync(d => d.Token == token, cancellationToken);
         if (existing is null)
+        {
             return;
+        }
 
-        context.DeviceTokens.Remove(existing);
-        await context.SaveChangesAsync(cancellationToken);
+        _ = context.DeviceTokens.Remove(existing);
+        _ = await context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<List<string>> GetTokensForUserAsync(Guid userId, CancellationToken cancellationToken = default) =>

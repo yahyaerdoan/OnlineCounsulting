@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.GetAddresses;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
@@ -11,7 +11,7 @@ public class GetAddresses : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/addresses", Handle)
+        _ = app.MapGet("/api/addresses", Handle)
             .WithTags("Commerce/Addresses")
             .RequireAuthorization()
             .WithName("GetAddresses")
@@ -22,14 +22,18 @@ public class GetAddresses : IEndpoint
     {
         var currentUser = await sender.Send(new GetCurrentUserQuery());
         if (!currentUser.IsSuccessful || currentUser.Data is null)
+        {
             return currentUser.ToEnvelopedResult(httpContext);
+        }
 
         var result = await sender.Send(new GetAddressesQuery(currentUser.Data.Id));
         return result
             .OnSuccess(addresses =>
             {
                 foreach (var address in addresses)
+                {
                     address.Links = AddressLinks.Build(httpContext, linkGenerator, address.Id);
+                }
             })
             .ToEnvelopedResult(httpContext);
     }

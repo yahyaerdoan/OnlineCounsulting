@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Media.Application.Features.DeleteMediaAsset;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class DeleteMediaAsset : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapDelete("/api/media/{id:guid}", Handle)
+        _ = app.MapDelete("/api/media/{id:guid}", Handle)
             .WithTags("Media")
             .RequireAuthorization()
             .WithName("DeleteMediaAsset")

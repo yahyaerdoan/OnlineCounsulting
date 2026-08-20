@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.PartnershipSocialLinks.DeletePartnershipSocialLink;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class DeletePartnershipSocialLink : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapDelete("/api/site-content/partnership-social-links/{id:guid}", Handle)
+        _ = app.MapDelete("/api/site-content/partnership-social-links/{id:guid}", Handle)
             .WithTags("SiteContent/PartnershipSocialLinks")
             .RequireAuthorization()
             .WithName("DeletePartnershipSocialLink")

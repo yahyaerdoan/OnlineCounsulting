@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Memberships.Application.Features.MembershipPlans.UpdateMembershipPlan;
@@ -10,7 +10,7 @@ public class UpdateMembershipPlan : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPut("/api/membership-plans/{id:guid}", Handle)
+        _ = app.MapPut("/api/membership-plans/{id:guid}", Handle)
             .WithTags("Memberships/Plans")
             .RequireAuthorization()
             .WithName("UpdateMembershipPlan")

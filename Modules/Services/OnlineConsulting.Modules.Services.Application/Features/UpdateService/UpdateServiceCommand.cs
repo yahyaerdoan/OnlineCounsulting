@@ -24,7 +24,9 @@ public class UpdateServiceHandler(IServiceRepository repository) : IRequestHandl
     {
         var service = await repository.GetAsync(s => s.Id == request.Id, cancellationToken: cancellationToken);
         if (service is null)
+        {
             return ServiceBusinessRules.ServiceNotFound(request.Id);
+        }
 
         if (!string.Equals(service.Title, request.Title, StringComparison.Ordinal))
         {
@@ -47,7 +49,7 @@ public class UpdateServiceHandler(IServiceRepository repository) : IRequestHandl
         service.PriceType = request.PriceType;
         service.PriceMax = request.PriceMax;
 
-        await repository.UpdateAsync(service);
+        _ = await repository.UpdateAsync(service);
 
         return Result.Success("Service updated successfully.");
     }

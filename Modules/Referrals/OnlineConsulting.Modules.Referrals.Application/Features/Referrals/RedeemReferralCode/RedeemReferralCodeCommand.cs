@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Referrals.Application.Common;
 using OnlineConsulting.Modules.Referrals.Application.Features.ReferralCodes.Abstractions;
@@ -25,14 +25,20 @@ public class RedeemReferralCodeHandler(IReferralRepository referralRepository, I
     {
         var referralCode = await referralCodeRepository.GetAsync(c => c.Code == request.Code, cancellationToken: cancellationToken);
         if (referralCode is null)
+        {
             return Result.NotFound<Guid>(ReferralsMessages.InvalidCode);
+        }
 
         if (referralCode.UserId == request.ReferredUserId)
+        {
             return Result.BadRequest<Guid>(ReferralsMessages.CannotReferSelf);
+        }
 
         var alreadyReferred = await referralRepository.AnyAsync(r => r.ReferredUserId == request.ReferredUserId, cancellationToken: cancellationToken);
         if (alreadyReferred)
+        {
             return Result.BadRequest<Guid>(ReferralsMessages.AlreadyReferred);
+        }
 
         var referral = new Referral
         {
@@ -43,7 +49,7 @@ public class RedeemReferralCodeHandler(IReferralRepository referralRepository, I
             Status = ReferralStatuses.Pending,
         };
 
-        await referralRepository.AddAsync(referral);
+        _ = await referralRepository.AddAsync(referral);
 
         return Result.Created(referral.Id, "Referral code redeemed successfully.");
     }

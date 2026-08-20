@@ -21,7 +21,9 @@ public class WhatWeProvideController(IWhatWeProvideService whatWeProvideService,
     public async Task<IActionResult> Create(CreateWhatWeProvideViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
+        {
             return View(model);
+        }
 
         var result = await whatWeProvideService.CreateAsync(model, cancellationToken);
         toastNotification.ShowResult(result);
@@ -40,7 +42,9 @@ public class WhatWeProvideController(IWhatWeProvideService whatWeProvideService,
     public async Task<IActionResult> Update(UpdateWhatWeProvideViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
+        {
             return View(model);
+        }
 
         var result = await whatWeProvideService.UpdateAsync(model, cancellationToken);
         toastNotification.ShowResult(result);

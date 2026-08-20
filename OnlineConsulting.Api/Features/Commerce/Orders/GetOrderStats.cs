@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.GetOrderStats;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
@@ -10,7 +10,7 @@ public class GetOrderStats : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/orders/stats", Handle)
+        _ = app.MapGet("/api/orders/stats", Handle)
             .WithTags("Commerce/Orders")
             .RequireAuthorization()
             .WithName("GetOrderStats")
@@ -21,7 +21,9 @@ public class GetOrderStats : IEndpoint
     {
         var currentUser = await sender.Send(new GetCurrentUserQuery());
         if (!currentUser.IsSuccessful || currentUser.Data is null)
+        {
             return currentUser.ToEnvelopedResult(httpContext);
+        }
 
         var result = await sender.Send(new GetOrderStatsQuery(currentUser.Data.Id));
         return result.ToEnvelopedResult(httpContext);

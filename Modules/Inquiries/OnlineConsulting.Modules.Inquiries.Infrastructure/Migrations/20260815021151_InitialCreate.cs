@@ -10,13 +10,13 @@ public partial class InitialCreate : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.EnsureSchema(
+        _ = migrationBuilder.EnsureSchema(
             name: "Inquiries");
 
-        migrationBuilder.EnsureSchema(
+        _ = migrationBuilder.EnsureSchema(
             name: "Notifications");
 
-        migrationBuilder.CreateTable(
+        _ = migrationBuilder.CreateTable(
             name: "CompanyContacts",
             schema: "Inquiries",
             columns: table => new
@@ -35,10 +35,10 @@ public partial class InitialCreate : Migration
             },
             constraints: table =>
             {
-                table.PrimaryKey("PK_CompanyContacts", x => x.Id);
+                _ = table.PrimaryKey("PK_CompanyContacts", x => x.Id);
             });
 
-        migrationBuilder.CreateTable(
+        _ = migrationBuilder.CreateTable(
             name: "Messages",
             schema: "Inquiries",
             columns: table => new
@@ -57,10 +57,10 @@ public partial class InitialCreate : Migration
             },
             constraints: table =>
             {
-                table.PrimaryKey("PK_Messages", x => x.Id);
+                _ = table.PrimaryKey("PK_Messages", x => x.Id);
             });
 
-        migrationBuilder.CreateTable(
+        _ = migrationBuilder.CreateTable(
             name: "NewsletterSubscribers",
             schema: "Inquiries",
             columns: table => new
@@ -75,10 +75,10 @@ public partial class InitialCreate : Migration
             },
             constraints: table =>
             {
-                table.PrimaryKey("PK_NewsletterSubscribers", x => x.Id);
+                _ = table.PrimaryKey("PK_NewsletterSubscribers", x => x.Id);
             });
 
-        migrationBuilder.CreateTable(
+        _ = migrationBuilder.CreateTable(
             name: "OutboxEmails",
             schema: "Notifications",
             columns: table => new
@@ -102,16 +102,16 @@ public partial class InitialCreate : Migration
             },
             constraints: table =>
             {
-                table.PrimaryKey("PK_OutboxEmails", x => x.Id);
+                _ = table.PrimaryKey("PK_OutboxEmails", x => x.Id);
             });
 
-        migrationBuilder.CreateIndex(
+        _ = migrationBuilder.CreateIndex(
             name: "IX_NewsletterSubscribers_Email",
             schema: "Inquiries",
             table: "NewsletterSubscribers",
             column: "Email");
 
-        migrationBuilder.CreateIndex(
+        _ = migrationBuilder.CreateIndex(
             name: "IX_OutboxEmails_Status_NextAttemptAt",
             schema: "Notifications",
             table: "OutboxEmails",
@@ -121,19 +121,19 @@ public partial class InitialCreate : Migration
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.DropTable(
+        _ = migrationBuilder.DropTable(
             name: "CompanyContacts",
             schema: "Inquiries");
 
-        migrationBuilder.DropTable(
+        _ = migrationBuilder.DropTable(
             name: "Messages",
             schema: "Inquiries");
 
-        migrationBuilder.DropTable(
+        _ = migrationBuilder.DropTable(
             name: "NewsletterSubscribers",
             schema: "Inquiries");
 
-        migrationBuilder.DropTable(
+        _ = migrationBuilder.DropTable(
             name: "OutboxEmails",
             schema: "Notifications");
     }

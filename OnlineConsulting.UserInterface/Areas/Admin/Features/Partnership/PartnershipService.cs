@@ -1,4 +1,4 @@
-using OnlineConsulting.UserInterface.Infrastructure.Api;
+﻿using OnlineConsulting.UserInterface.Infrastructure.Api;
 using OnlineConsulting.UserInterface.Infrastructure.Media;
 
 namespace OnlineConsulting.UserInterface.Areas.Admin.Features.Partnership;
@@ -40,21 +40,20 @@ public class PartnershipService(IApiClient apiClient, IMediaService mediaService
     public async Task<UpdatePartnershipViewModel?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var partnership = await FindAsync(id, cancellationToken);
-        if (partnership is null)
-            return null;
-
-        return new UpdatePartnershipViewModel
-        {
-            Id = partnership.Id,
-            FirstName = partnership.FirstName,
-            LastName = partnership.LastName,
-            CompanyName = partnership.CompanyName,
-            WebsiteUrl = partnership.WebsiteUrl,
-            Title = partnership.Title,
-            Email = partnership.Email,
-            Description = partnership.Description,
-            PhotoUrl = await mediaService.ResolveUrlAsync(partnership.PhotoMediaAssetId, cancellationToken),
-        };
+        return partnership is null
+            ? null
+            : new UpdatePartnershipViewModel
+            {
+                Id = partnership.Id,
+                FirstName = partnership.FirstName,
+                LastName = partnership.LastName,
+                CompanyName = partnership.CompanyName,
+                WebsiteUrl = partnership.WebsiteUrl,
+                Title = partnership.Title,
+                Email = partnership.Email,
+                Description = partnership.Description,
+                PhotoUrl = await mediaService.ResolveUrlAsync(partnership.PhotoMediaAssetId, cancellationToken),
+            };
     }
 
     public async Task<ApiEnvelope> CreateAsync(CreatePartnershipViewModel model, CancellationToken cancellationToken = default)

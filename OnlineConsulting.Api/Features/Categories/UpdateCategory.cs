@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Categories.Application.Features.UpdateCategory;
@@ -10,7 +10,7 @@ public class UpdateCategory : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPut("/api/categories/{id:guid}", Handle)
+        _ = app.MapPut("/api/categories/{id:guid}", Handle)
             .WithTags("Categories")
             .RequireAuthorization()
             .WithName("UpdateCategory")

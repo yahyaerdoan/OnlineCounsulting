@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Referrals.Application.Features.ReferralCodes.Abstractions;
 using OnlineConsulting.Modules.Referrals.Domain;
@@ -24,7 +24,9 @@ public class GetOrCreateReferralCodeHandler(IReferralCodeRepository repository) 
     {
         var existing = await repository.GetAsync(c => c.UserId == request.UserId, cancellationToken: cancellationToken);
         if (existing is not null)
+        {
             return Result.Success(existing.Code, "Referral code retrieved successfully.");
+        }
 
         string code;
         do
@@ -33,7 +35,7 @@ public class GetOrCreateReferralCodeHandler(IReferralCodeRepository repository) 
         }
         while (await repository.AnyAsync(c => c.Code == code, cancellationToken: cancellationToken));
 
-        await repository.AddAsync(new ReferralCode { Id = Guid.NewGuid(), UserId = request.UserId, Code = code });
+        _ = await repository.AddAsync(new ReferralCode { Id = Guid.NewGuid(), UserId = request.UserId, Code = code });
 
         return Result.Created(code, "Referral code created successfully.");
     }
@@ -41,6 +43,8 @@ public class GetOrCreateReferralCodeHandler(IReferralCodeRepository repository) 
     private static string GenerateCode() => string.Create(8, 0, (span, _) =>
     {
         for (var i = 0; i < span.Length; i++)
+        {
             span[i] = Alphabet[RandomNumberGenerator.GetInt32(Alphabet.Length)];
+        }
     });
 }

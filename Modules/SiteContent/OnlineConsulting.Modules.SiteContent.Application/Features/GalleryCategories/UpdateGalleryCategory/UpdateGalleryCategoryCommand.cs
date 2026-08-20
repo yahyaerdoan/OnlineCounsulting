@@ -20,12 +20,14 @@ public class UpdateGalleryCategoryHandler(IGalleryCategoryRepository repository)
     {
         var entity = await repository.GetAsync(x => x.Id == request.Id, cancellationToken: cancellationToken);
         if (entity is null)
+        {
             return SiteContentBusinessRules.NotFound("Gallery category", request.Id);
+        }
 
         entity.Name = request.Name;
         entity.Description = request.Description;
 
-        await repository.UpdateAsync(entity);
+        _ = await repository.UpdateAsync(entity);
 
         return Result.Success("Gallery category updated successfully.");
     }

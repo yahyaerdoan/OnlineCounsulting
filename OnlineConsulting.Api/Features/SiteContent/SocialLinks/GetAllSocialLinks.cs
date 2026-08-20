@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.SocialLinks.GetAllSocialLinks;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class GetAllSocialLinks : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/site-content/social-links", Handle)
+        _ = app.MapGet("/api/site-content/social-links", Handle)
             .WithTags("SiteContent/SocialLinks")
             .WithName("GetAllSocialLinks")
             .WithDescription("Returns the tenant's site-wide social links (header/footer). Public - no login required.");

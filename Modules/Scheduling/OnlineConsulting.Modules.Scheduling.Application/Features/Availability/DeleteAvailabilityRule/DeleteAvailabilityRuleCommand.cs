@@ -20,9 +20,11 @@ public class DeleteAvailabilityRuleHandler(IAvailabilityRuleRepository repositor
     {
         var rule = await repository.GetAsync(r => r.Id == request.Id, cancellationToken: cancellationToken);
         if (rule is null)
+        {
             return Result.NotFound(string.Format(SchedulingMessages.AvailabilityRuleNotFoundFormat, request.Id));
+        }
 
-        await repository.DeleteAsync(rule);
+        _ = await repository.DeleteAsync(rule);
 
         return Result.Success("Availability rule deleted successfully.");
     }

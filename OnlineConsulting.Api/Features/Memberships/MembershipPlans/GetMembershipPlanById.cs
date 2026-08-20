@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Memberships.Application.Features.MembershipPlans.GetMembershipPlanById;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class GetMembershipPlanById : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/membership-plans/{id:guid}", Handle)
+        _ = app.MapGet("/api/membership-plans/{id:guid}", Handle)
             .WithTags("Memberships/Plans")
             .WithName("GetMembershipPlanById")
             .WithDescription("Returns a single membership plan by id. Public - used by the pricing page.");

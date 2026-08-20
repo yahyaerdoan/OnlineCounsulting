@@ -14,36 +14,36 @@ public class InquiriesDbContext(DbContextOptions<InquiriesDbContext> options, IT
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasDefaultSchema("Inquiries");
+        _ = modelBuilder.HasDefaultSchema("Inquiries");
 
-        modelBuilder.Entity<Message>(builder =>
+        _ = modelBuilder.Entity<Message>(builder =>
         {
-            builder.Property(m => m.FirstName).HasMaxLength(100).IsRequired();
-            builder.Property(m => m.LastName).HasMaxLength(100).IsRequired();
-            builder.Property(m => m.Email).HasMaxLength(320).IsRequired();
-            builder.Property(m => m.Subject).HasMaxLength(200).IsRequired();
-            builder.Property(m => m.Description).HasMaxLength(4000).IsRequired();
-            builder.Property(m => m.RowVersion).IsRowVersion();
-            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.Property(m => m.FirstName).HasMaxLength(100).IsRequired();
+            _ = builder.Property(m => m.LastName).HasMaxLength(100).IsRequired();
+            _ = builder.Property(m => m.Email).HasMaxLength(320).IsRequired();
+            _ = builder.Property(m => m.Subject).HasMaxLength(200).IsRequired();
+            _ = builder.Property(m => m.Description).HasMaxLength(4000).IsRequired();
+            _ = builder.Property(m => m.RowVersion).IsRowVersion();
+            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
-        modelBuilder.Entity<NewsletterSubscriber>(builder =>
+        _ = modelBuilder.Entity<NewsletterSubscriber>(builder =>
         {
-            builder.Property(s => s.Email).HasMaxLength(320).IsRequired();
-            builder.Property(s => s.RowVersion).IsRowVersion();
-            builder.HasIndex(s => s.Email);
-            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.Property(s => s.Email).HasMaxLength(320).IsRequired();
+            _ = builder.Property(s => s.RowVersion).IsRowVersion();
+            _ = builder.HasIndex(s => s.Email);
+            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
-        modelBuilder.Entity<CompanyContact>(builder =>
+        _ = modelBuilder.Entity<CompanyContact>(builder =>
         {
-            builder.Property(c => c.Email).HasMaxLength(320).IsRequired();
-            builder.Property(c => c.Phone).HasMaxLength(50).IsRequired();
-            builder.Property(c => c.Address).HasMaxLength(500).IsRequired();
-            builder.Property(c => c.Description).HasMaxLength(2000).IsRequired();
-            builder.Property(c => c.WorkingHours).HasMaxLength(200).IsRequired();
-            builder.Property(c => c.RowVersion).IsRowVersion();
-            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.Property(c => c.Email).HasMaxLength(320).IsRequired();
+            _ = builder.Property(c => c.Phone).HasMaxLength(50).IsRequired();
+            _ = builder.Property(c => c.Address).HasMaxLength(500).IsRequired();
+            _ = builder.Property(c => c.Description).HasMaxLength(2000).IsRequired();
+            _ = builder.Property(c => c.WorkingHours).HasMaxLength(200).IsRequired();
+            _ = builder.Property(c => c.RowVersion).IsRowVersion();
+            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
         modelBuilder.ConfigureOutboxEmail();

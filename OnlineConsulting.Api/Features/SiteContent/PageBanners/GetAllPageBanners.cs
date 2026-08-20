@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.PageBanners.GetAllPageBanners;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class GetAllPageBanners : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/site-content/page-banners", Handle)
+        _ = app.MapGet("/api/site-content/page-banners", Handle)
             .WithTags("SiteContent/PageBanners")
             .WithName("GetAllPageBanners")
             .WithDescription("Returns the tenant's page header banners. Public - no login required.");

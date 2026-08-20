@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.Promotions.UpdatePromotion;
@@ -10,7 +10,7 @@ public class UpdatePromotion : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPut("/api/site-content/promotions/{id:guid}", Handle)
+        _ = app.MapPut("/api/site-content/promotions/{id:guid}", Handle)
             .WithTags("SiteContent/Promotions")
             .RequireAuthorization()
             .WithName("UpdatePromotion")

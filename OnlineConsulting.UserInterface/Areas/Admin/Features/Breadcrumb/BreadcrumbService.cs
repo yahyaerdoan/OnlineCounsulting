@@ -1,4 +1,4 @@
-using OnlineConsulting.UserInterface.Infrastructure.Api;
+﻿using OnlineConsulting.UserInterface.Infrastructure.Api;
 using OnlineConsulting.UserInterface.Infrastructure.Media;
 
 namespace OnlineConsulting.UserInterface.Areas.Admin.Features.Breadcrumb;
@@ -16,16 +16,15 @@ public class BreadcrumbService(IApiClient apiClient, IMediaService mediaService)
     public async Task<UpdateBreadcrumbViewModel?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var banner = await FindAsync(id, cancellationToken);
-        if (banner is null)
-            return null;
-
-        return new UpdateBreadcrumbViewModel
-        {
-            Id = banner.Id,
-            Title = banner.Title,
-            Description = banner.Description,
-            ImageUrl = banner.ImageUrl,
-        };
+        return banner is null
+            ? null
+            : new UpdateBreadcrumbViewModel
+            {
+                Id = banner.Id,
+                Title = banner.Title,
+                Description = banner.Description,
+                ImageUrl = banner.ImageUrl,
+            };
     }
 
     public async Task<ApiEnvelope> CreateAsync(CreateBreadcrumbViewModel model, CancellationToken cancellationToken = default)

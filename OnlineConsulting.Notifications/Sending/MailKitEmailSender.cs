@@ -1,4 +1,4 @@
-using MailKit.Net.Smtp;
+﻿using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Options;
 using MimeKit;
@@ -15,7 +15,10 @@ public class MailKitEmailSender(IOptions<EmailOptions> options) : IEmailSender
         message.From.Add(new MailboxAddress(settings.FromName, settings.FromAddress));
         message.To.Add(MailboxAddress.Parse(to));
         if (!string.IsNullOrWhiteSpace(cc))
+        {
             message.Cc.Add(MailboxAddress.Parse(cc));
+        }
+
         message.Subject = subject;
         message.Body = new BodyBuilder { HtmlBody = htmlBody }.ToMessageBody();
 
@@ -23,7 +26,7 @@ public class MailKitEmailSender(IOptions<EmailOptions> options) : IEmailSender
         await client.ConnectAsync(settings.SmtpHost, settings.SmtpPort,
             settings.UseSsl ? SecureSocketOptions.StartTls : SecureSocketOptions.None, cancellationToken);
         await client.AuthenticateAsync(settings.Username, settings.Password, cancellationToken);
-        await client.SendAsync(message, cancellationToken);
+        _ = await client.SendAsync(message, cancellationToken);
         await client.DisconnectAsync(true, cancellationToken);
     }
 }

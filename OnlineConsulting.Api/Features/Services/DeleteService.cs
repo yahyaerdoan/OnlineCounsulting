@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Services.Application.Features.DeleteService;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class DeleteService : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapDelete("/api/services/{id:guid}", Handle)
+        _ = app.MapDelete("/api/services/{id:guid}", Handle)
             .WithTags("Services")
             .RequireAuthorization()
             .WithName("DeleteService")

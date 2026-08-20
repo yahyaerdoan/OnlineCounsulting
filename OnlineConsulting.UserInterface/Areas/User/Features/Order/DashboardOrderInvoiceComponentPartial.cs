@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.UserInterface.Common;
 using OnlineConsulting.UserInterface.Infrastructure.Api;
 
@@ -11,7 +11,9 @@ public class DashboardOrderInvoiceComponentPartial(IUserOrderPageService userOrd
     {
         var userResult = await apiClient.GetAsync<CurrentUserResponse>("/api/users/me");
         if (userResult.IsSuccessful && userResult.ResultData is not null)
+        {
             ViewBag.CurrentUserFullName = $"{userResult.ResultData.FirstName} {userResult.ResultData.LastName}";
+        }
 
         return View(await userOrderPageService.GetMyOrderDetailAsync(orderId));
     }

@@ -1,4 +1,4 @@
-namespace OnlineConsulting.UserInterface.Infrastructure.Api;
+﻿namespace OnlineConsulting.UserInterface.Infrastructure.Api;
 
 /// <summary>Bridges the Api's guest_id cookie (set by IGuestIdAccessor for anonymous basket callers) across the
 /// server-to-server IApiClient HttpClient - forwards the browser's guest_id cookie on the way out, and re-sets
@@ -13,7 +13,9 @@ public class GuestIdHandler(IHttpContextAccessor httpContextAccessor) : Delegati
     {
         var httpContext = httpContextAccessor.HttpContext;
         if (httpContext is not null && httpContext.Request.Cookies.TryGetValue(CookieName, out var guestId) && !request.Headers.Contains("Cookie"))
+        {
             request.Headers.Add("Cookie", $"{CookieName}={guestId}");
+        }
 
         var response = await base.SendAsync(request, cancellationToken);
 
@@ -43,7 +45,9 @@ public class GuestIdHandler(IHttpContextAccessor httpContextAccessor) : Delegati
     {
         const string prefix = $"{CookieName}=";
         if (!setCookieHeader.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+        {
             return null;
+        }
 
         var afterName = setCookieHeader[prefix.Length..];
         var separatorIndex = afterName.IndexOf(';');

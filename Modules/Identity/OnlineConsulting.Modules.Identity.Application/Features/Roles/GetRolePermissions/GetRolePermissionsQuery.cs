@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using Core.SecurityLayer.Constants;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
@@ -23,7 +23,9 @@ public class GetRolePermissionsHandler(RoleManager<Role> roleManager) : IRequest
     {
         var role = await roleManager.FindByIdAsync(request.RoleId.ToString());
         if (role is null)
+        {
             return Result.NotFound<List<string>>(RoleMessages.NoRoleDataFound);
+        }
 
         var permissions = (await roleManager.GetClaimsAsync(role))
             .Where(c => c.Type == PermissionClaimTypes.Type)

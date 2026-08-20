@@ -1,4 +1,4 @@
-using FluentValidation;
+﻿using FluentValidation;
 
 namespace OnlineConsulting.Modules.SiteContent.Application.Features.GalleryCategories.UpdateGalleryCategory;
 
@@ -6,7 +6,7 @@ public class UpdateGalleryCategoryValidator : AbstractValidator<UpdateGalleryCat
 {
     public UpdateGalleryCategoryValidator()
     {
-        RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
-        RuleFor(x => x.Description).MaximumLength(500);
+        _ = RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
+        _ = RuleFor(x => x.Description).MaximumLength(500);
     }
 }

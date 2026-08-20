@@ -20,17 +20,19 @@ public class SetShippingAddressHandler(IUserAddressRepository repository) : IReq
     {
         var newAddress = await repository.GetAsync(a => a.Id == request.AddressId && a.UserId == request.UserId, cancellationToken: cancellationToken);
         if (newAddress is null)
+        {
             return Result.NotFound($"Address {request.AddressId} was not found.");
+        }
 
         var oldAddress = await repository.GetAsync(a => a.UserId == request.UserId && a.IsShippingAddress, cancellationToken: cancellationToken);
         if (oldAddress is not null && oldAddress.Id != newAddress.Id)
         {
             oldAddress.IsShippingAddress = false;
-            await repository.UpdateAsync(oldAddress);
+            _ = await repository.UpdateAsync(oldAddress);
         }
 
         newAddress.IsShippingAddress = true;
-        await repository.UpdateAsync(newAddress);
+        _ = await repository.UpdateAsync(newAddress);
 
         return Result.Success("Shipping address set successfully.");
     }

@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.FaqItems.Abstractions;
@@ -21,14 +21,16 @@ public class UpdateFaqItemHandler(IFaqItemRepository repository) : IRequestHandl
     {
         var entity = await repository.GetAsync(x => x.Id == request.Id, cancellationToken: cancellationToken);
         if (entity is null)
+        {
             return SiteContentBusinessRules.NotFound("FaqItem", request.Id);
+        }
 
         entity.ServiceId = request.ServiceId;
         entity.Question = request.Question;
         entity.Answer = request.Answer;
         entity.DisplayOrder = request.DisplayOrder;
 
-        await repository.UpdateAsync(entity);
+        _ = await repository.UpdateAsync(entity);
 
         return Result.Success("FAQ item updated successfully.");
     }

@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Services.Application.Features.ServiceMediaItems.AddServiceMediaItem;
@@ -10,7 +10,7 @@ public class AddServiceMediaItem : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/services/media-items", Handle)
+        _ = app.MapPost("/api/services/media-items", Handle)
             .WithTags("Services")
             .RequireAuthorization()
             .WithName("AddServiceMediaItem")

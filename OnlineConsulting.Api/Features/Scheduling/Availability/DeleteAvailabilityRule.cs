@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Availability.DeleteAvailabilityRule;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class DeleteAvailabilityRule : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapDelete("/api/scheduling/availability-rules/{id:guid}", Handle)
+        _ = app.MapDelete("/api/scheduling/availability-rules/{id:guid}", Handle)
             .WithTags("Scheduling/Availability")
             .RequireAuthorization()
             .WithName("DeleteAvailabilityRule")

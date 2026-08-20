@@ -21,7 +21,9 @@ public class SocialMediaController(ISocialMediaService socialMediaService, IToas
     public async Task<IActionResult> Create(CreateSocialMediaViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
+        {
             return View(model);
+        }
 
         var result = await socialMediaService.CreateAsync(model, cancellationToken);
         toastNotification.ShowResult(result);
@@ -40,7 +42,9 @@ public class SocialMediaController(ISocialMediaService socialMediaService, IToas
     public async Task<IActionResult> Update(UpdateSocialMediaViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
+        {
             return View(model);
+        }
 
         var result = await socialMediaService.UpdateAsync(model, cancellationToken);
         toastNotification.ShowResult(result);

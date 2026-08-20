@@ -51,18 +51,24 @@ public class OrphanedTenantCleanupService(IServiceScopeFactory scopeFactory, IOp
             cancellationToken: cancellationToken);
 
         if (candidates.Items.Count == 0)
+        {
             return;
+        }
 
         var reapedCount = 0;
 
         foreach (var tenant in candidates.Items)
         {
             if (tenant.OwnerUserId is not null)
+            {
                 continue;
+            }
 
             var hasAnyUser = await userExistenceReader.AnyUserExistsForTenantAsync(tenant.Id, cancellationToken);
             if (hasAnyUser)
+            {
                 continue;
+            }
 
             var subscription = await tenantSubscriptionRepository.GetAsync(
                 s => s.TenantId == tenant.Id, cancellationToken: cancellationToken);
@@ -75,12 +81,14 @@ public class OrphanedTenantCleanupService(IServiceScopeFactory scopeFactory, IOp
                     cancellationToken: cancellationToken);
 
                 foreach (var item in items.Items)
-                    await tenantSubscriptionItemRepository.DeleteAsync(item);
+                {
+                    _ = await tenantSubscriptionItemRepository.DeleteAsync(item);
+                }
 
-                await tenantSubscriptionRepository.DeleteAsync(subscription);
+                _ = await tenantSubscriptionRepository.DeleteAsync(subscription);
             }
 
-            await tenantRepository.DeleteAsync(tenant);
+            _ = await tenantRepository.DeleteAsync(tenant);
             reapedCount++;
 
             logger.LogInformation(
@@ -89,6 +97,8 @@ public class OrphanedTenantCleanupService(IServiceScopeFactory scopeFactory, IOp
         }
 
         if (reapedCount > 0)
+        {
             logger.LogInformation("Orphaned tenant cleanup reaped {ReapedCount} of {CandidateCount} candidate tenant(s).", reapedCount, candidates.Items.Count);
+        }
     }
 }

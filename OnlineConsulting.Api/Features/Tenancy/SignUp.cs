@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Api.Configurations.Extensions;
@@ -24,7 +24,7 @@ public class SignUp : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/tenancy/signup", Handle)
+        _ = app.MapPost("/api/tenancy/signup", Handle)
             .WithTags("Tenancy")
             .RequireRateLimiting(ServiceRegistration.AuthRateLimiterPolicy)
             .WithName("SignUpTenant")
@@ -35,18 +35,24 @@ public class SignUp : IEndpoint
     {
         var reserveResult = await sender.Send(new ReserveTenantCommand(request.CompanyName, request.ModuleKeys, request.AdminEmail));
         if (!reserveResult.IsSuccessful || reserveResult.Data is null)
+        {
             return reserveResult.ToEnvelopedResult(httpContext);
+        }
 
         var tenantId = reserveResult.Data.TenantId;
 
         var adminResult = await sender.Send(new CreateTenantAdminCommand(
             tenantId, request.AdminFirstName, request.AdminLastName, request.AdminEmail, request.AdminPassword, request.AdminPhoneNumber));
         if (!adminResult.IsSuccessful || adminResult.Data is null)
+        {
             return adminResult.ToEnvelopedResult(httpContext);
+        }
 
         var ownerResult = await sender.Send(new SetTenantOwnerCommand(tenantId, adminResult.Data.UserId));
         if (!ownerResult.IsSuccessful)
+        {
             return ownerResult.ToEnvelopedResult(httpContext);
+        }
 
         var activateResult = await sender.Send(new ActivateTenantSubscriptionCommand(tenantId, request.PaymentMethodId));
         return activateResult.ToEnvelopedResult(httpContext);

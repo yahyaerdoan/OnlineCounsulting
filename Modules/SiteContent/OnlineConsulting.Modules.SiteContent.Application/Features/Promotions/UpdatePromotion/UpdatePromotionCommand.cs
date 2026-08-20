@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.Promotions.Abstractions;
@@ -21,7 +21,9 @@ public class UpdatePromotionHandler(IPromotionRepository repository) : IRequestH
     {
         var entity = await repository.GetAsync(x => x.Id == request.Id, cancellationToken: cancellationToken);
         if (entity is null)
+        {
             return SiteContentBusinessRules.NotFound("Promotion", request.Id);
+        }
 
         entity.Title = request.Title;
         entity.Description = request.Description;
@@ -30,7 +32,7 @@ public class UpdatePromotionHandler(IPromotionRepository repository) : IRequestH
         entity.ExpiresAt = request.ExpiresAt;
         entity.DisplayOrder = request.DisplayOrder;
 
-        await repository.UpdateAsync(entity);
+        _ = await repository.UpdateAsync(entity);
 
         return Result.Success("Promotion updated successfully.");
     }

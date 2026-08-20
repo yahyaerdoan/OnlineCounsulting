@@ -9,7 +9,7 @@ public class GetMessages : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/inquiries/messages", Handle)
+        _ = app.MapGet("/api/inquiries/messages", Handle)
             .WithTags("Inquiries/Messages")
             .RequireAuthorization()
             .WithName("GetMessages")

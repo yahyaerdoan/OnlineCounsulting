@@ -10,7 +10,7 @@ public partial class AddServiceProcessStepsAndServiceOfferings : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.CreateTable(
+        _ = migrationBuilder.CreateTable(
             name: "ServiceOfferings",
             schema: "SiteContent",
             columns: table => new
@@ -30,10 +30,10 @@ public partial class AddServiceProcessStepsAndServiceOfferings : Migration
             },
             constraints: table =>
             {
-                table.PrimaryKey("PK_ServiceOfferings", x => x.Id);
+                _ = table.PrimaryKey("PK_ServiceOfferings", x => x.Id);
             });
 
-        migrationBuilder.CreateTable(
+        _ = migrationBuilder.CreateTable(
             name: "ServiceProcessSteps",
             schema: "SiteContent",
             columns: table => new
@@ -53,18 +53,18 @@ public partial class AddServiceProcessStepsAndServiceOfferings : Migration
             },
             constraints: table =>
             {
-                table.PrimaryKey("PK_ServiceProcessSteps", x => x.Id);
+                _ = table.PrimaryKey("PK_ServiceProcessSteps", x => x.Id);
             });
     }
 
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.DropTable(
+        _ = migrationBuilder.DropTable(
             name: "ServiceOfferings",
             schema: "SiteContent");
 
-        migrationBuilder.DropTable(
+        _ = migrationBuilder.DropTable(
             name: "ServiceProcessSteps",
             schema: "SiteContent");
     }

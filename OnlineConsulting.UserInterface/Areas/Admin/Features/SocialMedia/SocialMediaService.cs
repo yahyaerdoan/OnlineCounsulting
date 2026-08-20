@@ -1,4 +1,4 @@
-using OnlineConsulting.UserInterface.Infrastructure.Api;
+﻿using OnlineConsulting.UserInterface.Infrastructure.Api;
 
 namespace OnlineConsulting.UserInterface.Areas.Admin.Features.SocialMedia;
 
@@ -15,18 +15,17 @@ public class SocialMediaService(IApiClient apiClient) : ISocialMediaService
     public async Task<UpdateSocialMediaViewModel?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var link = await FindAsync(id, cancellationToken);
-        if (link is null)
-            return null;
-
-        return new UpdateSocialMediaViewModel
-        {
-            Id = link.Id,
-            Name = link.Name,
-            Url = link.Url,
-            Icon = link.Icon,
-            IconColor = link.IconColor,
-            DisplayOrder = link.DisplayOrder,
-        };
+        return link is null
+            ? null
+            : new UpdateSocialMediaViewModel
+            {
+                Id = link.Id,
+                Name = link.Name,
+                Url = link.Url,
+                Icon = link.Icon,
+                IconColor = link.IconColor,
+                DisplayOrder = link.DisplayOrder,
+            };
     }
 
     public Task<ApiEnvelope> CreateAsync(CreateSocialMediaViewModel model, CancellationToken cancellationToken = default) =>

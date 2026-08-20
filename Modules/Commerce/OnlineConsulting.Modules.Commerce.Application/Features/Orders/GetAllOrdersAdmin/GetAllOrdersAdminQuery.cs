@@ -24,7 +24,9 @@ public class GetAllOrdersAdminHandler(IOrderRepository orderRepository, IOrderIt
     {
         var orders = await orderRepository.GetListAsync(o => true, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
         if (orders.Items.Count == 0)
+        {
             return Result.Success(new List<AdminOrderResponse>(), "No orders found.");
+        }
 
         var orderIds = orders.Items.Select(o => o.Id).ToList();
         var items = await orderItemRepository.GetListAsync(i => orderIds.Contains(i.OrderId), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);

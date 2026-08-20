@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using OnlineConsulting.SharedKernel.Media;
 using OnlineConsulting.Storage.Common;
 
@@ -22,11 +22,13 @@ public class LocalFileSystemStorageService(IOptions<StorageOptions> options) : I
 
         var storedFileName = SafeFileNaming.GenerateStoredFileName(fileName);
 
-        Directory.CreateDirectory(_options.RootPath);
+        _ = Directory.CreateDirectory(_options.RootPath);
         var fullPath = Path.Combine(_options.RootPath, storedFileName);
 
         await using (var fileOnDisk = File.Create(fullPath))
+        {
             await buffer.CopyToAsync(fileOnDisk, cancellationToken);
+        }
 
         var url = $"{_options.PublicPathPrefix.TrimEnd('/')}/{storedFileName}";
 
@@ -39,7 +41,9 @@ public class LocalFileSystemStorageService(IOptions<StorageOptions> options) : I
         var fullPath = Path.Combine(_options.RootPath, fileName);
 
         if (File.Exists(fullPath))
+        {
             File.Delete(fullPath);
+        }
 
         return Task.CompletedTask;
     }

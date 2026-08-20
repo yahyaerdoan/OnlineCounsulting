@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Equipment.Application.Common;
 using OnlineConsulting.Modules.Equipment.Application.Features.EquipmentItems.Abstractions;
@@ -34,7 +34,7 @@ public class CreateEquipmentItemHandler(IEquipmentItemRepository repository) : I
             Notes = request.Notes,
         };
 
-        await repository.AddAsync(entity);
+        _ = await repository.AddAsync(entity);
 
         return Result.Created(entity.Id, "Equipment item created successfully.");
     }

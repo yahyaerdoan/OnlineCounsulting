@@ -21,7 +21,9 @@ public class GetBasketHandler(IBasketRepository basketRepository, IBasketItemRep
         var basket = await basketRepository.GetAsync(BasketOwnerLookup.Predicate(request.UserId, request.GuestId),
             enableTracking: false, cancellationToken: cancellationToken);
         if (basket is null)
+        {
             return Result.NotFound<BasketResponse>(BasketMessages.BasketNotFound);
+        }
 
         var items = await basketItemRepository.GetListAsync(i => i.BasketId == basket.Id, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
 

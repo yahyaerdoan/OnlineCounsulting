@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Memberships.Application.Features.MembershipPlans.CreateMembershipPlan;
@@ -10,7 +10,7 @@ public class CreateMembershipPlan : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/membership-plans", Handle)
+        _ = app.MapPost("/api/membership-plans", Handle)
             .WithTags("Memberships/Plans")
             .RequireAuthorization()
             .WithName("CreateMembershipPlan")

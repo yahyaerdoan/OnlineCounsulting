@@ -21,7 +21,9 @@ public class ProvidedItemController(IProvidedItemService providedItemService, IT
     public async Task<IActionResult> Create(CreateProvidedItemViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
+        {
             return View(model);
+        }
 
         var result = await providedItemService.CreateAsync(model, cancellationToken);
         toastNotification.ShowResult(result);
@@ -40,7 +42,9 @@ public class ProvidedItemController(IProvidedItemService providedItemService, IT
     public async Task<IActionResult> Update(UpdateProvidedItemViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
+        {
             return View(model);
+        }
 
         var result = await providedItemService.UpdateAsync(model, cancellationToken);
         toastNotification.ShowResult(result);

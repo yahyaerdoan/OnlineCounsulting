@@ -10,10 +10,10 @@ public partial class InitialCreate : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.EnsureSchema(
+        _ = migrationBuilder.EnsureSchema(
             name: "FeatureFlags");
 
-        migrationBuilder.CreateTable(
+        _ = migrationBuilder.CreateTable(
             name: "FeatureFlags",
             schema: "FeatureFlags",
             columns: table => new
@@ -29,10 +29,10 @@ public partial class InitialCreate : Migration
             },
             constraints: table =>
             {
-                table.PrimaryKey("PK_FeatureFlags", x => x.Id);
+                _ = table.PrimaryKey("PK_FeatureFlags", x => x.Id);
             });
 
-        migrationBuilder.CreateIndex(
+        _ = migrationBuilder.CreateIndex(
             name: "IX_FeatureFlags_TenantId_Key",
             schema: "FeatureFlags",
             table: "FeatureFlags",
@@ -43,7 +43,7 @@ public partial class InitialCreate : Migration
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.DropTable(
+        _ = migrationBuilder.DropTable(
             name: "FeatureFlags",
             schema: "FeatureFlags");
     }

@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Baskets.GetBasket;
 using OnlineConsulting.SharedKernel.GuestIdentity;
@@ -10,7 +10,7 @@ public class GetBasket : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/basket", Handle)
+        _ = app.MapGet("/api/basket", Handle)
             .WithTags("Commerce/Baskets")
             .WithName("GetBasket")
             .WithDescription("Returns the current user's (or guest's) basket, with its items.");
@@ -20,7 +20,9 @@ public class GetBasket : IEndpoint
     {
         var (userId, guestId, error) = await BasketOwnerResolver.ResolveAsync(sender, httpContext, guestIdAccessor);
         if (error is not null)
+        {
             return error;
+        }
 
         var result = await sender.Send(new GetBasketQuery(userId, guestId));
         return result.ToEnvelopedResult(httpContext);

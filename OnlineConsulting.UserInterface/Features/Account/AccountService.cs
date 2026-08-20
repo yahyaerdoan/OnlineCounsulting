@@ -1,4 +1,4 @@
-using Core.SecurityLayer.Constants;
+﻿using Core.SecurityLayer.Constants;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using OnlineConsulting.UserInterface.Common;
@@ -21,7 +21,9 @@ public class AccountService(IApiClient apiClient, IHttpContextAccessor httpConte
     {
         var user = await AuthenticateAsync(userNameOrEmail, password, cancellationToken);
         if (user is null)
+        {
             return new LoginResult(Result.BadRequest("Invalid credentials. Please check your username and password."), IsAdmin: false);
+        }
 
         await SignInLocallyAsync(user, rememberMe);
         var isAdmin = user.Permissions.Count > 0;
@@ -45,13 +47,17 @@ public class AccountService(IApiClient apiClient, IHttpContextAccessor httpConte
 
         var tokenResult = await apiClient.PostAsync<AuthTokensResponseDto>("/api/auth/login", new { userNameOrEmail, password }, cancellationToken);
         if (!tokenResult.IsSuccessful || tokenResult.ResultData is null)
+        {
             return null;
+        }
 
         httpContext.Session.SetString(ApiSessionKeys.AccessToken, tokenResult.ResultData.AccessToken);
 
         var userResult = await apiClient.GetAsync<CurrentUserResponse>("/api/users/me", cancellationToken);
         if (userResult.IsSuccessful && userResult.ResultData is not null)
+        {
             return userResult.ResultData;
+        }
 
         httpContext.Session.Remove(ApiSessionKeys.AccessToken);
         return null;

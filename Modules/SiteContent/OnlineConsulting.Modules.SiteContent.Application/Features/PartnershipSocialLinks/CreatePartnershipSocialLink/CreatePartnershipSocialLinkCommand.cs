@@ -25,7 +25,9 @@ public class CreatePartnershipSocialLinkHandler(IPartnershipSocialLinkRepository
     {
         var partnershipExists = await partnershipRepository.AnyAsync(x => x.Id == request.PartnershipId, cancellationToken: cancellationToken);
         if (!partnershipExists)
+        {
             return SiteContentBusinessRules.NotFound("Partnership", request.PartnershipId).ToErrorDataResult<Guid>();
+        }
 
         var entity = new PartnershipSocialLink
         {
@@ -37,7 +39,7 @@ public class CreatePartnershipSocialLinkHandler(IPartnershipSocialLinkRepository
             IconColor = request.IconColor,
         };
 
-        await repository.AddAsync(entity);
+        _ = await repository.AddAsync(entity);
 
         return Result.Created(entity.Id, "Partnership social link created successfully.");
     }

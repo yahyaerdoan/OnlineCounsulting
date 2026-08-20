@@ -32,7 +32,7 @@ public class CreateTestimonialHandler(ITestimonialRepository repository) : IRequ
             Metadata = MetadataSerializer.Serialize(request.Metadata),
         };
 
-        await repository.AddAsync(entity);
+        _ = await repository.AddAsync(entity);
 
         return Result.Created(entity.Id, "Testimonial created successfully.");
     }

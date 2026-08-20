@@ -20,9 +20,11 @@ public class DeleteMessageHandler(IMessageRepository repository) : IRequestHandl
     {
         var message = await repository.GetAsync(m => m.Id == request.Id, cancellationToken: cancellationToken);
         if (message is null)
+        {
             return Result.NotFound($"Message {request.Id} was not found.");
+        }
 
-        await repository.DeleteAsync(message);
+        _ = await repository.DeleteAsync(message);
 
         return Result.Success("Message deleted successfully.");
     }

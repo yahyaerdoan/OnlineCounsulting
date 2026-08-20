@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.Unsubscribe;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class Unsubscribe : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapDelete("/api/inquiries/newsletter/{id:guid}", Handle)
+        _ = app.MapDelete("/api/inquiries/newsletter/{id:guid}", Handle)
             .WithTags("Inquiries/Newsletter")
             .RequireAuthorization()
             .WithName("Unsubscribe")

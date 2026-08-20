@@ -23,13 +23,17 @@ public class ConfirmAppointmentHandler(IAppointmentRepository repository) : IReq
     {
         var appointment = await repository.GetAsync(a => a.Id == request.Id, cancellationToken: cancellationToken);
         if (appointment is null)
+        {
             return AppointmentBusinessRules.AppointmentNotFound(request.Id);
+        }
 
         if (appointment.Status != AppointmentStatuses.Pending)
+        {
             return Result.BadRequest(SchedulingMessages.OnlyPendingCanBeConfirmed);
+        }
 
         appointment.Status = AppointmentStatuses.Confirmed;
-        await repository.UpdateAsync(appointment);
+        _ = await repository.UpdateAsync(appointment);
 
         return Result.Success("Appointment confirmed successfully.");
     }

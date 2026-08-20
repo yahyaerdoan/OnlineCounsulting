@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.UserInterface.Areas.Admin.Features.AboutUs;
 using System.Web;
 
@@ -15,7 +15,9 @@ public class AboutUsAboutComponentPartial(IAboutUsService aboutUsService) : View
         var aboutUs = items.FirstOrDefault();
 
         if (aboutUs is null)
+        {
             return Content(string.Empty);
+        }
 
         var viewModel = new AboutUsAboutViewModel(aboutUs.Title, aboutUs.Description, ConvertToEmbededUrl(aboutUs.VideoUrl ?? string.Empty));
 
@@ -24,7 +26,11 @@ public class AboutUsAboutComponentPartial(IAboutUsService aboutUsService) : View
 
     private static string ConvertToEmbededUrl(string url)
     {
-        if (string.IsNullOrWhiteSpace(url)) return string.Empty;
+        if (string.IsNullOrWhiteSpace(url))
+        {
+            return string.Empty;
+        }
+
         var uri = new Uri(url);
         var query = HttpUtility.ParseQueryString(uri.Query);
         var videoId = query["v"] ?? uri.Segments.LastOrDefault()?.Trim('/');

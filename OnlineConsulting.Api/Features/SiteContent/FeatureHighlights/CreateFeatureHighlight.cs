@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.FeatureHighlights.CreateFeatureHighlight;
@@ -10,7 +10,7 @@ public class CreateFeatureHighlight : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/site-content/feature-highlights", Handle)
+        _ = app.MapPost("/api/site-content/feature-highlights", Handle)
             .WithTags("SiteContent/FeatureHighlights")
             .RequireAuthorization()
             .WithName("CreateFeatureHighlight")

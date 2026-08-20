@@ -17,7 +17,9 @@ public class GetBasketItemsCountHandler(IBasketRepository basketRepository, IBas
         var basket = await basketRepository.GetAsync(BasketOwnerLookup.Predicate(request.UserId, request.GuestId),
             enableTracking: false, cancellationToken: cancellationToken);
         if (basket is null)
+        {
             return Result.Success(0, "No basket yet.");
+        }
 
         var items = await basketItemRepository.GetListAsync(i => i.BasketId == basket.Id, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
 

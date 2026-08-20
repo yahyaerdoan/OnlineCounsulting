@@ -21,7 +21,7 @@ public class CreateHeroSlideHandler(IHeroSlideRepository repository) : IRequestH
     {
         var entity = new HeroSlide { Id = Guid.NewGuid(), Title = request.Title, Description = request.Description, ImageUrl = request.ImageUrl, DisplayOrder = request.DisplayOrder, Metadata = MetadataSerializer.Serialize(request.Metadata) };
 
-        await repository.AddAsync(entity);
+        _ = await repository.AddAsync(entity);
 
         return Result.Created(entity.Id, "Hero slide created successfully.");
     }

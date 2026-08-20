@@ -32,7 +32,9 @@ public class RegisterHandler(UserManager<User> userManager, IEmailOutboxWriter o
 
         var createResult = await userManager.CreateAsync(user, request.Password);
         if (!createResult.Succeeded)
+        {
             return Result.Invalid([.. createResult.Errors.Select(e => e.Description)]);
+        }
 
         var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
 

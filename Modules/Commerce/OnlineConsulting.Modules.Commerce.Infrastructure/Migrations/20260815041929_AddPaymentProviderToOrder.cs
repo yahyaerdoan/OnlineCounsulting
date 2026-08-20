@@ -10,7 +10,7 @@ public partial class AddPaymentProviderToOrder : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.AddColumn<string>(
+        _ = migrationBuilder.AddColumn<string>(
             name: "PaymentProvider",
             schema: "Commerce",
             table: "Orders",
@@ -18,7 +18,7 @@ public partial class AddPaymentProviderToOrder : Migration
             maxLength: 50,
             nullable: true);
 
-        migrationBuilder.AddColumn<string>(
+        _ = migrationBuilder.AddColumn<string>(
             name: "ProviderPaymentId",
             schema: "Commerce",
             table: "Orders",
@@ -30,12 +30,12 @@ public partial class AddPaymentProviderToOrder : Migration
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.DropColumn(
+        _ = migrationBuilder.DropColumn(
             name: "PaymentProvider",
             schema: "Commerce",
             table: "Orders");
 
-        migrationBuilder.DropColumn(
+        _ = migrationBuilder.DropColumn(
             name: "ProviderPaymentId",
             schema: "Commerce",
             table: "Orders");

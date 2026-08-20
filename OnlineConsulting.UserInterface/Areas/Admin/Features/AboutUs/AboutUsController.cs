@@ -21,7 +21,9 @@ public class AboutUsController(IAboutUsService aboutUsService, IToastNotificatio
     public async Task<IActionResult> Create(CreateAboutUsViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
+        {
             return View(model);
+        }
 
         var result = await aboutUsService.CreateAsync(model, cancellationToken);
         toastNotification.ShowResult(result);
@@ -40,7 +42,9 @@ public class AboutUsController(IAboutUsService aboutUsService, IToastNotificatio
     public async Task<IActionResult> Update(UpdateAboutUsViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
+        {
             return View(model);
+        }
 
         var result = await aboutUsService.UpdateAsync(model, cancellationToken);
         toastNotification.ShowResult(result);

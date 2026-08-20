@@ -10,10 +10,10 @@ public partial class InitialCreate : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.EnsureSchema(
+        _ = migrationBuilder.EnsureSchema(
             name: "SiteContent");
 
-        migrationBuilder.CreateTable(
+        _ = migrationBuilder.CreateTable(
             name: "AboutUss",
             schema: "SiteContent",
             columns: table => new
@@ -31,10 +31,10 @@ public partial class InitialCreate : Migration
             },
             constraints: table =>
             {
-                table.PrimaryKey("PK_AboutUss", x => x.Id);
+                _ = table.PrimaryKey("PK_AboutUss", x => x.Id);
             });
 
-        migrationBuilder.CreateTable(
+        _ = migrationBuilder.CreateTable(
             name: "FeatureHighlights",
             schema: "SiteContent",
             columns: table => new
@@ -51,10 +51,10 @@ public partial class InitialCreate : Migration
             },
             constraints: table =>
             {
-                table.PrimaryKey("PK_FeatureHighlights", x => x.Id);
+                _ = table.PrimaryKey("PK_FeatureHighlights", x => x.Id);
             });
 
-        migrationBuilder.CreateTable(
+        _ = migrationBuilder.CreateTable(
             name: "FooterInfos",
             schema: "SiteContent",
             columns: table => new
@@ -70,10 +70,10 @@ public partial class InitialCreate : Migration
             },
             constraints: table =>
             {
-                table.PrimaryKey("PK_FooterInfos", x => x.Id);
+                _ = table.PrimaryKey("PK_FooterInfos", x => x.Id);
             });
 
-        migrationBuilder.CreateTable(
+        _ = migrationBuilder.CreateTable(
             name: "HeroSlides",
             schema: "SiteContent",
             columns: table => new
@@ -90,10 +90,10 @@ public partial class InitialCreate : Migration
             },
             constraints: table =>
             {
-                table.PrimaryKey("PK_HeroSlides", x => x.Id);
+                _ = table.PrimaryKey("PK_HeroSlides", x => x.Id);
             });
 
-        migrationBuilder.CreateTable(
+        _ = migrationBuilder.CreateTable(
             name: "PageBanners",
             schema: "SiteContent",
             columns: table => new
@@ -110,10 +110,10 @@ public partial class InitialCreate : Migration
             },
             constraints: table =>
             {
-                table.PrimaryKey("PK_PageBanners", x => x.Id);
+                _ = table.PrimaryKey("PK_PageBanners", x => x.Id);
             });
 
-        migrationBuilder.CreateTable(
+        _ = migrationBuilder.CreateTable(
             name: "Testimonials",
             schema: "SiteContent",
             columns: table => new
@@ -132,34 +132,34 @@ public partial class InitialCreate : Migration
             },
             constraints: table =>
             {
-                table.PrimaryKey("PK_Testimonials", x => x.Id);
+                _ = table.PrimaryKey("PK_Testimonials", x => x.Id);
             });
     }
 
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.DropTable(
+        _ = migrationBuilder.DropTable(
             name: "AboutUss",
             schema: "SiteContent");
 
-        migrationBuilder.DropTable(
+        _ = migrationBuilder.DropTable(
             name: "FeatureHighlights",
             schema: "SiteContent");
 
-        migrationBuilder.DropTable(
+        _ = migrationBuilder.DropTable(
             name: "FooterInfos",
             schema: "SiteContent");
 
-        migrationBuilder.DropTable(
+        _ = migrationBuilder.DropTable(
             name: "HeroSlides",
             schema: "SiteContent");
 
-        migrationBuilder.DropTable(
+        _ = migrationBuilder.DropTable(
             name: "PageBanners",
             schema: "SiteContent");
 
-        migrationBuilder.DropTable(
+        _ = migrationBuilder.DropTable(
             name: "Testimonials",
             schema: "SiteContent");
     }

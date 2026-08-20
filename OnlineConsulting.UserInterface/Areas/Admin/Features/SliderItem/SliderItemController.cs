@@ -21,7 +21,9 @@ public class SliderItemController(ISliderItemService sliderItemService, IToastNo
     public async Task<IActionResult> Create(CreateSliderItemViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
+        {
             return View(model);
+        }
 
         var result = await sliderItemService.CreateAsync(model, cancellationToken);
         toastNotification.ShowResult(result);
@@ -40,7 +42,9 @@ public class SliderItemController(ISliderItemService sliderItemService, IToastNo
     public async Task<IActionResult> Update(UpdateSliderItemViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
+        {
             return View(model);
+        }
 
         var result = await sliderItemService.UpdateAsync(model, cancellationToken);
         toastNotification.ShowResult(result);

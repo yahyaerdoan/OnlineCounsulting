@@ -31,7 +31,9 @@ public class GalleryItemController(IAdminGalleryItemService galleryItemService, 
         toastNotification.ShowResult(result);
 
         if (result.IsSuccessful)
+        {
             return RedirectToAction("Index");
+        }
 
         await galleryItemService.FillCategoriesAsync(model, cancellationToken);
         return View(model);
@@ -57,7 +59,9 @@ public class GalleryItemController(IAdminGalleryItemService galleryItemService, 
         toastNotification.ShowResult(result);
 
         if (result.IsSuccessful)
+        {
             return RedirectToAction("Index");
+        }
 
         await galleryItemService.FillCategoriesAsync(model, cancellationToken);
         return View(model);

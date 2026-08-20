@@ -1,4 +1,4 @@
-using FluentValidation;
+﻿using FluentValidation;
 
 namespace OnlineConsulting.Modules.SiteContent.Application.Features.FooterInfos.CreateFooterInfo;
 
@@ -6,7 +6,7 @@ public class CreateFooterInfoValidator : AbstractValidator<CreateFooterInfoComma
 {
     public CreateFooterInfoValidator()
     {
-        RuleFor(x => x.ImageUrl).NotEmpty().MaximumLength(500);
-        RuleFor(x => x.Description).NotEmpty().MaximumLength(2000);
+        _ = RuleFor(x => x.ImageUrl).NotEmpty().MaximumLength(500);
+        _ = RuleFor(x => x.Description).NotEmpty().MaximumLength(2000);
     }
 }

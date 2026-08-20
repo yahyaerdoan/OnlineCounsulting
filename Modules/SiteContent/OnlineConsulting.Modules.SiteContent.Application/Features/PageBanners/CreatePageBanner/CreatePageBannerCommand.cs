@@ -21,7 +21,7 @@ public class CreatePageBannerHandler(IPageBannerRepository repository) : IReques
     {
         var entity = new PageBanner { Id = Guid.NewGuid(), Title = request.Title, Description = request.Description, ImageUrl = request.ImageUrl, DisplayOrder = request.DisplayOrder, Metadata = MetadataSerializer.Serialize(request.Metadata) };
 
-        await repository.AddAsync(entity);
+        _ = await repository.AddAsync(entity);
 
         return Result.Created(entity.Id, "Page banner created successfully.");
     }

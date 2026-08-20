@@ -10,7 +10,7 @@ public class GetAllUsers : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/users", Handle)
+        _ = app.MapGet("/api/users", Handle)
             .WithTags("Identity/Users")
             .RequireAuthorization()
             .WithName("GetAllUsers")

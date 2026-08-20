@@ -1,4 +1,4 @@
-using System.Net.Http.Headers;
+﻿using System.Net.Http.Headers;
 
 namespace OnlineConsulting.UserInterface.Infrastructure.Api;
 
@@ -9,7 +9,9 @@ public class BearerTokenHandler(IHttpContextAccessor httpContextAccessor) : Dele
     {
         var accessToken = httpContextAccessor.HttpContext?.Session.GetString(ApiSessionKeys.AccessToken);
         if (!string.IsNullOrEmpty(accessToken))
+        {
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        }
 
         return base.SendAsync(request, cancellationToken);
     }

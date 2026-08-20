@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Media.Application.Features.Constants;
 using OnlineConsulting.Modules.Media.Application.Features.UploadMediaAsset;
@@ -10,7 +10,7 @@ public class UploadMediaAsset : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/media", Handle)
+        _ = app.MapPost("/api/media", Handle)
             .WithTags("Media")
             .RequireAuthorization()
             .DisableAntiforgery()
@@ -21,7 +21,9 @@ public class UploadMediaAsset : IEndpoint
     private static async Task<IResult> Handle(IFormFile file, string? altText, ISender sender, HttpContext httpContext)
     {
         if (file.Length == 0)
+        {
             return Results.BadRequest(MediaMessages.NoFileProvided);
+        }
 
         await using var stream = file.OpenReadStream();
         var command = new UploadMediaAssetCommand(stream, file.FileName, file.ContentType, altText);

@@ -1,4 +1,4 @@
-using FluentValidation;
+﻿using FluentValidation;
 
 namespace OnlineConsulting.Modules.SiteContent.Application.Features.ServiceAreas.UpdateServiceArea;
 
@@ -6,8 +6,8 @@ public class UpdateServiceAreaValidator : AbstractValidator<UpdateServiceAreaCom
 {
     public UpdateServiceAreaValidator()
     {
-        RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
-        RuleFor(x => x.State).NotEmpty().MaximumLength(50);
-        RuleFor(x => x.IntroText).MaximumLength(2000);
+        _ = RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
+        _ = RuleFor(x => x.State).NotEmpty().MaximumLength(50);
+        _ = RuleFor(x => x.IntroText).MaximumLength(2000);
     }
 }

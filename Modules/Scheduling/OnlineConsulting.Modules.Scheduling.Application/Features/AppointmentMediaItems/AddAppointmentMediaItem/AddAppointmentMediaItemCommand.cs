@@ -26,7 +26,9 @@ public class AddAppointmentMediaItemHandler(IAppointmentMediaItemRepository medi
     {
         var appointmentExists = await appointmentRepository.AnyAsync(a => a.Id == request.AppointmentId && a.UserId == request.UserId, cancellationToken: cancellationToken);
         if (!appointmentExists)
+        {
             return AppointmentBusinessRules.AppointmentNotFound(request.AppointmentId).ToErrorDataResult<Guid>();
+        }
 
         var entity = new AppointmentMediaItem
         {
@@ -36,7 +38,7 @@ public class AddAppointmentMediaItemHandler(IAppointmentMediaItemRepository medi
             DisplayOrder = request.DisplayOrder,
         };
 
-        await mediaItemRepository.AddAsync(entity);
+        _ = await mediaItemRepository.AddAsync(entity);
 
         return Result.Created(entity.Id, "Appointment media item added successfully.");
     }

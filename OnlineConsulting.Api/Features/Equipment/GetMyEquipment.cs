@@ -10,7 +10,7 @@ public class GetMyEquipment : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/equipment/mine", Handle)
+        _ = app.MapGet("/api/equipment/mine", Handle)
             .WithTags("Equipment")
             .RequireAuthorization()
             .WithName("GetMyEquipment")
@@ -21,7 +21,9 @@ public class GetMyEquipment : IEndpoint
     {
         var currentUser = await sender.Send(new GetCurrentUserQuery());
         if (!currentUser.IsSuccessful || currentUser.Data is null)
+        {
             return currentUser.ToEnvelopedResult(httpContext);
+        }
 
         var result = await sender.Send(new GetMyEquipmentQuery(currentUser.Data.Id));
         return result.ToEnvelopedResult(httpContext);

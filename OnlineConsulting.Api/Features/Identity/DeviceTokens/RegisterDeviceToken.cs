@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Identity.Application.Features.DeviceTokens.RegisterDeviceToken;
@@ -11,7 +11,7 @@ public class RegisterDeviceToken : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/device-tokens", Handle)
+        _ = app.MapPost("/api/device-tokens", Handle)
             .WithTags("Identity/DeviceTokens")
             .RequireAuthorization()
             .WithName("RegisterDeviceToken")
@@ -22,7 +22,9 @@ public class RegisterDeviceToken : IEndpoint
     {
         var currentUser = await sender.Send(new GetCurrentUserQuery());
         if (!currentUser.IsSuccessful || currentUser.Data is null)
+        {
             return currentUser.ToEnvelopedResult(httpContext);
+        }
 
         var result = await sender.Send(command with { UserId = currentUser.Data.Id });
         return result.ToEnvelopedResult(httpContext);

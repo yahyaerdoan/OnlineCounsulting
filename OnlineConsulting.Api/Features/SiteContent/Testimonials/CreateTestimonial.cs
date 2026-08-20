@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.Testimonials.CreateTestimonial;
@@ -10,7 +10,7 @@ public class CreateTestimonial : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/site-content/testimonials", Handle)
+        _ = app.MapPost("/api/site-content/testimonials", Handle)
             .WithTags("SiteContent/Testimonials")
             .RequireAuthorization()
             .WithName("CreateTestimonial")

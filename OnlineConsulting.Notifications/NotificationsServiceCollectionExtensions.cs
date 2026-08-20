@@ -1,4 +1,4 @@
-using FirebaseAdmin;
+﻿using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -15,14 +15,14 @@ public static class NotificationsServiceCollectionExtensions
     public static IServiceCollection AddNotificationsInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
-        services.AddDbContext<NotificationsDbContext>(options => options.UseSqlServer(connectionString));
+        _ = services.AddDbContext<NotificationsDbContext>(options => options.UseSqlServer(connectionString));
 
-        services.Configure<EmailOptions>(configuration.GetSection("Email"));
-        services.Configure<OutboxDispatcherOptions>(configuration.GetSection("OutboxDispatcher"));
-        services.Configure<PushOptions>(configuration.GetSection("Push"));
+        _ = services.Configure<EmailOptions>(configuration.GetSection("Email"));
+        _ = services.Configure<OutboxDispatcherOptions>(configuration.GetSection("OutboxDispatcher"));
+        _ = services.Configure<PushOptions>(configuration.GetSection("Push"));
 
-        services.AddScoped<IEmailSender, MailKitEmailSender>();
-        services.AddHostedService<OutboxDispatcher>();
+        _ = services.AddScoped<IEmailSender, MailKitEmailSender>();
+        _ = services.AddHostedService<OutboxDispatcher>();
         services.AddPushNotificationSender(configuration);
 
         return services;
@@ -34,22 +34,24 @@ public static class NotificationsServiceCollectionExtensions
         var pushSection = configuration.GetSection("Push");
         var activeProvider = pushSection["ActiveProvider"];
         if (string.IsNullOrWhiteSpace(activeProvider))
+        {
             activeProvider = PushProviderNames.Mock;
+        }
 
-        services.AddKeyedScoped<IPushNotificationSender, MockPushNotificationSender>(PushProviderNames.Mock);
+        _ = services.AddKeyedScoped<IPushNotificationSender, MockPushNotificationSender>(PushProviderNames.Mock);
 
         var firebaseCredentialsPath = pushSection["FirebaseCredentialsPath"];
         if (!string.IsNullOrWhiteSpace(firebaseCredentialsPath) && File.Exists(firebaseCredentialsPath))
         {
             FirebaseApp.DefaultInstance?.Delete();
-            FirebaseApp.Create(new AppOptions { Credential = GoogleCredential.FromFile(firebaseCredentialsPath) });
-            services.AddKeyedScoped<IPushNotificationSender, FcmPushNotificationSender>(PushProviderNames.Fcm);
+            _ = FirebaseApp.Create(new AppOptions { Credential = GoogleCredential.FromFile(firebaseCredentialsPath) });
+            _ = services.AddKeyedScoped<IPushNotificationSender, FcmPushNotificationSender>(PushProviderNames.Fcm);
         }
         else if (activeProvider == PushProviderNames.Fcm)
         {
             activeProvider = PushProviderNames.Mock;
         }
 
-        services.AddScoped(sp => sp.GetRequiredKeyedService<IPushNotificationSender>(activeProvider));
+        _ = services.AddScoped(sp => sp.GetRequiredKeyedService<IPushNotificationSender>(activeProvider));
     }
 }

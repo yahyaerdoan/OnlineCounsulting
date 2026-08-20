@@ -10,7 +10,7 @@ public class CreateRole : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/roles", Handle)
+        _ = app.MapPost("/api/roles", Handle)
             .WithTags("Identity/Roles")
             .RequireAuthorization()
             .WithName("CreateRole")

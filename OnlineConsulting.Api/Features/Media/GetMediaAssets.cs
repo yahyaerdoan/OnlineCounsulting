@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Media.Application.Features.GetMediaAssets;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class GetMediaAssets : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/media", Handle)
+        _ = app.MapGet("/api/media", Handle)
             .WithTags("Media")
             .RequireAuthorization()
             .WithName("GetMediaAssets")

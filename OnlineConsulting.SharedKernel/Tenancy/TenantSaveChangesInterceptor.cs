@@ -20,12 +20,16 @@ public class TenantSaveChangesInterceptor(ITenantProvider tenantProvider) : Save
     private void Stamp(DbContext? context)
     {
         if (context is null)
+        {
             return;
+        }
 
         foreach (var entry in context.ChangeTracker.Entries<ITenantEntity>())
         {
             if (entry.State == EntityState.Added)
+            {
                 entry.Entity.TenantId = tenantProvider.TenantId;
+            }
         }
     }
 }

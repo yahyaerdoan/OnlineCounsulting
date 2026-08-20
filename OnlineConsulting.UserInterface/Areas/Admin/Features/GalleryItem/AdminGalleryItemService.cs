@@ -36,7 +36,9 @@ public class AdminGalleryItemService(IGalleryService galleryService, IMediaServi
         var items = await galleryService.GetItemsAsync(cancellationToken);
         var item = items.FirstOrDefault(i => i.Id == id);
         if (item is null)
+        {
             return null;
+        }
 
         var model = new UpdateGalleryItemViewModel
         {

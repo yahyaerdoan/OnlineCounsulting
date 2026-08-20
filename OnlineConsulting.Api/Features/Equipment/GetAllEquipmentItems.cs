@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Equipment.Application.Features.EquipmentItems.GetAllEquipmentItems;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class GetAllEquipmentItems : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/equipment", Handle)
+        _ = app.MapGet("/api/equipment", Handle)
             .WithTags("Equipment")
             .RequireAuthorization()
             .WithName("GetAllEquipmentItems")

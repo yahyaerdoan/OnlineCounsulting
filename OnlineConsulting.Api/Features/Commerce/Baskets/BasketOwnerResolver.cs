@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
 using OnlineConsulting.SharedKernel.GuestIdentity;
 using ResultHandler.AspNetCore.Extensions;
@@ -14,7 +14,9 @@ internal static class BasketOwnerResolver
         {
             var currentUser = await sender.Send(new GetCurrentUserQuery());
             if (!currentUser.IsSuccessful || currentUser.Data is null)
+            {
                 return (null, null, currentUser.ToEnvelopedResult(httpContext));
+            }
 
             return (currentUser.Data.Id, null, null);
         }

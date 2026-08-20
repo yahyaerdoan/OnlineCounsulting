@@ -13,21 +13,21 @@ public static class ServiceRegistration
 
     public static void AddApiServiceRegistration(this IServiceCollection services, ConfigurationManager configuration)
     {
-        services.AddSharedKernel();
+        _ = services.AddSharedKernel();
 
         // Identity/JWT wiring and role/permission policies live in IdentityModule and AuthorizationAddingBehavior, so this only needs "must be logged in".
-        services.AddAuthorization();
+        _ = services.AddAuthorization();
         services.AddCors();
         services.AddSwagger();
         services.AddApiRateLimiting();
 
         // Backs ExceptionMiddleware (Program.cs), which logs every unhandled exception before mapping it to a ProblemDetails response.
-        services.AddSingleton<BaseLoggerService, FileLogger>();
+        _ = services.AddSingleton<BaseLoggerService, FileLogger>();
     }
 
     private static void AddApiRateLimiting(this IServiceCollection services)
     {
-        services.AddRateLimiter(options =>
+        _ = services.AddRateLimiter(options =>
         {
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
@@ -38,14 +38,14 @@ public static class ServiceRegistration
                     Window = TimeSpan.FromMinutes(1),
                 }));
 
-            options.AddPolicy(AuthRateLimiterPolicy, httpContext =>
+            _ = options.AddPolicy(AuthRateLimiterPolicy, httpContext =>
                 RateLimitPartition.GetFixedWindowLimiter(GetPartitionKey(httpContext), _ => new FixedWindowRateLimiterOptions
                 {
                     PermitLimit = 5,
                     Window = TimeSpan.FromMinutes(1),
                 }));
 
-            options.AddPolicy(ReferralRedeemRateLimiterPolicy, httpContext =>
+            _ = options.AddPolicy(ReferralRedeemRateLimiterPolicy, httpContext =>
                 RateLimitPartition.GetFixedWindowLimiter(GetPartitionKey(httpContext), _ => new FixedWindowRateLimiterOptions
                 {
                     PermitLimit = 5,
@@ -59,7 +59,7 @@ public static class ServiceRegistration
 
     private static void AddCors(this IServiceCollection services)
     {
-        services.AddCors(opt => opt.AddDefaultPolicy(policy => policy
+        _ = services.AddCors(opt => opt.AddDefaultPolicy(policy => policy
             .WithOrigins("http://localhost:4200", "https://localhost:4200")
             .AllowAnyHeader()
             .AllowAnyMethod()
@@ -68,8 +68,8 @@ public static class ServiceRegistration
 
     private static void AddSwagger(this IServiceCollection services)
     {
-        services.AddEndpointsApiExplorer();
-        services.AddSwaggerGen(c =>
+        _ = services.AddEndpointsApiExplorer();
+        _ = services.AddSwaggerGen(c =>
         {
             c.SwaggerDoc("v1", new OpenApiInfo { Title = "OnlineConsulting API", Version = "v1" });
 

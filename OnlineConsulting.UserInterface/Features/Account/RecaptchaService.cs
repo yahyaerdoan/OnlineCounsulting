@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using System.Text.Json;
 
 namespace OnlineConsulting.UserInterface.Features.Account;
@@ -10,7 +10,9 @@ public class RecaptchaService(HttpClient httpClient, IOptions<RecaptchaOptions> 
     public async Task<bool> VerifyAsync(string? recaptchaResponse)
     {
         if (string.IsNullOrWhiteSpace(recaptchaResponse) || string.IsNullOrWhiteSpace(_option.SecretKey))
+        {
             return false;
+        }
 
         var parameters = new Dictionary<string, string>
         {
@@ -22,7 +24,9 @@ public class RecaptchaService(HttpClient httpClient, IOptions<RecaptchaOptions> 
         var response = await httpClient.PostAsync("https://www.google.com/recaptcha/api/siteverify", content);
 
         if (!response.IsSuccessStatusCode)
+        {
             return false;
+        }
 
         var json = await response.Content.ReadAsStringAsync();
         using var doc = JsonDocument.Parse(json);

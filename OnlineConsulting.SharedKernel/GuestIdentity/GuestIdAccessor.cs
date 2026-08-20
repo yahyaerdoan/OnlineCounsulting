@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 
 namespace OnlineConsulting.SharedKernel.GuestIdentity;
 
@@ -10,16 +10,17 @@ public class GuestIdAccessor(IHttpContextAccessor httpContextAccessor) : IGuestI
     public Guid? TryGetGuestId()
     {
         var httpContext = httpContextAccessor.HttpContext;
-        if (httpContext is not null && httpContext.Request.Cookies.TryGetValue(CookieName, out var raw) && Guid.TryParse(raw, out var guestId))
-            return guestId;
-
-        return null;
+        return httpContext is not null && httpContext.Request.Cookies.TryGetValue(CookieName, out var raw) && Guid.TryParse(raw, out var guestId)
+            ? guestId
+            : null;
     }
 
     public Guid GetOrCreateGuestId()
     {
         if (TryGetGuestId() is { } existing)
+        {
             return existing;
+        }
 
         var httpContext = httpContextAccessor.HttpContext
             ?? throw new InvalidOperationException($"{nameof(GetOrCreateGuestId)} requires an active HTTP request.");

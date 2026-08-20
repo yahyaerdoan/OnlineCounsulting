@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using OnlineConsulting.Modules.Referrals.Domain;
 using OnlineConsulting.SharedKernel.Tenancy;
 
@@ -12,36 +12,36 @@ public class ReferralsDbContext(DbContextOptions<ReferralsDbContext> options, IT
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasDefaultSchema("Referrals");
+        _ = modelBuilder.HasDefaultSchema("Referrals");
 
-        modelBuilder.Entity<ReferralCode>(builder =>
+        _ = modelBuilder.Entity<ReferralCode>(builder =>
         {
-            builder.Property(c => c.Code).HasMaxLength(20).IsRequired();
-            builder.Property(c => c.RowVersion).IsRowVersion();
-            builder.HasIndex(c => c.UserId).IsUnique();
-            builder.HasIndex(c => c.Code).IsUnique();
-            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.Property(c => c.Code).HasMaxLength(20).IsRequired();
+            _ = builder.Property(c => c.RowVersion).IsRowVersion();
+            _ = builder.HasIndex(c => c.UserId).IsUnique();
+            _ = builder.HasIndex(c => c.Code).IsUnique();
+            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
-        modelBuilder.Entity<Referral>(builder =>
+        _ = modelBuilder.Entity<Referral>(builder =>
         {
-            builder.Property(r => r.Code).HasMaxLength(20).IsRequired();
-            builder.Property(r => r.Status).HasMaxLength(20).IsRequired();
-            builder.Property(r => r.RewardAmount).HasColumnType("decimal(18,2)");
-            builder.Property(r => r.RowVersion).IsRowVersion();
-            builder.HasIndex(r => r.ReferrerUserId);
-            builder.HasIndex(r => r.ReferredUserId).IsUnique();
-            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.Property(r => r.Code).HasMaxLength(20).IsRequired();
+            _ = builder.Property(r => r.Status).HasMaxLength(20).IsRequired();
+            _ = builder.Property(r => r.RewardAmount).HasColumnType("decimal(18,2)");
+            _ = builder.Property(r => r.RowVersion).IsRowVersion();
+            _ = builder.HasIndex(r => r.ReferrerUserId);
+            _ = builder.HasIndex(r => r.ReferredUserId).IsUnique();
+            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
-        modelBuilder.Entity<AccountCredit>(builder =>
+        _ = modelBuilder.Entity<AccountCredit>(builder =>
         {
-            builder.Property(c => c.Amount).HasColumnType("decimal(18,2)");
-            builder.Property(c => c.Reason).HasMaxLength(200).IsRequired();
-            builder.Property(c => c.SourceType).HasMaxLength(50).IsRequired();
-            builder.Property(c => c.RowVersion).IsRowVersion();
-            builder.HasIndex(c => c.UserId);
-            builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.Property(c => c.Amount).HasColumnType("decimal(18,2)");
+            _ = builder.Property(c => c.Reason).HasMaxLength(200).IsRequired();
+            _ = builder.Property(c => c.SourceType).HasMaxLength(50).IsRequired();
+            _ = builder.Property(c => c.RowVersion).IsRowVersion();
+            _ = builder.HasIndex(c => c.UserId);
+            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
         base.OnModelCreating(modelBuilder);

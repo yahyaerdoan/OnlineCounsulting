@@ -1,4 +1,4 @@
-using OnlineConsulting.UserInterface.Infrastructure.Api;
+﻿using OnlineConsulting.UserInterface.Infrastructure.Api;
 
 namespace OnlineConsulting.UserInterface.Areas.Admin.Features.SystemRole;
 
@@ -16,10 +16,7 @@ public class SystemRoleService(IApiClient apiClient) : ISystemRoleService
     {
         var result = await apiClient.GetAsync<RoleResponse>($"{RolesPath}/{id}", cancellationToken);
         var role = result.ResultData;
-        if (role is null)
-            return null;
-
-        return new UpdateSystemRoleViewModel { Id = role.Id, Name = role.Name, Description = role.Description };
+        return role is null ? null : new UpdateSystemRoleViewModel { Id = role.Id, Name = role.Name, Description = role.Description };
     }
 
     public Task<ApiEnvelope> CreateAsync(CreateSystemRoleViewModel model, CancellationToken cancellationToken = default) =>

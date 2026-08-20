@@ -36,7 +36,7 @@ public class SubmitMessageHandler(IMessageRepository repository, IEmailOutboxWri
 
         outboxWriter.Enqueue(options.Value.AdminNotificationEmail, notificationTemplate.Subject(notificationModel), notificationTemplate.Build(notificationModel), sourceReference: sourceReference);
 
-        await repository.AddAsync(message);
+        _ = await repository.AddAsync(message);
 
         return Result.Created("Message submitted successfully.");
     }

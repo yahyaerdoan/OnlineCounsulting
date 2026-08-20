@@ -43,22 +43,30 @@ public class CreateInviteHandler(IInviteRepository inviteRepository, RoleManager
         var requestedRoleName = string.IsNullOrWhiteSpace(request.RoleName) ? GlobalOperationClaims.Member : request.RoleName;
 
         if (string.Equals(requestedRoleName, GlobalOperationClaims.SuperAdmin, StringComparison.OrdinalIgnoreCase))
+        {
             return Result.Forbidden(InviteMessages.RoleNotInvitable);
+        }
 
         var role = await roleManager.FindByNameAsync(requestedRoleName);
         if (role is null)
+        {
             return Result.BadRequest(InviteMessages.RoleNotFound);
+        }
 
         var tenantId = tenantProvider.TenantId;
 
         if (await userManager.Users.AnyAsync(u => u.NormalizedEmail == request.Email.ToUpperInvariant(), cancellationToken))
+        {
             return Result.Conflict(InviteMessages.EmailAlreadyRegistered);
+        }
 
         var hasPendingInvite = await inviteRepository.AnyAsync(
             i => i.TenantId == tenantId && i.Email == request.Email && i.Status == InviteStatuses.Pending && i.ExpiresAt > DateTime.UtcNow,
             cancellationToken: cancellationToken);
         if (hasPendingInvite)
+        {
             return Result.Conflict(InviteMessages.InviteAlreadyPending);
+        }
 
         var invitedByUserId = Guid.TryParse(currentUserAccessor.UserId, out var parsedUserId)
             ? parsedUserId
@@ -75,7 +83,7 @@ public class CreateInviteHandler(IInviteRepository inviteRepository, RoleManager
             InvitedByUserId = invitedByUserId,
         };
 
-        await inviteRepository.AddAsync(invite);
+        _ = await inviteRepository.AddAsync(invite);
 
         var inviteUrl = $"{emailOptions.Value.ClientOrigin}/accept-invite?token={Uri.EscapeDataString(invite.Token)}";
         var inviteModel = new InviteEmailModel(inviteUrl);

@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Identity.Application.Features.Roles.AssignPermissionsToRole;
@@ -10,7 +10,7 @@ public class AssignPermissionsToRole : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPut("/api/roles/{id:guid}/permissions", Handle)
+        _ = app.MapPut("/api/roles/{id:guid}/permissions", Handle)
             .WithTags("Identity/Roles")
             .RequireAuthorization()
             .WithName("AssignPermissionsToRole")

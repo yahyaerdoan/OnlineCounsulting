@@ -1,4 +1,4 @@
-using FluentValidation;
+﻿using FluentValidation;
 
 namespace OnlineConsulting.Modules.Referrals.Application.Features.Referrals.RedeemReferralCode;
 
@@ -6,6 +6,6 @@ public class RedeemReferralCodeValidator : AbstractValidator<RedeemReferralCodeC
 {
     public RedeemReferralCodeValidator()
     {
-        RuleFor(x => x.Code).NotEmpty().MaximumLength(20);
+        _ = RuleFor(x => x.Code).NotEmpty().MaximumLength(20);
     }
 }

@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.Partnerships.DeletePartnership;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class DeletePartnership : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapDelete("/api/site-content/partnerships/{id:guid}", Handle)
+        _ = app.MapDelete("/api/site-content/partnerships/{id:guid}", Handle)
             .WithTags("SiteContent/Partnerships")
             .RequireAuthorization()
             .WithName("DeletePartnership")

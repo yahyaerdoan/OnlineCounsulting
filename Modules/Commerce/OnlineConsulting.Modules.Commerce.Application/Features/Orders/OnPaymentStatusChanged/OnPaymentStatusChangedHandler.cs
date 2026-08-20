@@ -19,13 +19,17 @@ public class OnPaymentStatusChangedHandler(IOrderRepository orderRepository) :
     private async Task UpdateOrderPaymentStatusAsync(string referenceId, string providerPaymentId, string newPaymentStatus, CancellationToken cancellationToken)
     {
         if (!Guid.TryParse(referenceId, out var orderId))
+        {
             return;
+        }
 
         var order = await orderRepository.GetAsync(o => o.Id == orderId && o.ProviderPaymentId == providerPaymentId, cancellationToken: cancellationToken);
         if (order is null)
+        {
             return;
+        }
 
         order.PaymentStatus = newPaymentStatus;
-        await orderRepository.UpdateAsync(order);
+        _ = await orderRepository.UpdateAsync(order);
     }
 }

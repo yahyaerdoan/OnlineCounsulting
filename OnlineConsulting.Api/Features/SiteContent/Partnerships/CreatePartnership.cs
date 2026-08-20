@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.Partnerships.CreatePartnership;
@@ -10,7 +10,7 @@ public class CreatePartnership : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/site-content/partnerships", Handle)
+        _ = app.MapPost("/api/site-content/partnerships", Handle)
             .WithTags("SiteContent/Partnerships")
             .RequireAuthorization()
             .WithName("CreatePartnership")

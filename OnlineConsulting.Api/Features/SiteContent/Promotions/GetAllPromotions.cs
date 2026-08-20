@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.Promotions.GetAllPromotions;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class GetAllPromotions : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/site-content/promotions", Handle)
+        _ = app.MapGet("/api/site-content/promotions", Handle)
             .WithTags("SiteContent/Promotions")
             .WithName("GetAllPromotions")
             .WithDescription("Returns the tenant's promotional offers. Public - no login required.");

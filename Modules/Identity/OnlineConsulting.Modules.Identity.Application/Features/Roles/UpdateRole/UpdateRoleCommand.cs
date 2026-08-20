@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using OnlineConsulting.Modules.Identity.Application.Features.Roles.Constants;
@@ -22,7 +22,9 @@ public class UpdateRoleHandler(RoleManager<Role> roleManager) : IRequestHandler<
     {
         var role = await roleManager.FindByIdAsync(request.Id.ToString());
         if (role is null)
+        {
             return Result.BadRequest("The role could not be found. Please ensure the provided data is correct and try again.");
+        }
 
         role.Name = request.Name;
         role.Description = request.Description;

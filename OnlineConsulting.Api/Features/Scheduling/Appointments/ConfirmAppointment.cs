@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.ConfirmAppointment;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class ConfirmAppointment : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/appointments/{id:guid}/confirm", Handle)
+        _ = app.MapPost("/api/appointments/{id:guid}/confirm", Handle)
             .WithTags("Scheduling/Appointments")
             .RequireAuthorization()
             .WithName("ConfirmAppointment")

@@ -18,7 +18,9 @@ public class GetServiceByIdHandler(IServiceRepository repository, IServiceMediaI
     {
         var service = await repository.GetAsync(s => s.Id == request.Id, enableTracking: false, cancellationToken: cancellationToken);
         if (service is null)
+        {
             return Result.NotFound<ServiceResponse>(string.Format(ServiceMessages.ServiceNotFoundFormat, request.Id));
+        }
 
         var mediaItems = await mediaItemRepository.GetListAsync(
             m => m.ServiceId == service.Id, orderBy: q => q.OrderBy(m => m.DisplayOrder),

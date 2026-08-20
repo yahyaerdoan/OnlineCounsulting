@@ -1,4 +1,4 @@
-using Hateoas;
+﻿using Hateoas;
 using Hateoas.AspNetCore;
 using MediatR;
 using OnlineConsulting.Api.Common;
@@ -12,7 +12,7 @@ public class GetServiceById : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/services/{id:guid}", Handle)
+        _ = app.MapGet("/api/services/{id:guid}", Handle)
             .WithTags("Services")
             .WithName("GetServiceById")
             .WithDescription("Returns a single service by id. Public - no login required to browse the catalog.");

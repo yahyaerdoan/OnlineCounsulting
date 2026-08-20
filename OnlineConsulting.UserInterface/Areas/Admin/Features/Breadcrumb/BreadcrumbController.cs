@@ -21,7 +21,9 @@ public class BreadcrumbController(IBreadcrumbService breadcrumbService, IToastNo
     public async Task<IActionResult> Create(CreateBreadcrumbViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
+        {
             return View(model);
+        }
 
         var result = await breadcrumbService.CreateAsync(model, cancellationToken);
         toastNotification.ShowResult(result);
@@ -40,7 +42,9 @@ public class BreadcrumbController(IBreadcrumbService breadcrumbService, IToastNo
     public async Task<IActionResult> Update(UpdateBreadcrumbViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
+        {
             return View(model);
+        }
 
         var result = await breadcrumbService.UpdateAsync(model, cancellationToken);
         toastNotification.ShowResult(result);

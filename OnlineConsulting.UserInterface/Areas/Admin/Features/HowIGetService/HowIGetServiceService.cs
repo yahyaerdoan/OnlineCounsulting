@@ -1,4 +1,4 @@
-using OnlineConsulting.UserInterface.Infrastructure.Api;
+﻿using OnlineConsulting.UserInterface.Infrastructure.Api;
 
 namespace OnlineConsulting.UserInterface.Areas.Admin.Features.HowIGetService;
 
@@ -15,17 +15,16 @@ public class HowIGetServiceService(IApiClient apiClient) : IHowIGetServiceServic
     public async Task<UpdateHowIGetServiceViewModel?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var step = await FindAsync(id, cancellationToken);
-        if (step is null)
-            return null;
-
-        return new UpdateHowIGetServiceViewModel
-        {
-            Id = step.Id,
-            Title = step.Title,
-            Description = step.Description,
-            Icon = step.Icon,
-            IconColor = step.IconColor,
-        };
+        return step is null
+            ? null
+            : new UpdateHowIGetServiceViewModel
+            {
+                Id = step.Id,
+                Title = step.Title,
+                Description = step.Description,
+                Icon = step.Icon,
+                IconColor = step.IconColor,
+            };
     }
 
     public Task<ApiEnvelope> CreateAsync(CreateHowIGetServiceViewModel model, CancellationToken cancellationToken = default) =>

@@ -10,7 +10,7 @@ public partial class AddServiceMediaItems : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.CreateTable(
+        _ = migrationBuilder.CreateTable(
             name: "ServiceMediaItems",
             schema: "Services",
             columns: table => new
@@ -27,10 +27,10 @@ public partial class AddServiceMediaItems : Migration
             },
             constraints: table =>
             {
-                table.PrimaryKey("PK_ServiceMediaItems", x => x.Id);
+                _ = table.PrimaryKey("PK_ServiceMediaItems", x => x.Id);
             });
 
-        migrationBuilder.CreateIndex(
+        _ = migrationBuilder.CreateIndex(
             name: "IX_ServiceMediaItems_ServiceId",
             schema: "Services",
             table: "ServiceMediaItems",
@@ -40,7 +40,7 @@ public partial class AddServiceMediaItems : Migration
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.DropTable(
+        _ = migrationBuilder.DropTable(
             name: "ServiceMediaItems",
             schema: "Services");
     }

@@ -47,7 +47,9 @@ public class ApiClient(HttpClient httpClient) : IApiClient
         // A routing miss (wrong path, no matching endpoint) returns an empty body, not an enveloped
         // error - only the app's own ResponseResultHandler produces a parseable envelope.
         if (response.Content.Headers.ContentLength is 0 or null)
+        {
             return new ApiEnvelope<T>(default, false, (int)response.StatusCode, response.ReasonPhrase, null);
+        }
 
         var envelope = await response.Content.ReadFromJsonAsync<ApiEnvelope<T>>(JsonOptions, cancellationToken);
         return envelope ?? new ApiEnvelope<T>(default, false, (int)response.StatusCode, response.ReasonPhrase, null);
@@ -56,7 +58,9 @@ public class ApiClient(HttpClient httpClient) : IApiClient
     private static async Task<ApiEnvelope> ReadEnvelopeAsync(HttpResponseMessage response, CancellationToken cancellationToken)
     {
         if (response.Content.Headers.ContentLength is 0 or null)
+        {
             return new ApiEnvelope(false, (int)response.StatusCode, response.ReasonPhrase, null);
+        }
 
         var envelope = await response.Content.ReadFromJsonAsync<ApiEnvelope>(JsonOptions, cancellationToken);
         return envelope ?? new ApiEnvelope(false, (int)response.StatusCode, response.ReasonPhrase, null);

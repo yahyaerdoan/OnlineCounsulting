@@ -23,7 +23,9 @@ public class UpdatePartnershipHandler(IPartnershipRepository repository) : IRequ
     {
         var entity = await repository.GetAsync(x => x.Id == request.Id, cancellationToken: cancellationToken);
         if (entity is null)
+        {
             return SiteContentBusinessRules.NotFound("Partnership", request.Id);
+        }
 
         entity.FirstName = request.FirstName;
         entity.LastName = request.LastName;
@@ -36,7 +38,7 @@ public class UpdatePartnershipHandler(IPartnershipRepository repository) : IRequ
         entity.DisplayOrder = request.DisplayOrder;
         entity.Metadata = MetadataSerializer.Serialize(request.Metadata);
 
-        await repository.UpdateAsync(entity);
+        _ = await repository.UpdateAsync(entity);
 
         return Result.Success("Partnership updated successfully.");
     }

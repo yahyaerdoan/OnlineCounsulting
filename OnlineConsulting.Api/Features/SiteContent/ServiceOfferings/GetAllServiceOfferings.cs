@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.ServiceOfferings.GetAllServiceOfferings;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class GetAllServiceOfferings : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/site-content/service-offerings", Handle)
+        _ = app.MapGet("/api/site-content/service-offerings", Handle)
             .WithTags("SiteContent/ServiceOfferings")
             .WithName("GetAllServiceOfferings")
             .WithDescription("Returns the \"what we provide\" cards. Public - no login required.");

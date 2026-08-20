@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Referrals.Application.Common;
@@ -28,18 +28,22 @@ public class CompleteReferralHandler(IReferralRepository referralRepository, IAc
     {
         var referral = await referralRepository.GetAsync(r => r.Id == request.Id, cancellationToken: cancellationToken);
         if (referral is null)
+        {
             return Result.NotFound(string.Format(ReferralsMessages.ReferralNotFoundFormat, request.Id));
+        }
 
         if (referral.Status == ReferralStatuses.Rewarded)
+        {
             return Result.BadRequest(ReferralsMessages.AlreadyRewarded);
+        }
 
         referral.Status = ReferralStatuses.Rewarded;
         referral.RewardAmount = request.RewardAmount;
         referral.RewardedAt = DateTimeOffset.UtcNow;
 
-        await referralRepository.UpdateAsync(referral);
+        _ = await referralRepository.UpdateAsync(referral);
 
-        await creditRepository.AddAsync(new AccountCredit
+        _ = await creditRepository.AddAsync(new AccountCredit
         {
             Id = Guid.NewGuid(),
             UserId = referral.ReferrerUserId,

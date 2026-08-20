@@ -16,7 +16,9 @@ public class ChangePasswordHandler(UserManager<User> userManager) : IRequestHand
         var user = await userManager.FindByIdAsync(request.UserId.ToString());
 
         if (user is null)
+        {
             return UserBusinessRules.UserNotFound();
+        }
 
         var result = await userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
 

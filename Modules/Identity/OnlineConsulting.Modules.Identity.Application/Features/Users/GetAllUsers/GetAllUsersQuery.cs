@@ -27,7 +27,9 @@ public class GetAllUsersHandler(UserManager<User> userManager, RoleManager<Role>
     {
         var users = await userManager.Users.ToListAsync(cancellationToken);
         if (users.Count == 0)
+        {
             return Result.NotFound<List<UserResponse>>(UserMessages.NoUserDataFound);
+        }
 
         var permissionsByRole = await GetPermissionsByRoleAsync(roleManager, cancellationToken);
 
@@ -63,7 +65,9 @@ public class GetAllUsersHandler(UserManager<User> userManager, RoleManager<Role>
         foreach (var role in roles)
         {
             if (role.Name is null)
+            {
                 continue;
+            }
 
             var claims = await roleManager.GetClaimsAsync(role);
             permissionsByRole[role.Name] = [.. claims.Where(c => c.Type == PermissionClaimTypes.Type).Select(c => c.Value)];

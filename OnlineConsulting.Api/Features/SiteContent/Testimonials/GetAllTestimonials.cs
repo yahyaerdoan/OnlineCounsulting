@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.Testimonials.GetAllTestimonials;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class GetAllTestimonials : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/site-content/testimonials", Handle)
+        _ = app.MapGet("/api/site-content/testimonials", Handle)
             .WithTags("SiteContent/Testimonials")
             .WithName("GetAllTestimonials")
             .WithDescription("Returns the tenant's customer testimonials. Public - no login required.");

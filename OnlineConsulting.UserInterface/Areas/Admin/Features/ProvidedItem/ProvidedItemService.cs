@@ -1,4 +1,4 @@
-using OnlineConsulting.UserInterface.Infrastructure.Api;
+﻿using OnlineConsulting.UserInterface.Infrastructure.Api;
 
 namespace OnlineConsulting.UserInterface.Areas.Admin.Features.ProvidedItem;
 
@@ -15,17 +15,16 @@ public class ProvidedItemService(IApiClient apiClient) : IProvidedItemService
     public async Task<UpdateProvidedItemViewModel?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var offering = await FindAsync(id, cancellationToken);
-        if (offering is null)
-            return null;
-
-        return new UpdateProvidedItemViewModel
-        {
-            Id = offering.Id,
-            Title = offering.Title,
-            Description = offering.Description,
-            Icon = offering.Icon,
-            IconColor = offering.IconColor,
-        };
+        return offering is null
+            ? null
+            : new UpdateProvidedItemViewModel
+            {
+                Id = offering.Id,
+                Title = offering.Title,
+                Description = offering.Description,
+                Icon = offering.Icon,
+                IconColor = offering.IconColor,
+            };
     }
 
     public Task<ApiEnvelope> CreateAsync(CreateProvidedItemViewModel model, CancellationToken cancellationToken = default) =>

@@ -31,7 +31,7 @@ public class CreateServiceOfferingHandler(IServiceOfferingRepository repository)
             Metadata = MetadataSerializer.Serialize(request.Metadata),
         };
 
-        await repository.AddAsync(entity);
+        _ = await repository.AddAsync(entity);
 
         return Result.Created(entity.Id, "Service offering created successfully.");
     }

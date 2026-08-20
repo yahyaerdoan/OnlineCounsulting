@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Abstractions;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Constants;
@@ -26,13 +26,17 @@ public class CancelMembershipHandler(ICustomerMembershipRepository repository, I
             cancellationToken: cancellationToken);
 
         if (membership is null)
+        {
             return Result.NotFound(CustomerMembershipMessages.NoActiveMembership);
+        }
 
         if (membership.ProviderSubscriptionId is not null)
-            await subscriptionGateway.CancelSubscriptionAsync(membership.ProviderSubscriptionId, cancellationToken);
+        {
+            _ = await subscriptionGateway.CancelSubscriptionAsync(membership.ProviderSubscriptionId, cancellationToken);
+        }
 
         membership.Status = CustomerMembershipStatuses.Cancelled;
-        await repository.UpdateAsync(membership);
+        _ = await repository.UpdateAsync(membership);
 
         return Result.Success("Membership cancelled successfully.");
     }

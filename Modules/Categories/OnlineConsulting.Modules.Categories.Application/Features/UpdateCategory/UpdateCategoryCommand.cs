@@ -23,14 +23,16 @@ public class UpdateCategoryHandler(ICategoryRepository repository) : IRequestHan
     {
         var category = await repository.GetAsync(c => c.Id == request.Id, cancellationToken: cancellationToken);
         if (category is null)
+        {
             return CategoryBusinessRules.CategoryNotFound(request.Id);
+        }
 
         category.Title = request.Title;
         category.Description = request.Description;
         category.Icon = request.Icon;
         category.IconColor = request.IconColor;
 
-        await repository.UpdateAsync(category);
+        _ = await repository.UpdateAsync(category);
 
         return Result.Success("Category updated successfully.");
     }

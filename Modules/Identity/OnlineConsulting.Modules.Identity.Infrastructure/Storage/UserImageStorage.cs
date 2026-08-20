@@ -12,11 +12,13 @@ public class UserImageStorage(IWebHostEnvironment environment) : IUserImageStora
     {
         var fileName = $"{Guid.NewGuid()}{Path.GetExtension(image.FileName)}";
         var folderPath = Path.Combine(environment.WebRootPath, TargetFolder);
-        Directory.CreateDirectory(folderPath);
+        _ = Directory.CreateDirectory(folderPath);
 
         var filePath = Path.Combine(folderPath, fileName);
         await using (var stream = File.Create(filePath))
+        {
             await image.CopyToAsync(stream, cancellationToken);
+        }
 
         return $"/{TargetFolder}/{fileName}";
     }
@@ -25,7 +27,9 @@ public class UserImageStorage(IWebHostEnvironment environment) : IUserImageStora
     {
         var filePath = Path.Combine(environment.WebRootPath, imageUrl.TrimStart('/'));
         if (File.Exists(filePath))
+        {
             File.Delete(filePath);
+        }
 
         return Task.CompletedTask;
     }

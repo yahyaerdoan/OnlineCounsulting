@@ -22,10 +22,14 @@ public class ConfirmEmailHandler(UserManager<User> userManager, IEmailOutboxWrit
     {
         var user = await userManager.FindByIdAsync(request.UserId.ToString());
         if (user is null)
+        {
             return Result.NotFound(UserMessages.UserNotFound);
+        }
 
         if (await userManager.IsEmailConfirmedAsync(user))
+        {
             return Result.Success("Email already confirmed.");
+        }
 
         var welcomeModel = new WelcomeEmailModel(user.FirstName, user.LastName);
 
@@ -37,9 +41,8 @@ public class ConfirmEmailHandler(UserManager<User> userManager, IEmailOutboxWrit
             sourceReference: $"User:{user.Id}");
 
         var confirmResult = await userManager.ConfirmEmailAsync(user, request.Token);
-        if (!confirmResult.Succeeded)
-            return Result.BadRequest(string.Join("; ", confirmResult.Errors.Select(e => e.Description)));
-
-        return Result.Success("Email confirmed successfully.");
+        return !confirmResult.Succeeded
+            ? Result.BadRequest(string.Join("; ", confirmResult.Errors.Select(e => e.Description)))
+            : Result.Success("Email confirmed successfully.");
     }
 }

@@ -10,7 +10,7 @@ public partial class AddRequiresPrepaymentToService : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.AddColumn<bool>(
+        _ = migrationBuilder.AddColumn<bool>(
             name: "RequiresPrepayment",
             schema: "Services",
             table: "Services",
@@ -22,7 +22,7 @@ public partial class AddRequiresPrepaymentToService : Migration
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.DropColumn(
+        _ = migrationBuilder.DropColumn(
             name: "RequiresPrepayment",
             schema: "Services",
             table: "Services");

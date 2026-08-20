@@ -1,4 +1,4 @@
-using OnlineConsulting.UserInterface.Infrastructure.Api;
+﻿using OnlineConsulting.UserInterface.Infrastructure.Api;
 using OnlineConsulting.UserInterface.Infrastructure.Media;
 
 namespace OnlineConsulting.UserInterface.Areas.Admin.Features.FooterAbout;
@@ -16,15 +16,14 @@ public class FooterAboutService(IApiClient apiClient, IMediaService mediaService
     public async Task<UpdateFooterAboutViewModel?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var info = await FindAsync(id, cancellationToken);
-        if (info is null)
-            return null;
-
-        return new UpdateFooterAboutViewModel
-        {
-            Id = info.Id,
-            Description = info.Description,
-            ImageUrl = info.ImageUrl,
-        };
+        return info is null
+            ? null
+            : new UpdateFooterAboutViewModel
+            {
+                Id = info.Id,
+                Description = info.Description,
+                ImageUrl = info.ImageUrl,
+            };
     }
 
     public async Task<ApiEnvelope> CreateAsync(CreateFooterAboutViewModel model, CancellationToken cancellationToken = default)

@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.SetBillingAddress;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
@@ -10,7 +10,7 @@ public class SetBillingAddress : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPut("/api/addresses/{id:guid}/billing", Handle)
+        _ = app.MapPut("/api/addresses/{id:guid}/billing", Handle)
             .WithTags("Commerce/Addresses")
             .RequireAuthorization()
             .WithName("SetBillingAddress")
@@ -21,7 +21,9 @@ public class SetBillingAddress : IEndpoint
     {
         var currentUser = await sender.Send(new GetCurrentUserQuery());
         if (!currentUser.IsSuccessful || currentUser.Data is null)
+        {
             return currentUser.ToEnvelopedResult(httpContext);
+        }
 
         var result = await sender.Send(new SetBillingAddressCommand(currentUser.Data.Id, id));
         return result.ToEnvelopedResult(httpContext);

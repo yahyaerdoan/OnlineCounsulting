@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.ServiceProcessSteps.GetAllServiceProcessSteps;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class GetAllServiceProcessSteps : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/site-content/service-process-steps", Handle)
+        _ = app.MapGet("/api/site-content/service-process-steps", Handle)
             .WithTags("SiteContent/ServiceProcessSteps")
             .WithName("GetAllServiceProcessSteps")
             .WithDescription("Returns the \"how you get our service\" steps. Public - no login required.");

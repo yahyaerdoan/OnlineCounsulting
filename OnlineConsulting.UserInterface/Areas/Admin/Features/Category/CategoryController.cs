@@ -21,7 +21,9 @@ public class CategoryController(IAdminCategoryService categoryService, IToastNot
     public async Task<IActionResult> Create(CreateCategoryViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
+        {
             return View(model);
+        }
 
         var result = await categoryService.CreateAsync(model, cancellationToken);
         toastNotification.ShowResult(result);
@@ -40,7 +42,9 @@ public class CategoryController(IAdminCategoryService categoryService, IToastNot
     public async Task<IActionResult> Update(UpdateCategoryViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
+        {
             return View(model);
+        }
 
         var result = await categoryService.UpdateAsync(model, cancellationToken);
         toastNotification.ShowResult(result);

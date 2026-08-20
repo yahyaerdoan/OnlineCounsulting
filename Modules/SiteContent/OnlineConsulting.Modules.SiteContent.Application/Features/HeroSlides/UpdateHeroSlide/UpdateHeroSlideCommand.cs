@@ -20,7 +20,9 @@ public class UpdateHeroSlideHandler(IHeroSlideRepository repository) : IRequestH
     {
         var entity = await repository.GetAsync(x => x.Id == request.Id, cancellationToken: cancellationToken);
         if (entity is null)
+        {
             return SiteContentBusinessRules.NotFound("Hero slide", request.Id);
+        }
 
         entity.Title = request.Title;
         entity.Description = request.Description;
@@ -28,7 +30,7 @@ public class UpdateHeroSlideHandler(IHeroSlideRepository repository) : IRequestH
         entity.DisplayOrder = request.DisplayOrder;
         entity.Metadata = MetadataSerializer.Serialize(request.Metadata);
 
-        await repository.UpdateAsync(entity);
+        _ = await repository.UpdateAsync(entity);
 
         return Result.Success("Hero slide updated successfully.");
     }

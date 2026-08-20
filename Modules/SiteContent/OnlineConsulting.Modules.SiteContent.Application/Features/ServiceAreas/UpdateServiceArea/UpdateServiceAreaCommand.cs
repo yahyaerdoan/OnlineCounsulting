@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.ServiceAreas.Abstractions;
@@ -22,14 +22,16 @@ public class UpdateServiceAreaHandler(IServiceAreaRepository repository) : IRequ
     {
         var entity = await repository.GetAsync(x => x.Id == request.Id, cancellationToken: cancellationToken);
         if (entity is null)
+        {
             return SiteContentBusinessRules.NotFound("ServiceArea", request.Id);
+        }
 
         entity.Name = request.Name;
         entity.State = request.State;
         entity.IntroText = request.IntroText;
         entity.DisplayOrder = request.DisplayOrder;
 
-        await repository.UpdateAsync(entity);
+        _ = await repository.UpdateAsync(entity);
 
         return Result.Success("Service area updated successfully.");
     }

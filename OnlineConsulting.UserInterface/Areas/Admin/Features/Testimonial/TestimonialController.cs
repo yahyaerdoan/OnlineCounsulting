@@ -21,7 +21,9 @@ public class TestimonialController(ITestimonialService testimonialService, IToas
     public async Task<IActionResult> Create(CreateTestimonialViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
+        {
             return View(model);
+        }
 
         var result = await testimonialService.CreateAsync(model, cancellationToken);
         toastNotification.ShowResult(result);
@@ -40,7 +42,9 @@ public class TestimonialController(ITestimonialService testimonialService, IToas
     public async Task<IActionResult> Update(UpdateTestimonialViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
+        {
             return View(model);
+        }
 
         var result = await testimonialService.UpdateAsync(model, cancellationToken);
         toastNotification.ShowResult(result);

@@ -20,9 +20,11 @@ public class UnsubscribeHandler(INewsletterSubscriberRepository repository) : IR
     {
         var subscriber = await repository.GetAsync(s => s.Id == request.Id, cancellationToken: cancellationToken);
         if (subscriber is null)
+        {
             return Result.NotFound($"Subscriber {request.Id} was not found.");
+        }
 
-        await repository.DeleteAsync(subscriber);
+        _ = await repository.DeleteAsync(subscriber);
 
         return Result.Success("Unsubscribed successfully.");
     }

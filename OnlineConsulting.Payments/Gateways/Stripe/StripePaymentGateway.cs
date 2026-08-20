@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using OnlineConsulting.SharedKernel.Payments;
 using Stripe;
 
@@ -58,7 +58,9 @@ public class StripePaymentGateway : IPaymentGateway
         // calling into EventUtility, which assumes a non-null header and throws NullReferenceException
         // rather than StripeException when it isn't.
         if (string.IsNullOrEmpty(signatureHeader) || string.IsNullOrEmpty(rawBody))
+        {
             return Task.FromResult<PaymentWebhookEvent?>(null);
+        }
 
         // EventUtility.ConstructEvent throws StripeException on a bad/malformed signature - that's the whole
         // point of verification (rejects forged webhook calls). It can also throw NullReferenceException
@@ -76,18 +78,19 @@ public class StripePaymentGateway : IPaymentGateway
         }
 
         if (stripeEvent.Data.Object is not PaymentIntent intent)
+        {
             return Task.FromResult<PaymentWebhookEvent?>(null);
+        }
 
         var referenceId = intent.Metadata.GetValueOrDefault("ReferenceId");
-        if (referenceId is null)
-            return Task.FromResult<PaymentWebhookEvent?>(null);
-
-        return stripeEvent.Type switch
-        {
-            "payment_intent.succeeded" => Task.FromResult<PaymentWebhookEvent?>(new PaymentWebhookEvent(intent.Id, referenceId, Succeeded: true)),
-            "payment_intent.payment_failed" => Task.FromResult<PaymentWebhookEvent?>(new PaymentWebhookEvent(intent.Id, referenceId, Succeeded: false)),
-            _ => Task.FromResult<PaymentWebhookEvent?>(null),
-        };
+        return referenceId is null
+            ? Task.FromResult<PaymentWebhookEvent?>(null)
+            : stripeEvent.Type switch
+            {
+                "payment_intent.succeeded" => Task.FromResult<PaymentWebhookEvent?>(new PaymentWebhookEvent(intent.Id, referenceId, Succeeded: true)),
+                "payment_intent.payment_failed" => Task.FromResult<PaymentWebhookEvent?>(new PaymentWebhookEvent(intent.Id, referenceId, Succeeded: false)),
+                _ => Task.FromResult<PaymentWebhookEvent?>(null),
+            };
     }
 
     private static long ToMinorUnits(decimal amount) => (long)(amount * 100);

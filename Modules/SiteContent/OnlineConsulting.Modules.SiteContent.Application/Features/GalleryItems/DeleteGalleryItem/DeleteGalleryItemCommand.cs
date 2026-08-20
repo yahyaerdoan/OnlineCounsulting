@@ -22,15 +22,17 @@ public class DeleteGalleryItemHandler(IGalleryItemRepository repository, IGaller
     {
         var entity = await repository.GetAsync(x => x.Id == request.Id, cancellationToken: cancellationToken);
         if (entity is null)
+        {
             return SiteContentBusinessRules.NotFound("Gallery item", request.Id);
+        }
 
         var links = await categoryLinkRepository.GetListAsync(x => x.GalleryItemId == request.Id, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
         foreach (var link in links.Items)
         {
-            await categoryLinkRepository.DeleteAsync(link);
+            _ = await categoryLinkRepository.DeleteAsync(link);
         }
 
-        await repository.DeleteAsync(entity);
+        _ = await repository.DeleteAsync(entity);
 
         return Result.Success("Gallery item deleted successfully.");
     }

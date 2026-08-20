@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.SharedKernel.Payments;
 
@@ -9,7 +9,7 @@ public class PaymentWebhook : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/payments/webhooks/{provider}", Handle)
+        _ = app.MapPost("/api/payments/webhooks/{provider}", Handle)
             .WithTags("Payments")
             .WithName("PaymentWebhook")
             .WithDescription("Receives async payment status callbacks from a provider (e.g. Stripe) and notifies the owning module (Commerce/Scheduling) once verified.");
@@ -19,7 +19,9 @@ public class PaymentWebhook : IEndpoint
     {
         var gateway = serviceProvider.GetKeyedService<IPaymentGateway>(provider);
         if (gateway is null)
+        {
             return Results.NotFound($"Unknown payment provider '{provider}'.");
+        }
 
         using var reader = new StreamReader(httpContext.Request.Body);
         var rawBody = await reader.ReadToEndAsync(cancellationToken);
@@ -27,12 +29,18 @@ public class PaymentWebhook : IEndpoint
 
         var webhookEvent = await gateway.VerifyAndParseWebhookAsync(rawBody, signatureHeader, cancellationToken);
         if (webhookEvent is null)
+        {
             return Results.Ok(); // Unrecognized/irrelevant event type - acknowledge so the provider stops retrying.
+        }
 
         if (webhookEvent.Succeeded)
+        {
             await publisher.Publish(new PaymentSucceededNotification(webhookEvent.ReferenceId, webhookEvent.ProviderPaymentId, gateway.ProviderName), cancellationToken);
+        }
         else
+        {
             await publisher.Publish(new PaymentFailedNotification(webhookEvent.ReferenceId, webhookEvent.ProviderPaymentId, gateway.ProviderName), cancellationToken);
+        }
 
         return Results.Ok();
     }

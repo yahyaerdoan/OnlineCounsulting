@@ -1,4 +1,4 @@
-using OnlineConsulting.UserInterface.Infrastructure.Api;
+﻿using OnlineConsulting.UserInterface.Infrastructure.Api;
 using OnlineConsulting.UserInterface.Infrastructure.Media;
 
 namespace OnlineConsulting.UserInterface.Areas.Admin.Features.SliderItem;
@@ -16,16 +16,15 @@ public class SliderItemService(IApiClient apiClient, IMediaService mediaService)
     public async Task<UpdateSliderItemViewModel?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var slide = await FindAsync(id, cancellationToken);
-        if (slide is null)
-            return null;
-
-        return new UpdateSliderItemViewModel
-        {
-            Id = slide.Id,
-            Title = slide.Title,
-            Description = slide.Description,
-            ImageUrl = slide.ImageUrl,
-        };
+        return slide is null
+            ? null
+            : new UpdateSliderItemViewModel
+            {
+                Id = slide.Id,
+                Title = slide.Title,
+                Description = slide.Description,
+                ImageUrl = slide.ImageUrl,
+            };
     }
 
     public async Task<ApiEnvelope> CreateAsync(CreateSliderItemViewModel model, CancellationToken cancellationToken = default)

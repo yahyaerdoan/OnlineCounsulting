@@ -16,32 +16,32 @@ public class AppIdentityDbContext(DbContextOptions<AppIdentityDbContext> options
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasDefaultSchema("Identity");
+        _ = modelBuilder.HasDefaultSchema("Identity");
 
-        modelBuilder.Entity<User>(builder =>
+        _ = modelBuilder.Entity<User>(builder =>
         {
-            builder.Property(u => u.TenantId).HasDefaultValue(TenantDefaults.DefaultTenantId);
-            builder.Property(u => u.CreatedDate).HasConversion(DateTimeOffsetConverters.NonNullable);
-            builder.Property(u => u.UpdatedDate).HasConversion(DateTimeOffsetConverters.Nullable);
-            builder.Property(u => u.DeletedDate).HasConversion(DateTimeOffsetConverters.Nullable);
+            _ = builder.Property(u => u.TenantId).HasDefaultValue(TenantDefaults.DefaultTenantId);
+            _ = builder.Property(u => u.CreatedDate).HasConversion(DateTimeOffsetConverters.NonNullable);
+            _ = builder.Property(u => u.UpdatedDate).HasConversion(DateTimeOffsetConverters.Nullable);
+            _ = builder.Property(u => u.DeletedDate).HasConversion(DateTimeOffsetConverters.Nullable);
         });
 
-        modelBuilder.Entity<DeviceToken>(builder =>
+        _ = modelBuilder.Entity<DeviceToken>(builder =>
         {
-            builder.Property(d => d.Token).HasMaxLength(500).IsRequired();
-            builder.Property(d => d.Platform).HasMaxLength(20).IsRequired();
-            builder.HasIndex(d => d.Token).IsUnique();
-            builder.HasIndex(d => d.UserId);
+            _ = builder.Property(d => d.Token).HasMaxLength(500).IsRequired();
+            _ = builder.Property(d => d.Platform).HasMaxLength(20).IsRequired();
+            _ = builder.HasIndex(d => d.Token).IsUnique();
+            _ = builder.HasIndex(d => d.UserId);
         });
 
-        modelBuilder.Entity<Invite>(builder =>
+        _ = modelBuilder.Entity<Invite>(builder =>
         {
-            builder.Property(i => i.Email).HasMaxLength(256).IsRequired();
-            builder.Property(i => i.Token).HasMaxLength(200).IsRequired();
-            builder.Property(i => i.RoleName).HasMaxLength(256).IsRequired();
-            builder.Property(i => i.Status).HasMaxLength(20).IsRequired();
-            builder.HasIndex(i => i.Token).IsUnique();
-            builder.HasIndex(i => new { i.TenantId, i.Email });
+            _ = builder.Property(i => i.Email).HasMaxLength(256).IsRequired();
+            _ = builder.Property(i => i.Token).HasMaxLength(200).IsRequired();
+            _ = builder.Property(i => i.RoleName).HasMaxLength(256).IsRequired();
+            _ = builder.Property(i => i.Status).HasMaxLength(20).IsRequired();
+            _ = builder.HasIndex(i => i.Token).IsUnique();
+            _ = builder.HasIndex(i => new { i.TenantId, i.Email });
         });
 
         modelBuilder.ConfigureOutboxEmail();
@@ -52,7 +52,9 @@ public class AppIdentityDbContext(DbContextOptions<AppIdentityDbContext> options
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         foreach (var entry in ChangeTracker.Entries<User>().Where(e => e.State == EntityState.Added))
+        {
             entry.Entity.IsActive = true;
+        }
 
         return base.SaveChangesAsync(cancellationToken);
     }

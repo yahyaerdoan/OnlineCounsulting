@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Memberships.Application.Common;
 using OnlineConsulting.Modules.Memberships.Application.Features.MembershipPlans.Abstractions;
@@ -23,7 +23,9 @@ public class UpdateMembershipPlanHandler(IMembershipPlanRepository repository) :
     {
         var plan = await repository.GetAsync(p => p.Id == request.Id, cancellationToken: cancellationToken);
         if (plan is null)
+        {
             return Result.NotFound(string.Format(MembershipPlanMessages.MembershipPlanNotFoundFormat, request.Id));
+        }
 
         plan.Name = request.Name;
         plan.IncludedVisitsPerYear = request.IncludedVisitsPerYear;
@@ -31,7 +33,7 @@ public class UpdateMembershipPlanHandler(IMembershipPlanRepository repository) :
         plan.CreditAmount = request.CreditAmount;
         plan.Benefits = request.Benefits;
 
-        await repository.UpdateAsync(plan);
+        _ = await repository.UpdateAsync(plan);
 
         return Result.Success("Membership plan updated successfully.");
     }

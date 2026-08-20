@@ -20,9 +20,11 @@ public class DeleteFooterInfoHandler(IFooterInfoRepository repository) : IReques
     {
         var entity = await repository.GetAsync(x => x.Id == request.Id, cancellationToken: cancellationToken);
         if (entity is null)
+        {
             return SiteContentBusinessRules.NotFound("Footer info", request.Id);
+        }
 
-        await repository.DeleteAsync(entity);
+        _ = await repository.DeleteAsync(entity);
 
         return Result.Success("Footer info deleted successfully.");
     }

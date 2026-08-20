@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.FooterInfos.GetAllFooterInfos;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class GetAllFooterInfos : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/site-content/footer-info", Handle)
+        _ = app.MapGet("/api/site-content/footer-info", Handle)
             .WithTags("SiteContent/FooterInfo")
             .WithName("GetAllFooterInfos")
             .WithDescription("Returns the tenant's footer content blocks. Public - no login required.");

@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Equipment.Application.Features.EquipmentItems.UpdateEquipmentItem;
@@ -10,7 +10,7 @@ public class UpdateEquipmentItem : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPut("/api/equipment/{id:guid}", Handle)
+        _ = app.MapPut("/api/equipment/{id:guid}", Handle)
             .WithTags("Equipment")
             .RequireAuthorization()
             .WithName("UpdateEquipmentItem")

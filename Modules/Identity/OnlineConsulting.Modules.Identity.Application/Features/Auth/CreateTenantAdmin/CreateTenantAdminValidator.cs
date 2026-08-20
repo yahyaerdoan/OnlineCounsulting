@@ -1,4 +1,4 @@
-using FluentValidation;
+﻿using FluentValidation;
 
 namespace OnlineConsulting.Modules.Identity.Application.Features.Auth.CreateTenantAdmin;
 
@@ -7,14 +7,14 @@ public class CreateTenantAdminValidator : AbstractValidator<CreateTenantAdminCom
 {
     public CreateTenantAdminValidator()
     {
-        RuleFor(x => x.FirstName).NotEmpty();
-        RuleFor(x => x.LastName).NotEmpty();
+        _ = RuleFor(x => x.FirstName).NotEmpty();
+        _ = RuleFor(x => x.LastName).NotEmpty();
 
-        RuleFor(x => x.Email)
+        _ = RuleFor(x => x.Email)
             .NotEmpty()
             .EmailAddress();
 
-        RuleFor(x => x.Password)
+        _ = RuleFor(x => x.Password)
             .NotEmpty()
             .MinimumLength(8)
             .Matches(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).+$")

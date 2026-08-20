@@ -26,7 +26,9 @@ public class PartnershipController(IPartnershipService partnershipService, IToas
     public async Task<IActionResult> Create(CreatePartnershipViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
+        {
             return View(model);
+        }
 
         var result = await partnershipService.CreateAsync(model, cancellationToken);
         toastNotification.ShowResult(result);
@@ -45,7 +47,9 @@ public class PartnershipController(IPartnershipService partnershipService, IToas
     public async Task<IActionResult> Update(UpdatePartnershipViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
+        {
             return View(model);
+        }
 
         var result = await partnershipService.UpdateAsync(model, cancellationToken);
         toastNotification.ShowResult(result);

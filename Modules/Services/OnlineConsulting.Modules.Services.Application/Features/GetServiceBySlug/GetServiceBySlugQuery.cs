@@ -17,7 +17,9 @@ public class GetServiceBySlugHandler(IServiceRepository repository, IServiceMedi
     {
         var service = await repository.GetAsync(s => s.Slug == request.Slug, enableTracking: false, cancellationToken: cancellationToken);
         if (service is null)
+        {
             return Result.NotFound<ServiceResponse>($"Service '{request.Slug}' was not found.");
+        }
 
         var mediaItems = await mediaItemRepository.GetListAsync(
             m => m.ServiceId == service.Id, orderBy: q => q.OrderBy(m => m.DisplayOrder),

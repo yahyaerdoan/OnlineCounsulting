@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Requests.Page;
+﻿using Core.ApplicationLayer.Requests.Page;
 
 namespace OnlineConsulting.Api.Common;
 
@@ -10,10 +10,14 @@ public static class PageRequestFactory
         var request = new PageRequest();
 
         if (index is { } suppliedIndex)
+        {
             request.PageIndex = suppliedIndex;
+        }
 
         if (size is { } suppliedSize)
+        {
             request.PageSize = suppliedSize;
+        }
 
         return request;
     }

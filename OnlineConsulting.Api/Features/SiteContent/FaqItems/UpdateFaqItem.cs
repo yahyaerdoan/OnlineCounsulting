@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.FaqItems.UpdateFaqItem;
@@ -10,7 +10,7 @@ public class UpdateFaqItem : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPut("/api/site-content/faq-items/{id:guid}", Handle)
+        _ = app.MapPut("/api/site-content/faq-items/{id:guid}", Handle)
             .WithTags("SiteContent/FaqItems")
             .RequireAuthorization()
             .WithName("UpdateFaqItem")

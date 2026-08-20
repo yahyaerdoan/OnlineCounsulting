@@ -10,7 +10,7 @@ public partial class AddDisplayOrderAndMetadata : Migration
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.AddColumn<int>(
+        _ = migrationBuilder.AddColumn<int>(
             name: "DisplayOrder",
             schema: "SiteContent",
             table: "Testimonials",
@@ -18,14 +18,14 @@ public partial class AddDisplayOrderAndMetadata : Migration
             nullable: false,
             defaultValue: 0);
 
-        migrationBuilder.AddColumn<string>(
+        _ = migrationBuilder.AddColumn<string>(
             name: "Metadata",
             schema: "SiteContent",
             table: "Testimonials",
             type: "nvarchar(max)",
             nullable: true);
 
-        migrationBuilder.AddColumn<int>(
+        _ = migrationBuilder.AddColumn<int>(
             name: "DisplayOrder",
             schema: "SiteContent",
             table: "PageBanners",
@@ -33,14 +33,14 @@ public partial class AddDisplayOrderAndMetadata : Migration
             nullable: false,
             defaultValue: 0);
 
-        migrationBuilder.AddColumn<string>(
+        _ = migrationBuilder.AddColumn<string>(
             name: "Metadata",
             schema: "SiteContent",
             table: "PageBanners",
             type: "nvarchar(max)",
             nullable: true);
 
-        migrationBuilder.AddColumn<int>(
+        _ = migrationBuilder.AddColumn<int>(
             name: "DisplayOrder",
             schema: "SiteContent",
             table: "HeroSlides",
@@ -48,14 +48,14 @@ public partial class AddDisplayOrderAndMetadata : Migration
             nullable: false,
             defaultValue: 0);
 
-        migrationBuilder.AddColumn<string>(
+        _ = migrationBuilder.AddColumn<string>(
             name: "Metadata",
             schema: "SiteContent",
             table: "HeroSlides",
             type: "nvarchar(max)",
             nullable: true);
 
-        migrationBuilder.AddColumn<int>(
+        _ = migrationBuilder.AddColumn<int>(
             name: "DisplayOrder",
             schema: "SiteContent",
             table: "FooterInfos",
@@ -63,14 +63,14 @@ public partial class AddDisplayOrderAndMetadata : Migration
             nullable: false,
             defaultValue: 0);
 
-        migrationBuilder.AddColumn<string>(
+        _ = migrationBuilder.AddColumn<string>(
             name: "Metadata",
             schema: "SiteContent",
             table: "FooterInfos",
             type: "nvarchar(max)",
             nullable: true);
 
-        migrationBuilder.AddColumn<int>(
+        _ = migrationBuilder.AddColumn<int>(
             name: "DisplayOrder",
             schema: "SiteContent",
             table: "FeatureHighlights",
@@ -78,14 +78,14 @@ public partial class AddDisplayOrderAndMetadata : Migration
             nullable: false,
             defaultValue: 0);
 
-        migrationBuilder.AddColumn<string>(
+        _ = migrationBuilder.AddColumn<string>(
             name: "Metadata",
             schema: "SiteContent",
             table: "FeatureHighlights",
             type: "nvarchar(max)",
             nullable: true);
 
-        migrationBuilder.AddColumn<int>(
+        _ = migrationBuilder.AddColumn<int>(
             name: "DisplayOrder",
             schema: "SiteContent",
             table: "AboutUss",
@@ -93,7 +93,7 @@ public partial class AddDisplayOrderAndMetadata : Migration
             nullable: false,
             defaultValue: 0);
 
-        migrationBuilder.AddColumn<string>(
+        _ = migrationBuilder.AddColumn<string>(
             name: "Metadata",
             schema: "SiteContent",
             table: "AboutUss",
@@ -104,62 +104,62 @@ public partial class AddDisplayOrderAndMetadata : Migration
     /// <inheritdoc />
     protected override void Down(MigrationBuilder migrationBuilder)
     {
-        migrationBuilder.DropColumn(
+        _ = migrationBuilder.DropColumn(
             name: "DisplayOrder",
             schema: "SiteContent",
             table: "Testimonials");
 
-        migrationBuilder.DropColumn(
+        _ = migrationBuilder.DropColumn(
             name: "Metadata",
             schema: "SiteContent",
             table: "Testimonials");
 
-        migrationBuilder.DropColumn(
+        _ = migrationBuilder.DropColumn(
             name: "DisplayOrder",
             schema: "SiteContent",
             table: "PageBanners");
 
-        migrationBuilder.DropColumn(
+        _ = migrationBuilder.DropColumn(
             name: "Metadata",
             schema: "SiteContent",
             table: "PageBanners");
 
-        migrationBuilder.DropColumn(
+        _ = migrationBuilder.DropColumn(
             name: "DisplayOrder",
             schema: "SiteContent",
             table: "HeroSlides");
 
-        migrationBuilder.DropColumn(
+        _ = migrationBuilder.DropColumn(
             name: "Metadata",
             schema: "SiteContent",
             table: "HeroSlides");
 
-        migrationBuilder.DropColumn(
+        _ = migrationBuilder.DropColumn(
             name: "DisplayOrder",
             schema: "SiteContent",
             table: "FooterInfos");
 
-        migrationBuilder.DropColumn(
+        _ = migrationBuilder.DropColumn(
             name: "Metadata",
             schema: "SiteContent",
             table: "FooterInfos");
 
-        migrationBuilder.DropColumn(
+        _ = migrationBuilder.DropColumn(
             name: "DisplayOrder",
             schema: "SiteContent",
             table: "FeatureHighlights");
 
-        migrationBuilder.DropColumn(
+        _ = migrationBuilder.DropColumn(
             name: "Metadata",
             schema: "SiteContent",
             table: "FeatureHighlights");
 
-        migrationBuilder.DropColumn(
+        _ = migrationBuilder.DropColumn(
             name: "DisplayOrder",
             schema: "SiteContent",
             table: "AboutUss");
 
-        migrationBuilder.DropColumn(
+        _ = migrationBuilder.DropColumn(
             name: "Metadata",
             schema: "SiteContent",
             table: "AboutUss");

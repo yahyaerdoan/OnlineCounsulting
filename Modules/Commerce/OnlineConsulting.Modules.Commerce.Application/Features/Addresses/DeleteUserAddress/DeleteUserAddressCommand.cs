@@ -19,9 +19,11 @@ public class DeleteUserAddressHandler(IUserAddressRepository repository) : IRequ
     {
         var address = await repository.GetAsync(a => a.Id == request.Id && a.UserId == request.UserId, cancellationToken: cancellationToken);
         if (address is null)
+        {
             return Result.NotFound($"Address {request.Id} was not found.");
+        }
 
-        await repository.DeleteAsync(address);
+        _ = await repository.DeleteAsync(address);
 
         return Result.Success("Address deleted successfully.");
     }

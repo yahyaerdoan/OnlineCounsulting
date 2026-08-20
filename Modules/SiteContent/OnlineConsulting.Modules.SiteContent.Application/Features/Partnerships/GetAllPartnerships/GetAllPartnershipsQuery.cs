@@ -21,7 +21,9 @@ public class GetAllPartnershipsHandler(IPartnershipRepository partnershipReposit
     public async Task<OperationDataResult<List<PartnershipResponse>>> Handle(GetAllPartnershipsQuery request, CancellationToken cancellationToken)
     {
         if (!await featureFlagReader.IsEnabledAsync(PartnershipsFeatureFlagKey, cancellationToken))
+        {
             return Result.Success(new List<PartnershipResponse>(), "Partnerships is disabled for this tenant.");
+        }
 
         var partnerships = await partnershipRepository.GetListAsync(orderBy: q => q.OrderBy(x => x.DisplayOrder), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
         var socialLinks = await socialLinkRepository.GetListAsync(size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);

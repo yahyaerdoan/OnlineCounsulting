@@ -1,4 +1,4 @@
-using Core.SecurityLayer.Extensions;
+﻿using Core.SecurityLayer.Extensions;
 using Microsoft.AspNetCore.Http;
 using OnlineConsulting.SharedKernel.Authorization;
 
@@ -10,7 +10,9 @@ public static class TenantOwnershipGuard
     public static bool CallerMayManage(Guid targetTenantId, Guid callerTenantId, IHttpContextAccessor httpContextAccessor)
     {
         if (callerTenantId == targetTenantId)
+        {
             return true;
+        }
 
         var roles = httpContextAccessor.HttpContext?.User.ClaimRoles() ?? [];
         return roles.Contains(GlobalOperationClaims.SuperAdmin);

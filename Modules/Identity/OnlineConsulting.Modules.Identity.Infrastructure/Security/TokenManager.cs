@@ -52,7 +52,9 @@ public class TokenManager(IJwtTokenHelper jwtTokenHelper, IOptions<TokenOption> 
         {
             var principal = new JwtSecurityTokenHandler().ValidateToken(accessToken, validationParameters, out var securityToken);
             if (securityToken is not JwtSecurityToken jwt || !jwt.Header.Alg.Equals(SecurityAlgorithms.HmacSha512Signature, StringComparison.InvariantCultureIgnoreCase))
+            {
                 return null;
+            }
 
             // JwtSecurityTokenHandler remaps "sub" to NameIdentifier by default - same dual lookup as CurrentUserAccessor.
             return principal.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;

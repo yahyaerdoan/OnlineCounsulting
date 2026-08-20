@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.AboutUss.GetAllAboutUss;
 using ResultHandler.AspNetCore.Extensions;
@@ -9,7 +9,7 @@ public class GetAllAboutUss : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/site-content/about-us", Handle)
+        _ = app.MapGet("/api/site-content/about-us", Handle)
             .WithTags("SiteContent/AboutUs")
             .WithName("GetAllAboutUss")
             .WithDescription("Returns the tenant's About Us content blocks. Public - no login required.");

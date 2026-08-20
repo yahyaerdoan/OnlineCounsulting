@@ -6,7 +6,7 @@ public class RefreshTokenValidator : AbstractValidator<RefreshTokenCommand>
 {
     public RefreshTokenValidator()
     {
-        RuleFor(x => x.AccessToken).NotEmpty();
-        RuleFor(x => x.RefreshToken).NotEmpty();
+        _ = RuleFor(x => x.AccessToken).NotEmpty();
+        _ = RuleFor(x => x.RefreshToken).NotEmpty();
     }
 }

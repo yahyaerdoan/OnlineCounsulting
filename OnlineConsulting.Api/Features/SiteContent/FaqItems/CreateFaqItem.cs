@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.FaqItems.CreateFaqItem;
@@ -10,7 +10,7 @@ public class CreateFaqItem : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/site-content/faq-items", Handle)
+        _ = app.MapPost("/api/site-content/faq-items", Handle)
             .WithTags("SiteContent/FaqItems")
             .RequireAuthorization()
             .WithName("CreateFaqItem")

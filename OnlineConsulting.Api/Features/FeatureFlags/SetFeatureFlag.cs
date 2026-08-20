@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.FeatureFlags.Application.Features.SetFeatureFlag;
@@ -11,7 +11,7 @@ public class SetFeatureFlag : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPut("/api/admin/feature-flags/{key}", Handle)
+        _ = app.MapPut("/api/admin/feature-flags/{key}", Handle)
             .WithTags("FeatureFlags")
             .RequireAuthorization()
             .WithName("SetFeatureFlag")

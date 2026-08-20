@@ -27,13 +27,17 @@ public class CheckoutController(ICheckoutService checkoutService, IUserAddressSe
         toastNotification.ShowResult(result);
 
         if (!result.IsSuccessful || result.ResultData is null)
+        {
             return RedirectToAction("Index", "Checkout", new { area = "", cartId });
+        }
 
         // A null PaymentClientSecret means the gateway already settled the payment synchronously (e.g. Mock) -
         // nothing left for the client to confirm, go straight to the order. A real gateway like Stripe leaves
         // the order Pending until the client completes 3DS/SCA, so route through the confirmation page instead.
         if (result.ResultData.PaymentClientSecret is null)
+        {
             return RedirectToAction("Order", "Dashboard", new { area = "User" });
+        }
 
         TempData["Checkout_OrderId"] = result.ResultData.OrderId.ToString();
         TempData["Checkout_OrderNumber"] = result.ResultData.OrderNumber;
@@ -48,7 +52,9 @@ public class CheckoutController(ICheckoutService checkoutService, IUserAddressSe
     public IActionResult Confirm()
     {
         if (TempData.Peek("Checkout_ClientSecret") is not string clientSecret)
+        {
             return RedirectToAction("Index", "Cart", new { area = "" });
+        }
 
         ViewBag.StripePublishableKey = stripeOptions.Value.PublishableKey;
         ViewBag.ClientSecret = clientSecret;
