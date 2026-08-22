@@ -26,6 +26,30 @@
         </a>
     </li>
     <li>
+        <a href="@Url.Action("Appointment","Dashboard", new { area="User" })"
+           class="nav-link @(currentController == "Dashboard" && currentAction == "Appointment" ? "active text-active-orange" : "")">
+            <i class="bi bi-calendar-check me-2"></i> Appointments
+        </a>
+    </li>
+    <li>
+        <a href="@Url.Action("Equipment","Dashboard", new { area="User" })"
+           class="nav-link @(currentController == "Dashboard" && currentAction == "Equipment" ? "active text-active-orange" : "")">
+            <i class="bi bi-tools me-2"></i> My Equipment
+        </a>
+    </li>
+    <li>
+        <a href="@Url.Action("Membership","Dashboard", new { area="User" })"
+           class="nav-link @(currentController == "Dashboard" && currentAction == "Membership" ? "active text-active-orange" : "")">
+            <i class="bi bi-award me-2"></i> My Membership
+        </a>
+    </li>
+    <li>
+        <a href="@Url.Action("Referral","Dashboard", new { area="User" })"
+           class="nav-link @(currentController == "Dashboard" && currentAction == "Referral" ? "active text-active-orange" : "")">
+            <i class="bi bi-gift me-2"></i> Referrals
+        </a>
+    </li>
+    <li>
         <a href="@Url.Action("Download","Dashboard", new { area="User" })"
            class="nav-link @(currentController == "Dashboard" && currentAction == "Download" ? "active text-active-orange" : "")">
             <i class="bi bi-download me-2"></i> Downloads

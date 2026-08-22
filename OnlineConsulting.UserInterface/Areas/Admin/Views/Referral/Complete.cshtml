@@ -1,0 +1,49 @@
+@using OnlineConsulting.UserInterface.Areas.Admin.Features.Referral
+@model CompleteReferralViewModel
+@{
+    ViewData["Title"] = "Complete Referral";
+    ViewData["SubPage1"] = "Referrals";
+    ViewData["SubPage1Url"] = Url.Action("Index", "Referral", new { area = "Admin" });
+    ViewData["SubPage2"] = "Complete";
+}
+<div class="col-12">
+    <div class="card p-3">
+        <div class="card-header">
+            <h5 class="mb-0">Complete Referral &amp; Reward</h5>
+            <p class="text-muted mb-0 mt-1 f-14">This pays out a real account credit to the referrer - cannot be undone.</p>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="ReferrerName" />
+                <input type="hidden" asp-for="ReferredName" />
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Referrer</label>
+                            <input type="text" class="form-control" value="@Model.ReferrerName" disabled readonly />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Referred Customer</label>
+                            <input type="text" class="form-control" value="@Model.ReferredName" disabled readonly />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label" for="rewardAmount">Reward Amount</label>
+                            <input type="number" step="0.01" class="form-control" id="rewardAmount" asp-for="RewardAmount" />
+                            <span asp-validation-for="RewardAmount" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-12 text-end mt-3">
+                        <div class="d-grid gap-2 mt-2 text-center">
+                            <button class="btn btn-outline-primary d-inline-flex text-center justify-content-center"> <i class="ti ti-coin me-1"></i>Complete &amp; Reward</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

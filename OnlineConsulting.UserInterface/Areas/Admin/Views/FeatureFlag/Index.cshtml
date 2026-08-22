@@ -1,0 +1,123 @@
+@using OnlineConsulting.UserInterface.Areas.Admin.Features.FeatureFlag
+@model List<FeatureFlagListItemViewModel>
+@{
+    ViewData["Title"] = "Feature Flags";
+    ViewData["SubPage1"] = "Feature Flags";
+    ViewData["SubPage1Url"] = Url.Action("Index", "FeatureFlag", new { area = "Admin" });
+    var enabledCount = Model.Count(f => f.IsEnabled);
+    var purchasedCount = Model.Count(f => f.IsPurchased);
+}
+
+<div class="col-12">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body d-flex align-items-center">
+                    <div class="avtar avtar-s bg-light-primary flex-shrink-0">
+                        <i class="ti ti-flag-2 f-20"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="mb-0 text-muted f-w-400">Total Flags</h6>
+                        <h4 class="mb-0">@Model.Count</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body d-flex align-items-center">
+                    <div class="avtar avtar-s bg-light-success flex-shrink-0">
+                        <i class="ti ti-toggle-right f-20"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="mb-0 text-muted f-w-400">Enabled</h6>
+                        <h4 class="mb-0">@enabledCount</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body d-flex align-items-center">
+                    <div class="avtar avtar-s bg-light-warning flex-shrink-0">
+                        <i class="ti ti-shopping-cart f-20"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="mb-0 text-muted f-w-400">Purchased</h6>
+                        <h4 class="mb-0">@purchasedCount</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="col-12">
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Feature Flags</h5>
+            <p class="text-muted mb-0 mt-1 f-14">Turn modules on or off for this tenant. Changes apply immediately.</p>
+        </div>
+        <div class="card-body pt-3">
+            @if (Model is { Count: > 0 })
+            {
+                <div class="row">
+                    @foreach (var item in Model)
+                    {
+                        <div class="col-md-6 col-xl-4">
+                            <div class="card border">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avtar avtar-s @(item.IsEnabled ? "bg-light-success" : "bg-light-secondary") flex-shrink-0">
+                                            <i class="ti ti-toggle-@(item.IsEnabled ? "right" : "left") f-20"></i>
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <h6 class="mb-0">@item.Key</h6>
+                                            <span class="text-muted f-12">@(item.Price is null ? "No charge" : item.Price.Value.ToString("C"))</span>
+                                        </div>
+                                        <div class="flex-shrink-0 ms-2">
+                                            <form method="post" asp-action="Toggle" class="feature-flag-toggle-form">
+                                                <input type="hidden" name="key" value="@item.Key" />
+                                                <input type="hidden" name="isEnabled" value="@((!item.IsEnabled).ToString().ToLowerInvariant())" />
+                                                <div class="form-check form-switch m-0">
+                                                    <input type="checkbox" class="form-check-input f-18 input-success" role="switch"
+                                                           checked="@item.IsEnabled" onchange="this.closest('form').submit()"
+                                                           aria-label="Toggle @item.Key" />
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
+                                        @if (item.IsPurchased)
+                                        {
+                                            <span class="badge bg-light-success">Purchased</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-light-secondary">Not purchased</span>
+                                        }
+                                        @if (item.IsEnabled)
+                                        {
+                                            <span class="badge bg-light-success">Enabled</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-light-danger">Disabled</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="ti ti-flag-2 f-40 text-muted"></i>
+                    <p class="text-muted mb-0 mt-2">No feature flags found.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>

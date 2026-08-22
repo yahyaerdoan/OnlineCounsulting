@@ -26,12 +26,11 @@ public class AboutUsAboutComponentPartial(IAboutUsService aboutUsService) : View
 
     private static string ConvertToEmbededUrl(string url)
     {
-        if (string.IsNullOrWhiteSpace(url))
+        if (string.IsNullOrWhiteSpace(url) || !Uri.TryCreate(url, UriKind.Absolute, out var uri))
         {
             return string.Empty;
         }
 
-        var uri = new Uri(url);
         var query = HttpUtility.ParseQueryString(uri.Query);
         var videoId = query["v"] ?? uri.Segments.LastOrDefault()?.Trim('/');
         return $"https://www.youtube.com/embed/{videoId}?autoplay=1&mute=1&loop=1&playlist={videoId}&rel=0&modestbranding=1";

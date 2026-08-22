@@ -28,5 +28,27 @@ public class SystemRoleService(IApiClient apiClient) : ISystemRoleService
     public Task<ApiEnvelope> DeleteAsync(Guid id, CancellationToken cancellationToken = default) =>
         apiClient.DeleteAsync($"{RolesPath}/{id}", cancellationToken);
 
+    public async Task<AssignRolePermissionsViewModel?> GetPermissionsAsync(Guid roleId, CancellationToken cancellationToken = default)
+    {
+        var roleResult = await apiClient.GetAsync<RoleResponse>($"{RolesPath}/{roleId}", cancellationToken);
+        var role = roleResult.ResultData;
+        if (role is null)
+        {
+            return null;
+        }
+
+        var grantedPermissions = (await apiClient.GetAsync<List<string>>($"{RolesPath}/{roleId}/permissions", cancellationToken)).ResultData ?? [];
+        var catalog = (await apiClient.GetAsync<Dictionary<string, string[]>>("/api/permissions", cancellationToken)).ResultData ?? [];
+
+        var permissionsByModule = catalog.ToDictionary(
+            module => module.Key,
+            module => module.Value.Select(p => new PermissionCheckboxViewModel(p, grantedPermissions.Contains(p))).ToList());
+
+        return new AssignRolePermissionsViewModel(role.Id, role.Name, permissionsByModule);
+    }
+
+    public Task<ApiEnvelope> AssignPermissionsAsync(Guid roleId, List<string> permissions, CancellationToken cancellationToken = default) =>
+        apiClient.PutAsync($"{RolesPath}/{roleId}/permissions", new { Permissions = permissions }, cancellationToken);
+
     private record RoleResponse(Guid Id, string Name, string Description);
 }

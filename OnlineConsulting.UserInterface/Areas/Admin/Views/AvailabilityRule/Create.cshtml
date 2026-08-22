@@ -1,0 +1,55 @@
+@using OnlineConsulting.UserInterface.Areas.Admin.Features.AvailabilityRule
+@model CreateAvailabilityRuleViewModel
+@{
+    ViewData["Title"] = "Add Availability Rule";
+    ViewData["SubPage1"] = "Availability Rules";
+    ViewData["SubPage1Url"] = Url.Action("Index", "AvailabilityRule", new { area = "Admin" });
+    ViewData["SubPage2"] = "Add Rule";
+    ViewData["SubPage2Url"] = Url.Action("Create", "AvailabilityRule", new { area = "Admin" });
+}
+<div class="col-12">
+    <div class="card p-3">
+        <div class="card-header">
+            <h5 class="mb-0">Add Availability Rule</h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label" for="dayOfWeek">Day of Week</label>
+                            <select class="form-control" id="dayOfWeek" asp-for="DayOfWeek" asp-items="Html.GetEnumSelectList<DayOfWeek>()"></select>
+                            <span asp-validation-for="DayOfWeek" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label" for="startTime">Start Time</label>
+                            <input type="time" class="form-control" id="startTime" asp-for="StartTime" />
+                            <span asp-validation-for="StartTime" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label" for="endTime">End Time</label>
+                            <input type="time" class="form-control" id="endTime" asp-for="EndTime" />
+                            <span asp-validation-for="EndTime" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label" for="slotDurationMinutes">Slot Duration (minutes)</label>
+                            <input type="number" class="form-control" id="slotDurationMinutes" asp-for="SlotDurationMinutes" />
+                            <span asp-validation-for="SlotDurationMinutes" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-12 text-end mt-3">
+                        <div class="d-grid gap-2 mt-2 text-center">
+                            <button class="btn btn-outline-primary d-inline-flex text-center justify-content-center"> <i class="ti ti-bookmark me-1"></i>Save</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

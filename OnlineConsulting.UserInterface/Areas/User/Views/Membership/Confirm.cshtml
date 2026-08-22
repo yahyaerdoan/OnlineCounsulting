@@ -1,0 +1,45 @@
+@{
+    ViewData["Title"] = "Confirm Membership Payment";
+    Layout = "~/Areas/User/Views/Shared/_Layout.cshtml";
+}
+<div class="tab-pane fade show active">
+    <h6 class="mb-4 fw-bold">Confirm Payment</h6>
+    <p class="text-muted">Your card needs one more confirmation step to finish setting up your membership.</p>
+
+    <div id="payment-message" class="text-danger mb-3" style="display:none;"></div>
+
+    <button id="confirmButton" type="button" class="btn btn-large rounded-2 px-4 py-2 fw-semibold w-100">
+        <span id="confirmSpinner" class="spinner-border spinner-border-sm me-1" style="display:none;"></span>
+        Confirm Payment
+    </button>
+
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+        (function () {
+            const stripe = Stripe('@ViewBag.StripePublishableKey');
+            const clientSecret = '@ViewBag.ClientSecret';
+
+            const confirmButton = document.getElementById('confirmButton');
+            const confirmSpinner = document.getElementById('confirmSpinner');
+            const messageBox = document.getElementById('payment-message');
+
+            confirmButton.addEventListener('click', async function () {
+                confirmButton.disabled = true;
+                confirmSpinner.style.display = 'inline-block';
+                messageBox.style.display = 'none';
+
+                const { error } = await stripe.confirmCardPayment(clientSecret);
+
+                if (error) {
+                    messageBox.textContent = error.message || 'Payment could not be confirmed. Please try again.';
+                    messageBox.style.display = 'block';
+                    confirmButton.disabled = false;
+                    confirmSpinner.style.display = 'none';
+                    return;
+                }
+
+                window.location.href = '@Url.Action("Return", "Membership", new { area = "User", status = "succeeded" })';
+            });
+        })();
+    </script>
+</div>

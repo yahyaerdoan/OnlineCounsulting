@@ -35,7 +35,7 @@ public class ActivateTenantSubscriptionHandler(ITenantRepository tenantRepositor
             ?? throw new InvalidOperationException($"Tenant {tenant.Id} has no TenantSubscription row.");
 
         var itemsPage = await tenantSubscriptionItemRepository
-            .GetListAsync(predicate: i => i.TenantSubscriptionId == tenantSubscription.Id, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+            .GetListAsync(predicate: i => i.TenantSubscriptionId == tenantSubscription.Id, size: RepositoryQuerySize.Unbounded, enableTracking: true, cancellationToken: cancellationToken);
 
         var pendingItems = itemsPage.Items
             .Where(i => i.Status is TenantSubscriptionItemStatuses.Pending or TenantSubscriptionItemStatuses.Failed)

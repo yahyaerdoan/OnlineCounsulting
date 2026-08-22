@@ -1,0 +1,77 @@
+@using OnlineConsulting.UserInterface.Areas.Admin.Features.MembershipPlan
+@model UpdateMembershipPlanViewModel
+@{
+    ViewData["Title"] = "Update Membership Plan";
+    ViewData["SubPage1"] = "Membership Plans";
+    ViewData["SubPage1Url"] = Url.Action("Index", "MembershipPlan", new { area = "Admin" });
+    ViewData["SubPage2"] = "Update Plan";
+    ViewData["SubPage2Url"] = Url.Action("Update", "MembershipPlan", new { area = "Admin", id = Model.Id });
+}
+<div class="col-12">
+    <div class="card p-3">
+        <div class="card-header">
+            <h5 class="mb-0">Update Membership Plan</h5>
+            <p class="text-muted mb-0 mt-1 f-14">Billing cycle and price can't be changed once a plan exists - create a new plan for a real price change.</p>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                <div class="row">
+                    <input type="hidden" asp-for="Id" />
+
+                    <div class="col-md-8">
+                        <div class="mb-3">
+                            <label class="form-label" for="name">Name</label>
+                            <input type="text" class="form-control" id="name" asp-for="Name" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label">Billing Cycle</label>
+                            <input type="text" class="form-control" value="@Model.BillingCycle" disabled readonly />
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label">Price</label>
+                            <input type="text" class="form-control" value="@Model.Price.ToString("C")" disabled readonly />
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label" for="includedVisitsPerYear">Included Visits/Year</label>
+                            <input type="number" class="form-control" id="includedVisitsPerYear" asp-for="IncludedVisitsPerYear" />
+                            <span asp-validation-for="IncludedVisitsPerYear" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label" for="discountPercent">Discount %</label>
+                            <input type="number" step="0.01" class="form-control" id="discountPercent" asp-for="DiscountPercent" />
+                            <span asp-validation-for="DiscountPercent" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="mb-3">
+                            <label class="form-label" for="creditAmount">Credit Amount</label>
+                            <input type="number" step="0.01" class="form-control" id="creditAmount" asp-for="CreditAmount" />
+                            <span asp-validation-for="CreditAmount" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="mb-3">
+                            <label class="form-label" for="benefits">Benefits</label>
+                            <textarea class="form-control" id="benefits" rows="3" asp-for="Benefits"></textarea>
+                            <span asp-validation-for="Benefits" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-12 text-end mt-3">
+                        <div class="d-grid gap-2 mt-2 text-center">
+                            <button class="btn btn-outline-primary d-inline-flex text-center justify-content-center"> <i class="ti ti-bookmark me-1"></i>Save</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

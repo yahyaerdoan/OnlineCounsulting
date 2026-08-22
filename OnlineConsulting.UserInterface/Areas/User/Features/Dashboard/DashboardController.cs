@@ -13,6 +13,10 @@ public class DashboardController(IApiClient apiClient, IToastNotification toastN
     public IActionResult Index() => View();
     public IActionResult Order() => View();
     public IActionResult OrderDetail(Guid id) => View(id);
+    public IActionResult Appointment() => View();
+    public IActionResult Equipment() => View();
+    public IActionResult Membership() => View();
+    public IActionResult Referral() => View();
     public IActionResult Address() => View();
     public IActionResult Account() => View();
     public IActionResult Invoice(Guid id) => View(id);

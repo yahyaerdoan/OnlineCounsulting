@@ -1,0 +1,92 @@
+@using OnlineConsulting.UserInterface.Areas.Admin.Features.Bundle
+@model List<BundleListItemViewModel>
+@{
+    ViewData["Title"] = "Bundles";
+    ViewData["SubPage1"] = "Bundles";
+    ViewData["SubPage1Url"] = Url.Action("Index", "Bundle", new { area = "Admin" });
+    int count = 1;
+}
+
+<script type="module">
+    import { DataTable } from '/templates/admin-sky-template/able-pro-vanila-bootstrap-9.5.0/dist/assets/js/plugins/module.js';
+    window.dt = new DataTable('#pc-dt-simple');
+</script>
+
+<div class="col-12">
+    <div class="card table-card">
+        <div class="card-header">
+            <div class="d-sm-flex align-items-center justify-content-between">
+                <h5 class="mb-3 mb-sm-0">Bundles</h5>
+                <a href="@Url.Action("Create","Bundle")" class="btn btn-primary"><i class="ti ti-plus me-1"></i>Add Bundle</a>
+            </div>
+        </div>
+        <div class="card-body pt-3">
+            @if (Model is { Count: > 0 })
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover" id="pc-dt-simple">
+                        <thead>
+                            <tr>
+                                <th>Count</th>
+                                <th>Bundle</th>
+                                <th>Modules</th>
+                                <th>Visibility</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td style="padding-left:2rem">@count</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avtar avtar-s bg-light-primary flex-shrink-0">
+                                                <i class="ti ti-package f-18"></i>
+                                            </div>
+                                            <div class="ms-3">
+                                                <h6 class="mb-0">@item.Name</h6>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @if (item.ModuleKeys.Count == 0)
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                        else
+                                        {
+                                            @foreach (var key in item.ModuleKeys)
+                                            {
+                                                <span class="badge bg-light-primary me-1">@key</span>
+                                            }
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="badge @(item.IsPubliclyVisible ? "bg-light-success" : "bg-light-secondary")">
+                                            @(item.IsPubliclyVisible ? "Visible" : "Hidden")
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="@Url.Action("Update","Bundle",new{id=item.Id})" class="avtar avtar-xs btn-link-secondary" title="Edit">
+                                            <i class="ti ti-edit f-20"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                count++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="ti ti-package f-40 text-muted"></i>
+                    <p class="text-muted mb-3 mt-2">No bundles yet.</p>
+                    <a href="@Url.Action("Create","Bundle")" class="btn btn-primary"><i class="ti ti-plus me-1"></i>Add Bundle</a>
+                </div>
+            }
+        </div>
+    </div>
+</div>

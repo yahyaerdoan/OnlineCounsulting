@@ -1,0 +1,183 @@
+@using OnlineConsulting.UserInterface.Areas.Admin.Features.Tenant
+@model TenantDetailViewModel
+@{
+    ViewData["Title"] = Model.Name;
+    ViewData["SubPage1"] = "Tenants";
+    ViewData["SubPage1Url"] = Url.Action("Index", "Tenant", new { area = "Admin" });
+    ViewData["SubPage2"] = Model.Name;
+    var statusBadge = Model.Status switch
+    {
+        "Active" => "bg-light-success",
+        "Suspended" => "bg-light-danger",
+        "PastDue" => "bg-light-warning",
+        "PendingPayment" => "bg-light-warning",
+        "Cancelled" or "Failed" => "bg-light-secondary",
+        _ => "bg-light-secondary",
+    };
+}
+
+<div class="col-12">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0">@Model.Name</h5>
+                    <span class="badge @statusBadge f-14">@Model.Status</span>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <h6 class="text-muted f-w-400 mb-1">Slug</h6>
+                            <p class="mb-0">@Model.Slug</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted f-w-400 mb-1">Primary Contact</h6>
+                            <p class="mb-0">@Model.PrimaryContactEmail</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted f-w-400 mb-1">Subscription Status</h6>
+                            <p class="mb-0">@(Model.SubscriptionStatus ?? "-")</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted f-w-400 mb-1">Renewal Date</h6>
+                            <p class="mb-0">@(Model.SubscriptionRenewalDate?.ToString("MMM d, yyyy") ?? "-")</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card table-card">
+                <div class="card-header">
+                    <h5 class="mb-0">Subscription Items</h5>
+                </div>
+                <div class="card-body pt-3">
+                    @if (Model.Items is { Count: > 0 })
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Module</th>
+                                        <th>Status</th>
+                                        <th>Price</th>
+                                        <th>Added</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.Items)
+                                    {
+                                        var itemBadge = item.Status switch
+                                        {
+                                            "Active" => "bg-light-success",
+                                            "Pending" => "bg-light-warning",
+                                            "Failed" => "bg-light-danger",
+                                            _ => "bg-light-secondary",
+                                        };
+                                        <tr>
+                                            <td>@item.ModuleKey</td>
+                                            <td><span class="badge @itemBadge">@item.Status</span></td>
+                                            <td>@item.PriceAtAddition.ToString("C")</td>
+                                            <td>@item.AddedAt.ToString("MMM d, yyyy")</td>
+                                            <td>
+                                                @if (item.Status == "Active")
+                                                {
+                                                    <a href="@Url.Action("RemoveModule","Tenant",new{id=Model.Id,moduleKey=item.ModuleKey})" class="avtar avtar-xs btn-link-secondary" title="Remove Module">
+                                                        <i class="ti ti-trash f-20"></i>
+                                                    </a>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <p class="text-muted mb-0">No modules on this tenant's subscription.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Platform Actions</h5>
+                </div>
+                <div class="card-body d-grid gap-2">
+                    @if (Model.Status is "Active" or "PastDue")
+                    {
+                        <a href="#" data-bs-toggle="modal" data-bs-target="#suspendModalCenter" class="btn btn-outline-danger">
+                            <i class="ti ti-player-pause me-1"></i>Suspend Tenant
+                        </a>
+                    }
+                    else if (Model.Status == "Suspended")
+                    {
+                        <a href="@Url.Action("Reactivate","Tenant",new{id=Model.Id})" class="btn btn-outline-success">
+                            <i class="ti ti-player-play me-1"></i>Reactivate Tenant
+                        </a>
+                    }
+                    <a href="@Url.Action("Index","Tenant")" class="btn btn-outline-secondary">
+                        <i class="ti ti-arrow-left me-1"></i>Back to Tenants
+                    </a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Add Module</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.AvailableModules is { Count: > 0 })
+                    {
+                        <form asp-area="Admin" asp-controller="Tenant" asp-action="AddModule" asp-route-id="@Model.Id" method="post">
+                            <div class="mb-3">
+                                <select name="moduleKey" class="form-select" required>
+                                    <option value="">Select a module...</option>
+                                    @foreach (var module in Model.AvailableModules)
+                                    {
+                                        <option value="@module.Key">@module.Name (@module.Price.ToString("C")/@module.BillingCycle)</option>
+                                    }
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="ti ti-plus me-1"></i>Add Module
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">Every available module is already active on this tenant.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Suspend Confirmation Modal Start -->
+<div id="suspendModalCenter" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="suspendModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="suspendModalCenterTitle">Suspend Confirmation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    This will immediately block every user of <strong>@Model.Name</strong> from accessing the platform.
+                    Do you want to continue?
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-bs-dismiss="modal">No</button>
+                <a href="@Url.Action("Suspend","Tenant",new{id=Model.Id})" class="btn btn-danger">Yes, Suspend</a>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Suspend Confirmation Modal End -->

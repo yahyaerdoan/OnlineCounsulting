@@ -1,73 +1,66 @@
-﻿ <!-- mini-cart-wrap  -->
+@using OnlineConsulting.UserInterface.Features.Cart
+@model CartViewModel?
+
+<!-- mini-cart-wrap -->
 <div class="mini-cart-wrap">
- @*    <button onclick="location.href='@Url.Action("Index", "Cart")'">
-        <i class="zmdi zmdi-shopping-basket"></i> <span>2</span>
-    </button> *@
+    <button type="button">
+        <i class="zmdi zmdi-shopping-basket"></i> <span>@(Model?.Items.Count ?? 0)</span>
+    </button>
 
     <!-- mini-cart-wrap -->
-  @*   <div class="mini-cart-wrap">
+    <div class="mini-cart-wrap">
+    @if (Model is null || Model.Items.Count == 0)
+    {
+        <div class="p-3 text-center text-muted">Your cart is empty.</div>
+    }
+    else
+    {
         <ul>
-            <!-- single-item -->
-            <li class="single-item">
-                <div class="product-img">
-                    <a href="#"><img src="/templates/ui-sky-template/eduhas/assets/images/other/cart-01.jpg" alt=""></a>
-                </div>
-                <div class="product-info">
-                    <h5><a href="#">This is product title hear one</a></h5>
-                    <div class="price-box">
-                        <span class="new-price">$55.21</span>
+            @foreach (var item in Model.Items)
+            {
+                <li class="single-item">
+                    <div class="product-info">
+                        <h5>@item.ServiceTitle</h5>
+                        <div class="price-box">
+                            <span class="new-price">@item.TotalPrice.ToUsd()</span>
+                        </div>
+                        <div class="size">
+                            Qty: @item.Quantity
+                        </div>
                     </div>
-                    <div class="size">
-                        Size: S
+                    <div class="remove-from-cart">
+                        <form asp-action="RemoveBasketItem" asp-controller="Cart" method="post" class="d-inline">
+                            <input type="hidden" name="id" value="@item.Id" />
+                            <button type="submit" class="remove-btn" title="Remove">
+                                <i class="zmdi zmdi-delete"></i>
+                            </button>
+                        </form>
                     </div>
-                </div>
-                <div class="remove-from-cart">
-                    <a href="#" title="Remove"><i class="zmdi zmdi-delete"></i></a>
-                </div>
-            </li><!--// single-item -->
-            <!-- single-item -->
-            <li class="single-item">
-                <div class="product-img">
-                    <a href="#"><img src="/templates/ui-sky-template/eduhas/assets/images/other/cart-02.jpg" alt=""></a>
-                </div>
-                <div class="product-info">
-                    <h5><a href="#">This is product title hear two</a></h5>
-                    <div class="price-box">
-                        <span class="new-price">$55.21</span>
-                    </div>
-                    <div class="size">
-                        Size: S
-                    </div>
-                </div>
-                <div class="remove-from-cart">
-                    <a href="#" title="Remove"><i class="zmdi zmdi-delete"></i></a>
-                </div>
-            </li><!--// single-item -->
+                </li>
+            }
             <li>
-                <!--  shopping-cart-total  -->
                 <div class="shopping-cart-total">
-                    <h5>Sub-Total : <span>$127.42</span></h5>
-                    <h5>Total : <span>$127.42</span></h5>
-                </div><!--//  shopping-cart-total  -->
+                    <h5>Subtotal: <span>@Model.SubTotal.ToUsd()</span></h5>
+                    <h5>Total: <span>@Model.Total.ToUsd()</span></h5>
+                </div>
             </li>
             <li>
                 <div class="row">
                     <div class="col-6">
-                        <!-- shopping-cart-btn -->
                         <div class="shopping-cart-btn">
-                            <a href="/Checkout/Index/">Checkout</a>
-                        </div><!--// shopping-cart-btn -->
+                            <a href="@Url.Action("Index", "Checkout", new { area = "", cartId = Model.CartId })">Checkout</a>
+                        </div>
                     </div>
-                    <div class="col-6"><!-- shopping-cart-btn -->
-                <div class="shopping-cart-btn">
-                    <a href="/Cart/Index/">Cart</a>
-                </div><!--// shopping-cart-btn --></div>
-
+                    <div class="col-6">
+                        <div class="shopping-cart-btn">
+                            <a href="@Url.Action("Index", "Cart", new { area = "" })">View Cart</a>
+                        </div>
+                    </div>
                 </div>
-               
-                
             </li>
         </ul>
-    </div><!--// main-cart-wrap --> *@
-
-</div><!--// main-cart-wrap  -->
+    }
+    </div>
+    <!--// mini-cart-wrap -->
+</div>
+<!--// mini-cart-wrap -->

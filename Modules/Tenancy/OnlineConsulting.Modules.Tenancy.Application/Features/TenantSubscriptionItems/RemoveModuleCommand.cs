@@ -2,6 +2,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.Abstractions;
+using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.Constants;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.Rules;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Domain;
@@ -55,7 +56,14 @@ public class RemoveModuleHandler(
         var providerSubscriptionItemId = item.ProviderSubscriptionItemId
             ?? throw new InvalidOperationException($"TenantSubscriptionItem {item.Id} has no ProviderSubscriptionItemId.");
 
-        await subscriptionGateway.RemoveSubscriptionItemAsync(providerSubscriptionItemId, cancellationToken);
+        try
+        {
+            await subscriptionGateway.RemoveSubscriptionItemAsync(providerSubscriptionItemId, cancellationToken);
+        }
+        catch (Exception)
+        {
+            return Result.BadRequest(TenantSubscriptionItemMessages.ModuleRemovalFailed);
+        }
 
         _ = await tenantSubscriptionItemRepository.DeleteAsync(item);
 

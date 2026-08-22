@@ -1,0 +1,69 @@
+@using OnlineConsulting.UserInterface.Areas.Admin.Features.ModuleOffering
+@model CreateModuleOfferingViewModel
+@{
+    ViewData["Title"] = "Add Module Offering";
+    ViewData["SubPage1"] = "Module Offerings";
+    ViewData["SubPage1Url"] = Url.Action("Index", "ModuleOffering", new { area = "Admin" });
+    ViewData["SubPage2"] = "Add Offering";
+    ViewData["SubPage2Url"] = Url.Action("Create", "ModuleOffering", new { area = "Admin" });
+}
+<div class="col-12">
+    <div class="card p-3">
+        <div class="card-header">
+            <h5 class="mb-0">Add Module Offering</h5>
+            <p class="text-muted mb-0 mt-1 f-14">Creates a real provider-side product/price - the price and billing cycle can't be changed once saved.</p>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label" for="key">Key</label>
+                            <input type="text" class="form-control" id="key" placeholder="e.g. Partnerships" asp-for="Key" />
+                            <span class="text-muted f-12">Must match a known FeatureFlagKeys constant - this is what a tenant's AddModule call and feature flags key off.</span>
+                            <span asp-validation-for="Key" class="text-danger d-block"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label" for="name">Name</label>
+                            <input type="text" class="form-control" id="name" placeholder="e.g. Partnerships Module" asp-for="Name" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label" for="billingCycle">Billing Cycle</label>
+                            <select class="form-control" id="billingCycle" asp-for="BillingCycle">
+                                <option value="Monthly">Monthly</option>
+                                <option value="Annual">Annual</option>
+                            </select>
+                            <span asp-validation-for="BillingCycle" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label" for="price">Price</label>
+                            <input type="number" step="0.01" class="form-control" id="price" asp-for="Price" />
+                            <span asp-validation-for="Price" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label d-block">Visibility</label>
+                            <div class="form-check form-switch mt-2">
+                                <input class="form-check-input" type="checkbox" role="switch" id="isPubliclyVisible" asp-for="IsPubliclyVisible" />
+                                <label class="form-check-label" for="isPubliclyVisible">Publicly visible</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12 text-end mt-3">
+                        <div class="d-grid gap-2 mt-2 text-center">
+                            <button class="btn btn-outline-primary d-inline-flex text-center justify-content-center"> <i class="ti ti-bookmark me-1"></i>Save</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

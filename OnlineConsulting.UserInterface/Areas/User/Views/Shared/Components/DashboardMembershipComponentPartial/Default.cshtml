@@ -1,0 +1,65 @@
+@using OnlineConsulting.UserInterface.Areas.User.Features.Membership
+@model MyMembershipViewModel
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+<div class="tab-pane fade show active" id="membership">
+    <h6 class="mb-4 fw-bold">My Membership</h6>
+
+    @if (!Model.HasMembership)
+    {
+        <div class="alert alert">
+            You don't have an active membership yet.
+        </div>
+        <a href="@Url.Action("Index", "Membership", new { area = "" })" class="btn btn rounded-2">
+            <i class="bi bi-award me-1"></i>Browse Plans
+        </a>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h5 class="mb-0">@Model.PlanName</h5>
+                    <span class="badge
+                        @(Model.Status == "Active" ? "bg-success" :
+                          Model.Status is "PendingPayment" or "PastDue" ? "bg-warning text-dark" : "bg-danger")">
+                        @Model.Status
+                    </span>
+                </div>
+                <p class="text-muted mb-1">Started: @Model.StartDate?.ToString("MMM d, yyyy")</p>
+                @if (Model.RenewalDate is not null)
+                {
+                    <p class="text-muted mb-3">Renews: @Model.RenewalDate?.ToString("MMM d, yyyy")</p>
+                }
+
+                @if (Model.CanCancel)
+                {
+                    <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#cancelMembershipModal">
+                        <i class="bi bi-x-circle me-1"></i>Cancel Membership
+                    </button>
+                }
+            </div>
+        </div>
+
+        <div class="modal fade" id="cancelMembershipModal" tabindex="-1" aria-labelledby="cancelMembershipModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="cancelMembershipModalLabel">Cancel Membership</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Your membership will be cancelled immediately. Do you want to continue?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-success" data-bs-dismiss="modal">No</button>
+                        <form asp-area="User" asp-controller="Membership" asp-action="Cancel" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-danger">Yes, Cancel</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>

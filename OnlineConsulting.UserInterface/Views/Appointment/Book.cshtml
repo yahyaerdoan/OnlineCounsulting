@@ -1,0 +1,91 @@
+@using OnlineConsulting.UserInterface.Features.Appointment
+@model BookAppointmentViewModel
+@{
+    ViewData["Title"] = "Book an Appointment";
+    ViewData["SubPage1"] = "Book Appointment";
+}
+<main class="page-content section-ptb">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-sm-12">
+                <div class="contact-form">
+                    <div class="contact-form-info">
+                        <div class="contact-title mb-4">
+                            <h3 style="text-transform:capitalize">Book an Appointment</h3>
+                            <p class="text-muted">Pick a service and a date to see available time slots.</p>
+                        </div>
+
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <form asp-controller="Appointment" asp-action="Book" method="get" class="contact-page-form mb-4">
+                            <div class="row g-3 align-items-end">
+                                <div class="col-md-5">
+                                    <div class="contact-inner mt-0 mb-0">
+                                        <label class="form-label">Service (optional)</label>
+                                        <select name="serviceId" class="form-control">
+                                            <option value="">General inquiry / meeting</option>
+                                            @foreach (var service in Model.Services)
+                                            {
+                                                <option value="@service.Id" selected="@(service.Id == Model.ServiceId)">@service.Title</option>
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="contact-inner mt-0 mb-0">
+                                        <label class="form-label">Date</label>
+                                        <input type="date" name="date" class="form-control" value="@Model.Date.ToString("yyyy-MM-dd")" min="@DateOnly.FromDateTime(DateTime.UtcNow).ToString("yyyy-MM-dd")" />
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <button type="submit" class="btn btn-large rounded-2 px-4 py-2 fw-semibold w-100">Check Availability</button>
+                                </div>
+                            </div>
+                        </form>
+
+                        <form asp-controller="Appointment" asp-action="Book" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" asp-for="ServiceId" />
+                            <input type="hidden" asp-for="Date" />
+
+                            @if (Model.AvailableSlots.Count == 0)
+                            {
+                                <div class="alert alert-warning">No available slots for this date. Try a different date above.</div>
+                            }
+                            else
+                            {
+                                <label class="form-label d-block mb-2">Available Times on @Model.Date.ToString("MMMM d, yyyy")</label>
+                                <ul class="time-slot-list mb-4">
+                                    @for (var i = 0; i < Model.AvailableSlots.Count; i++)
+                                    {
+                                        var slot = Model.AvailableSlots[i];
+                                        <li class="time-slot-option">
+                                            <input type="radio" name="SlotIndex" value="@i" id="slot-@i" required
+                                                   onchange="document.getElementById('selectedSlotStart').value='@slot.Start.ToString("O")'; document.getElementById('selectedSlotEnd').value='@slot.End.ToString("O")';" />
+                                            <label for="slot-@i">@slot.Start.ToString("h:mm tt")</label>
+                                        </li>
+                                    }
+                                </ul>
+                                <input type="hidden" id="selectedSlotStart" asp-for="SelectedSlotStart" />
+                                <input type="hidden" id="selectedSlotEnd" asp-for="SelectedSlotEnd" />
+
+                                <div class="contact-inner mt-1">
+                                    <label class="form-label">Service Address (optional)</label>
+                                    <input type="text" class="form-control" placeholder="Where should we come?" asp-for="ServiceAddress" />
+                                </div>
+                                <div class="contact-inner mt-2">
+                                    <label class="form-label">Notes (optional)</label>
+                                    <textarea class="form-control" placeholder="Anything we should know?" asp-for="CustomerNote"></textarea>
+                                </div>
+
+                                <div class="contact-submit-btn mt-3">
+                                    <button class="btn btn-large rounded-2 px-4 py-2 fw-semibold" type="submit">Request Appointment</button>
+                                </div>
+                            }
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>

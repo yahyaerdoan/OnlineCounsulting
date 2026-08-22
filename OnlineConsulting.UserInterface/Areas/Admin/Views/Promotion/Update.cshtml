@@ -1,0 +1,71 @@
+@using OnlineConsulting.UserInterface.Areas.Admin.Features.Promotion
+@model UpdatePromotionViewModel
+@{
+    ViewData["Title"] = "Update Promotion";
+    ViewData["SubPage1"] = "Promotion List";
+    ViewData["SubPage1Url"] = Url.Action("Index", "Promotion", new { area = "Admin" });
+    ViewData["SubPage2"] = "Update Promotion";
+    ViewData["SubPage2Url"] = Url.Action("Update", "Promotion", new { area = "Admin", id = Model.Id });
+}
+<div class="col-12">
+    <div class="card p-3">
+        <div class="card-header">
+            <h5 class="mb-0">Update Promotion</h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                <div class="row">
+                    <input type="hidden" asp-for="Id" />
+
+                    <div class="col-md-12">
+                        <div class="mb-3">
+                            <label class="form-label" for="title">Title</label>
+                            <input type="text" class="form-control" id="title" placeholder="Enter title" asp-for="Title" />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="mb-3">
+                            <label class="form-label" for="description">Description</label>
+                            <textarea class="form-control" id="description" rows="3" placeholder="Enter description" asp-for="Description"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label" for="ctaText">Cta Text</label>
+                            <input type="text" class="form-control" id="ctaText" placeholder="Enter cta text" asp-for="CtaText" />
+                            <span asp-validation-for="CtaText" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label" for="ctaUrl">Cta Url</label>
+                            <input type="text" class="form-control" id="ctaUrl" placeholder="Enter cta url" asp-for="CtaUrl" />
+                            <span asp-validation-for="CtaUrl" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label" for="expiresAt">Expires At</label>
+                            <input type="date" class="form-control" id="expiresAt" asp-for="ExpiresAt" />
+                            <span asp-validation-for="ExpiresAt" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label" for="displayOrder">Display Order</label>
+                            <input type="number" class="form-control" id="displayOrder" asp-for="DisplayOrder" />
+                            <span asp-validation-for="DisplayOrder" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-12 text-end mt-3">
+                        <div class="d-grid gap-2 mt-2 text-center">
+                            <button class="btn btn-outline-primary d-inline-flex text-center justify-content-center"> <i class="ti ti-bookmark me-1"></i>Save</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

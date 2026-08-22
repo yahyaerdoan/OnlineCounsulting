@@ -12,4 +12,6 @@ public interface ISystemRoleService
     Task<ApiEnvelope> CreateAsync(CreateSystemRoleViewModel model, CancellationToken cancellationToken = default);
     Task<ApiEnvelope> UpdateAsync(UpdateSystemRoleViewModel model, CancellationToken cancellationToken = default);
     Task<ApiEnvelope> DeleteAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<AssignRolePermissionsViewModel?> GetPermissionsAsync(Guid roleId, CancellationToken cancellationToken = default);
+    Task<ApiEnvelope> AssignPermissionsAsync(Guid roleId, List<string> permissions, CancellationToken cancellationToken = default);
 }

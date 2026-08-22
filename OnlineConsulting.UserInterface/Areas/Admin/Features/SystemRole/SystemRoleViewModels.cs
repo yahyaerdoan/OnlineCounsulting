@@ -16,3 +16,7 @@ public class UpdateSystemRoleViewModel : CreateSystemRoleViewModel
 {
     public Guid Id { get; set; }
 }
+
+public record PermissionCheckboxViewModel(string Value, bool IsChecked);
+
+public record AssignRolePermissionsViewModel(Guid RoleId, string RoleName, Dictionary<string, List<PermissionCheckboxViewModel>> PermissionsByModule);

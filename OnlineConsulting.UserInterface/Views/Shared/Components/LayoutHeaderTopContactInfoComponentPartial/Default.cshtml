@@ -6,7 +6,15 @@
     @foreach (var item in Model)
     {
         <ul>
-            <li><a href="tel: @item.Phone"><i class="zmdi zmdi-phone"></i> @item.Phone </a></li>
+            <li>
+                <a href="tel:@item.Phone" class="header-phone-cta">
+                    <i class="zmdi zmdi-phone"></i>
+                    <span class="header-phone-cta-text">
+                        <small>24/7 Emergency Service</small>
+                        <strong>@item.Phone</strong>
+                    </span>
+                </a>
+            </li>
             <li><a href="mailto: @item.Email"><i class="zmdi zmdi-email"></i> @item.Email</a></li>
         </ul>
     }

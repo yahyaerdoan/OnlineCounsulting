@@ -1,0 +1,63 @@
+@using OnlineConsulting.UserInterface.Features.Membership
+@model List<MembershipPlanCatalogItemViewModel>
+@{
+    ViewData["Title"] = "Membership Plans";
+    ViewData["SubPage1"] = "Membership Plans";
+}
+<main class="page-content">
+    <div class="most-popular-courses-area section-ptb">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 m-auto">
+                    <div class="section-title-two text-center">
+                        <h4 style="text-transform:capitalize;">Save on every visit</h4>
+                        <h3 style="text-transform:capitalize;">Membership Plans</h3>
+                    </div>
+                </div>
+            </div>
+
+            @if (Model.Count == 0)
+            {
+                <div class="alert alert-warning text-center">No membership plans are available right now.</div>
+            }
+            else
+            {
+                <div class="row justify-content-center">
+                    @foreach (var plan in Model)
+                    {
+                        <div class="col-lg-4 col-md-6 col-12">
+                            <!-- single-courses -->
+                            <div class="single-popular-courses mt--30 h-100">
+                                <div class="popular-courses-contnet text-center p-4 h-100 d-flex flex-column">
+                                    <h5 style="text-transform:capitalize;">@plan.Name</h5>
+                                    <div class="my-3">
+                                        <span style="font-size:2.25rem;font-weight:700;">@plan.Price.ToString("C")</span>
+                                        <span class="text-muted">/ @(plan.BillingCycle == "Annual" ? "year" : "month")</span>
+                                    </div>
+                                    <ul class="list-unstyled text-start mb-4 flex-grow-1">
+                                        <li class="mb-2"><i class="fas fa-check" style="color:#FF5951;"></i> @plan.IncludedVisitsPerYear included visits per year</li>
+                                        @if (plan.DiscountPercent > 0)
+                                        {
+                                            <li class="mb-2"><i class="fas fa-check" style="color:#FF5951;"></i> @plan.DiscountPercent% off additional services</li>
+                                        }
+                                        @if (!string.IsNullOrWhiteSpace(plan.Benefits))
+                                        {
+                                            foreach (var benefit in plan.Benefits.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                                            {
+                                                <li class="mb-2"><i class="fas fa-check" style="color:#FF5951;"></i> @benefit</li>
+                                            }
+                                        }
+                                    </ul>
+                                    <div class="button-block mt-auto">
+                                        <a href="@Url.Action("Subscribe", "Membership", new { area = "User", planId = plan.Id })" class="botton-border" style="text-transform:capitalize">Subscribe</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <!--// single-courses -->
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</main>

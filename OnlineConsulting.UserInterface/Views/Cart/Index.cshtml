@@ -6,20 +6,6 @@
     var cartId = Model?.CartId ?? Guid.Empty;
     var items = Model?.Items ?? [];
 }
-<style>
-    .remove-btn {
-        border: none;
-        background: none;
-        cursor: pointer;
-        transition: color 0.2s ease;
-    }
-        .remove-btn i {
-            font-size: 1.13rem; /* medium-large icon */
-        }
-        .remove-btn:hover i {
-            color: #ff5951; /* Bootstrap "danger" red */
-        }
-</style>
 <main class="page-content">
     <div class="cart-main-content section-ptb">
         <div class="container">
@@ -54,10 +40,10 @@
                                                 <td class="product-subtotal">@item.SubTotalPrice.ToUsd()</td>
                                                 <td class="product-subtotal">@item.TotalPrice.ToUsd()</td>
                                                 <td class="plantmore-product-remove">
-                                                    <form asp-action="RemoveBasketItem" asp-controller="Cart" method="post" style="display:inline">
+                                                    <form asp-action="RemoveBasketItem" asp-controller="Cart" method="post" class="d-inline">
                                                         <input type="hidden" name="id" value="@item.Id" />
-                                                        <button class="remove-btn" type="submit" style="border:none; background:none; cursor:pointer;" title="Remove">
-                                                            <i class="zmdi zmdi-delete" style="padding-left:1.5rem"></i>
+                                                        <button class="remove-btn" type="submit" title="Remove">
+                                                            <i class="zmdi zmdi-delete"></i>
                                                         </button>
                                                     </form>
                                                 </td>
@@ -67,41 +53,24 @@
                                     </tbody>
                                 </table>
                             </div>
-                            <!-- Totals and coupon section -->
+                            <!-- Totals section -->
                             <div class="row">
-                                <div class="col-md-4 ms-auto">
-                                    <div class="cart-page-total border rounded p-4 shadow-sm bg-white">
-                                        <h5 class="text-black mb-3">Cart Totals</h5>
-                                        <ul class="list-unstyled mb-4 small">
-                                            <li class="d-flex justify-content-between  fw-semibold">
-                                                <span>Subtotal</span>
-                                                <span>@Model!.SubTotal.ToUsd()</span>
-                                            </li>
-                                            <li class="d-flex justify-content-between  fw-semibold">
-                                                <span>Tax Total</span>
-                                                <span>@items.Sum(x => x.TaxAmount).ToUsd()</span>
-                                            </li>
-                                            <li class="d-flex justify-content-between">
-                                                <span>Total</span>
-                                                <span>@Model!.Total.ToUsd()</span>
-                                            </li>
-                                        </ul>
-                                        <!-- Butons -->
-                                        <div class="d-flex gap-2">
-                                                <a href="@Url.Action("Index", "Service")"
-                                                   class="btn btn d-flex flex-column flex-md-row align-items-center justify-content-center w-100 w-md-50"
-                                                   style="border-radius: 0.5rem;">
-                                                    <i class="fa fa-arrow-left mb-1 mb-md-0 me-0 me-md-1"></i>
-                                                    <span>Add More</span>
-                                                </a>
-
-                                                <a href="@Url.Action("Index", "Checkout", new { cartId = cartId })"
-                                                   class="btn btn d-flex flex-column flex-md-row align-items-center justify-content-center w-100 w-md-50"
-                                                   style="border-radius: 0.5rem;">
-                                                <i class="fa fa-credit-card mb-1 mb-md-0 me-0 me-md-1"></i>
-                                                    <span>Checkout</span>
-                                                </a>
+                                <div class="col-md-8">
+                                    <div class="coupon-all">
+                                        <div class="coupon2">
+                                            <a href="@Url.Action("Index", "Service")" class="btn continue-btn">Continue Shopping</a>
                                         </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 ml-auto">
+                                    <div class="cart-page-total">
+                                        <h2>Cart Totals</h2>
+                                        <ul>
+                                            <li>Subtotal <span>@Model!.SubTotal.ToUsd()</span></li>
+                                            <li>Tax Total <span>@items.Sum(x => x.TaxAmount).ToUsd()</span></li>
+                                            <li>Total <span>@Model!.Total.ToUsd()</span></li>
+                                        </ul>
+                                        <a href="@Url.Action("Index", "Checkout", new { cartId = cartId })" class="proceed-checkout-btn">Proceed to Checkout</a>
                                     </div>
                                 </div>
                             </div>
@@ -110,7 +79,7 @@
                         {
                             <div class="text-center mt-4">
                                 <strong>Your cart is currently empty.</strong><br />
-                                <a href="@Url.Action("Index","Service")" class="btn btn- mt-3 rounded-2">Continue Shopping</a>
+                                <a href="@Url.Action("Index","Service")" class="btn continue-btn mt-3">Continue Shopping</a>
                             </div>
                         }
                     </div>

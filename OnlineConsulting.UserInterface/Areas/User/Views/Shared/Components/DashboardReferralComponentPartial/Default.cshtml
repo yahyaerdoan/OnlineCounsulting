@@ -1,0 +1,112 @@
+@using OnlineConsulting.UserInterface.Areas.User.Features.Referral
+@model MyReferralViewModel
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+<div class="tab-pane fade show active" id="referral">
+    <h6 class="mb-4 fw-bold">Referrals</h6>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h6 class="mb-2">Your Referral Code</h6>
+            <p class="text-muted mb-2">Share this code with friends - when they book with us, you both benefit.</p>
+            <div class="d-flex align-items-center gap-2">
+                <input type="text" id="referralCodeInput" class="form-control" value="@Model.Code" readonly style="max-width:220px;" />
+                <button type="button" id="copyCodeButton" class="btn btn rounded-2">
+                    <i class="bi bi-clipboard me-1"></i>Copy
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h6 class="mb-2">Have a Code?</h6>
+            <form asp-area="User" asp-controller="Referral" asp-action="Redeem" method="post" class="d-flex align-items-center gap-2">
+                @Html.AntiForgeryToken()
+                <input type="text" name="Code" class="form-control" placeholder="Enter referral code" style="max-width:220px;" required />
+                <button type="submit" class="btn btn rounded-2">Redeem</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="mb-0">Account Credit</h6>
+                <span class="fw-bold">@Model.CreditBalance.ToString("C")</span>
+            </div>
+            @if (!Model.CreditEntries.Any())
+            {
+                <p class="text-muted mb-0">No credit activity yet.</p>
+            }
+            else
+            {
+                <ul class="list-group">
+                    @foreach (var entry in Model.CreditEntries)
+                    {
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>@entry.Reason</span>
+                            <span class="@(entry.Amount >= 0 ? "text-success" : "text-danger")">
+                                @(entry.Amount >= 0 ? "+" : "")@entry.Amount.ToString("C")
+                            </span>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h6 class="mb-3">People You've Referred</h6>
+            @if (!Model.MyReferrals.Any())
+            {
+                <p class="text-muted mb-0">You haven't referred anyone yet.</p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Code</th>
+                                <th>Status</th>
+                                <th>Reward</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var referral in Model.MyReferrals)
+                            {
+                                <tr>
+                                    <td><code>@referral.Code</code></td>
+                                    <td>
+                                        <span class="badge @(referral.Status == "Rewarded" ? "bg-success" : "bg-warning text-dark")">
+                                            @referral.Status
+                                        </span>
+                                    </td>
+                                    <td>@(referral.RewardAmount?.ToString("C") ?? "-")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const copyButton = document.getElementById('copyCodeButton');
+        const codeInput = document.getElementById('referralCodeInput');
+
+        copyButton.addEventListener('click', function () {
+            navigator.clipboard.writeText(codeInput.value).then(function () {
+                copyButton.innerHTML = '<i class="bi bi-check2 me-1"></i>Copied!';
+                setTimeout(function () {
+                    copyButton.innerHTML = '<i class="bi bi-clipboard me-1"></i>Copy';
+                }, 2000);
+            });
+        });
+    });
+</script>

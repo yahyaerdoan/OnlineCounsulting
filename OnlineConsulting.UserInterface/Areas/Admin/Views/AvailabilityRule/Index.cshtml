@@ -1,0 +1,96 @@
+@using OnlineConsulting.UserInterface.Areas.Admin.Features.AvailabilityRule
+@model List<AvailabilityRuleListItemViewModel>
+@{
+    ViewData["Title"] = "Availability Rules";
+    ViewData["SubPage1"] = "Availability Rules";
+    ViewData["SubPage1Url"] = Url.Action("Index", "AvailabilityRule", new { area = "Admin" });
+}
+
+<div class="col-12">
+    <div class="card">
+        <div class="card-header">
+            <div class="d-sm-flex align-items-center justify-content-between">
+                <div>
+                    <h5 class="mb-0">Availability Rules</h5>
+                    <p class="text-muted mb-0 mt-1 f-14">Weekly recurring working-hours windows customers can book into.</p>
+                </div>
+                <a href="@Url.Action("Create","AvailabilityRule")" class="btn btn-primary"><i class="ti ti-plus me-1"></i>Add Rule</a>
+            </div>
+        </div>
+        <div class="card-body pt-3">
+            @if (Model is { Count: > 0 })
+            {
+                <div class="row">
+                    @foreach (var item in Model)
+                    {
+                        <div class="col-md-6 col-xl-4">
+                            <div class="card border mb-3">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avtar avtar-s bg-light-primary flex-shrink-0">
+                                            <i class="ti ti-calendar-time f-20"></i>
+                                        </div>
+                                        <div class="flex-grow-1 ms-3">
+                                            <h6 class="mb-0">@item.DayOfWeek</h6>
+                                            <span class="text-muted f-12">@item.StartTime.ToString(@"hh\:mm") - @item.EndTime.ToString(@"hh\:mm")</span>
+                                        </div>
+                                        <div class="flex-shrink-0 ms-2">
+                                            <a href="#" data-bs-toggle="modal" data-bs-target="#deleteModalCenter" class="avtar avtar-xs btn-link-secondary delete-btn" data-id="@item.Id" title="Delete">
+                                                <i class="ti ti-trash f-20"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <span class="badge bg-light-primary">@item.SlotDurationMinutes min slots</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="ti ti-calendar-time f-40 text-muted"></i>
+                    <p class="text-muted mb-3 mt-2">No availability rules added yet - customers cannot book any time until at least one is added.</p>
+                    <a href="@Url.Action("Create","AvailabilityRule")" class="btn btn-primary"><i class="ti ti-plus me-1"></i>Add Rule</a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+<!-- Delete Confirmation Modal Start -->
+<div id="deleteModalCenter" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="deleteModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalCenterTitle">Delete Confirmation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    The record you selected will be deleted. Do you want to continue?
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-bs-dismiss="modal">No</button>
+                <a href="#" id="confirmDeleteBtn" class="btn btn-danger">Yes</a>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Delete Confirmation Modal End -->
+<script>
+        document.addEventListener('DOMContentLoaded', function () {
+        const deleteButtons = document.querySelectorAll('.delete-btn');
+        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                const itemId = this.getAttribute('data-id');
+                confirmDeleteBtn.setAttribute('href', `/admin/availability-rules/${itemId}/delete`);
+            });
+        });
+    });
+</script>

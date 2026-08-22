@@ -1,0 +1,103 @@
+@using OnlineConsulting.UserInterface.Areas.Admin.Features.MembershipPlan
+@model List<MembershipSubscriberListItemViewModel>
+@{
+    ViewData["Title"] = "Subscribers";
+    ViewData["SubPage1"] = "Membership Plans";
+    ViewData["SubPage1Url"] = Url.Action("Index", "MembershipPlan", new { area = "Admin" });
+    ViewData["SubPage2"] = "Subscribers";
+    int count = 1;
+    var activeCount = Model.Count(m => m.Status == "Active");
+}
+
+<script type="module">
+    import { DataTable } from '/templates/admin-sky-template/able-pro-vanila-bootstrap-9.5.0/dist/assets/js/plugins/module.js';
+    window.dt = new DataTable('#pc-dt-simple');
+</script>
+
+<div class="col-12">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body d-flex align-items-center">
+                    <div class="avtar avtar-s bg-light-primary flex-shrink-0">
+                        <i class="ti ti-users f-20"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="mb-0 text-muted f-w-400">Total Subscribers</h6>
+                        <h4 class="mb-0">@Model.Count</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body d-flex align-items-center">
+                    <div class="avtar avtar-s bg-light-success flex-shrink-0">
+                        <i class="ti ti-circle-check f-20"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="mb-0 text-muted f-w-400">Active</h6>
+                        <h4 class="mb-0">@activeCount</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="col-12">
+    <div class="card table-card">
+        <div class="card-header">
+            <div class="d-sm-flex align-items-center justify-content-between">
+                <h5 class="mb-3 mb-sm-0">Subscribers</h5>
+                <a href="@Url.Action("Index","MembershipPlan")" class="btn btn-outline-secondary btn-sm"><i class="ti ti-arrow-left me-1"></i>Back to Plans</a>
+            </div>
+        </div>
+        <div class="card-body pt-3">
+            @if (Model is { Count: > 0 })
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover" id="pc-dt-simple">
+                        <thead>
+                            <tr>
+                                <th>Count</th>
+                                <th>Customer</th>
+                                <th>Plan</th>
+                                <th>Status</th>
+                                <th>Started</th>
+                                <th>Renews</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td style="padding-left:2rem">@count</td>
+                                    <td>@item.CustomerName</td>
+                                    <td>@item.PlanName</td>
+                                    <td>
+                                        <span class="badge
+                                            @(item.Status == "Active" ? "bg-light-success" :
+                                              item.Status is "PendingPayment" or "PastDue" ? "bg-light-warning" : "bg-light-danger")">
+                                            @item.Status
+                                        </span>
+                                    </td>
+                                    <td>@item.StartDate.ToString("MMM d, yyyy")</td>
+                                    <td>@(item.RenewalDate?.ToString("MMM d, yyyy") ?? "-")</td>
+                                </tr>
+                                count++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="ti ti-users f-40 text-muted"></i>
+                    <p class="text-muted mb-0 mt-2">No subscribers yet.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>

@@ -52,6 +52,9 @@
                                         <a href="@Url.Action("Update","SystemRole",new{id=item.Id})" class="avtar avtar-xs btn-link-secondary">
                                             <i class="ti ti-edit f-20"></i>
                                         </a>
+                                        <a href="@Url.Action("Permissions","SystemRole",new{id=item.Id})" class="avtar avtar-xs btn-link-secondary" title="Assign Permissions">
+                                            <i class="ti ti-shield-lock f-20"></i>
+                                        </a>
                                         <a href="#" data-bs-toggle="modal" data-bs-target="#deleteModalCenter" class="avtar avtar-xs btn-link-secondary delete-btn" data-id="@item.Id">
                                             <i class="ti ti-trash f-20"></i>
                                         </a>

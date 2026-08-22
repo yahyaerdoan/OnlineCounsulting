@@ -60,4 +60,21 @@ public class SystemRoleController(ISystemRoleService systemRoleService, IToastNo
 
         return RedirectToAction("Index");
     }
+
+    [HttpGet("{id:guid}/permissions")]
+    public async Task<IActionResult> Permissions(Guid id, CancellationToken cancellationToken)
+    {
+        var model = await systemRoleService.GetPermissionsAsync(id, cancellationToken);
+        return model is null ? NotFound() : View(model);
+    }
+
+    [HttpPost("{id:guid}/permissions")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Permissions(Guid id, List<string> permissions, CancellationToken cancellationToken)
+    {
+        var result = await systemRoleService.AssignPermissionsAsync(id, permissions, cancellationToken);
+        toastNotification.ShowResult(result);
+
+        return RedirectToAction("Permissions", new { id });
+    }
 }

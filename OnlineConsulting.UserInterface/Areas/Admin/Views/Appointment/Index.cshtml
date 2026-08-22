@@ -1,0 +1,178 @@
+@using OnlineConsulting.UserInterface.Areas.Admin.Features.Appointment
+@model List<AppointmentListItemViewModel>
+@{
+    ViewData["Title"] = "Appointments";
+    ViewData["SubPage1"] = "Appointments";
+    ViewData["SubPage1Url"] = Url.Action("Index", "Appointment", new { area = "Admin" });
+    int count = 1;
+    var pendingCount = Model.Count(a => a.Status == "Pending");
+    string? selectedStatus = ViewBag.SelectedStatus;
+}
+
+<script type="module">
+    import { DataTable } from '/templates/admin-sky-template/able-pro-vanila-bootstrap-9.5.0/dist/assets/js/plugins/module.js';
+    window.dt = new DataTable('#pc-dt-simple');
+</script>
+
+<div class="col-12">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body d-flex align-items-center">
+                    <div class="avtar avtar-s bg-light-primary flex-shrink-0">
+                        <i class="ti ti-calendar-stats f-20"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="mb-0 text-muted f-w-400">Showing</h6>
+                        <h4 class="mb-0">@Model.Count</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body d-flex align-items-center">
+                    <div class="avtar avtar-s bg-light-warning flex-shrink-0">
+                        <i class="ti ti-clock f-20"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="mb-0 text-muted f-w-400">Pending Confirmation</h6>
+                        <h4 class="mb-0">@pendingCount</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="col-12">
+    <div class="card table-card">
+        <div class="card-header">
+            <div class="d-sm-flex align-items-center justify-content-between">
+                <h5 class="mb-3 mb-sm-0">Appointments</h5>
+                <form method="get" class="d-flex align-items-center gap-2">
+                    <select name="status" class="form-control" onchange="this.form.submit()">
+                        <option value="" selected="@(string.IsNullOrEmpty(selectedStatus))">All statuses</option>
+                        <option value="Pending" selected="@(selectedStatus == "Pending")">Pending</option>
+                        <option value="Confirmed" selected="@(selectedStatus == "Confirmed")">Confirmed</option>
+                        <option value="Completed" selected="@(selectedStatus == "Completed")">Completed</option>
+                        <option value="Cancelled" selected="@(selectedStatus == "Cancelled")">Cancelled</option>
+                    </select>
+                </form>
+            </div>
+        </div>
+        <div class="card-body pt-3">
+            @if (Model is { Count: > 0 })
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover" id="pc-dt-simple">
+                        <thead>
+                            <tr>
+                                <th>Count</th>
+                                <th>Customer</th>
+                                <th>Service</th>
+                                <th>Scheduled</th>
+                                <th>Status</th>
+                                <th>Technician</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td style="padding-left:2rem">@count</td>
+                                    <td>@item.CustomerName</td>
+                                    <td>@item.ServiceName</td>
+                                    <td>@item.ScheduledStart.ToString("MMM d, yyyy h:mm tt")</td>
+                                    <td>
+                                        <span class="badge
+                                            @(item.Status == "Pending" ? "bg-light-warning" :
+                                              item.Status == "Confirmed" ? "bg-light-primary" :
+                                              item.Status == "Completed" ? "bg-light-success" : "bg-light-danger")">
+                                            @item.Status
+                                        </span>
+                                    </td>
+                                    <td>@(item.AssignedTechnicianName ?? "-")</td>
+                                    <td>
+                                        @if (item.Status == "Pending")
+                                        {
+                                            <form method="post" asp-action="Confirm" asp-route-id="@item.Id" class="d-inline">
+                                                <button type="submit" class="avtar avtar-xs btn-link-secondary border-0 bg-transparent" title="Confirm">
+                                                    <i class="ti ti-check f-20 text-success"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                        @if (item.Status is "Pending" or "Confirmed")
+                                        {
+                                            <a href="@Url.Action("AssignTechnician","Appointment",new{id=item.Id})" class="avtar avtar-xs btn-link-secondary" title="Assign Technician">
+                                                <i class="ti ti-user-plus f-20"></i>
+                                            </a>
+                                            <a href="#" data-bs-toggle="modal" data-bs-target="#cancelModalCenter" class="avtar avtar-xs btn-link-secondary cancel-btn" data-id="@item.Id" title="Cancel">
+                                                <i class="ti ti-ban f-20 text-danger"></i>
+                                            </a>
+                                        }
+                                        @if (item.Status == "Confirmed")
+                                        {
+                                            <a href="@Url.Action("RecordWorkOrder","Appointment",new{id=item.Id})" class="avtar avtar-xs btn-link-secondary" title="Record Work Order">
+                                                <i class="ti ti-clipboard-check f-20"></i>
+                                            </a>
+                                        }
+                                        @if (item.Status == "Completed")
+                                        {
+                                            <a href="@Url.Action("WorkOrderDetail","Appointment",new{id=item.Id})" class="avtar avtar-xs btn-link-secondary" title="View Work Order">
+                                                <i class="ti ti-eye f-20"></i>
+                                            </a>
+                                        }
+                                    </td>
+                                </tr>
+                                count++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="ti ti-calendar-stats f-40 text-muted"></i>
+                    <p class="text-muted mb-0 mt-2">No appointments found.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+<!-- Cancel Confirmation Modal Start -->
+<div id="cancelModalCenter" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="cancelModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cancelModalCenterTitle">Cancel Confirmation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    This appointment will be cancelled. Do you want to continue?
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-bs-dismiss="modal">No</button>
+                <a href="#" id="confirmCancelBtn" class="btn btn-danger">Yes</a>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Cancel Confirmation Modal End -->
+<script>
+        document.addEventListener('DOMContentLoaded', function () {
+        const cancelButtons = document.querySelectorAll('.cancel-btn');
+        const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+
+        cancelButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                const itemId = this.getAttribute('data-id');
+                confirmCancelBtn.setAttribute('href', `/admin/appointments/${itemId}/cancel`);
+            });
+        });
+    });
+</script>

@@ -1,0 +1,158 @@
+@using OnlineConsulting.UserInterface.Areas.Admin.Features.Tenant
+@model List<TenantListItemViewModel>
+@{
+    ViewData["Title"] = "Tenants";
+    ViewData["SubPage1"] = "Tenants";
+    ViewData["SubPage1Url"] = Url.Action("Index", "Tenant", new { area = "Admin" });
+    int count = 1;
+    var activeCount = Model.Count(t => t.Status == "Active");
+    var suspendedCount = Model.Count(t => t.Status == "Suspended");
+    var totalMrr = Model.Sum(t => t.TotalActivePrice);
+}
+
+<script type="module">
+    import { DataTable } from '/templates/admin-sky-template/able-pro-vanila-bootstrap-9.5.0/dist/assets/js/plugins/module.js';
+    window.dt = new DataTable('#pc-dt-simple');
+</script>
+
+<div class="col-12">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body d-flex align-items-center">
+                    <div class="avtar avtar-s bg-light-primary flex-shrink-0">
+                        <i class="ti ti-building-skyscraper f-20"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="mb-0 text-muted f-w-400">Total Tenants</h6>
+                        <h4 class="mb-0">@Model.Count</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body d-flex align-items-center">
+                    <div class="avtar avtar-s bg-light-success flex-shrink-0">
+                        <i class="ti ti-circle-check f-20"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="mb-0 text-muted f-w-400">Active</h6>
+                        <h4 class="mb-0">@activeCount</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body d-flex align-items-center">
+                    <div class="avtar avtar-s bg-light-danger flex-shrink-0">
+                        <i class="ti ti-player-pause f-20"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="mb-0 text-muted f-w-400">Suspended</h6>
+                        <h4 class="mb-0">@suspendedCount</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body d-flex align-items-center">
+                    <div class="avtar avtar-s bg-light-warning flex-shrink-0">
+                        <i class="ti ti-cash f-20"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="mb-0 text-muted f-w-400">Active MRR</h6>
+                        <h4 class="mb-0">@totalMrr.ToString("C")</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="col-12">
+    <div class="card table-card">
+        <div class="card-header">
+            <h5 class="mb-0">Tenants</h5>
+        </div>
+        <div class="card-body pt-3">
+            @if (Model is { Count: > 0 })
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover" id="pc-dt-simple">
+                        <thead>
+                            <tr>
+                                <th>Count</th>
+                                <th>Tenant</th>
+                                <th>Contact</th>
+                                <th>Status</th>
+                                <th>Active Modules</th>
+                                <th>MRR</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                var statusBadge = item.Status switch
+                                {
+                                    "Active" => "bg-light-success",
+                                    "Suspended" => "bg-light-danger",
+                                    "PastDue" => "bg-light-warning",
+                                    "PendingPayment" => "bg-light-warning",
+                                    "Cancelled" or "Failed" => "bg-light-secondary",
+                                    _ => "bg-light-secondary",
+                                };
+                                <tr>
+                                    <td style="padding-left:2rem">@count</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avtar avtar-s bg-light-primary flex-shrink-0">
+                                                <i class="ti ti-building-skyscraper f-18"></i>
+                                            </div>
+                                            <div class="ms-3">
+                                                <h6 class="mb-0">@item.Name</h6>
+                                                <span class="text-muted f-12">@item.Slug</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>@item.PrimaryContactEmail</td>
+                                    <td><span class="badge @statusBadge">@item.Status</span></td>
+                                    <td>
+                                        @if (item.ActiveModuleKeys.Count == 0)
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                        else
+                                        {
+                                            @foreach (var key in item.ActiveModuleKeys)
+                                            {
+                                                <span class="badge bg-light-primary me-1">@key</span>
+                                            }
+                                        }
+                                    </td>
+                                    <td>@item.TotalActivePrice.ToString("C")</td>
+                                    <td>
+                                        <a href="@Url.Action("Details","Tenant",new{id=item.Id})" class="avtar avtar-xs btn-link-secondary" title="View Details">
+                                            <i class="ti ti-eye f-20"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                count++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="ti ti-building-skyscraper f-40 text-muted"></i>
+                    <p class="text-muted mb-0 mt-2">No tenants yet.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>

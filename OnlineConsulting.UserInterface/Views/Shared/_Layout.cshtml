@@ -2,7 +2,7 @@
 @{
     var baseUrl = $"{Context.Request.Scheme}://{Context.Request.Host}";
     var fullUrl = $"{baseUrl}{Context.Request.Path}{Context.Request.QueryString}";
-    var siteName = "Online Consulting";
+    var siteName = "ComfortPro";
     var searchPath = "/search";
     var fullSearchTarget = $"{baseUrl}{searchPath}?q={{search_term_string}}";
 
@@ -20,13 +20,13 @@
         }
     }.ToJsonString();
     var title = ViewData["Title"]
-        ?? "Online Consulting | AI-Driven Business, IT & Marketing Solutions";
+        ?? "ComfortPro | Licensed HVAC Repair, Installation & Maintenance";
 
     var description = ViewData["MetaDescription"]
-        ?? "Empowering businesses with AI-powered strategies, digital transformation, smart marketing, IT consulting, and data-driven solutions across tourism, education, and more.";
+        ?? "ComfortPro is your local licensed & insured HVAC company - 24/7 emergency repair, installation, and maintenance plans for heating, cooling, and indoor air quality. Book online in minutes.";
 
     var keywords = ViewData["MetaKeywords"]
-        ?? "AI business consulting, digital transformation, automation, IT solutions, cybersecurity, cloud services, AI marketing, data analytics, tourism strategy, e-learning platforms, smart education tools";
+        ?? "HVAC repair, air conditioning repair, heating repair, furnace installation, AC installation, HVAC maintenance plan, emergency HVAC service, licensed HVAC contractor, indoor air quality";
 
     // Dynamic OG Image
     var imagePath = Url.Content("~/Resource/LocalStorage/WhatWeProvide-Images/whatweprovide.png");
@@ -42,7 +42,7 @@
     <title>@title</title>
     <meta name="description" content="@description" />
     <meta name="keywords" content="@keywords" />
-    <meta name="author" content="Online Consulting Team" />
+    <meta name="author" content="ComfortPro" />
 
     <!-- Open Graph Tags -->
     <meta property="og:title" content="@title" />

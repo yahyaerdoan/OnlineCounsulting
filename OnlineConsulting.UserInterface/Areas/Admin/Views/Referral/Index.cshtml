@@ -1,0 +1,120 @@
+@using OnlineConsulting.UserInterface.Areas.Admin.Features.Referral
+@model List<ReferralListItemViewModel>
+@{
+    ViewData["Title"] = "Referrals";
+    ViewData["SubPage1"] = "Referrals";
+    ViewData["SubPage1Url"] = Url.Action("Index", "Referral", new { area = "Admin" });
+    int count = 1;
+    var pendingCount = Model.Count(r => r.Status == "Pending");
+    var totalRewarded = Model.Where(r => r.RewardAmount is not null).Sum(r => r.RewardAmount!.Value);
+}
+
+<script type="module">
+    import { DataTable } from '/templates/admin-sky-template/able-pro-vanila-bootstrap-9.5.0/dist/assets/js/plugins/module.js';
+    window.dt = new DataTable('#pc-dt-simple');
+</script>
+
+<div class="col-12">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body d-flex align-items-center">
+                    <div class="avtar avtar-s bg-light-primary flex-shrink-0">
+                        <i class="ti ti-gift f-20"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="mb-0 text-muted f-w-400">Total Referrals</h6>
+                        <h4 class="mb-0">@Model.Count</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body d-flex align-items-center">
+                    <div class="avtar avtar-s bg-light-warning flex-shrink-0">
+                        <i class="ti ti-clock f-20"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="mb-0 text-muted f-w-400">Pending Reward</h6>
+                        <h4 class="mb-0">@pendingCount</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body d-flex align-items-center">
+                    <div class="avtar avtar-s bg-light-success flex-shrink-0">
+                        <i class="ti ti-cash f-20"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="mb-0 text-muted f-w-400">Total Rewarded</h6>
+                        <h4 class="mb-0">@totalRewarded.ToString("C")</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="col-12">
+    <div class="card table-card">
+        <div class="card-header">
+            <h5 class="mb-0">Referrals</h5>
+        </div>
+        <div class="card-body pt-3">
+            @if (Model is { Count: > 0 })
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover" id="pc-dt-simple">
+                        <thead>
+                            <tr>
+                                <th>Count</th>
+                                <th>Referrer</th>
+                                <th>Referred</th>
+                                <th>Code</th>
+                                <th>Status</th>
+                                <th>Reward</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td style="padding-left:2rem">@count</td>
+                                    <td>@item.ReferrerName</td>
+                                    <td>@item.ReferredName</td>
+                                    <td><code>@item.Code</code></td>
+                                    <td>
+                                        <span class="badge @(item.Status == "Rewarded" ? "bg-light-success" : "bg-light-warning")">
+                                            @item.Status
+                                        </span>
+                                    </td>
+                                    <td>@(item.RewardAmount?.ToString("C") ?? "-")</td>
+                                    <td>
+                                        @if (item.Status == "Pending")
+                                        {
+                                            <a href="@Url.Action("Complete","Referral",new{id=item.Id})" class="avtar avtar-xs btn-link-secondary" title="Complete &amp; Reward">
+                                                <i class="ti ti-coin f-20"></i>
+                                            </a>
+                                        }
+                                    </td>
+                                </tr>
+                                count++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="ti ti-gift f-40 text-muted"></i>
+                    <p class="text-muted mb-0 mt-2">No referrals yet.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>

@@ -8,8 +8,9 @@
                 @await Component.InvokeAsync("LayoutHeaderTopContactInfoComponentPartial")
             </div>
 
-            <!-- Right: socials + auth links -->
-            <div class="d-flex flex-wrap align-items-center">
+            <!-- Right: book-now CTA + socials + auth links -->
+            <div class="d-flex flex-wrap align-items-center gap-3">
+                <a href="@Url.Action("Book", "Appointment", new { area = "" })" class="header-book-now-btn">Book Now</a>
                 @await Component.InvokeAsync("LayoutHaderTopSocialComponentPartial")
                 @await Component.InvokeAsync("LayoutHeaderLoginAndRegisterComponentPartial")
             </div>

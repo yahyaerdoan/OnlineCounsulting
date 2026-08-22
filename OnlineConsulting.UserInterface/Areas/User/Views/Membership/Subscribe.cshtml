@@ -1,0 +1,91 @@
+@using OnlineConsulting.UserInterface.Areas.User.Features.Membership
+@model SubscribeMembershipViewModel
+@{
+    ViewData["Title"] = "Subscribe";
+    Layout = "~/Areas/User/Views/Shared/_Layout.cshtml";
+}
+<div class="tab-pane fade show active">
+    <h6 class="mb-4 fw-bold">Subscribe to @Model.PlanName</h6>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between">
+                <span>Plan</span>
+                <strong>@Model.PlanName</strong>
+            </div>
+            <div class="d-flex justify-content-between">
+                <span>Billing</span>
+                <strong>@Model.Price.ToString("C") / @(Model.BillingCycle == "Annual" ? "year" : "month")</strong>
+            </div>
+        </div>
+    </div>
+
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+    <form method="post" id="subscribeForm">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="PlanId" />
+        <input type="hidden" asp-for="PlanName" />
+        <input type="hidden" asp-for="BillingCycle" />
+        <input type="hidden" asp-for="Price" />
+        <input type="hidden" asp-for="CreditBalance" />
+        <input type="hidden" id="paymentMethodId" asp-for="PaymentMethodId" />
+
+        @if (Model.CreditBalance > 0)
+        {
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="applyCredit" asp-for="ApplyCredit" />
+                <label class="form-check-label" for="applyCredit">
+                    Apply my referral credit (@Model.CreditBalance.ToString("C") available)
+                </label>
+            </div>
+        }
+
+        <label class="form-label">Card Details</label>
+        <div id="card-element" class="form-control mb-2" style="padding:0.75rem;"></div>
+        <div id="card-errors" class="text-danger mb-3"></div>
+
+        <button type="submit" id="submitButton" class="btn btn-large rounded-2 px-4 py-2 fw-semibold w-100">
+            <span id="submitSpinner" class="spinner-border spinner-border-sm me-1" style="display:none;"></span>
+            Subscribe
+        </button>
+    </form>
+</div>
+
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+        (function () {
+            const stripe = Stripe('@ViewBag.StripePublishableKey');
+            const elements = stripe.elements();
+            const cardElement = elements.create('card');
+            cardElement.mount('#card-element');
+
+            const form = document.getElementById('subscribeForm');
+            const submitButton = document.getElementById('submitButton');
+            const submitSpinner = document.getElementById('submitSpinner');
+            const errorBox = document.getElementById('card-errors');
+
+            form.addEventListener('submit', async function (event) {
+                if (document.getElementById('paymentMethodId').value) {
+                    return; // already tokenized, let the real submit through
+                }
+
+                event.preventDefault();
+                submitButton.disabled = true;
+                submitSpinner.style.display = 'inline-block';
+                errorBox.textContent = '';
+
+                const { error, paymentMethod } = await stripe.createPaymentMethod('card', cardElement);
+
+                if (error) {
+                    errorBox.textContent = error.message || 'Could not process card details.';
+                    submitButton.disabled = false;
+                    submitSpinner.style.display = 'none';
+                    return;
+                }
+
+                document.getElementById('paymentMethodId').value = paymentMethod.id;
+                form.submit();
+            });
+        })();
+    </script>

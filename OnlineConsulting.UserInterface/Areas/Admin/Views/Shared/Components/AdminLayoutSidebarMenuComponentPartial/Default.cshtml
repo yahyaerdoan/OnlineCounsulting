@@ -1,7 +1,28 @@
-﻿<ul class="pc-navbar">
+﻿@using OnlineConsulting.SharedKernel.Authorization
+<ul class="pc-navbar">
     <li class="pc-item pc-caption">
         <label data-i18n="Navigation">Navigation</label>
     </li>
+
+    @if (Context.User.IsInRole(GlobalOperationClaims.SuperAdmin))
+    {
+        <li class="pc-item pc-hasmenu">
+            <a href="#!" class="pc-link">
+                <span class="pc-micon">
+                    <svg class="pc-icon">
+                        <use xlink:href="#custom-shield"></use>
+                    </svg>
+                </span>
+                <span class="pc-mtext" data-i18n="Platform">Platform</span>
+                <span class="pc-arrow"><i data-feather="chevron-right"></i></span>
+            </a>
+            <ul class="pc-submenu">
+                <li class="pc-item"><a class="pc-link" href="/admin/tenants" data-i18n="Tenants">Tenants</a></li>
+                <li class="pc-item"><a class="pc-link" href="/admin/module-offerings" data-i18n="Module Offerings">Module Offerings</a></li>
+                <li class="pc-item"><a class="pc-link" href="/admin/bundles" data-i18n="Bundles">Bundles</a></li>
+            </ul>
+        </li>
+    }
 
     <li class="pc-item pc-hasmenu">
         <a href="#!" class="pc-link">
@@ -100,6 +121,7 @@
                     <li class="pc-item"><a class="pc-link" href="@Url.Action("Index","Category")" data-i18n="Category">Category</a></li>
                     <li class="pc-item"><a class="pc-link" href="@Url.Action("Index","Service")" data-i18n="Services">Service</a></li>
                     <li class="pc-item"><a class="pc-link" href="@Url.Action("Index","HowIGetService")" data-i18n="How I Get Service Stage">How I Get Service Stage</a></li>
+                    <li class="pc-item"><a class="pc-link" href="@Url.Action("Index","ServiceArea")" data-i18n="Service Area">Service Area</a></li>
                 </ul>
             </li>
 
@@ -125,6 +147,7 @@
                     <li class="pc-item"><a class="pc-link" href="@Url.Action("Index","Newsletter")" data-i18n="Newsletter">Newsletter</a></li>
                     <li class="pc-item"><a class="pc-link" href="@Url.Action("Index","Breadcrumb")" data-i18n="Breadcrumb">Breadcrumb</a></li>
                     <li class="pc-item"><a class="pc-link" href="@Url.Action("Index","FooterAbout")" data-i18n="Footer About">Footer About</a></li>
+                    <li class="pc-item"><a class="pc-link" href="@Url.Action("Index","Promotion")" data-i18n="Promotion">Promotion</a></li>
                 </ul>
             </li>
 
@@ -152,8 +175,57 @@
                 <ul class="pc-submenu">
                     <li class="pc-item"><a class="pc-link" href="@Url.Action("Index","SystemRole")" data-i18n="Role Settings">Role Settings</a></li>
                     <li class="pc-item"><a class="pc-link" href="@Url.Action("Index","SystemUser")" data-i18n="Permission Settings">Permission Settings</a></li>
+                    <li class="pc-item"><a class="pc-link" href="@Url.Action("Index","FeatureFlag")" data-i18n="Feature Flags">Feature Flags</a></li>
                 </ul>
             </li>
+        </ul>
+    </li>
+
+    <li class="pc-item pc-hasmenu">
+        <a href="#!" class="pc-link">
+            <span class="pc-micon">
+                <svg class="pc-icon">
+                    <use xlink:href="#custom-calendar-1"></use>
+                </svg>
+            </span>
+            <span class="pc-mtext" data-i18n="Scheduling">Scheduling</span>
+            <span class="pc-arrow"><i data-feather="chevron-right"></i></span>
+        </a>
+        <ul class="pc-submenu">
+            <li class="pc-item"><a class="pc-link" href="@Url.Action("Index","Appointment", new { area = "Admin" })" data-i18n="Appointments">Appointments</a></li>
+            <li class="pc-item"><a class="pc-link" href="@Url.Action("Index","AvailabilityRule", new { area = "Admin" })" data-i18n="Availability Rules">Availability Rules</a></li>
+            <li class="pc-item"><a class="pc-link" href="@Url.Action("Index","Equipment", new { area = "Admin" })" data-i18n="Equipment">Equipment</a></li>
+        </ul>
+    </li>
+
+    <li class="pc-item pc-hasmenu">
+        <a href="#!" class="pc-link">
+            <span class="pc-micon">
+                <svg class="pc-icon">
+                    <use xlink:href="#custom-dollar-circle"></use>
+                </svg>
+            </span>
+            <span class="pc-mtext" data-i18n="Memberships">Memberships</span>
+            <span class="pc-arrow"><i data-feather="chevron-right"></i></span>
+        </a>
+        <ul class="pc-submenu">
+            <li class="pc-item"><a class="pc-link" href="@Url.Action("Index","MembershipPlan", new { area = "Admin" })" data-i18n="Plans">Plans</a></li>
+            <li class="pc-item"><a class="pc-link" href="@Url.Action("Subscribers","MembershipPlan", new { area = "Admin" })" data-i18n="Subscribers">Subscribers</a></li>
+        </ul>
+    </li>
+
+    <li class="pc-item pc-hasmenu">
+        <a href="#!" class="pc-link">
+            <span class="pc-micon">
+                <svg class="pc-icon">
+                    <use xlink:href="#custom-share-bold"></use>
+                </svg>
+            </span>
+            <span class="pc-mtext" data-i18n="Referrals">Referrals</span>
+            <span class="pc-arrow"><i data-feather="chevron-right"></i></span>
+        </a>
+        <ul class="pc-submenu">
+            <li class="pc-item"><a class="pc-link" href="@Url.Action("Index","Referral", new { area = "Admin" })" data-i18n="Referrals">Referrals</a></li>
         </ul>
     </li>
 

@@ -1,0 +1,89 @@
+@using OnlineConsulting.UserInterface.Areas.Admin.Features.Equipment
+@model CreateEquipmentViewModel
+@{
+    ViewData["Title"] = "Add Equipment";
+    ViewData["SubPage1"] = "Equipment";
+    ViewData["SubPage1Url"] = Url.Action("Index", "Equipment", new { area = "Admin" });
+    ViewData["SubPage2"] = "Add Equipment";
+    ViewData["SubPage2Url"] = Url.Action("Create", "Equipment", new { area = "Admin" });
+}
+<div class="col-12">
+    <div class="card p-3">
+        <div class="card-header">
+            <h5 class="mb-0">Add Equipment</h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="mb-3">
+                            <label class="form-label" for="customerUserId">Customer</label>
+                            <select class="form-control" id="customerUserId" asp-for="CustomerUserId">
+                                <option value="">Select a customer</option>
+                                @foreach (var customer in Model.Customers)
+                                {
+                                    <option value="@customer.Id">@customer.Name</option>
+                                }
+                            </select>
+                            <span asp-validation-for="CustomerUserId" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label" for="type">Type</label>
+                            <input type="text" class="form-control" id="type" placeholder="e.g. Central AC Unit" asp-for="Type" />
+                            <span asp-validation-for="Type" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label" for="serialNumber">Serial Number</label>
+                            <input type="text" class="form-control" id="serialNumber" asp-for="SerialNumber" />
+                            <span asp-validation-for="SerialNumber" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label" for="brand">Brand</label>
+                            <input type="text" class="form-control" id="brand" asp-for="Brand" />
+                            <span asp-validation-for="Brand" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label" for="model">Model</label>
+                            <input type="text" class="form-control" id="model" asp-for="Model" />
+                            <span asp-validation-for="Model" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label" for="installDate">Install Date</label>
+                            <input type="date" class="form-control" id="installDate" asp-for="InstallDate" />
+                            <span asp-validation-for="InstallDate" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label" for="warrantyExpiresAt">Warranty Expires At</label>
+                            <input type="date" class="form-control" id="warrantyExpiresAt" asp-for="WarrantyExpiresAt" />
+                            <span asp-validation-for="WarrantyExpiresAt" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="mb-3">
+                            <label class="form-label" for="notes">Notes</label>
+                            <textarea class="form-control" id="notes" rows="3" asp-for="Notes"></textarea>
+                            <span asp-validation-for="Notes" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-12 text-end mt-3">
+                        <div class="d-grid gap-2 mt-2 text-center">
+                            <button class="btn btn-outline-primary d-inline-flex text-center justify-content-center"> <i class="ti ti-bookmark me-1"></i>Save</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

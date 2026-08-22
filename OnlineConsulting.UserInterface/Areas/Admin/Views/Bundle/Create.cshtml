@@ -1,0 +1,68 @@
+@using OnlineConsulting.UserInterface.Areas.Admin.Features.Bundle
+@model CreateBundleViewModel
+@{
+    ViewData["Title"] = "Add Bundle";
+    ViewData["SubPage1"] = "Bundles";
+    ViewData["SubPage1Url"] = Url.Action("Index", "Bundle", new { area = "Admin" });
+    ViewData["SubPage2"] = "Add Bundle";
+    ViewData["SubPage2Url"] = Url.Action("Create", "Bundle", new { area = "Admin" });
+}
+<div class="col-12">
+    <div class="card p-3">
+        <div class="card-header">
+            <h5 class="mb-0">Add Bundle</h5>
+            <p class="text-muted mb-0 mt-1 f-14">A shortcut group of existing module offerings for the signup form.</p>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="mb-3">
+                            <label class="form-label" for="name">Name</label>
+                            <input type="text" class="form-control" id="name" placeholder="e.g. Growth Bundle" asp-for="Name" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label d-block">Visibility</label>
+                            <div class="form-check form-switch mt-2">
+                                <input class="form-check-input" type="checkbox" role="switch" id="isPubliclyVisible" asp-for="IsPubliclyVisible" />
+                                <label class="form-check-label" for="isPubliclyVisible">Publicly visible</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="mb-3">
+                            <label class="form-label">Modules</label>
+                            @if (Model.AvailableModuleKeys.Count == 0)
+                            {
+                                <p class="text-muted">No module offerings exist yet - create one first.</p>
+                            }
+                            else
+                            {
+                                <div class="row">
+                                    @foreach (var key in Model.AvailableModuleKeys)
+                                    {
+                                        <div class="col-md-4">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="ModuleKeys" value="@key" id="module-@key"
+                                                       checked="@(Model.ModuleKeys.Contains(key))" />
+                                                <label class="form-check-label" for="module-@key">@key</label>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    <div class="col-md-12 text-end mt-3">
+                        <div class="d-grid gap-2 mt-2 text-center">
+                            <button class="btn btn-outline-primary d-inline-flex text-center justify-content-center"> <i class="ti ti-bookmark me-1"></i>Save</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

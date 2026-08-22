@@ -1,0 +1,294 @@
+﻿/* Public site overrides on top of the eduhas template - kept separate from the
+   template's own stylesheet so template updates never clobber these. */
+
+/* Main navigation (moved out of LayoutHeaderBottomMainMenuComponentPartial) */
+.nav-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.nav-item {
+    display: inline-block;
+    margin-right: 15px;
+}
+
+.nav-item a {
+    text-decoration: none;
+    color: inherit;
+    font-weight: normal;
+    transition: color 0.3s;
+}
+
+.nav-item a:hover {
+    color: #FF5951;
+}
+
+.nav-item.active a {
+    color: #FF5951;
+    font-weight: bold;
+}
+
+.nav-item i {
+    display: inline-block !important;
+}
+
+/* ==========================================================================
+   Typography system
+   --------------------------------------------------------------------------
+   The eduhas template ships a very "loud" scale (h1: 110px, h2: 72px,
+   h3: 44px, everything upper-cased) that reads inconsistently once real
+   copy replaces its demo content - a 14px all-caps "eyebrow" label sitting
+   directly above a 44px block-caps heading is a jarring, un-tuned jump.
+   This block replaces the template's heading rules with one deliberate,
+   proportional scale for the whole public site, defined once as variables
+   so every section title, hero, and card heading stays in sync.
+   ========================================================================== */
+:root {
+    --oc-heading-font: "Montserrat", sans-serif;
+    --oc-eyebrow-size: 15px;
+    --oc-h1-size: 42px;
+    --oc-h1-size-mobile: 30px;
+    --oc-h2-size: 32px;
+    --oc-h2-size-mobile: 26px;
+    --oc-h3-size: 26px;
+    --oc-h3-size-mobile: 22px;
+    --oc-h4-size: 19px;
+    --oc-h5-size: 17px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--oc-heading-font);
+    text-transform: none !important;
+    letter-spacing: 0;
+}
+
+h1 {
+    font-size: var(--oc-h1-size) !important;
+    font-weight: 800;
+    line-height: 1.15;
+}
+
+h2 {
+    font-size: var(--oc-h2-size) !important;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+h3 {
+    font-size: var(--oc-h3-size) !important;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+h4 {
+    font-size: var(--oc-h4-size) !important;
+    font-weight: 600;
+}
+
+h5 {
+    font-size: var(--oc-h5-size) !important;
+    font-weight: 600;
+}
+
+/* Eyebrow/kicker labels ("Popular Services" above "Repair, Maintenance &
+   Installation") - no uppercase anywhere, per explicit direction. Sized
+   close enough to the heading below it (15px vs 26px, not 14px vs 44px)
+   that the two read as one coherent unit instead of two unrelated scales. */
+.section-title h4, .section-title-two h4, .section-title-three h4 {
+    font-size: var(--oc-eyebrow-size) !important;
+    text-transform: none !important;
+    letter-spacing: 0.02em;
+    font-weight: 700;
+    margin-bottom: 6px !important;
+}
+
+.section-title h3, .section-title-two h3, .section-title-three h3 {
+    margin-top: 0 !important;
+}
+
+@media only screen and (max-width: 767px) {
+    h1 {
+        font-size: var(--oc-h1-size-mobile) !important;
+    }
+
+    h2 {
+        font-size: var(--oc-h2-size-mobile) !important;
+    }
+
+    h3 {
+        font-size: var(--oc-h3-size-mobile) !important;
+    }
+}
+
+/* Hero slider text - replaces old inline beige/aliceblue colors */
+.hero-slide-title {
+    color: #ffffff;
+}
+
+.hero-slide-subtitle {
+    color: #f0f0f0;
+    font-size: 1.35rem;
+}
+
+.slider-btn-outline {
+    background-color: transparent !important;
+    border: 2px solid #fff;
+    color: #fff !important;
+}
+
+.slider-btn-outline:hover {
+    background-color: #fff !important;
+    color: #222 !important;
+}
+
+/* Footer service-area / hours list */
+.footer-hours-list {
+    list-style: none;
+    margin: 0 0 20px;
+    padding: 0;
+}
+
+.footer-hours-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    color: #cfcfcf;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.footer-hours-list li i {
+    color: #FF5951;
+    margin-top: 3px;
+    flex-shrink: 0;
+}
+
+/* Header phone CTA - phone-first pattern standard on US home-service sites */
+.header-phone-cta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: inherit;
+}
+
+.header-phone-cta i {
+    font-size: 22px;
+    color: #FF5951;
+}
+
+.header-phone-cta-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+}
+
+.header-phone-cta-text small {
+    font-size: 11px;
+    text-transform: none;
+    letter-spacing: 0.02em;
+    color: #767676;
+}
+
+.header-phone-cta-text strong {
+    font-family: "Montserrat", sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: #222;
+}
+
+.header-phone-cta:hover .header-phone-cta-text strong {
+    color: #FF5951;
+}
+
+/* Header "Book Now" CTA button */
+.header-book-now-btn {
+    display: inline-block;
+    background-color: #FF5951;
+    color: #fff !important;
+    font-family: "Montserrat", sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0.02em;
+    padding: 8px 18px;
+    border-radius: 30px;
+    transition: background-color 0.25s ease;
+}
+
+.header-book-now-btn:hover {
+    background-color: #e6473f;
+    color: #fff;
+}
+
+/* Appointment time-slot picker */
+.time-slot-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.time-slot-option {
+    display: inline-block;
+}
+
+.time-slot-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.time-slot-option label {
+    display: inline-block;
+    cursor: pointer;
+    padding: 10px 18px;
+    border: 1px solid #e5e5e5;
+    border-radius: 30px;
+    font-weight: 600;
+    color: #333;
+    transition: all 0.25s ease;
+    margin: 0;
+}
+
+.time-slot-option label:hover {
+    border-color: #FF5951;
+    color: #FF5951;
+}
+
+.time-slot-option input[type="radio"]:checked + label {
+    background-color: #FF5951;
+    border-color: #FF5951;
+    color: #fff;
+}
+
+.time-slot-option input[type="radio"]:focus-visible + label {
+    outline: 2px solid #FF5951;
+    outline-offset: 2px;
+}
+
+/* The eduhas template's "Register Now" background image is an unbranded stock
+   placeholder graphic (literally labelled with its own pixel dimensions) -
+   hide it until it's replaced with real photography. */
+.register-now-area::before {
+    background: none;
+}
+
+/* Cart line-item remove button */
+.remove-btn {
+    border: none;
+    background: none;
+    cursor: pointer;
+    padding: 0 0 0 1.5rem;
+    transition: color 0.2s ease;
+}
+
+.remove-btn i {
+    font-size: 1.13rem;
+}
+
+.remove-btn:hover i {
+    color: #FF5951;
+}

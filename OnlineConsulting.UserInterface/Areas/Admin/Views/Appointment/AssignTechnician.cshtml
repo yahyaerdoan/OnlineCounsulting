@@ -1,0 +1,40 @@
+@using OnlineConsulting.UserInterface.Areas.Admin.Features.Appointment
+@model AssignTechnicianViewModel
+@{
+    ViewData["Title"] = "Assign Technician";
+    ViewData["SubPage1"] = "Appointments";
+    ViewData["SubPage1Url"] = Url.Action("Index", "Appointment", new { area = "Admin" });
+    ViewData["SubPage2"] = "Assign Technician";
+}
+<div class="col-12">
+    <div class="card p-3">
+        <div class="card-header">
+            <h5 class="mb-0">Assign Technician</h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                <input type="hidden" asp-for="AppointmentId" />
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="mb-3">
+                            <label class="form-label" for="technicianUserId">Technician</label>
+                            <select class="form-control" id="technicianUserId" asp-for="TechnicianUserId">
+                                <option value="">Select a user</option>
+                                @foreach (var technician in Model.Technicians)
+                                {
+                                    <option value="@technician.Id">@technician.Name</option>
+                                }
+                            </select>
+                            <span asp-validation-for="TechnicianUserId" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-12 text-end mt-3">
+                        <div class="d-grid gap-2 mt-2 text-center">
+                            <button class="btn btn-outline-primary d-inline-flex text-center justify-content-center"> <i class="ti ti-user-check me-1"></i>Assign</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

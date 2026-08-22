@@ -28,57 +28,15 @@
                 <a class="fs-6" href="@Url.Action("Index", "Contact",new {area=""})">Contact</a>
             </li>
 
-            <li class="nav-item position-relative @(currentController == "Cart" && currentAction == "Index" ? "active" : "")">
-                <a class="fs-6 d-inline-block position-relative" href="@Url.Action("Index", "Cart", new { area = "" })">
-                    <i class="fas fa-briefcase" style="font-size: 16px;"></i>
-
-                    @if (ViewBag.TotalBasketItemsCount > 0)
-                    {
-                        <span class="position-absolute top-0 start-100 translate-middle-y badge rounded-pill"
-                              style="font-size: 0.90rem; padding: 1px 1px; color: #FF5951;">
-                            <strong>@ViewBag.TotalBasketItemsCount</strong>
-                        </span>
-                    }
-                </a>
+            <li class="nav-item @(currentController == "Appointment" && currentAction == "Book" ? "active" : "")">
+                <a class="fs-6" href="@Url.Action("Book", "Appointment",new {area=""})">Appointment</a>
             </li>
+
+            <li class="nav-item @(currentController == "Membership" && currentAction == "Index" ? "active" : "")">
+                <a class="fs-6" href="@Url.Action("Index", "Membership",new {area=""})">Membership</a>
+            </li>
+
         </ul>
     </nav>
 </div>
 <!--// main-menu -->
-
-<style>
-    /* Reset styles for the nav-list */
-    .nav-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-
-    .nav-item {
-        display: inline-block;
-        margin-right: 15px; /* Adjust spacing */
-    }
-
-        .nav-item a {
-            text-decoration: none;
-            color: inherit; /* Default color */
-            font-weight: normal;
-            transition: color 0.3s; /* Smooth color transition */
-        }
-
-            /* Hover effect */
-            .nav-item a:hover {
-                color: #FF5951; /* Hover color */
-            }
-
-        /* Active link style */
-        .nav-item.active a {
-            color: #FF5951; /* Active color */
-            font-weight: bold; /* Bold for active link */
-        }
-
-        .nav-item i {
-            display: inline-block !important;
-        }
-
-</style>

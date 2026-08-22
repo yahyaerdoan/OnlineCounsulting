@@ -1,0 +1,188 @@
+@using OnlineConsulting.UserInterface.Areas.Admin.Features.Promotion
+@model List<PromotionListItemViewModel>
+@{
+    ViewData["Title"] = "Promotion List";
+    ViewData["SubPage1"] = "Promotion List";
+    ViewData["SubPage1Url"] = Url.Action("Index", "Promotion", new { area = "Admin" });
+    int count = 1;
+    var now = DateTimeOffset.UtcNow;
+    var activeCount = Model.Count(p => p.ExpiresAt is null || p.ExpiresAt > now);
+    var expiredCount = Model.Count - activeCount;
+}
+
+<script type="module">
+    import { DataTable } from '/templates/admin-sky-template/able-pro-vanila-bootstrap-9.5.0/dist/assets/js/plugins/module.js';
+    window.dt = new DataTable('#pc-dt-simple');
+</script>
+
+<div class="col-12">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body d-flex align-items-center">
+                    <div class="avtar avtar-s bg-light-primary flex-shrink-0">
+                        <i class="ti ti-speakerphone f-20"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="mb-0 text-muted f-w-400">Total Promotions</h6>
+                        <h4 class="mb-0">@Model.Count</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body d-flex align-items-center">
+                    <div class="avtar avtar-s bg-light-success flex-shrink-0">
+                        <i class="ti ti-circle-check f-20"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="mb-0 text-muted f-w-400">Active</h6>
+                        <h4 class="mb-0">@activeCount</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body d-flex align-items-center">
+                    <div class="avtar avtar-s bg-light-danger flex-shrink-0">
+                        <i class="ti ti-alarm f-20"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="mb-0 text-muted f-w-400">Expired</h6>
+                        <h4 class="mb-0">@expiredCount</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="col-12">
+    <div class="card table-card">
+        <div class="card-header">
+            <div class="d-sm-flex align-items-center justify-content-between">
+                <h5 class="mb-3 mb-sm-0">Promotion List</h5>
+                <div>
+                    <a href="@Url.Action("Create","Promotion")" class="btn btn-primary"><i class="ti ti-plus me-1"></i>Add Promotion</a>
+                </div>
+            </div>
+        </div>
+        <div class="card-body pt-3">
+            @if (Model is { Count: > 0 })
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover" id="pc-dt-simple">
+                        <thead>
+                            <tr>
+                                <th>Count</th>
+                                <th>Promotion</th>
+                                <th>Cta</th>
+                                <th>Expires At</th>
+                                <th>Order</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                var isExpired = item.ExpiresAt is not null && item.ExpiresAt <= now;
+                                <tr>
+                                    <td style="padding-left:2rem">@count</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avtar avtar-s @(isExpired ? "bg-light-danger" : "bg-light-primary") flex-shrink-0">
+                                                <i class="ti ti-speakerphone f-18"></i>
+                                            </div>
+                                            <div class="ms-3">
+                                                <h6 class="mb-0" style="word-wrap: break-word; white-space: normal;">@item.Title</h6>
+                                                <span class="text-muted f-12" style="word-wrap: break-word; white-space: normal;">@item.Description</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrWhiteSpace(item.CtaText))
+                                        {
+                                            <span class="badge bg-light-primary">@item.CtaText</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (item.ExpiresAt is null)
+                                        {
+                                            <span class="badge bg-light-success">No expiry</span>
+                                        }
+                                        else if (isExpired)
+                                        {
+                                            <span class="badge bg-light-danger">@item.ExpiresAt.Value.ToString("yyyy-MM-dd")</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-light-warning">@item.ExpiresAt.Value.ToString("yyyy-MM-dd")</span>
+                                        }
+                                    </td>
+                                    <td>@item.DisplayOrder</td>
+                                    <td>
+                                        <a href="@Url.Action("Update","Promotion",new{id=item.Id})" class="avtar avtar-xs btn-link-secondary" title="Edit">
+                                            <i class="ti ti-edit f-20"></i>
+                                        </a>
+                                        <a href="#" data-bs-toggle="modal" data-bs-target="#deleteModalCenter" class="avtar avtar-xs btn-link-secondary delete-btn" data-id="@item.Id" title="Delete">
+                                            <i class="ti ti-trash f-20"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                count++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="ti ti-speakerphone f-40 text-muted"></i>
+                    <p class="text-muted mb-3 mt-2">No promotions added yet.</p>
+                    <a href="@Url.Action("Create","Promotion")" class="btn btn-primary"><i class="ti ti-plus me-1"></i>Add Promotion</a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+<!-- Delete Confirmation Modal Start -->
+<div id="deleteModalCenter" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="deleteModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalCenterTitle">Delete Confirmation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    The record you selected will be deleted. Do you want to continue?
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-bs-dismiss="modal">No</button>
+                <a href="#" id="confirmDeleteBtn" class="btn btn-danger">Yes</a>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Delete Confirmation Modal End -->
+<script>
+        document.addEventListener('DOMContentLoaded', function () {
+        const deleteButtons = document.querySelectorAll('.delete-btn');
+        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                const itemId = this.getAttribute('data-id');
+                confirmDeleteBtn.setAttribute('href', `/admin/promotions/${itemId}/delete`);
+            });
+        });
+    });
+</script>

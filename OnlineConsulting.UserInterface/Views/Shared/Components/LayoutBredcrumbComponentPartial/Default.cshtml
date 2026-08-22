@@ -19,7 +19,10 @@
         "Cart" => "Cart",
         "Account" => "Account",
         "Dashboard" => "Dashboard",
-        _ => null
+        "Search" => "Search",
+        "Appointment" => "Book Appointment",
+        "Membership" => "Membership Plans",
+        _ => ViewData["SubPage1"] as string
     };
 
     // For any controller, determine subPage2Name dynamically based on action
@@ -56,6 +59,7 @@
     var subPage1Action = currentController switch
     {
         "Account" => currentAction == "Login" ? "Register" : "Login", // Swap between Login/Register
+        "Appointment" => "Book",
         _ => "Index" // Default to "Index" for other controllers
     };
 }

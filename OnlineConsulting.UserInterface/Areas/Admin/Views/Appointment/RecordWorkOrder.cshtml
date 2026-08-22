@@ -1,0 +1,141 @@
+@using OnlineConsulting.UserInterface.Areas.Admin.Features.Appointment
+@model RecordWorkOrderViewModel
+@{
+    ViewData["Title"] = "Record Work Order";
+    ViewData["SubPage1"] = "Appointments";
+    ViewData["SubPage1Url"] = Url.Action("Index", "Appointment", new { area = "Admin" });
+    ViewData["SubPage2"] = "Record Work Order";
+}
+<div class="col-12">
+    <div class="card p-3">
+        <div class="card-header">
+            <h5 class="mb-0">Record Work Order</h5>
+            <p class="text-muted mb-0 mt-1 f-14">Recording a work order marks this appointment as Completed.</p>
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                <input type="hidden" asp-for="AppointmentId" />
+                <input type="hidden" asp-for="CustomerUserId" />
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="mb-3">
+                            <label class="form-label" for="technicianUserId">Technician</label>
+                            <select class="form-control" id="technicianUserId" asp-for="TechnicianUserId">
+                                <option value="">Select a technician</option>
+                                @foreach (var technician in Model.Technicians)
+                                {
+                                    <option value="@technician.Id">@technician.Name</option>
+                                }
+                            </select>
+                            <span asp-validation-for="TechnicianUserId" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label d-block">Equipment</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="equipmentMode" id="equipmentModeExisting" value="existing" checked="@(Model.ExistingEquipment.Count > 0)" />
+                            <label class="form-check-label" for="equipmentModeExisting">Use existing equipment on file</label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="equipmentMode" id="equipmentModeNew" value="new" checked="@(Model.ExistingEquipment.Count == 0)" />
+                            <label class="form-check-label" for="equipmentModeNew">Record new equipment</label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12 mb-3" id="existingEquipmentSection">
+                        <select class="form-control" asp-for="EquipmentId">
+                            <option value="">No equipment on file for this customer</option>
+                            @foreach (var equipment in Model.ExistingEquipment)
+                            {
+                                <option value="@equipment.Id">@equipment.Label</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-12" id="newEquipmentSection">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Type</label>
+                                    <input type="text" class="form-control" placeholder="e.g. Central AC Unit" asp-for="NewEquipmentType" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Serial Number</label>
+                                    <input type="text" class="form-control" asp-for="NewEquipmentSerialNumber" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Brand</label>
+                                    <input type="text" class="form-control" asp-for="NewEquipmentBrand" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Model</label>
+                                    <input type="text" class="form-control" asp-for="NewEquipmentModel" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <div class="mb-3">
+                            <label class="form-label">Parts Used</label>
+                            <textarea class="form-control" rows="2" asp-for="PartsUsed"></textarea>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="mb-3">
+                            <label class="form-label">Technician Notes</label>
+                            <textarea class="form-control" rows="3" asp-for="TechnicianNotes"></textarea>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Before Photo</label>
+                            <input type="file" class="form-control" asp-for="BeforePhoto" accept="image/*" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">After Photo</label>
+                            <input type="file" class="form-control" asp-for="AfterPhoto" accept="image/*" />
+                        </div>
+                    </div>
+
+                    <div class="col-md-12 text-end mt-3">
+                        <div class="d-grid gap-2 mt-2 text-center">
+                            <button class="btn btn-outline-primary d-inline-flex text-center justify-content-center"> <i class="ti ti-clipboard-check me-1"></i>Complete Appointment</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var existingRadio = document.getElementById('equipmentModeExisting');
+        var newRadio = document.getElementById('equipmentModeNew');
+        var existingSection = document.getElementById('existingEquipmentSection');
+        var newSection = document.getElementById('newEquipmentSection');
+
+        var equipmentSelect = existingSection.querySelector('select');
+
+        function toggle() {
+            existingSection.style.display = existingRadio.checked ? '' : 'none';
+            newSection.style.display = newRadio.checked ? '' : 'none';
+            if (newRadio.checked) {
+                equipmentSelect.value = '';
+            }
+        }
+
+        existingRadio.addEventListener('change', toggle);
+        newRadio.addEventListener('change', toggle);
+        toggle();
+    });
+</script>

@@ -1,0 +1,79 @@
+@using OnlineConsulting.UserInterface.Areas.Admin.Features.MembershipPlan
+@model CreateMembershipPlanViewModel
+@{
+    ViewData["Title"] = "Add Membership Plan";
+    ViewData["SubPage1"] = "Membership Plans";
+    ViewData["SubPage1Url"] = Url.Action("Index", "MembershipPlan", new { area = "Admin" });
+    ViewData["SubPage2"] = "Add Plan";
+    ViewData["SubPage2Url"] = Url.Action("Create", "MembershipPlan", new { area = "Admin" });
+}
+<div class="col-12">
+    <div class="card p-3">
+        <div class="card-header">
+            <h5 class="mb-0">Add Membership Plan</h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="mb-3">
+                            <label class="form-label" for="name">Name</label>
+                            <input type="text" class="form-control" id="name" placeholder="e.g. Gold Maintenance Plan" asp-for="Name" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label" for="billingCycle">Billing Cycle</label>
+                            <select class="form-control" id="billingCycle" asp-for="BillingCycle">
+                                <option value="Monthly">Monthly</option>
+                                <option value="Annual">Annual</option>
+                            </select>
+                            <span asp-validation-for="BillingCycle" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label" for="price">Price</label>
+                            <input type="number" step="0.01" class="form-control" id="price" asp-for="Price" />
+                            <span asp-validation-for="Price" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label" for="includedVisitsPerYear">Included Visits/Year</label>
+                            <input type="number" class="form-control" id="includedVisitsPerYear" asp-for="IncludedVisitsPerYear" />
+                            <span asp-validation-for="IncludedVisitsPerYear" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label" for="discountPercent">Discount %</label>
+                            <input type="number" step="0.01" class="form-control" id="discountPercent" asp-for="DiscountPercent" />
+                            <span asp-validation-for="DiscountPercent" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label" for="creditAmount">Credit Amount</label>
+                            <input type="number" step="0.01" class="form-control" id="creditAmount" asp-for="CreditAmount" />
+                            <span asp-validation-for="CreditAmount" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="mb-3">
+                            <label class="form-label" for="benefits">Benefits</label>
+                            <textarea class="form-control" id="benefits" rows="3" placeholder="One benefit per line" asp-for="Benefits"></textarea>
+                            <span asp-validation-for="Benefits" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-12 text-end mt-3">
+                        <div class="d-grid gap-2 mt-2 text-center">
+                            <button class="btn btn-outline-primary d-inline-flex text-center justify-content-center"> <i class="ti ti-bookmark me-1"></i>Save</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

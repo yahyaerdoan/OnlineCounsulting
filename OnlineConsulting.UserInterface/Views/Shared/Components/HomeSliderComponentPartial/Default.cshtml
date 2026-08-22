@@ -1,9 +1,9 @@
-﻿@using OnlineConsulting.UserInterface.Areas.Admin.Features.SliderItem
-@model List<SliderItemListItemViewModel>
+﻿@using OnlineConsulting.UserInterface.ViewComponents.HomeViewComponents.HomeSliderViewComponents
+@model HomeSliderViewModel
 
 <div class="hero-slider">
     <div class="hero-slider-active owl-carousel">
-        @foreach (var item in Model)
+        @foreach (var item in Model.Slides)
         {
             <div class="singleSlide" data-black-overlay="1">
                 <div class="itemBg">
@@ -16,10 +16,20 @@
                             <div class="col">
                                 <div class="slider-text-info">
                                     <h1>
-                                        <span style="color:beige">@item.Title </span> <br>
-                                        <span style="color:aliceblue; font-size:xx-large"> @item.Description</span>
+                                        <span class="hero-slide-title">@item.Title </span> <br>
+                                        <span class="hero-slide-subtitle"> @item.Description</span>
                                     </h1>
-                                    <a href="@Url.Action("Index", "AboutUs")" class="btn slider-btn"><span>About Us</span></a>
+                                    <div class="d-flex flex-wrap gap-3 mt-3">
+                                        <a href="@Url.Action("Book", "Appointment", new { area = "" })" class="btn slider-btn"><span>Schedule Service</span></a>
+                                        @if (!string.IsNullOrWhiteSpace(Model.Phone))
+                                        {
+                                            <a href="tel:@Model.Phone" class="btn slider-btn slider-btn-outline"><span><i class="fas fa-phone-alt me-2"></i>Call @Model.Phone</span></a>
+                                        }
+                                        else
+                                        {
+                                            <a href="@Url.Action("Index", "AboutUs", new { area = "" })" class="btn slider-btn slider-btn-outline"><span>About Us</span></a>
+                                        }
+                                    </div>
                                 </div>
                             </div>
                         </div>

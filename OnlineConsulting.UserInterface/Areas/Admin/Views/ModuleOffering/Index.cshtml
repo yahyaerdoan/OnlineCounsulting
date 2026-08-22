@@ -1,0 +1,116 @@
+@using OnlineConsulting.UserInterface.Areas.Admin.Features.ModuleOffering
+@model List<ModuleOfferingListItemViewModel>
+@{
+    ViewData["Title"] = "Module Offerings";
+    ViewData["SubPage1"] = "Module Offerings";
+    ViewData["SubPage1Url"] = Url.Action("Index", "ModuleOffering", new { area = "Admin" });
+    int count = 1;
+    var visibleCount = Model.Count(m => m.IsPubliclyVisible);
+}
+
+<script type="module">
+    import { DataTable } from '/templates/admin-sky-template/able-pro-vanila-bootstrap-9.5.0/dist/assets/js/plugins/module.js';
+    window.dt = new DataTable('#pc-dt-simple');
+</script>
+
+<div class="col-12">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body d-flex align-items-center">
+                    <div class="avtar avtar-s bg-light-primary flex-shrink-0">
+                        <i class="ti ti-puzzle f-20"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="mb-0 text-muted f-w-400">Total Offerings</h6>
+                        <h4 class="mb-0">@Model.Count</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body d-flex align-items-center">
+                    <div class="avtar avtar-s bg-light-success flex-shrink-0">
+                        <i class="ti ti-eye f-20"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h6 class="mb-0 text-muted f-w-400">Publicly Visible</h6>
+                        <h4 class="mb-0">@visibleCount</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="col-12">
+    <div class="card table-card">
+        <div class="card-header">
+            <div class="d-sm-flex align-items-center justify-content-between">
+                <h5 class="mb-3 mb-sm-0">Module Offerings</h5>
+                <a href="@Url.Action("Create","ModuleOffering")" class="btn btn-primary"><i class="ti ti-plus me-1"></i>Add Offering</a>
+            </div>
+        </div>
+        <div class="card-body pt-3">
+            @if (Model is { Count: > 0 })
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover" id="pc-dt-simple">
+                        <thead>
+                            <tr>
+                                <th>Count</th>
+                                <th>Module</th>
+                                <th>Key</th>
+                                <th>Billing</th>
+                                <th>Price</th>
+                                <th>Visibility</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td style="padding-left:2rem">@count</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avtar avtar-s bg-light-primary flex-shrink-0">
+                                                <i class="ti ti-puzzle f-18"></i>
+                                            </div>
+                                            <div class="ms-3">
+                                                <h6 class="mb-0">@item.Name</h6>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td><code>@item.Key</code></td>
+                                    <td><span class="badge bg-light-primary">@item.BillingCycle</span></td>
+                                    <td>@item.Price.ToString("C")</td>
+                                    <td>
+                                        <span class="badge @(item.IsPubliclyVisible ? "bg-light-success" : "bg-light-secondary")">
+                                            @(item.IsPubliclyVisible ? "Visible" : "Hidden")
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="@Url.Action("Update","ModuleOffering",new{id=item.Id})" class="avtar avtar-xs btn-link-secondary" title="Edit">
+                                            <i class="ti ti-edit f-20"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                count++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="ti ti-puzzle f-40 text-muted"></i>
+                    <p class="text-muted mb-3 mt-2">No module offerings yet.</p>
+                    <a href="@Url.Action("Create","ModuleOffering")" class="btn btn-primary"><i class="ti ti-plus me-1"></i>Add Offering</a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
