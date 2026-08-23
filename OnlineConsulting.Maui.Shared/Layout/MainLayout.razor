@@ -1,0 +1,198 @@
+﻿@inherits LayoutComponentBase
+@implements IDisposable
+@using System.Security.Claims
+@using OnlineConsulting.Maui.Shared.Infrastructure.Api
+@using OnlineConsulting.Maui.Shared.Infrastructure.Auth
+@using OnlineConsulting.Maui.Shared.Infrastructure.Navigation
+@using OnlineConsulting.Maui.Shared.Theme
+@inject IAuthSession AuthSession
+@inject IPlatformInfo PlatformInfo
+@inject UiModuleRegistry ModuleRegistry
+@inject AuthenticationExpiredNotifier ExpiredNotifier
+@inject IJSRuntime JsRuntime
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+@inject AuthenticationStateProvider AuthStateProvider
+
+<MudThemeProvider Theme="AppTheme.Default" @bind-IsDarkMode="_isDarkMode" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<AuthorizeView>
+    <Authorized>
+        <MudLayout>
+            @if (PlatformInfo.IsNativeMobile)
+            {
+                @* MudAppBar defaults to Fixed="true" (position: fixed), which is positioned
+                   relative to the viewport and ignores this status-bar spacer's height entirely.
+                   MAUI's WebView renders edge-to-edge under the system status bar, so the AppBar
+                   needs to be a normal in-flow element here for the spacer to push it down. *@
+                <div class="status-bar-safe-area"></div>
+            }
+            <MudAppBar Elevation="0" Class="app-bar-elevated" Fixed="@(!PlatformInfo.IsNativeMobile)">
+                <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
+                <span class="brand-chip ml-2">
+                    <span class="brand-chip-icon"><MudIcon Icon="@Icons.Material.Filled.Bolt" Size="Size.Small" /></span>
+                    ComfortPro
+                </span>
+                <MudSpacer />
+                <MudIconButton Icon="@(_isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
+                               Color="Color.Inherit" OnClick="@ToggleDarkMode" />
+                <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" Class="ml-2">
+                    <ActivatorContent Context="activatorContext">
+                        <span class="user-avatar-chip" @onclick="activatorContext.ToggleAsync">@GetInitials(context.User.Identity?.Name)</span>
+                    </ActivatorContent>
+                    <ChildContent>
+                        <MudMenuItem Disabled="true">@context.User.Identity?.Name</MudMenuItem>
+                        <MudDivider />
+                        <MudMenuItem OnClick="@(() => AuthSession.SignOutAsync())" IconColor="Color.Error" Icon="@Icons.Material.Filled.Logout">Sign out</MudMenuItem>
+                    </ChildContent>
+                </MudMenu>
+            </MudAppBar>
+
+            <MudDrawer @bind-Open="_drawerOpen" Elevation="0" Variant="@CurrentDrawerVariant" ClipMode="DrawerClipMode.Always"
+                       Class="@DrawerCssClass">
+                <MudNavMenu>
+                    @foreach (var section in ModuleRegistry.NavSections)
+                    {
+                        var visibleItems = section.Items.Where(i => !i.SuperAdminOnly || context.User.HasClaim(c => c.Type == AuthClaimTypes.IsSuperAdmin)).ToList();
+                        if (visibleItems.Count == 0)
+                        {
+                            continue;
+                        }
+
+                        <MudNavGroup Title="@section.Title" Icon="@section.Icon" IconColor="@section.Color" Expanded="true">
+                            @foreach (var item in visibleItems)
+                            {
+                                <MudNavLink Href="@item.Href" Icon="@item.Icon" IconColor="@section.Color"
+                                            Match="@(item.Href == AppRoutes.AdminHome ? NavLinkMatch.All : NavLinkMatch.Prefix)">@item.Text</MudNavLink>
+                            }
+                        </MudNavGroup>
+                    }
+                </MudNavMenu>
+            </MudDrawer>
+
+            <MudMainContent>
+                <MudContainer MaxWidth="MaxWidth.False" Class="pa-4 page-shell">
+                    @Body
+                </MudContainer>
+            </MudMainContent>
+        </MudLayout>
+    </Authorized>
+    <NotAuthorized>
+        <div class="auth-shell">
+            <div class="auth-brand">
+                <span class="auth-brand-mark">
+                    <span class="auth-brand-mark-icon">
+                        <MudIcon Icon="@Icons.Material.Filled.Bolt" Size="Size.Small" />
+                    </span>
+                    ComfortPro
+                </span>
+
+                <div class="auth-brand-body">
+                    <MudText Typo="Typo.h1">Run your service business from one modern control center.</MudText>
+                    <MudText Typo="Typo.body1">
+                        Scheduling, work orders, memberships, and billing for every tenant - one
+                        polished admin, tailored per customer.
+                    </MudText>
+                    <MudList T="string" Class="auth-brand-features">
+                        <MudListItem T="string" Class="auth-feature-item">
+                            <span class="auth-feature-dot"><MudIcon Icon="@Icons.Material.Filled.Check" Size="Size.Small" /></span>
+                            Real-time appointments and dispatch
+                        </MudListItem>
+                        <MudListItem T="string" Class="auth-feature-item">
+                            <span class="auth-feature-dot"><MudIcon Icon="@Icons.Material.Filled.Check" Size="Size.Small" /></span>
+                            Per-tenant billing, plans and add-ons
+                        </MudListItem>
+                        <MudListItem T="string" Class="auth-feature-item">
+                            <span class="auth-feature-dot"><MudIcon Icon="@Icons.Material.Filled.Check" Size="Size.Small" /></span>
+                            Role-based access across your whole team
+                        </MudListItem>
+                    </MudList>
+                </div>
+
+                <MudText Typo="Typo.caption" Class="auth-brand-footer">&copy; @DateTime.UtcNow.Year ComfortPro</MudText>
+            </div>
+
+            <div class="auth-panel">
+                @Body
+            </div>
+        </div>
+    </NotAuthorized>
+</AuthorizeView>
+
+<div id="blazor-error-ui" data-nosnippet>
+    An unhandled error has occurred.
+    <a href="." class="reload">Reload</a>
+    <span class="dismiss">&times;</span>
+</div>
+
+@code {
+
+    /// <summary>Shared shell for both hosts - AuthorizeView switches admin chrome vs. login panel;
+    /// also owns dark-mode persistence, the post-login welcome toast, and per-platform drawer behavior.</summary>
+    
+    /// <summary>Mini is a persistent desktop icon-rail that just changes width when toggled - on a
+    /// phone-sized viewport that resize is easy to miss entirely, which read as "the toggle button
+    /// does nothing". Native mobile gets a real overlay drawer (Temporary) that opens/closes, closed
+    /// by default so it doesn't cover content on first render.</summary>
+    private const string DarkModeStorageKey = "comfortpro-dark-mode";
+
+    private bool _drawerOpen;
+    private bool _isDarkMode;
+
+    /// <summary>Login redirects here with ?welcome=true - shown once, then stripped from the URL.</summary>
+    protected override async Task OnInitializedAsync()
+    {
+        _drawerOpen = !PlatformInfo.IsNativeMobile;
+        ExpiredNotifier.AuthenticationExpired += OnAuthenticationExpired;
+
+        if (Navigation.Uri.Contains("welcome=true", StringComparison.Ordinal))
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var firstName = authState.User.FindFirst(ClaimTypes.GivenName)?.Value;
+            Snackbar.ShowSuccess(string.IsNullOrEmpty(firstName) ? "Welcome back!" : $"Welcome back, {firstName}!");
+            Navigation.ClearQueryFlag("welcome");
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        var stored = await JsRuntime.InvokeAsync<string?>("localStorage.getItem", DarkModeStorageKey);
+        if (bool.TryParse(stored, out var storedIsDarkMode) && storedIsDarkMode != _isDarkMode)
+        {
+            _isDarkMode = storedIsDarkMode;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ToggleDarkMode()
+    {
+        _isDarkMode = !_isDarkMode;
+        await JsRuntime.InvokeVoidAsync("localStorage.setItem", DarkModeStorageKey, _isDarkMode.ToString());
+    }
+
+    private void OnAuthenticationExpired() => InvokeAsync(() => AuthSession.SignOutAsync());
+
+    public void Dispose() => ExpiredNotifier.AuthenticationExpired -= OnAuthenticationExpired;
+
+    private DrawerVariant CurrentDrawerVariant => PlatformInfo.IsNativeMobile ? DrawerVariant.Temporary : DrawerVariant.Mini;
+
+    // MAUI's overlay drawer intentionally does NOT reuse "nav-drawer" - that class carries
+    // overflow-x:hidden and Mini-variant collapse rules for the Web desktop rail, which were
+    // clipping/breaking the Temporary drawer's open/close transform on a phone-sized viewport.
+    private string DrawerCssClass => PlatformInfo.IsNativeMobile
+        ? "nav-drawer-mobile"
+        : "nav-drawer" + (_drawerOpen ? "" : " nav-drawer-collapsed");
+
+    private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
+
+    private static string GetInitials(string? name) =>
+        string.IsNullOrWhiteSpace(name) ? "?" : name.Trim()[..1].ToUpperInvariant();
+}

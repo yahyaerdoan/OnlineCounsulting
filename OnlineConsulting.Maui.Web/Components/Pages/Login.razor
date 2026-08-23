@@ -1,0 +1,109 @@
+﻿@page "/login"
+@attribute [ExcludeFromInteractiveRouting]
+@layout MainLayout
+@using System.Globalization
+@using System.Net.Http.Headers
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authentication.Cookies
+@using OnlineConsulting.Maui.Shared.Infrastructure.Auth
+@using OnlineConsulting.Maui.Shared.Infrastructure.Forms
+@inject IHttpClientFactory HttpClientFactory
+@inject IHttpContextAccessor HttpContextAccessor
+@inject NavigationManager Navigation
+@inject FormState<LoginModel> Form
+
+<PageTitle>Sign in</PageTitle>
+
+<AuthCard Subtitle="Sign in to your ComfortPro admin workspace">
+    <LoginErrorSnackbar ErrorMessage="@_errorMessage" GoodbyeToken="@Goodbye" />
+
+    <EditForm EditContext="@Form.EditContext" method="post" OnValidSubmit="SubmitAsync" FormName="login">
+        <AuthTextField Label="Username or email" Icon="@Icons.Material.Filled.Person" Placeholder="yourname"
+                       @bind-Value="_model.UserNameOrEmail" AutoFocus="true" />
+
+        <AuthTextField Label="Password" Icon="@Icons.Material.Filled.Lock" Placeholder="********" Type="password"
+                       @bind-Value="_model.Password" />
+
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-5">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                @* InputCheckbox, not MudCheckBox - same static-SSR reason as AuthTextField. *@
+                <InputCheckbox @bind-Value="_model.RememberMe" id="rememberMe" />
+                <label for="rememberMe">
+                    <MudText Typo="Typo.body2">Remember me</MudText>
+                </label>
+            </MudStack>
+        </MudStack>
+
+        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Class="auth-submit">Sign in</MudButton>
+    </EditForm>
+</AuthCard>
+
+@code {
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    [SupplyParameterFromQuery]
+    private string? Goodbye { get; set; }
+
+    [SupplyParameterFromForm]
+    private LoginModel _model
+    {
+        get => field ??= new LoginModel();
+        set;
+    }
+
+    private string? _errorMessage;
+
+    protected override void OnInitialized() => Form.Bind(_model);
+
+    private Task SubmitAsync() => Form.SubmitAsync(async () =>
+    {
+        _errorMessage = null;
+        var httpContext = HttpContextAccessor.HttpContext!;
+
+        var anonymousClient = HttpClientFactory.CreateClient(ApiHttpClientNames.Anonymous);
+        var loginApi = new ApiClient(anonymousClient);
+
+        var tokenResult = await loginApi.PostAsync<AuthTokensResponse>(ApiRoutes.Auth.Login,
+            new { userNameOrEmail = _model.UserNameOrEmail, password = _model.Password });
+
+        if (!tokenResult.IsSuccessful || tokenResult.ResultData is null)
+        {
+            _errorMessage = Form.DisplayErrors(tokenResult);
+            if (_errorMessage is not null)
+            {
+                StateHasChanged();
+            }
+
+            return;
+        }
+
+        var authorizedClient = HttpClientFactory.CreateClient(ApiHttpClientNames.Anonymous);
+        authorizedClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokenResult.ResultData.AccessToken);
+        var meApi = new ApiClient(authorizedClient);
+
+        var userResult = await meApi.GetAsync<CurrentUserResponse>(ApiRoutes.Users.Me);
+        if (!userResult.IsSuccessful || userResult.ResultData is null)
+        {
+            _errorMessage = "Signed in, but could not load your profile. Please try again.";
+            StateHasChanged();
+            return;
+        }
+
+        List<Claim> claims =
+        [
+            .. UserClaimsFactory.BuildBaseClaims(userResult.ResultData),
+            new Claim(AuthClaimTypes.AccessToken, tokenResult.ResultData.AccessToken),
+            new Claim(AuthClaimTypes.RefreshToken, tokenResult.ResultData.RefreshToken),
+            new Claim(AuthClaimTypes.AccessTokenExpiresAt, tokenResult.ResultData.AccessTokenExpiresAt.ToString("O", CultureInfo.InvariantCulture)),
+        ];
+
+        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        await httpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity),
+            new AuthenticationProperties { IsPersistent = _model.RememberMe });
+
+        var target = string.IsNullOrEmpty(ReturnUrl) ? AppRoutes.AdminHome : ReturnUrl;
+        Navigation.NavigateTo(target.Contains('?') ? $"{target}&welcome=true" : $"{target}?welcome=true", forceLoad: true);
+    });
+}

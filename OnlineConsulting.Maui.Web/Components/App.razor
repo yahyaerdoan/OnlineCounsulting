@@ -1,0 +1,40 @@
+﻿@using Microsoft.AspNetCore.Components.Endpoints
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <ResourcePreloader />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="_content/MudBlazor/MudBlazor.min.css" />
+    <link rel="stylesheet" href="_content/OnlineConsulting.Maui.Shared/app.css" />
+    <link rel="stylesheet" href="OnlineConsulting.Maui.Web.styles.css" />
+    <ImportMap />
+    <HeadOutlet @rendermode="PageRenderMode" />
+</head>
+
+<body>
+    <Routes @rendermode="PageRenderMode" />
+    <ReconnectModal />
+    <script src="@Assets["_framework/blazor.web.js"]"></script>
+    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+</body>
+
+</html>
+
+@code {
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    /// <summary>Pages tagged [ExcludeFromInteractiveRouting] (e.g. Login, which needs a raw HTTP
+    /// response to set the auth cookie) must render fully static - an ambient interactive mode here
+    /// would still wrap them in a circuit boundary and crash trying to serialize their parameters.
+    /// Prerender is off: MainLayout's &lt;AuthorizeView&gt; renders a structurally different subtree
+    /// for Authorized vs NotAuthorized, and if that resolves differently between the prerender pass
+    /// and the live circuit's first render, the client can't reconcile the mismatched DOM - it was
+    /// producing "attribute b-xxxxx used two or more times" errors instead of a clean re-render.</summary>
+    private IComponentRenderMode? PageRenderMode =>
+        HttpContext.AcceptsInteractiveRouting() ? new InteractiveServerRenderMode(prerender: false) : null;
+}

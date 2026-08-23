@@ -1,0 +1,45 @@
+@using System.Linq.Expressions
+@* InputText, not MudTextField - MudTextField needs JS interop, breaks on static SSR.
+   Floating label is a pure-CSS trick (input:placeholder-shown + sibling label), no JS. *@
+<div class="auth-field">
+    <div class="auth-input-wrap">
+        <MudIcon Icon="@Icon" />
+        <InputText id="@_id" Value="@Value" ValueChanged="@ValueChanged" ValueExpression="@ValueExpression"
+                   type="@Type" class="auth-input" placeholder="@Placeholder" required="@Required" autofocus="@AutoFocus" />
+        <label for="@_id" class="auth-input-label">@Label</label>
+    </div>
+    <ValidationMessage For="@ValueExpression" class="auth-field-error" />
+</div>
+
+@code {
+    private readonly string _id = $"auth-field-{Guid.NewGuid():N}";
+
+    [Parameter, EditorRequired]
+    public string Label { get; set; } = string.Empty;
+
+    [Parameter, EditorRequired]
+    public string Icon { get; set; } = string.Empty;
+
+    [Parameter]
+    public string Placeholder { get; set; } = string.Empty;
+
+    [Parameter]
+    public string Type { get; set; } = "text";
+
+    /// <summary>Defaults to false - the API's FluentValidation rules are the source of truth for
+    /// what's required, not the browser's native HTML validation.</summary>
+    [Parameter]
+    public bool Required { get; set; }
+
+    [Parameter]
+    public bool AutoFocus { get; set; }
+
+    [Parameter]
+    public string? Value { get; set; }
+
+    [Parameter]
+    public EventCallback<string?> ValueChanged { get; set; }
+
+    [Parameter]
+    public Expression<Func<string?>>? ValueExpression { get; set; }
+}

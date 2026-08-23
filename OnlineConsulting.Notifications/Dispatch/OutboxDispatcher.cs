@@ -61,10 +61,9 @@ public class OutboxDispatcher(IServiceScopeFactory scopeFactory, IOptions<Outbox
             return;
         }
 
-        foreach (var email in due)
-        {
-            await DispatchOneAsync(email, emailSender, settings, cancellationToken);
-        }
+        await Parallel.ForEachAsync(due,
+            new ParallelOptions { MaxDegreeOfParallelism = settings.MaxConcurrentSends, CancellationToken = cancellationToken },
+            (email, ct) => new ValueTask(DispatchOneAsync(email, emailSender, settings, ct)));
 
         _ = await context.SaveChangesAsync(cancellationToken);
     }

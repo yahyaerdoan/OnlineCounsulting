@@ -1,0 +1,8 @@
+@page "/"
+@inject NavigationManager Navigation
+
+@code {
+    // "/" is reserved for the future public/marketing landing page (Static SSR); until that
+    // exists, send everyone straight to the admin shell so the root route isn't a dead end.
+    protected override void OnInitialized() => Navigation.NavigateTo(AppRoutes.AdminHome, replace: true);
+}

@@ -1,0 +1,59 @@
+﻿@page "/login"
+@using OnlineConsulting.Maui.Infrastructure.Auth
+@using OnlineConsulting.Maui.Shared.Components.Common
+@using OnlineConsulting.Maui.Shared.Infrastructure.Api
+@using OnlineConsulting.Maui.Shared.Infrastructure.Auth
+@using OnlineConsulting.Maui.Shared.Infrastructure.Forms
+@using OnlineConsulting.Maui.Shared.Layout
+@inject IApiClient ApiClient
+@inject SecureStorageAccessTokenProvider TokenProvider
+@inject MauiAuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+@inject FormState<LoginModel> Form
+
+<PageTitle>Sign in</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="d-flex justify-center align-center auth-page-container">
+    <AuthCard Subtitle="Sign in to your ComfortPro admin workspace" Elevation="4">
+        <EditForm EditContext="@Form.EditContext" OnValidSubmit="SubmitAsync">
+            <MudTextField @bind-Value="_model.UserNameOrEmail" For="@(() => _model.UserNameOrEmail)" Label="Username or email" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" />
+            <MudTextField @bind-Value="_model.Password" For="@(() => _model.Password)" Label="Password" InputType="InputType.Password" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" />
+
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Class="auth-submit" Disabled="Form.IsBusy">
+                @(Form.IsBusy ? "Signing in..." : "Sign in")
+            </MudButton>
+        </EditForm>
+    </AuthCard>
+</MudContainer>
+
+@code {
+    private readonly LoginModel _model = new();
+
+    protected override void OnInitialized() => Form.Bind(_model);
+
+    private Task SubmitAsync() => Form.SubmitAsync(async () =>
+    {
+        var tokenResult = await ApiClient.PostAsync<AuthTokensResponse>(ApiRoutes.Auth.Login, new { userNameOrEmail = _model.UserNameOrEmail, password = _model.Password });
+
+        if (!tokenResult.IsSuccessful || tokenResult.ResultData is null)
+        {
+            Form.DisplayErrors(tokenResult, Snackbar);
+            return;
+        }
+
+        // Stored before the /me call so BearerTokenHandler picks it up for that request too.
+        await TokenProvider.SetTokenSetAsync(new TokenSet(tokenResult.ResultData.AccessToken, tokenResult.ResultData.RefreshToken, tokenResult.ResultData.AccessTokenExpiresAt));
+
+        var userResult = await ApiClient.GetAsync<CurrentUserResponse>(ApiRoutes.Users.Me);
+        if (!userResult.IsSuccessful || userResult.ResultData is null)
+        {
+            await TokenProvider.ClearAsync();
+            Snackbar.ShowError("Signed in, but could not load your profile. Please try again.");
+            return;
+        }
+
+        AuthStateProvider.SignIn(userResult.ResultData);
+        Navigation.NavigateTo($"{AppRoutes.AdminHome}?welcome=true");
+    });
+}

@@ -1,0 +1,17 @@
+<PageHeroBanner Title="@Title" Subtitle="@Subtitle" />
+
+<MudPaper Class="roadmap-card mt-6" Elevation="0" Outlined="true">
+    <MudChip T="string" Class="roadmap-pill" Icon="@Icons.Material.Filled.RocketLaunch" Size="Size.Small">In progress</MudChip>
+    <MudText Typo="Typo.subtitle1" Class="mb-2 text-strong">@Title</MudText>
+    <MudText Typo="Typo.body2" Color="Color.Secondary">
+        This screen hasn't moved into the new admin shell yet - it still lives in the legacy MVC admin.
+    </MudText>
+</MudPaper>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Title { get; set; } = string.Empty;
+
+    [Parameter, EditorRequired]
+    public string Subtitle { get; set; } = string.Empty;
+}

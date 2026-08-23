@@ -1,0 +1,47 @@
+@* Login.razor is static SSR - this island runs its own circuit just for the toast. *@
+@rendermode InteractiveServer
+@inject ISnackbar Snackbar
+@inject IJSRuntime JsRuntime
+
+<MudSnackbarProvider />
+
+@code {
+    private const string LastGoodbyeKey = "auth-last-goodbye";
+
+    [Parameter]
+    public string? ErrorMessage { get; set; }
+
+    /// <summary>Unique per logout (see Program.cs) - Login re-posts to itself keeping this in the
+    /// URL, so a plain shown/not-shown flag would suppress every later logout too. Comparing tokens
+    /// only skips repeat posts of the same logout.</summary>
+    [Parameter]
+    public string? GoodbyeToken { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+            Snackbar.ShowError(ErrorMessage);
+            return;
+        }
+
+        if (string.IsNullOrEmpty(GoodbyeToken))
+        {
+            return;
+        }
+
+        var lastShown = await JsRuntime.InvokeAsync<string?>("sessionStorage.getItem", LastGoodbyeKey);
+        if (lastShown == GoodbyeToken)
+        {
+            return;
+        }
+
+        Snackbar.ShowSuccess("Goodbye!");
+        await JsRuntime.InvokeVoidAsync("sessionStorage.setItem", LastGoodbyeKey, GoodbyeToken);
+    }
+}

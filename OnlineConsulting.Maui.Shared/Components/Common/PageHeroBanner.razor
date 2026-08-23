@@ -1,0 +1,14 @@
+<MudPaper Class="dash-hero mb-6" Elevation="0">
+    <div class="dash-hero-content">
+        <MudText Typo="Typo.h4" Class="mb-1 text-strong hero-title">@Title</MudText>
+        <MudText Typo="Typo.body1" Class="hero-subtitle">@Subtitle</MudText>
+    </div>
+</MudPaper>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Title { get; set; } = string.Empty;
+
+    [Parameter, EditorRequired]
+    public string Subtitle { get; set; } = string.Empty;
+}

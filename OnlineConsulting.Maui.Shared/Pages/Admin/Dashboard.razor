@@ -1,0 +1,59 @@
+@page "/admin"
+@attribute [Authorize]
+@using OnlineConsulting.Maui.Shared.Infrastructure.Api
+@inject IApiClient ApiClient
+
+<PageTitle>Dashboard</PageTitle>
+
+<PageHeroBanner Title="@_greeting"
+                Subtitle="Here's a quick snapshot of your workspace. Module dashboards for Catalog, Operations, Growth and Platform will surface real metrics here as they move into this shell." />
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+<MudGrid>
+    <MudItem xs="12" sm="6" md="3">
+        <StatCard Icon="@Icons.Material.Filled.Person" Label="Signed in as" Value="@(_currentUser?.UserName ?? "-")" Accent="StatAccent.Indigo" />
+    </MudItem>
+    <MudItem xs="12" sm="6" md="3">
+        <StatCard Icon="@Icons.Material.Filled.Badge" Label="Roles"
+                  Value="@(_currentUser is { Roles.Count: > 0 } ? string.Join(", ", _currentUser.Roles) : "-")" Accent="StatAccent.Teal" />
+    </MudItem>
+    <MudItem xs="12" sm="6" md="3">
+        <StatCard Icon="@Icons.Material.Filled.VerifiedUser" Label="Permissions"
+                  Value="@((_currentUser?.Permissions.Count ?? 0).ToString())" Accent="StatAccent.Amber" />
+    </MudItem>
+    <MudItem xs="12" sm="6" md="3">
+        <StatCard Icon="@Icons.Material.Filled.Business" Label="Tenant" Value="@(_currentUser?.TenantId.ToString()[..8] ?? "-")" Accent="StatAccent.Sky" />
+    </MudItem>
+</MudGrid>
+
+<MudPaper Class="roadmap-card mt-6" Elevation="0" Outlined="true">
+    <MudChip T="string" Class="roadmap-pill" Icon="@Icons.Material.Filled.RocketLaunch" Size="Size.Small">In progress</MudChip>
+    <MudText Typo="Typo.subtitle1" Class="mb-2 text-strong">The new Blazor MAUI + MudBlazor admin shell</MudText>
+    <MudText Typo="Typo.body2" Color="Color.Secondary">
+        Module screens (Catalog, Operations, Growth, Platform, Settings) will move here one at a time from the
+        legacy MVC admin - the nav on the left already has placeholders for each.
+    </MudText>
+</MudPaper>
+
+@code {
+    private CurrentUserResponse? _currentUser;
+    private string? _loadError;
+
+    private string _greeting => _currentUser is null
+        ? "Welcome back"
+        : $"Welcome back, {_currentUser.FirstName} {_currentUser.LastName}";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await ApiClient.GetAsync<CurrentUserResponse>(ApiRoutes.Users.Me);
+        if (result.IsSuccessful)
+        {
+            _currentUser = result.ResultData;
+        }
+        else
+        {
+            _loadError = $"Could not load the current user from the Api: {result.DisplayMessage}";
+        }
+    }
+}

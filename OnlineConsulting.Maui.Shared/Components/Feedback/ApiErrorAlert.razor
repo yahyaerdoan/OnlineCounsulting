@@ -1,0 +1,20 @@
+@if (Message is not null)
+{
+    <MudAlert Severity="@Severity" Dense="true" Class="@AlertClass" Icon="@Icons.Material.Filled.ErrorOutline">@Message</MudAlert>
+}
+
+@code {
+    [Parameter]
+    public string? Message { get; set; }
+
+    [Parameter]
+    public Severity Severity { get; set; } = Severity.Error;
+
+    /// <summary>When true, renders fixed top-right like a toast instead of inline - for pages (e.g.
+    /// static-SSR forms) where MudBlazor's Snackbar can't be used since it needs an interactive
+    /// circuit that doesn't exist there.</summary>
+    [Parameter]
+    public bool Floating { get; set; }
+
+    private string AlertClass => Floating ? "api-error-toast" : "mb-4";
+}

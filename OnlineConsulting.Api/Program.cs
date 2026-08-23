@@ -43,7 +43,10 @@ using OnlineConsulting.Notifications;
 using OnlineConsulting.Payments;
 using OnlineConsulting.ServiceDefaults;
 using OnlineConsulting.SharedKernel.Tenancy;
+using OnlineConsulting.SharedKernel.Validation;
 using OnlineConsulting.Storage;
+
+FriendlyValidationMessages.Apply();
 
 var builder = WebApplication.CreateBuilder(args);
 

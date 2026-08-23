@@ -1,0 +1,531 @@
+h1:focus {
+    outline: none;
+}
+
+/* ---- Shared text utilities ---- */
+
+.text-strong {
+    font-weight: 700;
+}
+
+.valid.modified:not([type=checkbox]) {
+    outline: 1px solid #26b050;
+}
+
+.invalid {
+    outline: 1px solid #e50000;
+}
+
+.validation-message {
+    color: #e50000;
+}
+
+.blazor-error-boundary {
+    background: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTYiIGhlaWdodD0iNDkiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIG92ZXJmbG93PSJoaWRkZW4iPjxkZWZzPjxjbGlwUGF0aCBpZD0iY2xpcDAiPjxyZWN0IHg9IjIzNSIgeT0iNTEiIHdpZHRoPSI1NiIgaGVpZ2h0PSI0OSIvPjwvY2xpcFBhdGg+PC9kZWZzPjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwMCkiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0yMzUgLTUxKSI+PHBhdGggZD0iTTI2My41MDYgNTFDMjY0LjcxNyA1MSAyNjUuODEzIDUxLjQ4MzcgMjY2LjYwNiA1Mi4yNjU4TDI2Ny4wNTIgNTIuNzk4NyAyNjcuNTM5IDUzLjYyODMgMjkwLjE4NSA5Mi4xODMxIDI5MC41NDUgOTIuNzk1IDI5MC42NTYgOTIuOTk2QzI5MC44NzcgOTMuNTEzIDI5MSA5NC4wODE1IDI5MSA5NC42NzgyIDI5MSA5Ny4wNjUxIDI4OS4wMzggOTkgMjg2LjYxNyA5OUwyNDAuMzgzIDk5QzIzNy45NjMgOTkgMjM2IDk3LjA2NTEgMjM2IDk0LjY3ODIgMjM2IDk0LjM3OTkgMjM2LjAzMSA5NC4wODg2IDIzNi4wODkgOTMuODA3MkwyMzYuMzM4IDkzLjAxNjIgMjM2Ljg1OCA5Mi4xMzE0IDI1OS40NzMgNTMuNjI5NCAyNTkuOTYxIDUyLjc5ODUgMjYwLjQwNyA1Mi4yNjU4QzI2MS4yIDUxLjQ4MzcgMjYyLjI5NiA1MSAyNjMuNTA2IDUxWk0yNjMuNTg2IDY2LjAxODNDMjYwLjczNyA2Ni4wMTgzIDI1OS4zMTMgNjcuMTI0NSAyNTkuMzEzIDY5LjMzNyAyNTkuMzEzIDY5LjYxMDIgMjU5LjMzMiA2OS44NjA4IDI1OS4zNzEgNzAuMDg4N0wyNjEuNzk1IDg0LjAxNjEgMjY1LjM4IDg0LjAxNjEgMjY3LjgyMSA2OS43NDc1QzI2Ny44NiA2OS43MzA5IDI2Ny44NzkgNjkuNTg3NyAyNjcuODc5IDY5LjMxNzkgMjY3Ljg3OSA2Ny4xMTgyIDI2Ni40NDggNjYuMDE4MyAyNjMuNTg2IDY2LjAxODNaTTI2My41NzYgODYuMDU0N0MyNjEuMDQ5IDg2LjA1NDcgMjU5Ljc4NiA4Ny4zMDA1IDI1OS43ODYgODkuNzkyMSAyNTkuNzg2IDkyLjI4MzcgMjYxLjA0OSA5My41Mjk1IDI2My41NzYgOTMuNTI5NSAyNjYuMTE2IDkzLjUyOTUgMjY3LjM4NyA5Mi4yODM3IDI2Ny4zODcgODkuNzkyMSAyNjcuMzg3IDg3LjMwMDUgMjY2LjExNiA4Ni4wNTQ3IDI2My41NzYgODYuMDU0N1oiIGZpbGw9IiNGRkU1MDAiIGZpbGwtcnVsZT0iZXZlbm9kZCIvPjwvZz48L3N2Zz4=) no-repeat 1rem/1.8rem, #b32121;
+    padding: 1rem 1rem 1rem 3.7rem;
+    color: white;
+}
+
+    .blazor-error-boundary::after {
+        content: "An error has occurred."
+    }
+
+.darker-border-checkbox.form-check-input {
+    border-color: #929292;
+}
+
+.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
+    color: var(--bs-secondary-color);
+    text-align: end;
+}
+
+.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
+    text-align: start;
+}
+
+/* ---- Auth shell (Login and any other unauthenticated page) ---- */
+
+.auth-shell {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    min-height: 100vh;
+    width: 100%;
+}
+
+.auth-brand {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 3rem 3.5rem;
+    color: #fff;
+    background:
+        radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.14), transparent 45%),
+        radial-gradient(circle at 85% 85%, rgba(255, 255, 255, 0.10), transparent 40%),
+        linear-gradient(155deg, #4338CA 0%, #4F46E5 45%, #6366F1 75%, #818CF8 100%);
+    overflow: hidden;
+}
+
+    .auth-brand::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(rgba(255, 255, 255, 0.16) 1px, transparent 1px);
+        background-size: 26px 26px;
+        opacity: .35;
+        pointer-events: none;
+    }
+
+.auth-brand-mark {
+    display: inline-flex;
+    align-items: center;
+    gap: .65rem;
+    font-weight: 700;
+    font-size: 1.15rem;
+    letter-spacing: .01em;
+    z-index: 1;
+}
+
+.auth-brand-mark-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.16);
+    backdrop-filter: blur(6px);
+}
+
+.auth-brand-body {
+    z-index: 1;
+    max-width: 30rem;
+}
+
+.auth-brand-body h1 {
+    font-size: clamp(1.9rem, 2.6vw, 2.6rem);
+    font-weight: 700;
+    line-height: 1.15;
+    margin: 0 0 1rem 0;
+    letter-spacing: -0.01em;
+}
+
+.auth-brand-body p {
+    font-size: 1.02rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.86);
+    margin: 0;
+}
+
+.auth-brand-features {
+    background: transparent;
+    margin: 2rem 0 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: .9rem;
+    z-index: 1;
+}
+
+.auth-brand-features .auth-feature-item {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: 0;
+    font-size: .95rem;
+    color: rgba(255, 255, 255, 0.92);
+}
+
+.auth-brand-features .auth-feature-dot {
+    width: 22px;
+    height: 22px;
+    flex: 0 0 auto;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.18);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.auth-brand-footer {
+    z-index: 1;
+    font-size: .8rem;
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.auth-page-container {
+    min-height: 100vh;
+}
+
+.auth-panel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: var(--mud-palette-background, #F7F7FB);
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 26rem;
+    border-radius: 20px !important;
+    padding: 2.75rem 2.5rem !important;
+    box-shadow: 0 1px 2px rgba(16, 16, 32, 0.04), 0 24px 48px -12px rgba(16, 16, 32, 0.14) !important;
+}
+
+.auth-card-icon-glyph {
+    color: #fff;
+}
+
+.auth-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #4F46E5, #818CF8);
+    margin-bottom: 1.25rem;
+    box-shadow: 0 8px 20px -6px rgba(79, 70, 229, 0.55);
+}
+
+.auth-field {
+    margin-bottom: 1rem;
+}
+
+.auth-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.auth-input-wrap svg {
+    position: absolute;
+    left: 14px;
+    width: 18px;
+    height: 18px;
+    opacity: .55;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.auth-input {
+    width: 100%;
+    height: 44px;
+    border-radius: 12px;
+    border: 1px solid var(--mud-palette-lines-default, #E5E5F0);
+    background: var(--mud-palette-surface, #fff);
+    color: var(--mud-palette-text-primary, #1E1B2E);
+    padding: 0 14px 0 44px;
+    font-size: .9rem;
+    outline: none;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.auth-input::placeholder {
+    color: transparent;
+    transition: color .15s ease;
+}
+
+.auth-input:focus::placeholder {
+    color: var(--mud-palette-text-secondary, #9C9CB0);
+}
+
+.auth-input:focus {
+    border-color: #4F46E5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.14);
+}
+
+.auth-input.invalid {
+    border-color: var(--mud-palette-error, #D32F2F);
+}
+
+/* Floating label - starts inside like a placeholder, moves onto the border on focus/value. */
+.auth-input-label {
+    position: absolute;
+    left: 44px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: .9rem;
+    color: var(--mud-palette-text-secondary, #5F5F72);
+    padding: 0 4px;
+    pointer-events: none;
+    transition: top .15s ease, left .15s ease, font-size .15s ease, color .15s ease;
+}
+
+.auth-input:focus ~ .auth-input-label,
+.auth-input:not(:placeholder-shown) ~ .auth-input-label {
+    top: 0;
+    left: 12px;
+    font-size: .72rem;
+    background: var(--mud-palette-surface, #fff);
+    color: #4F46E5;
+}
+
+.auth-input.invalid ~ .auth-input-label {
+    color: var(--mud-palette-error, #D32F2F);
+}
+
+.auth-field-error {
+    display: block;
+    margin-top: .35rem;
+    font-size: .78rem;
+    color: var(--mud-palette-error, #D32F2F);
+}
+
+.api-error-toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 2000;
+    max-width: 360px;
+    box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.25);
+}
+
+.auth-submit {
+    height: 48px !important;
+    border-radius: 12px !important;
+    font-weight: 600 !important;
+    text-transform: none !important;
+    font-size: .98rem !important;
+    box-shadow: 0 10px 24px -8px rgba(79, 70, 229, 0.55) !important;
+}
+
+@media (max-width: 900px) {
+    .auth-shell {
+        grid-template-columns: 1fr;
+    }
+
+    .auth-brand {
+        display: none;
+    }
+}
+
+/* ---- Dashboard ---- */
+
+.dash-hero {
+    position: relative;
+    border-radius: 20px;
+    padding: 2.25rem 2.5rem;
+    color: #fff;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at 90% 10%, rgba(255, 255, 255, 0.14), transparent 45%),
+        linear-gradient(120deg, #4338CA 0%, #4F46E5 55%, #6366F1 100%);
+}
+
+    .dash-hero::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(rgba(255, 255, 255, 0.14) 1px, transparent 1px);
+        background-size: 24px 24px;
+        opacity: .3;
+        pointer-events: none;
+    }
+
+.dash-hero-content {
+    position: relative;
+    z-index: 1;
+}
+
+.hero-title {
+    color: #fff;
+}
+
+.hero-subtitle {
+    color: rgba(255, 255, 255, .85);
+    max-width: 40rem;
+}
+
+.stat-card {
+    border-radius: 16px !important;
+    padding: 1.35rem 1.5rem !important;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    height: 100%;
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px -10px rgba(16, 16, 32, 0.14) !important;
+}
+
+.stat-card-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.stat-card-icon.stat-indigo { background: rgba(79, 70, 229, 0.12); color: #4F46E5; }
+.stat-card-icon.stat-teal { background: rgba(14, 165, 164, 0.14); color: #0EA5A4; }
+.stat-card-icon.stat-amber { background: rgba(245, 158, 11, 0.14); color: #B45309; }
+.stat-card-icon.stat-sky { background: rgba(2, 132, 199, 0.12); color: #0284C7; }
+
+:root[data-theme="dark"] .stat-card-icon.stat-indigo,
+:root:not([data-theme="light"]) .stat-card-icon.stat-indigo { background: rgba(129, 140, 248, 0.18); color: #A5B4FC; }
+:root[data-theme="dark"] .stat-card-icon.stat-teal,
+:root:not([data-theme="light"]) .stat-card-icon.stat-teal { background: rgba(45, 212, 191, 0.18); color: #5EEAD4; }
+:root[data-theme="dark"] .stat-card-icon.stat-amber,
+:root:not([data-theme="light"]) .stat-card-icon.stat-amber { background: rgba(251, 191, 36, 0.18); color: #FCD34D; }
+:root[data-theme="dark"] .stat-card-icon.stat-sky,
+:root:not([data-theme="light"]) .stat-card-icon.stat-sky { background: rgba(56, 189, 248, 0.18); color: #7DD3FC; }
+
+.roadmap-card {
+    border-radius: 16px !important;
+    padding: 1.75rem !important;
+}
+
+.roadmap-pill {
+    height: auto !important;
+    font-size: .72rem !important;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: #4F46E5 !important;
+    background: rgba(79, 70, 229, 0.1) !important;
+    padding: .3rem .65rem !important;
+    border-radius: 999px !important;
+    margin-bottom: .85rem;
+}
+
+:root[data-theme="dark"] .roadmap-pill,
+:root:not([data-theme="light"]) .roadmap-pill { color: #A5B4FC !important; background: rgba(129, 140, 248, 0.16) !important; }
+
+/* ---- App shell chrome (authenticated top bar + sidebar) ---- */
+
+.app-bar-elevated {
+    box-shadow: 0 1px 2px rgba(16, 16, 32, 0.03), 0 8px 24px -12px rgba(16, 16, 32, 0.10) !important;
+    backdrop-filter: saturate(1.4) blur(6px);
+}
+
+.brand-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: .6rem;
+    font-weight: 700;
+    font-size: 1.05rem;
+    letter-spacing: -.01em;
+}
+
+.brand-chip-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #4F46E5, #818CF8);
+    color: #fff;
+    box-shadow: 0 6px 14px -4px rgba(79, 70, 229, 0.6);
+}
+
+.user-avatar-chip {
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: .82rem;
+    color: #fff;
+    background: linear-gradient(135deg, #4F46E5, #818CF8);
+}
+
+/* overflow-x:hidden is Web-desktop-rail-only (see .nav-drawer-collapsed below) - it must NOT reach
+   .nav-drawer-mobile (MAUI's Temporary overlay drawer), it was clipping that drawer's open/close
+   transform and made the toggle button look like it did nothing. */
+.nav-drawer,
+.nav-drawer .mud-drawer-content,
+.nav-drawer .mud-nav-menu {
+    overflow-x: hidden;
+}
+
+.nav-drawer .mud-nav-link,
+.nav-drawer-mobile .mud-nav-link {
+    border-radius: 10px;
+    margin: 2px 8px;
+    transition: background-color .12s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nav-drawer .mud-nav-group .mud-nav-link,
+.nav-drawer-mobile .mud-nav-group .mud-nav-link {
+    margin-left: 8px;
+    margin-right: 8px;
+}
+
+.nav-drawer .mud-nav-link.active,
+.nav-drawer-mobile .mud-nav-link.active {
+    background: rgba(79, 70, 229, 0.1);
+    color: #4F46E5 !important;
+    font-weight: 600;
+}
+
+:root[data-theme="dark"] .nav-drawer .mud-nav-link.active,
+:root:not([data-theme="light"]) .nav-drawer .mud-nav-link.active,
+:root[data-theme="dark"] .nav-drawer-mobile .mud-nav-link.active,
+:root:not([data-theme="light"]) .nav-drawer-mobile .mud-nav-link.active { background: rgba(129, 140, 248, 0.16); color: #A5B4FC !important; }
+
+.nav-drawer .mud-nav-group-title,
+.nav-drawer-mobile .mud-nav-group-title {
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    opacity: .55;
+    padding-left: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* MudBlazor's Mini drawer variant hides plain MudNavLink text cleanly via width/overflow, but
+   doesn't do the same for MudNavGroup's own title element - left unstyled, it wraps inside the
+   collapsed icon-rail width and shows as clipped/half-visible text. Hide it outright instead. */
+.nav-drawer-collapsed .mud-nav-group-title-text,
+.nav-drawer-collapsed .mud-nav-group .mud-nav-group-title > span:not(.mud-icon-root):not(.mud-nav-link-icon) {
+    display: none;
+}
+
+.nav-drawer-collapsed .mud-nav-group-title {
+    justify-content: center;
+    padding-left: 0;
+}
+
+/* Collapsed (icon-rail) width is only visual - the underlying link/group-title row keeps its full
+   expanded width, so its hover/ripple background still paints edge-to-edge and appears to "stretch"
+   out to the right past the icon. Pin the row itself to the rail width so the highlight is clipped
+   to it. */
+.nav-drawer-collapsed .mud-nav-link,
+.nav-drawer-collapsed .mud-nav-group-title,
+.nav-drawer-collapsed .mud-nav-group .mud-nav-link {
+    width: 48px;
+    min-width: 48px;
+    margin-left: auto;
+    margin-right: auto;
+    overflow: hidden;
+}
+
+.nav-drawer-collapsed .mud-nav-group,
+.nav-drawer-collapsed .mud-nav-group .mud-collapse-container {
+    overflow: hidden;
+}
+
+.page-shell {
+    animation: page-fade-in .2s ease;
+}
+
+@keyframes page-fade-in {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}

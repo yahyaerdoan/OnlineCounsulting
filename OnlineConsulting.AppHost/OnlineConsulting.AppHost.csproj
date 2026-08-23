@@ -6,11 +6,13 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <UserSecretsId>335e9492-fd9d-4d1b-bf11-79ad226fcf2e</UserSecretsId>
+    <AspireUseCliBundle>true</AspireUseCliBundle>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\OnlineConsulting.Api\OnlineConsulting.Api.csproj" />
     <ProjectReference Include="..\OnlineConsulting.UserInterface\OnlineConsulting.UserInterface.csproj" />
+    <ProjectReference Include="..\OnlineConsulting.Maui.Web\OnlineConsulting.Maui.Web.csproj" />
   </ItemGroup>
 
 </Project>

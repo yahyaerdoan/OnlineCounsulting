@@ -1,0 +1,26 @@
+<MudPaper Class="auth-card" Elevation="@Elevation">
+    <MudAvatar Class="auth-card-icon" Square="false">
+        <MudIcon Icon="@Icon" Color="Color.Inherit" Class="auth-card-icon-glyph" />
+    </MudAvatar>
+    <MudText Typo="Typo.h5" Class="mb-1 text-strong">@Title</MudText>
+    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-6">@Subtitle</MudText>
+
+    @ChildContent
+</MudPaper>
+
+@code {
+    [Parameter]
+    public string Icon { get; set; } = Icons.Material.Filled.LockOpen;
+
+    [Parameter]
+    public string Title { get; set; } = "Welcome back";
+
+    [Parameter, EditorRequired]
+    public string Subtitle { get; set; } = string.Empty;
+
+    [Parameter]
+    public int Elevation { get; set; }
+
+    [Parameter, EditorRequired]
+    public RenderFragment ChildContent { get; set; } = default!;
+}
