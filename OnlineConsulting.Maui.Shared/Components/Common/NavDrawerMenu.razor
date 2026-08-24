@@ -1,0 +1,39 @@
+@using System.Security.Claims
+@using OnlineConsulting.Maui.Shared.Infrastructure.Auth
+@using OnlineConsulting.Maui.Shared.Infrastructure.Navigation
+@using OnlineConsulting.Maui.Shared.Layout
+
+<MudNavMenu>
+    @foreach (var section in Sections)
+    {
+        var visibleItems = section.Items.Where(i => !i.SuperAdminOnly || User.IsSuperAdmin()).ToList();
+        if (visibleItems.Count == 0)
+        {
+            continue;
+        }
+
+        RenderFragment titleContent =
+            @<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                <MudIcon Icon="@section.Icon" Color="@section.Color" Size="Size.Small" />
+                <span class="mud-nav-group-title-text">@section.Title</span>
+            </MudStack>;
+
+        <MudNavGroup TitleContent="@titleContent" Expanded="true">
+            @foreach (var item in visibleItems)
+            {
+                <MudNavLink Href="@item.Href"
+                            Match="@(item.Href == AppRoutes.AdminHome ? NavLinkMatch.All : NavLinkMatch.Prefix)">
+                    <MudIcon Icon="@item.Icon" Color="@section.Color" Size="Size.Small" Class="mr-2" />@item.Text
+                </MudNavLink>
+            }
+        </MudNavGroup>
+    }
+</MudNavMenu>
+
+@code {
+    [Parameter, EditorRequired]
+    public IReadOnlyList<NavSection> Sections { get; set; } = [];
+
+    [Parameter, EditorRequired]
+    public ClaimsPrincipal User { get; set; } = default!;
+}

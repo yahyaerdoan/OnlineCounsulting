@@ -1,0 +1,57 @@
+@using System.Security.Claims
+@using OnlineConsulting.Maui.Shared.Infrastructure.Auth
+@inject IAuthSession AuthSession
+
+<MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" Class="ml-2">
+    <ActivatorContent Context="activatorContext">
+        <MudAvatar Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" @onclick="activatorContext.ToggleAsync" Style="cursor:pointer">
+            @GetInitials(User.Identity?.Name)
+        </MudAvatar>
+    </ActivatorContent>
+    <ChildContent>
+        <MudStack Spacing="0" Class="px-4 pt-2 pb-3" Style="min-width: 220px">
+            <MudText Typo="Typo.subtitle2">@DisplayName</MudText>
+            <MudText Typo="Typo.caption" Color="Color.Secondary">@User.FindFirst(ClaimTypes.Email)?.Value</MudText>
+        </MudStack>
+        @if (Roles.Count > 0)
+        {
+            <MudDivider />
+            <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="1" Class="px-4 py-2">
+                @foreach (var role in Roles)
+                {
+                    <MudChip T="string" Size="Size.Small" Variant="Variant.Text"
+                             Color="@(IsSuperAdminRole(role) ? Color.Primary : Color.Default)">@role</MudChip>
+                }
+            </MudStack>
+        }
+        <MudDivider />
+        <MudMenuItem OnClick="@(() => AuthSession.SignOutAsync())">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                <MudIcon Icon="@Icons.Material.Filled.Logout" Color="Color.Error" Size="Size.Small" />
+                <MudText>Sign out</MudText>
+            </MudStack>
+        </MudMenuItem>
+    </ChildContent>
+</MudMenu>
+
+@code {
+    [Parameter, EditorRequired]
+    public ClaimsPrincipal User { get; set; } = default!;
+
+    private string? DisplayName
+    {
+        get
+        {
+            var fullName = $"{User.FindFirst(ClaimTypes.GivenName)?.Value} {User.FindFirst(ClaimTypes.Surname)?.Value}".Trim();
+            return string.IsNullOrWhiteSpace(fullName) ? User.Identity?.Name : fullName;
+        }
+    }
+
+    /// <summary>Straight from the backend's Roles claim - no separate hardcoded chip alongside it.</summary>
+    private List<string> Roles => User.FindAll(ClaimTypes.Role).Select(c => c.Value).ToList();
+
+    private static bool IsSuperAdminRole(string role) => string.Equals(role, "Super Admin", StringComparison.OrdinalIgnoreCase);
+
+    private static string GetInitials(string? name) =>
+        string.IsNullOrWhiteSpace(name) ? "?" : name.Trim()[..1].ToUpperInvariant();
+}

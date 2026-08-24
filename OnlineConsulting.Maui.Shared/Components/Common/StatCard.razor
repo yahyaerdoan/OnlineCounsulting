@@ -1,8 +1,8 @@
 <MudPaper Class="stat-card" Elevation="0" Outlined="true">
-    <MudAvatar Class="@($"stat-card-icon {AccentClass}")" Square="false"><MudIcon Icon="@Icon" Size="Size.Small" /></MudAvatar>
+    <MudIcon Icon="@Icon" Color="@AccentColor" Size="Size.Small" />
     <div>
         <MudText Typo="Typo.caption" Color="Color.Secondary">@Label</MudText>
-        <MudText Typo="Typo.h6" Class="text-strong">@Value</MudText>
+        <MudText Typo="Typo.subtitle1">@Value</MudText>
     </div>
 </MudPaper>
 
@@ -19,11 +19,11 @@
     [Parameter]
     public StatAccent Accent { get; set; } = StatAccent.Indigo;
 
-    private string AccentClass => Accent switch
+    private Color AccentColor => Accent switch
     {
-        StatAccent.Teal => "stat-teal",
-        StatAccent.Amber => "stat-amber",
-        StatAccent.Sky => "stat-sky",
-        _ => "stat-indigo",
+        StatAccent.Teal => Color.Secondary,
+        StatAccent.Amber => Color.Tertiary,
+        StatAccent.Sky => Color.Info,
+        _ => Color.Primary,
     };
 }

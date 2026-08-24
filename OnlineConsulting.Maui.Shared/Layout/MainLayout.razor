@@ -24,53 +24,20 @@
         <MudLayout>
             @if (PlatformInfo.IsNativeMobile)
             {
-                @* MudAppBar defaults to Fixed="true" (position: fixed), which is positioned
-                   relative to the viewport and ignores this status-bar spacer's height entirely.
-                   MAUI's WebView renders edge-to-edge under the system status bar, so the AppBar
-                   needs to be a normal in-flow element here for the spacer to push it down. *@
                 <div class="status-bar-safe-area"></div>
             }
             <MudAppBar Elevation="0" Class="app-bar-elevated" Fixed="@(!PlatformInfo.IsNativeMobile)">
                 <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
-                <span class="brand-chip ml-2">
-                    <span class="brand-chip-icon"><MudIcon Icon="@Icons.Material.Filled.Bolt" Size="Size.Small" /></span>
-                    ComfortPro
-                </span>
+                <BrandMark Class="ml-2" />
                 <MudSpacer />
                 <MudIconButton Icon="@(_isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
                                Color="Color.Inherit" OnClick="@ToggleDarkMode" />
-                <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" Class="ml-2">
-                    <ActivatorContent Context="activatorContext">
-                        <span class="user-avatar-chip" @onclick="activatorContext.ToggleAsync">@GetInitials(context.User.Identity?.Name)</span>
-                    </ActivatorContent>
-                    <ChildContent>
-                        <MudMenuItem Disabled="true">@context.User.Identity?.Name</MudMenuItem>
-                        <MudDivider />
-                        <MudMenuItem OnClick="@(() => AuthSession.SignOutAsync())" IconColor="Color.Error" Icon="@Icons.Material.Filled.Logout">Sign out</MudMenuItem>
-                    </ChildContent>
-                </MudMenu>
+                <UserAccountMenu User="context.User" />
             </MudAppBar>
 
             <MudDrawer @bind-Open="_drawerOpen" Elevation="0" Variant="@CurrentDrawerVariant" ClipMode="DrawerClipMode.Always"
                        Class="@DrawerCssClass">
-                <MudNavMenu>
-                    @foreach (var section in ModuleRegistry.NavSections)
-                    {
-                        var visibleItems = section.Items.Where(i => !i.SuperAdminOnly || context.User.HasClaim(c => c.Type == AuthClaimTypes.IsSuperAdmin)).ToList();
-                        if (visibleItems.Count == 0)
-                        {
-                            continue;
-                        }
-
-                        <MudNavGroup Title="@section.Title" Icon="@section.Icon" IconColor="@section.Color" Expanded="true">
-                            @foreach (var item in visibleItems)
-                            {
-                                <MudNavLink Href="@item.Href" Icon="@item.Icon" IconColor="@section.Color"
-                                            Match="@(item.Href == AppRoutes.AdminHome ? NavLinkMatch.All : NavLinkMatch.Prefix)">@item.Text</MudNavLink>
-                            }
-                        </MudNavGroup>
-                    }
-                </MudNavMenu>
+                <NavDrawerMenu Sections="ModuleRegistry.NavSections" User="context.User" />
             </MudDrawer>
 
             <MudMainContent>
@@ -83,12 +50,7 @@
     <NotAuthorized>
         <div class="auth-shell">
             <div class="auth-brand">
-                <span class="auth-brand-mark">
-                    <span class="auth-brand-mark-icon">
-                        <MudIcon Icon="@Icons.Material.Filled.Bolt" Size="Size.Small" />
-                    </span>
-                    ComfortPro
-                </span>
+                <BrandMark AvatarColor="Color.Surface" IconColor="Color.Primary" Class="auth-brand-mark" />
 
                 <div class="auth-brand-body">
                     <MudText Typo="Typo.h1">Run your service business from one modern control center.</MudText>
@@ -97,16 +59,13 @@
                         polished admin, tailored per customer.
                     </MudText>
                     <MudList T="string" Class="auth-brand-features">
-                        <MudListItem T="string" Class="auth-feature-item">
-                            <span class="auth-feature-dot"><MudIcon Icon="@Icons.Material.Filled.Check" Size="Size.Small" /></span>
+                        <MudListItem T="string" Icon="@Icons.Material.Filled.Check" Class="auth-feature-item">
                             Real-time appointments and dispatch
                         </MudListItem>
-                        <MudListItem T="string" Class="auth-feature-item">
-                            <span class="auth-feature-dot"><MudIcon Icon="@Icons.Material.Filled.Check" Size="Size.Small" /></span>
+                        <MudListItem T="string" Icon="@Icons.Material.Filled.Check" Class="auth-feature-item">
                             Per-tenant billing, plans and add-ons
                         </MudListItem>
-                        <MudListItem T="string" Class="auth-feature-item">
-                            <span class="auth-feature-dot"><MudIcon Icon="@Icons.Material.Filled.Check" Size="Size.Small" /></span>
+                        <MudListItem T="string" Icon="@Icons.Material.Filled.Check" Class="auth-feature-item">
                             Role-based access across your whole team
                         </MudListItem>
                     </MudList>
@@ -192,7 +151,4 @@
         : "nav-drawer" + (_drawerOpen ? "" : " nav-drawer-collapsed");
 
     private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
-
-    private static string GetInitials(string? name) =>
-        string.IsNullOrWhiteSpace(name) ? "?" : name.Trim()[..1].ToUpperInvariant();
 }
