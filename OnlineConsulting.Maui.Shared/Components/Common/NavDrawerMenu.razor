@@ -2,6 +2,7 @@
 @using OnlineConsulting.Maui.Shared.Infrastructure.Auth
 @using OnlineConsulting.Maui.Shared.Infrastructure.Navigation
 @using OnlineConsulting.Maui.Shared.Layout
+@inject NavigationManager Navigation
 
 <MudNavMenu>
     @foreach (var section in Sections)
@@ -18,12 +19,16 @@
                 <span class="mud-nav-group-title-text">@section.Title</span>
             </MudStack>;
 
-        <MudNavGroup TitleContent="@titleContent" Expanded="true">
+        <MudNavGroup TitleContent="@titleContent" Expanded="@(_expandedSection == section.Title)"
+                     ExpandedChanged="@((bool expanded) => OnGroupExpandedChanged(section.Title, expanded))">
             @foreach (var item in visibleItems)
             {
                 <MudNavLink Href="@item.Href"
                             Match="@(item.Href == AppRoutes.AdminHome ? NavLinkMatch.All : NavLinkMatch.Prefix)">
-                    <MudIcon Icon="@item.Icon" Color="@section.Color" Size="Size.Small" Class="mr-2" />@item.Text
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mud-nav-item-content">
+                        <MudIcon Icon="@item.Icon" Color="@section.Color" Size="Size.Small" />
+                        <span class="mud-nav-item-text">@item.Text</span>
+                    </MudStack>
                 </MudNavLink>
             }
         </MudNavGroup>
@@ -36,4 +41,23 @@
 
     [Parameter, EditorRequired]
     public ClaimsPrincipal User { get; set; } = default!;
+
+    /// <summary>Accordion behavior - only one nav group stays expanded at a time.</summary>
+    private string? _expandedSection;
+
+    protected override void OnParametersSet()
+    {
+        if (_expandedSection is not null)
+        {
+            return;
+        }
+
+        var currentHref = "/" + Navigation.ToBaseRelativePath(Navigation.Uri).Split('?')[0].TrimEnd('/');
+        _expandedSection = Sections
+            .FirstOrDefault(section => section.Items.Any(item => string.Equals(item.Href, currentHref, StringComparison.OrdinalIgnoreCase)))
+            ?.Title;
+    }
+
+    private void OnGroupExpandedChanged(string title, bool expanded) =>
+        _expandedSection = expanded ? title : null;
 }

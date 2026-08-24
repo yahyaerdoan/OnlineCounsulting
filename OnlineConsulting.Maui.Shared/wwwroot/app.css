@@ -8,31 +8,6 @@
     font-weight: 700;
 }
 
-.valid.modified:not([type=checkbox]) {
-    outline: 1px solid #26b050;
-}
-
-.invalid {
-    outline: 1px solid #e50000;
-}
-
-.validation-message {
-    color: #e50000;
-}
-
-.darker-border-checkbox.form-check-input {
-    border-color: #929292;
-}
-
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-    color: var(--bs-secondary-color);
-    text-align: end;
-}
-
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-    text-align: start;
-}
-
 /* ---- Auth shell (Login and any other unauthenticated page) ---- */
 
 .auth-shell {
@@ -165,7 +140,7 @@
     border-color: var(--mud-palette-error, #D32F2F);
 }
 
-/* Overrides Chrome's opaque autofill background. */
+/* Kills Chrome's opaque autofill background. */
 .auth-input:-webkit-autofill {
     -webkit-text-fill-color: var(--mud-palette-text-primary, #1E1B2E);
     -webkit-box-shadow: 0 0 0 1000px transparent inset;
@@ -271,6 +246,33 @@
     padding: 1.1rem 1.25rem !important;
 }
 
+/* Nudges the row up to line up with the drawer's group titles (Mud's own padding sits it lower). */
+.page-breadcrumbs {
+    margin-top: -6px;
+}
+
+.page-breadcrumbs .mud-breadcrumb-item {
+    font-size: .8rem;
+}
+
+.page-breadcrumbs a.mud-breadcrumb-item {
+    color: var(--mud-palette-text-secondary);
+}
+
+.page-breadcrumbs a.mud-breadcrumb-item:hover {
+    color: var(--mud-palette-primary);
+    text-decoration: none;
+}
+
+.page-breadcrumbs .mud-breadcrumb-separator {
+    color: var(--mud-palette-text-disabled);
+}
+
+.page-breadcrumbs .mud-breadcrumb-item:last-child {
+    font-weight: 500;
+    color: var(--mud-palette-text-primary);
+}
+
 /* ---- App shell chrome (authenticated top bar + sidebar) ---- */
 
 .app-bar-elevated {
@@ -278,19 +280,19 @@
     backdrop-filter: saturate(1.4) blur(6px);
 }
 
-/* overflow-x:hidden is Web-desktop-rail-only (see .nav-drawer-collapsed below) - it must NOT reach
-   .nav-drawer-mobile (MAUI's Temporary overlay drawer), it was clipping that drawer's open/close
-   transform and made the toggle button look like it did nothing. */
+/* Desktop rail only - on .nav-drawer-mobile this clips the Temporary overlay's open/close transform. */
 .nav-drawer,
 .nav-drawer .mud-drawer-content,
-.nav-drawer .mud-nav-menu {
+.nav-drawer .mud-navmenu {
     overflow-x: hidden;
 }
 
+/* padding-left tightened so top-level icons line up with the AppBar hamburger icon. */
 .nav-drawer .mud-nav-link,
 .nav-drawer-mobile .mud-nav-link {
     border-radius: 10px;
     margin: 2px 8px;
+    padding-left: 6px;
     transition: background-color .12s ease;
     white-space: nowrap;
     overflow: hidden;
@@ -328,34 +330,42 @@
     text-overflow: ellipsis;
 }
 
-/* MudBlazor's Mini drawer variant hides plain MudNavLink text cleanly via width/overflow, but
-   doesn't do the same for MudNavGroup's own title element - left unstyled, it wraps inside the
-   collapsed icon-rail width and shows as clipped/half-visible text. Hide it outright instead. */
+/* Mini variant doesn't auto-hide the group title text like it does for links - hide it ourselves. */
 .nav-drawer-collapsed .mud-nav-group-title-text,
 .nav-drawer-collapsed .mud-nav-group .mud-nav-group-title > span:not(.mud-icon-root):not(.mud-nav-link-icon) {
     display: none;
 }
 
-.nav-drawer-collapsed .mud-nav-group-title {
-    justify-content: center;
-    padding-left: 0;
-}
-
-/* Collapsed (icon-rail) width is only visual - the underlying link/group-title row keeps its full
-   expanded width, so its hover/ripple background still paints edge-to-edge and appears to "stretch"
-   out to the right past the icon. Pin the row itself to the rail width so the highlight is clipped
-   to it. */
-.nav-drawer-collapsed .mud-nav-link,
-.nav-drawer-collapsed .mud-nav-group-title,
-.nav-drawer-collapsed .mud-nav-group .mud-nav-link {
-    min-width: 48px;
-    margin-left: auto;
-    margin-right: auto;
-    overflow: hidden;
+/* Expand chevron gets clipped to a faint sliver in the icon-only rail - just hide it. */
+.nav-drawer-collapsed .mud-nav-link-expand-icon {
+    display: none;
 }
 
 .nav-drawer-collapsed .mud-nav-group,
 .nav-drawer-collapsed .mud-nav-group .mud-collapse-container {
+    overflow: hidden;
+}
+
+/* Hide nested item text - only the icon shows in the icon-only rail. */
+.nav-drawer-collapsed .mud-nav-item-text {
+    display: none;
+}
+
+/* Fixed icon-sized box, centered in the rail, for both the group icon and nested item icons - a
+   hover/active pill that just wraps the icon instead of stretching across the whole row. */
+.nav-drawer-collapsed .mud-nav-group .mud-nav-item .mud-nav-link,
+.nav-drawer-collapsed .mud-navmenu > .mud-nav-group > .mud-nav-link,
+.nav-drawer-collapsed .mud-nav-group-title {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0 !important;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     overflow: hidden;
 }
 

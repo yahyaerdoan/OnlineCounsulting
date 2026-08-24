@@ -1,15 +1,7 @@
-﻿/* Reserves space for the system status bar above the AppBar (MudAppBar's Fixed="false" on the
-   MAUI head lets this spacer push it down). Fixed height, not env(safe-area-inset-top) - that
-   varies wildly between iOS notch/Dynamic Island and Android, giving inconsistent spacing. */
+﻿/* Fixed height (not env(safe-area-inset-top) - too inconsistent across iOS/Android) to push the AppBar below the status bar. */
 .status-bar-safe-area {
     display: block;
     height: 24px;
     background-color: #f7f7f7;
     width: 100%;
-}
-
-@supports (-webkit-touch-callout: none) {
-    .flex-column, .navbar-brand {
-        padding-left: env(safe-area-inset-left);
-    }
 }

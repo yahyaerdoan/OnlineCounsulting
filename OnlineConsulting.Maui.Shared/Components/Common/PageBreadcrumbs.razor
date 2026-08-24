@@ -1,0 +1,52 @@
+﻿@implements IDisposable
+@using OnlineConsulting.Maui.Shared.Layout
+@inject NavigationManager Navigation
+@inject UiModuleRegistry ModuleRegistry
+
+<MudBreadcrumbs Items="@_trail" Class="pa-0 mb-2 page-breadcrumbs">
+    <SeparatorTemplate>
+        <MudIcon Icon="@Icons.Material.Filled.ArrowForward" Size="Size.Small" />
+    </SeparatorTemplate>
+</MudBreadcrumbs>
+
+@code {
+    private List<BreadcrumbItem> _trail = [];
+
+    protected override void OnInitialized()
+    {
+        Navigation.LocationChanged += OnLocationChanged;
+        BuildTrail();
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        BuildTrail();
+        InvokeAsync(StateHasChanged);
+    }
+
+    /// <summary>Derives "Home / Section / Page" from the same NavSection data as the drawer.</summary>
+    private void BuildTrail()
+    {
+        var currentHref = "/" + Navigation.ToBaseRelativePath(Navigation.Uri).Split('?')[0].TrimEnd('/');
+        var isHome = string.Equals(currentHref, AppRoutes.AdminHome, StringComparison.OrdinalIgnoreCase);
+
+        var trail = new List<BreadcrumbItem>
+        {
+            new("Home", href: AppRoutes.AdminHome, disabled: isHome),
+        };
+
+        var match = ModuleRegistry.NavSections
+            .SelectMany(section => section.Items.Select(item => (section, item)))
+            .FirstOrDefault(pair => string.Equals(pair.item.Href, currentHref, StringComparison.OrdinalIgnoreCase));
+
+        if (match.item is not null)
+        {
+            trail.Add(new BreadcrumbItem(match.section.Title, href: null, disabled: true));
+            trail.Add(new BreadcrumbItem(match.item.Text, href: match.item.Href, disabled: true));
+        }
+
+        _trail = trail;
+    }
+
+    public void Dispose() => Navigation.LocationChanged -= OnLocationChanged;
+}
