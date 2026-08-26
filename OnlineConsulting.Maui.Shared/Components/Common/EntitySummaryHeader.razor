@@ -1,0 +1,37 @@
+@* Plug-and-play "who/what this dialog is about" header: avatar-with-initials + title + subtitle. *@
+<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3" Class="mb-4">
+    <MudAvatar Color="Color.Primary" Variant="Variant.Filled" Size="Size.Medium">@ResolvedInitials</MudAvatar>
+    <MudStack Spacing="0">
+        <MudText Typo="Typo.subtitle1">@Title</MudText>
+        @if (!string.IsNullOrWhiteSpace(Subtitle))
+        {
+            <MudText Typo="Typo.body2" Color="Color.Secondary">@Subtitle</MudText>
+        }
+    </MudStack>
+</MudStack>
+<MudDivider Class="mb-4" />
+
+@code {
+    [Parameter, EditorRequired]
+    public string Title { get; set; } = default!;
+
+    [Parameter]
+    public string? Subtitle { get; set; }
+
+    /// <summary>Defaults to the first letter of each of Title's first two words.</summary>
+    [Parameter]
+    public string? Initials { get; set; }
+
+    private string ResolvedInitials => Initials ?? ComputeInitials(Title);
+
+    private static string ComputeInitials(string title)
+    {
+        var words = title.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return words.Length switch
+        {
+            0 => "?",
+            1 => words[0][..1].ToUpperInvariant(),
+            _ => (words[0][..1] + words[1][..1]).ToUpperInvariant(),
+        };
+    }
+}

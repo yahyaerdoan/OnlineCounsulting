@@ -4,6 +4,9 @@
 public interface IApiClient
 {
     Task<ApiEnvelope<T>> GetAsync<T>(string path, CancellationToken cancellationToken = default);
+
+    /// <summary>POST-based search/filter for DynamicQuery-driven lists - see ServerDataTable.</summary>
+    Task<ApiEnvelope<T>> QueryAsync<T>(string path, object? body, CancellationToken cancellationToken = default);
     Task<ApiEnvelope<T>> PostAsync<T>(string path, object? body, CancellationToken cancellationToken = default);
     Task<ApiEnvelope> PostAsync(string path, object? body, CancellationToken cancellationToken = default);
     Task<ApiEnvelope> PutAsync(string path, object? body, CancellationToken cancellationToken = default);

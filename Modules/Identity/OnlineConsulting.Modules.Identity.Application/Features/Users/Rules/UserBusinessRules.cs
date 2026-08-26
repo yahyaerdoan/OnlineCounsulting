@@ -11,4 +11,6 @@ public static class UserBusinessRules
     public static OperationResult UserNotFoundOrInvalidData() => Result.BadRequest(UserMessages.UserNotFoundOrInvalidData);
 
     public static OperationResult NoUserDataFound() => Result.NotFound(UserMessages.NoUserDataFound);
+
+    public static OperationResult NotAuthorizedForOtherTenant() => Result.Forbidden(UserMessages.NotAuthorizedForOtherTenant);
 }

@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using Core.ApplicationLayer.Requests.Page;
+using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.GetAllOrdersAdmin;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.GetAllUsers;
@@ -29,8 +30,9 @@ public class GetAllOrdersAdmin : IEndpoint
             return ordersResult.ToEnvelopedResult(httpContext);
         }
 
-        var usersResult = await sender.Send(new GetAllUsersQuery());
-        var usersById = (usersResult.IsSuccessful ? usersResult.Data : null)?.ToDictionary(u => u.Id) ?? [];
+        // Unbounded - this is a lookup for every order's owner, not a paged listing of its own.
+        var usersResult = await sender.Send(new GetAllUsersQuery(new PageRequest { PageIndex = 0, PageSize = int.MaxValue }));
+        var usersById = (usersResult.IsSuccessful ? usersResult.Data?.Items : null)?.ToDictionary(u => u.Id) ?? [];
 
         var responses = ordersResult.Data.Select(o =>
         {

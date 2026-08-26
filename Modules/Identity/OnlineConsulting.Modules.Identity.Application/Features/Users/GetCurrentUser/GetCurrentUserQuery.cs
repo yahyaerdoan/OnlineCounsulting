@@ -49,6 +49,7 @@ public class GetCurrentUserHandler(IHttpContextAccessor httpContextAccessor, Use
             LastName = user.LastName,
             Email = user.Email ?? string.Empty,
             ImageUrl = user.ImageUrl,
+            IsActive = user.IsActive,
             Roles = [.. roles],
             Permissions = permissions,
         };

@@ -1,0 +1,100 @@
+@page "/admin/settings/users"
+@attribute [Authorize]
+@inject IApiClient ApiClient
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<PageTitle>Users</PageTitle>
+
+<PageHeroBanner Title="Users" Subtitle="Manage your team's accounts, roles, and access." />
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+<ServerDataTable TItem="UserResponse" @ref="_table" ApiBasePath="@ApiRoutes.Users.All"
+                 SearchFields="@([UserFieldNames.FirstName, UserFieldNames.LastName, UserFieldNames.Email])"
+                 SearchPlaceholder="Search name or email" OnLoadError="@(message => _loadError = message)">
+    <HeaderContent>
+        <MudTh><MudTableSortLabel SortLabel="@UserFieldNames.LastName" T="UserResponse">Name</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortLabel="@UserFieldNames.Email" T="UserResponse">Email</MudTableSortLabel></MudTh>
+        <MudTh>Roles</MudTh>
+        <MudTh><MudTableSortLabel SortLabel="@UserFieldNames.IsActive" T="UserResponse">Status</MudTableSortLabel></MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate Context="user">
+        <MudTd DataLabel="Name">@user.FirstName @user.LastName</MudTd>
+        <MudTd DataLabel="Email">@user.Email</MudTd>
+        <MudTd DataLabel="Roles">
+            @foreach (var role in user.Roles)
+            {
+                <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Text" Class="mr-1">@role</MudChip>
+            }
+        </MudTd>
+        <MudTd DataLabel="Status">
+            <MudChip T="string" Size="Size.Small" Color="@(user.IsActive ? Color.Success : Color.Default)">
+                @(user.IsActive ? "Active" : "Inactive")
+            </MudChip>
+        </MudTd>
+        <MudTd DataLabel="Actions">
+            <MudIconButton Icon="@Icons.Material.Filled.ManageAccounts" Size="Size.Small" Color="Color.Primary" title="Manage roles"
+                           OnClick="@(() => ManageRolesAsync(user))" />
+
+            <MudIconButton Icon="@(user.IsActive ? Icons.Material.Filled.PersonOff : Icons.Material.Filled.PersonAddAlt1)"
+                           Size="Size.Small" Color="@(user.IsActive ? Color.Warning : Color.Success)"
+                           title="@(user.IsActive ? "Deactivate" : "Activate")"
+                           OnClick="@(() => ToggleActiveAsync(user))" />
+
+            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" title="Delete"
+                           OnClick="@(() => DeleteAsync(user))" />
+        </MudTd>
+    </RowTemplate>
+</ServerDataTable>
+
+@code {
+    private ServerDataTable<UserResponse> _table = default!;
+    private string? _loadError;
+
+    private async Task ManageRolesAsync(UserResponse user)
+    {
+        var parameters = new DialogParameters<UserRolesDialog> { { x => x.User, user } };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<UserRolesDialog>("Edit Roles", parameters, options);
+        var result = await dialog.Result;
+        if (result is { Canceled: false })
+        {
+            await _table.ReloadAsync();
+        }
+    }
+
+    private async Task ToggleActiveAsync(UserResponse user)
+    {
+        var result = await ApiClient.PutAsync(ApiRoutes.Users.ById(user.Id),
+            new { firstName = user.FirstName, lastName = user.LastName, isActive = !user.IsActive });
+
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(user.IsActive ? "User deactivated." : "User activated.");
+        await _table.ReloadAsync();
+    }
+
+    private async Task DeleteAsync(UserResponse user)
+    {
+        if (!await DialogService.ConfirmDeleteAsync("user", $"{user.FirstName} {user.LastName}"))
+        {
+            return;
+        }
+
+        var result = await ApiClient.DeleteAsync(ApiRoutes.Users.ById(user.Id));
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess("User deleted.");
+        await _table.ReloadAsync();
+    }
+}

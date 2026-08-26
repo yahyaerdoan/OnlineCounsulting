@@ -1,9 +1,8 @@
-using System.Reflection;
-using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using OnlineConsulting.Maui.Shared.Infrastructure.Auth;
 using OnlineConsulting.Maui.Shared.Infrastructure.Forms;
 using OnlineConsulting.Maui.Shared.Layout;
+using System.Reflection;
 
 namespace OnlineConsulting.Maui.Shared;
 
@@ -14,16 +13,16 @@ public static class ServiceCollectionExtensions
     /// IPlatformInfo/IAccessTokenProvider/IAuthSession and HttpClient setup.</summary>
     public static IServiceCollection AddMauiSharedInfrastructure(this IServiceCollection services, Assembly hostAssembly)
     {
-        services.AddSingleton<IUiModule>(new HostUiModule(hostAssembly));
-        services.AddSingleton<IUiModule, CoreUiModule>();
-        services.AddSingleton<UiModuleRegistry>();
+        _ = services.AddSingleton<IUiModule>(new HostUiModule(hostAssembly));
+        _ = services.AddSingleton<IUiModule, CoreUiModule>();
+        _ = services.AddSingleton<UiModuleRegistry>();
 
-        services.AddCascadingAuthenticationState();
+        _ = services.AddCascadingAuthenticationState();
 
-        services.AddScoped<AuthenticationExpiredNotifier>();
-        services.AddScoped<TokenRefresher>();
+        _ = services.AddScoped<AuthenticationExpiredNotifier>();
+        _ = services.AddScoped<TokenRefresher>();
 
-        services.AddTransient(typeof(FormState<>));
+        _ = services.AddTransient(typeof(FormState<>));
 
         return services;
     }

@@ -1,6 +1,6 @@
-using Microsoft.AspNetCore.Mvc;
-using AdminContact = OnlineConsulting.UserInterface.Areas.Admin.Features.Contact;
+﻿using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.UserInterface.Areas.Admin.Features.SliderItem;
+using AdminContact = OnlineConsulting.UserInterface.Areas.Admin.Features.Contact;
 
 namespace OnlineConsulting.UserInterface.ViewComponents.HomeViewComponents.HomeSliderViewComponents;
 

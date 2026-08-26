@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 
 namespace OnlineConsulting.Maui.Shared.Infrastructure.Navigation;
 
@@ -10,12 +10,9 @@ public static class NavigationManagerExtensions
     public static string? WithoutQueryFlag(this NavigationManager navigation, string flag)
     {
         var marker = $"{flag}=true";
-        if (!navigation.Uri.Contains(marker, StringComparison.Ordinal))
-        {
-            return null;
-        }
-
-        return navigation.Uri
+        return !navigation.Uri.Contains(marker, StringComparison.Ordinal)
+            ? null
+            : navigation.Uri
             .Replace($"?{marker}&", "?", StringComparison.Ordinal)
             .Replace($"&{marker}", "", StringComparison.Ordinal)
             .Replace($"?{marker}", "", StringComparison.Ordinal);

@@ -58,12 +58,12 @@ public class ActivateTenantSubscriptionHandler(ITenantRepository tenantRepositor
             }
             else
             {
-                var customer = await subscriptionGateway.EnsureCustomerAsync(
-                    new EnsureCustomerRequest(tenantSubscription.Id.ToString(), tenant.PrimaryContactEmail),
-                    idempotencyKey: $"tenant-signup-customer:{tenant.Id}",
-                    cancellationToken: cancellationToken);
+                var customer = await subscriptionGateway
+                    .EnsureCustomerAsync(new EnsureCustomerRequest(tenantSubscription.Id.ToString(), tenant.PrimaryContactEmail), idempotencyKey: $"tenant-signup-customer:{tenant.Id}", cancellationToken: cancellationToken);
+
                 providerCustomerId = customer.ProviderCustomerId;
                 tenant.ProviderCustomerId = providerCustomerId;
+
                 _ = await tenantRepository.UpdateAsync(tenant);
             }
 

@@ -12,6 +12,7 @@ public class UserResponse : LinkedResponse
     public required string LastName { get; init; }
     public required string Email { get; init; }
     public string? ImageUrl { get; init; }
+    public required bool IsActive { get; init; }
     public required IReadOnlyList<string> Roles { get; init; }
     public IReadOnlyList<string> Permissions { get; init; } = [];
 

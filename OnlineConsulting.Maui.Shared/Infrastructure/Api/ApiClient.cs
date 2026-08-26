@@ -1,8 +1,8 @@
-﻿using System.Net;
+﻿using OnlineConsulting.Maui.Shared.Infrastructure.Auth;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
-using OnlineConsulting.Maui.Shared.Infrastructure.Auth;
 
 namespace OnlineConsulting.Maui.Shared.Infrastructure.Api;
 
@@ -17,6 +17,10 @@ public class ApiClient(HttpClient httpClient, IAccessTokenProvider? tokenProvide
 
     public Task<ApiEnvelope<T>> GetAsync<T>(string path, CancellationToken cancellationToken = default) =>
         SendAsync<T>(HttpMethod.Get, path, null, cancellationToken);
+
+    /// <summary>POST to a /query sub-resource - Swagger/Swashbuckle can't document HTTP QUERY (RFC 10008).</summary>
+    public Task<ApiEnvelope<T>> QueryAsync<T>(string path, object? body, CancellationToken cancellationToken = default) =>
+        SendAsync<T>(HttpMethod.Post, path, JsonContent.Create(body, options: JsonOptions), cancellationToken);
 
     public Task<ApiEnvelope<T>> PostAsync<T>(string path, object? body, CancellationToken cancellationToken = default) =>
         SendAsync<T>(HttpMethod.Post, path, JsonContent.Create(body, options: JsonOptions), cancellationToken);
@@ -113,8 +117,8 @@ public class ApiClient(HttpClient httpClient, IAccessTokenProvider? tokenProvide
             return envelope ?? new ApiEnvelope<T>(default, false, (int)response.StatusCode, response.ReasonPhrase, null);
         }
 
-        var problem = await ReadProblemDetailsAsync(response, cancellationToken);
-        return new ApiEnvelope<T>(default, false, (int)response.StatusCode, problem.Message, problem.Errors, problem.FieldErrors);
+        var (Message, Errors, FieldErrors) = await ReadProblemDetailsAsync(response, cancellationToken);
+        return new ApiEnvelope<T>(default, false, (int)response.StatusCode, Message, Errors, FieldErrors);
     }
 
     private static async Task<ApiEnvelope> ReadEnvelopeAsync(HttpResponseMessage response, CancellationToken cancellationToken)
@@ -130,8 +134,8 @@ public class ApiClient(HttpClient httpClient, IAccessTokenProvider? tokenProvide
             return envelope ?? new ApiEnvelope(false, (int)response.StatusCode, response.ReasonPhrase, null);
         }
 
-        var problem = await ReadProblemDetailsAsync(response, cancellationToken);
-        return new ApiEnvelope(false, (int)response.StatusCode, problem.Message, problem.Errors, problem.FieldErrors);
+        var (Message, Errors, FieldErrors) = await ReadProblemDetailsAsync(response, cancellationToken);
+        return new ApiEnvelope(false, (int)response.StatusCode, Message, Errors, FieldErrors);
     }
 
     private static async Task<(string? Message, List<string>? Errors, Dictionary<string, List<string>>? FieldErrors)> ReadProblemDetailsAsync(HttpResponseMessage response, CancellationToken cancellationToken)

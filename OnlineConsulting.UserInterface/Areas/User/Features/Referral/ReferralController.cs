@@ -1,6 +1,5 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using NToastNotify;
-using OnlineConsulting.UserInterface.Infrastructure.Api;
 using OnlineConsulting.UserInterface.NotificationServices.ToastrServices;
 
 namespace OnlineConsulting.UserInterface.Areas.User.Features.Referral;

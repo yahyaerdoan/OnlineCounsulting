@@ -1,6 +1,4 @@
-using OnlineConsulting.UserInterface.Infrastructure.Api;
-
-namespace OnlineConsulting.UserInterface.Areas.User.Features.Equipment;
+﻿namespace OnlineConsulting.UserInterface.Areas.User.Features.Equipment;
 
 /// <summary>Raw Api calls for the customer's own equipment (/api/equipment/mine) and its service history
 /// (/api/equipment/{id}/work-orders - unscoped server-side, so this service only ever calls it for ids that

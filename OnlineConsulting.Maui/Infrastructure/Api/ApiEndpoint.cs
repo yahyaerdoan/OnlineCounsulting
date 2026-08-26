@@ -1,6 +1,4 @@
-using OnlineConsulting.Maui.Infrastructure;
-
-namespace OnlineConsulting.Maui;
+﻿namespace OnlineConsulting.Maui.Infrastructure.Api;
 
 /// <summary>Api base URL for the native head, which has no Aspire service discovery.</summary>
 public static class ApiEndpoint

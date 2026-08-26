@@ -57,8 +57,8 @@ app.MapDefaultEndpoints();
 
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    app.UseHsts();
+    _ = app.UseExceptionHandler("/Error", createScopeForErrors: true);
+    _ = app.UseHsts();
 }
 app.UseStatusCodePagesWithReExecute(AppRoutes.NotFound, createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();

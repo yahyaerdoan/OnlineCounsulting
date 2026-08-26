@@ -1,4 +1,4 @@
-using OnlineConsulting.UserInterface.Features.Service;
+﻿using OnlineConsulting.UserInterface.Features.Service;
 using OnlineConsulting.UserInterface.Infrastructure.Api;
 using OnlineConsulting.UserInterface.Infrastructure.Media;
 
@@ -85,7 +85,7 @@ public class AppointmentDispatchService(IApiClient apiClient, IServiceCatalogSer
         var newEquipment = model.EquipmentId is null
             ? new
             {
-                CustomerUserId = model.CustomerUserId,
+                model.CustomerUserId,
                 Type = model.NewEquipmentType,
                 Brand = model.NewEquipmentBrand,
                 Model = model.NewEquipmentModel,

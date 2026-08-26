@@ -1,4 +1,4 @@
-namespace OnlineConsulting.Maui.Infrastructure;
+﻿namespace OnlineConsulting.Maui.Infrastructure;
 
 public static class AppEnvironment
 {
@@ -7,9 +7,7 @@ public static class AppEnvironment
     // Env var wins where platforms support setting one (Windows dev/QA); everywhere else
     // (Android/iOS have no way to inject one into the deployed app) falls back to build config.
     public static bool IsDevelopment =>
-        Environment.GetEnvironmentVariable(EnvironmentVariableName) is { Length: > 0 } value
-            ? string.Equals(value, "Development", StringComparison.OrdinalIgnoreCase)
-            : DefaultIsDevelopment;
+        !(Environment.GetEnvironmentVariable(EnvironmentVariableName) is { Length: > 0 } value) || string.Equals(value, "Development", StringComparison.OrdinalIgnoreCase);
 
 #if DEBUG
     private const bool DefaultIsDevelopment = true;

@@ -1,6 +1,5 @@
+﻿using OnlineConsulting.Maui.Shared.Infrastructure.Auth;
 using System.Text.Json;
-using Microsoft.Maui.Storage;
-using OnlineConsulting.Maui.Shared.Infrastructure.Auth;
 
 namespace OnlineConsulting.Maui.Infrastructure.Auth;
 
@@ -21,7 +20,7 @@ public class SecureStorageAccessTokenProvider : IAccessTokenProvider
 
     public Task ClearAsync()
     {
-        SecureStorage.Default.Remove(StorageKey);
+        _ = SecureStorage.Default.Remove(StorageKey);
         return Task.CompletedTask;
     }
 }

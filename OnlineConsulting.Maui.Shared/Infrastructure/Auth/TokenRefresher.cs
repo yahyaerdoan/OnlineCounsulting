@@ -1,5 +1,4 @@
-using System.Net.Http;
-using OnlineConsulting.Maui.Shared.Infrastructure.Api;
+﻿using OnlineConsulting.Maui.Shared.Infrastructure.Api;
 
 namespace OnlineConsulting.Maui.Shared.Infrastructure.Auth;
 
@@ -20,7 +19,7 @@ public class TokenRefresher(IHttpClientFactory httpClientFactory, IAccessTokenPr
         finally
         {
             _inFlight = null;
-            _lock.Release();
+            _ = _lock.Release();
         }
     }
 

@@ -23,7 +23,7 @@ public record AssignRoleToUserCommand(Guid UserId, List<RoleAssignmentRequest> R
     public string[] Roles => [UsersOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, UsersOperationClaims.Write];
 }
 
-public class AssignRoleToUserHandler(UserManager<User> userManager, ITenantOwnershipReader tenantOwnershipReader, IHttpContextAccessor httpContextAccessor)
+public class AssignRoleToUserHandler(UserManager<User> userManager, ITenantOwnershipReader tenantOwnershipReader, ITenantProvider tenantProvider, IHttpContextAccessor httpContextAccessor)
     : IRequestHandler<AssignRoleToUserCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(AssignRoleToUserCommand request, CancellationToken cancellationToken)
@@ -34,8 +34,7 @@ public class AssignRoleToUserHandler(UserManager<User> userManager, ITenantOwner
             return UserBusinessRules.UserNotFoundOrInvalidData();
         }
 
-        var ownerGuardResult = await TenantOwnerProtection.EnsureCallerMayModifyAsync(
-            tenantOwnershipReader, httpContextAccessor, user.TenantId, user.Id, cancellationToken);
+        var ownerGuardResult = await TenantOwnerProtection.EnsureCallerMayModifyAsync(tenantOwnershipReader, tenantProvider, httpContextAccessor, user.TenantId, user.Id, cancellationToken);
         if (ownerGuardResult is not null)
         {
             return ownerGuardResult;
@@ -43,9 +42,6 @@ public class AssignRoleToUserHandler(UserManager<User> userManager, ITenantOwner
 
         foreach (var assignment in request.RoleAssignments)
         {
-            // Skip roles already in the desired state - AddToRoleAsync/RemoveFromRoleAsync both fail
-            // (e.g. "User is not in role X") when asked to apply a no-op, which would otherwise abort
-            // every save that didn't touch every single role.
             if (await userManager.IsInRoleAsync(user, assignment.RoleName) == assignment.IsAssigned)
             {
                 continue;

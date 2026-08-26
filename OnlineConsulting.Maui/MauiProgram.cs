@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using MudBlazor;
 using MudBlazor.Services;
 using OnlineConsulting.Maui.Infrastructure;
+using OnlineConsulting.Maui.Infrastructure.Api;
 using OnlineConsulting.Maui.Infrastructure.Auth;
 using OnlineConsulting.Maui.Shared;
 using OnlineConsulting.Maui.Shared.Infrastructure.Api;
@@ -16,15 +17,15 @@ public static class MauiProgram
     public static MauiApp CreateMauiApp()
     {
         var builder = MauiApp.CreateBuilder();
-        builder
+        _ = builder
             .UseMauiApp<App>()
             .ConfigureFonts(fonts =>
             {
-                fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+                _ = fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
             });
 
-        builder.Services.AddMauiBlazorWebView();
-        builder.Services.AddMudServices(config =>
+        _ = builder.Services.AddMauiBlazorWebView();
+        _ = builder.Services.AddMudServices(config =>
         {
             config.SnackbarConfiguration.PositionClass = MudBlazor.Defaults.Classes.Position.TopEnd;
             config.SnackbarConfiguration.RequireInteraction = false;
@@ -37,33 +38,33 @@ public static class MauiProgram
             config.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
         });
 
-        builder.Services.AddMauiSharedInfrastructure(typeof(MauiProgram).Assembly);
-        builder.Services.AddSingleton<IPlatformInfo, MauiPlatformInfo>();
+        _ = builder.Services.AddMauiSharedInfrastructure(typeof(MauiProgram).Assembly);
+        _ = builder.Services.AddSingleton<IPlatformInfo, MauiPlatformInfo>();
 
-        builder.Services.AddAuthorizationCore();
+        _ = builder.Services.AddAuthorizationCore();
 
-        builder.Services.AddScoped<SecureStorageAccessTokenProvider>();
-        builder.Services.AddScoped<IAccessTokenProvider>(sp => sp.GetRequiredService<SecureStorageAccessTokenProvider>());
-        builder.Services.AddScoped<MauiAuthenticationStateProvider>();
-        builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<MauiAuthenticationStateProvider>());
-        builder.Services.AddScoped<IAuthSession, MauiAuthSession>();
+        _ = builder.Services.AddScoped<SecureStorageAccessTokenProvider>();
+        _ = builder.Services.AddScoped<IAccessTokenProvider>(sp => sp.GetRequiredService<SecureStorageAccessTokenProvider>());
+        _ = builder.Services.AddScoped<MauiAuthenticationStateProvider>();
+        _ = builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<MauiAuthenticationStateProvider>());
+        _ = builder.Services.AddScoped<IAuthSession, MauiAuthSession>();
 
-        void ConfigureApiClient(HttpClient client)
+        static void ConfigureApiClient(HttpClient client)
         {
             client.BaseAddress = new Uri(ApiEndpoint.BaseUrl);
             client.Timeout = TimeSpan.FromSeconds(15);
         }
 
-        builder.Services.AddHttpClient(ApiHttpClientNames.Anonymous, ConfigureApiClient)
+        _ = builder.Services.AddHttpClient(ApiHttpClientNames.Anonymous, ConfigureApiClient)
             .ConfigurePrimaryHttpMessageHandler(CreatePrimaryHandler);
 
-        builder.Services.AddHttpClient<IApiClient, ApiClient>(ConfigureApiClient)
+        _ = builder.Services.AddHttpClient<IApiClient, ApiClient>(ConfigureApiClient)
             .ConfigurePrimaryHttpMessageHandler(CreatePrimaryHandler);
 
         if (AppEnvironment.IsDevelopment)
         {
-            builder.Services.AddBlazorWebViewDeveloperTools();
-            builder.Logging.AddDebug();
+            _ = builder.Services.AddBlazorWebViewDeveloperTools();
+            _ = builder.Logging.AddDebug();
         }
 
         return builder.Build();

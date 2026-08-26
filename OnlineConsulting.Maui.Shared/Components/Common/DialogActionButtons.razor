@@ -1,0 +1,37 @@
+@* Plug-and-play Cancel/Ok pair for MudDialog footers - matches MudMessageBox's own default style
+   (Color.Primary, default Variant). Cancel falls back to MudDialog.Cancel() if OnCancel is unset. *@
+<MudButton OnClick="HandleCancel">@CancelText</MudButton>
+<MudButton Color="Color.Primary" OnClick="OnOk" Disabled="@IsBusy">
+    @(IsBusy && !string.IsNullOrEmpty(BusyText) ? BusyText : OkText)
+</MudButton>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance? MudDialog { get; set; }
+
+    [Parameter]
+    public string CancelText { get; set; } = "Cancel";
+
+    [Parameter]
+    public string OkText { get; set; } = "Ok";
+
+    [Parameter]
+    public string? BusyText { get; set; }
+
+    [Parameter]
+    public bool IsBusy { get; set; }
+
+    [Parameter]
+    public EventCallback OnCancel { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback OnOk { get; set; }
+
+    private Task HandleCancel() => OnCancel.HasDelegate ? OnCancel.InvokeAsync() : InvokeDialogCancel();
+
+    private Task InvokeDialogCancel()
+    {
+        MudDialog?.Cancel();
+        return Task.CompletedTask;
+    }
+}

@@ -1,0 +1,70 @@
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">Edit Roles: @User.FirstName @User.LastName</MudText>
+    </TitleContent>
+    <DialogContent>
+        <EntitySummaryHeader Title="@($"{User.FirstName} {User.LastName}")" Subtitle="@User.Email" />
+
+        <ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+        <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="2">
+            @foreach (var role in _assignments)
+            {
+                <MudChip T="string" Variant="@(role.IsAssigned ? Variant.Filled : Variant.Outlined)"
+                         Color="@(role.IsAssigned ? Color.Primary : Color.Default)" OnClick="@(() => Toggle(role))">
+                    @role.RoleName
+                </MudChip>
+            }
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <DialogActionButtons OnOk="SaveAsync" IsBusy="@_isSaving" />
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public UserResponse User { get; set; } = default!;
+
+    private List<RoleAssignmentResponse> _assignments = [];
+    private string? _loadError;
+    private bool _isSaving;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await ApiClient.GetAsync<List<RoleAssignmentResponse>>(ApiRoutes.Users.Roles(User.Id));
+        if (result.IsSuccessful && result.ResultData is not null)
+        {
+            _assignments = result.ResultData;
+        }
+        else
+        {
+            _loadError = result.DisplayMessage;
+        }
+    }
+
+    private void Toggle(RoleAssignmentResponse role) =>
+        _assignments[_assignments.IndexOf(role)] = role with { IsAssigned = !role.IsAssigned };
+
+    private async Task SaveAsync()
+    {
+        _isSaving = true;
+        var result = await ApiClient.PutAsync(ApiRoutes.Users.Roles(User.Id), new { roleAssignments = _assignments });
+        _isSaving = false;
+
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess("Roles updated.");
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+}

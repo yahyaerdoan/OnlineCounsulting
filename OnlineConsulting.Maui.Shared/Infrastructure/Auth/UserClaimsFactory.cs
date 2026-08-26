@@ -1,5 +1,5 @@
+﻿using OnlineConsulting.Maui.Shared.Infrastructure.Api;
 using System.Security.Claims;
-using OnlineConsulting.Maui.Shared.Infrastructure.Api;
 
 namespace OnlineConsulting.Maui.Shared.Infrastructure.Auth;
 

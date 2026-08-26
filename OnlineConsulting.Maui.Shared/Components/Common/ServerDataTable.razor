@@ -1,0 +1,123 @@
+@typeparam TItem
+@inject IApiClient ApiClient
+
+@* Generic paginated/searchable/sortable MudTable wrapper - reuse for every admin list screen. *@
+<MudTable @ref="_table" ServerData="ServerReloadAsync" Hover="true" Dense="true" Class="@Class">
+    <ToolBarContent>
+        <MudSpacer />
+        @if (SearchFields is { Length: > 0 })
+        {
+            <MudTextField T="string" ValueChanged="OnSearch" Immediate="true" DebounceInterval="300"
+                          Placeholder="@SearchPlaceholder" Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Small" Class="mt-0" />
+        }
+        @ToolbarContent
+    </ToolBarContent>
+    <HeaderContent>@HeaderContent</HeaderContent>
+    <RowTemplate>@RowTemplate(context)</RowTemplate>
+    <NoRecordsContent>
+        @if (NoRecordsContent is not null)
+        {
+            @NoRecordsContent
+        }
+        else
+        {
+            <MudText>No matching records found.</MudText>
+        }
+    </NoRecordsContent>
+    <LoadingContent>
+        @if (LoadingContent is not null)
+        {
+            @LoadingContent
+        }
+        else
+        {
+            <MudText>Loading...</MudText>
+        }
+    </LoadingContent>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+
+@code {
+    [Parameter, EditorRequired]
+    public string ApiBasePath { get; set; } = default!;
+
+    /// <summary>Fields the search box OR-filters across. Omit/empty to hide the search box.</summary>
+    [Parameter]
+    public string[]? SearchFields { get; set; }
+
+    [Parameter]
+    public string SearchPlaceholder { get; set; } = "Search";
+
+    [Parameter, EditorRequired]
+    public RenderFragment HeaderContent { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public RenderFragment<TItem> RowTemplate { get; set; } = default!;
+
+    [Parameter]
+    public RenderFragment? ToolbarContent { get; set; }
+
+    [Parameter]
+    public RenderFragment? NoRecordsContent { get; set; }
+
+    [Parameter]
+    public RenderFragment? LoadingContent { get; set; }
+
+    [Parameter]
+    public string Class { get; set; } = "mt-2";
+
+    /// <summary>Fires with the failure message - the page decides how to display it.</summary>
+    [Parameter]
+    public EventCallback<string> OnLoadError { get; set; }
+
+    private MudTable<TItem> _table = default!;
+    private string? _searchText;
+
+    /// <summary>Call after any mutation (create/update/delete) so the current page re-fetches.</summary>
+    public Task ReloadAsync() => _table.ReloadServerData();
+
+    private async Task<TableData<TItem>> ServerReloadAsync(TableState state, CancellationToken cancellationToken)
+    {
+        var route = ApiRoutes.Paged(ApiBasePath, state.Page, state.PageSize);
+        var result = await ApiClient.QueryAsync<PaginatedResponse<TItem>>(route, BuildDynamicQuery(state), cancellationToken);
+
+        if (!result.IsSuccessful || result.ResultData is null)
+        {
+            await OnLoadError.InvokeAsync(result.DisplayMessage);
+            return new TableData<TItem> { TotalItems = 0, Items = [] };
+        }
+
+        return new TableData<TItem> { TotalItems = result.ResultData.Count, Items = result.ResultData.Items };
+    }
+
+    private DynamicQuery? BuildDynamicQuery(TableState state)
+    {
+        List<DynamicSort>? sort = string.IsNullOrEmpty(state.SortLabel)
+            ? null
+            : [new DynamicSort(state.SortLabel, state.SortDirection == SortDirection.Descending ? "desc" : "asc")];
+
+        var filter = string.IsNullOrWhiteSpace(_searchText) || SearchFields is not { Length: > 0 }
+            ? null
+            : BuildSearchFilter(SearchFields, _searchText);
+
+        return sort is null && filter is null ? null : new DynamicQuery(sort, filter);
+    }
+
+    /// <summary>Root filter needs its own Field/Operator too - see DynamicQuery.cs.</summary>
+    private static DynamicFilter BuildSearchFilter(string[] fields, string search)
+    {
+        var root = new DynamicFilter(fields[0], "contains", search);
+        return fields.Length == 1
+            ? root
+            : root with { Logic = "or", Filters = [.. fields.Skip(1).Select(f => new DynamicFilter(f, "contains", search))] };
+    }
+
+    private void OnSearch(string text)
+    {
+        _searchText = text;
+        _ = _table.ReloadServerData();
+    }
+}

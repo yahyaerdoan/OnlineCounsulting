@@ -50,6 +50,7 @@ public static class AppTheme
         Typography = new Typography
         {
             Default = new DefaultTypography { FontFamily = ["Inter", "Segoe UI", "Helvetica", "Arial", "sans-serif"] },
+            Button = new ButtonTypography { TextTransform = "none" },
         },
         LayoutProperties = new LayoutProperties
         {

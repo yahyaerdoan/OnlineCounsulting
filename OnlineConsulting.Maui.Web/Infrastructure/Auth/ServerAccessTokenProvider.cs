@@ -1,5 +1,5 @@
+﻿using OnlineConsulting.Maui.Shared.Infrastructure.Auth;
 using System.Globalization;
-using OnlineConsulting.Maui.Shared.Infrastructure.Auth;
 
 namespace OnlineConsulting.Maui.Web.Infrastructure.Auth;
 

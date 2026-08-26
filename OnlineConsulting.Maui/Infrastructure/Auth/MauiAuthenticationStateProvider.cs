@@ -1,7 +1,7 @@
-﻿using System.Security.Claims;
-using Microsoft.AspNetCore.Components.Authorization;
+﻿using Microsoft.AspNetCore.Components.Authorization;
 using OnlineConsulting.Maui.Shared.Infrastructure.Api;
 using OnlineConsulting.Maui.Shared.Infrastructure.Auth;
+using System.Security.Claims;
 
 namespace OnlineConsulting.Maui.Infrastructure.Auth;
 

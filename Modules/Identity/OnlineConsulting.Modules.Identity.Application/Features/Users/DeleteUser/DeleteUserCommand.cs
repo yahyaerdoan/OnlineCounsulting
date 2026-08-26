@@ -20,7 +20,7 @@ public record DeleteUserCommand(Guid UserId) : IRequest<OperationResult>, ISecur
     public string[] Roles => [UsersOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, UsersOperationClaims.Delete];
 }
 
-public class DeleteUserHandler(UserManager<User> userManager, ITenantOwnershipReader tenantOwnershipReader, IHttpContextAccessor httpContextAccessor)
+public class DeleteUserHandler(UserManager<User> userManager, ITenantOwnershipReader tenantOwnershipReader, ITenantProvider tenantProvider, IHttpContextAccessor httpContextAccessor)
     : IRequestHandler<DeleteUserCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
@@ -31,8 +31,7 @@ public class DeleteUserHandler(UserManager<User> userManager, ITenantOwnershipRe
             return UserBusinessRules.NoUserDataFound();
         }
 
-        var ownerGuardResult = await TenantOwnerProtection.EnsureCallerMayModifyAsync(
-            tenantOwnershipReader, httpContextAccessor, user.TenantId, user.Id, cancellationToken);
+        var ownerGuardResult = await TenantOwnerProtection.EnsureCallerMayModifyAsync(tenantOwnershipReader, tenantProvider, httpContextAccessor, user.TenantId, user.Id, cancellationToken);
         if (ownerGuardResult is not null)
         {
             return ownerGuardResult;

@@ -42,6 +42,7 @@ public class CoreUiModule : IUiModule
 
         new NavSection("Settings", Icons.Material.Filled.Settings, Color.Tertiary,
         [
+            new NavItem("Users", $"{AdminPrefix}/settings/users", Icons.Material.Filled.People),
             new NavItem("Roles & Permissions", $"{AdminPrefix}/settings/roles", Icons.Material.Filled.AdminPanelSettings),
             new NavItem("Feature Flags", $"{AdminPrefix}/settings/feature-flags", Icons.Material.Filled.Flag),
         ]),
