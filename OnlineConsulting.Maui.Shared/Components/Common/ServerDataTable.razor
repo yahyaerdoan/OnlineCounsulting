@@ -1,11 +1,11 @@
-@typeparam TItem
+@typeparam TItem where TItem : IQueryableFields
 @inject IApiClient ApiClient
 
 @* Generic paginated/searchable/sortable MudTable wrapper - reuse for every admin list screen. *@
 <MudTable @ref="_table" ServerData="ServerReloadAsync" Hover="true" Dense="true" Class="@Class">
     <ToolBarContent>
         <MudSpacer />
-        @if (SearchFields is { Length: > 0 })
+        @if (TItem.SearchFields.Length > 0)
         {
             <MudTextField T="string" ValueChanged="OnSearch" Immediate="true" DebounceInterval="300"
                           Placeholder="@SearchPlaceholder" Adornment="Adornment.Start"
@@ -43,10 +43,6 @@
 @code {
     [Parameter, EditorRequired]
     public string ApiBasePath { get; set; } = default!;
-
-    /// <summary>Fields the search box OR-filters across. Omit/empty to hide the search box.</summary>
-    [Parameter]
-    public string[]? SearchFields { get; set; }
 
     [Parameter]
     public string SearchPlaceholder { get; set; } = "Search";
@@ -99,9 +95,9 @@
             ? null
             : [new DynamicSort(state.SortLabel, state.SortDirection == SortDirection.Descending ? "desc" : "asc")];
 
-        var filter = string.IsNullOrWhiteSpace(_searchText) || SearchFields is not { Length: > 0 }
+        var filter = string.IsNullOrWhiteSpace(_searchText) || TItem.SearchFields.Length == 0
             ? null
-            : BuildSearchFilter(SearchFields, _searchText);
+            : BuildSearchFilter(TItem.SearchFields, _searchText);
 
         return sort is null && filter is null ? null : new DynamicQuery(sort, filter);
     }

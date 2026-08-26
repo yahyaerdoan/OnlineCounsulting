@@ -11,13 +11,12 @@
 <ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
 
 <ServerDataTable TItem="UserResponse" @ref="_table" ApiBasePath="@ApiRoutes.Users.All"
-                 SearchFields="@([UserFieldNames.FirstName, UserFieldNames.LastName, UserFieldNames.Email])"
                  SearchPlaceholder="Search name or email" OnLoadError="@(message => _loadError = message)">
     <HeaderContent>
-        <MudTh><MudTableSortLabel SortLabel="@UserFieldNames.LastName" T="UserResponse">Name</MudTableSortLabel></MudTh>
-        <MudTh><MudTableSortLabel SortLabel="@UserFieldNames.Email" T="UserResponse">Email</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortLabel="@nameof(UserResponse.LastName)" T="UserResponse">Name</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortLabel="@nameof(UserResponse.Email)" T="UserResponse">Email</MudTableSortLabel></MudTh>
         <MudTh>Roles</MudTh>
-        <MudTh><MudTableSortLabel SortLabel="@UserFieldNames.IsActive" T="UserResponse">Status</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortLabel="@nameof(UserResponse.IsActive)" T="UserResponse">Status</MudTableSortLabel></MudTh>
         <MudTh>Actions</MudTh>
     </HeaderContent>
     <RowTemplate Context="user">
