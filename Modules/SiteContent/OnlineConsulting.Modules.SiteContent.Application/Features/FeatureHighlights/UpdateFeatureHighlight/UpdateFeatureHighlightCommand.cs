@@ -1,4 +1,4 @@
-﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.FeatureHighlights.Abstractions;
@@ -11,7 +11,7 @@ namespace OnlineConsulting.Modules.SiteContent.Application.Features.FeatureHighl
 public record UpdateFeatureHighlightCommand(Guid Id, string Title, string Description, string ImageUrl, int DisplayOrder = 0, Dictionary<string, object>? Metadata = null) : IRequest<OperationResult>, ISecureAddRequest
 {
     [JsonIgnore]
-    public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write];
+    public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Update];
 }
 
 public class UpdateFeatureHighlightHandler(IFeatureHighlightRepository repository) : IRequestHandler<UpdateFeatureHighlightCommand, OperationResult>

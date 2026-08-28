@@ -1,4 +1,4 @@
-﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Scheduling.Application.Common;
 using OnlineConsulting.Modules.Scheduling.Application.Features.WorkOrders.Abstractions;
@@ -16,7 +16,7 @@ public record AddWorkOrderMediaItemCommand(Guid WorkOrderId, Guid MediaAssetId, 
     : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
     [JsonIgnore]
-    public string[] Roles => [SchedulingOperationClaims.Admin, SchedulingOperationClaims.Write];
+    public string[] Roles => [SchedulingOperationClaims.Admin, SchedulingOperationClaims.Write, SchedulingOperationClaims.Add];
 }
 
 public class AddWorkOrderMediaItemHandler(IWorkOrderMediaItemRepository mediaItemRepository, IWorkOrderRepository workOrderRepository)

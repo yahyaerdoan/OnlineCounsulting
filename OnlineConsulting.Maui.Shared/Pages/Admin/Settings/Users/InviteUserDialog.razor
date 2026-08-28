@@ -1,0 +1,71 @@
+﻿@namespace OnlineConsulting.Maui.Shared.Pages.Admin.Settings
+@using OnlineConsulting.Maui.Shared.Infrastructure.Forms
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+@inject FormState<InviteUserFormModel> Form
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">Invite Teammate</MudText>
+    </TitleContent>
+    <DialogContent>
+        <EntitySummaryHeader Title="New Teammate" Subtitle="They'll set their own password from the invite email." />
+
+        <ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+        <EditForm EditContext="@Form.EditContext">
+            <MudStack Spacing="3">
+                <MudTextField @bind-Value="_model.Email" For="@(() => _model.Email)" Label="Email address" Variant="Variant.Outlined" Margin="Margin.Dense"
+                              InputType="InputType.Email" Placeholder="jane@example.com" />
+
+                <MudSelect @bind-Value="_model.RoleName" For="@(() => _model.RoleName)" Label="Role" Variant="Variant.Outlined" Margin="Margin.Dense"
+                           HelperText="Controls what they can access. You can change this later.">
+                    @foreach (var role in _roles)
+                    {
+                        <MudSelectItem T="string" Value="@role.Name">@role.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudStack>
+        </EditForm>
+    </DialogContent>
+    <DialogActions>
+        <DialogActionButtons OnOk="SendAsync" BusyText="Sending..." IsBusy="@Form.IsBusy" />
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    private readonly InviteUserFormModel _model = new();
+    private List<RoleResponse> _roles = [];
+    private string? _loadError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Form.Bind(_model);
+
+        var result = await ApiClient.GetAsync<List<RoleResponse>>(ApiRoutes.Roles.Base);
+        if (result.IsSuccessful && result.ResultData is not null)
+        {
+            _roles = result.ResultData;
+        }
+        else
+        {
+            _loadError = result.DisplayMessage;
+        }
+    }
+
+    private Task SendAsync() => Form.SubmitAsync(async () =>
+    {
+        var result = await ApiClient.PostAsync(ApiRoutes.Invites.Create, new { email = _model.Email, roleName = _model.RoleName });
+        if (!result.IsSuccessful)
+        {
+            Form.DisplayErrors(result, Snackbar);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        MudDialog.Close(DialogResult.Ok(true));
+    });
+}

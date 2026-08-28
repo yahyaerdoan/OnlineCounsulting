@@ -1,6 +1,67 @@
-@page "/admin/settings/roles"
+﻿@page "/admin/settings/roles"
 @attribute [Authorize]
+@inject IApiClient ApiClient
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
 
-<PageTitle>Roles &amp; Permissions</PageTitle>
+<PageTitle>Roles</PageTitle>
 
-<ComingSoon Title="Roles &amp; Permissions" Subtitle="Manage roles and the permissions assigned to each one." />
+<PageHeroBanner Title="Roles" Subtitle="Manage the roles assigned across your team.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.Add"
+                   OnClick="CreateAsync">New Role</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+<ServerDataTable TItem="RoleResponse" @ref="_table" ApiBasePath="@ApiRoutes.Roles.All"
+                 SearchPlaceholder="Search role name" OnLoadError="@(message => _loadError = message)">
+    <HeaderContent>
+        <MudTh><MudTableSortLabel SortLabel="@nameof(RoleResponse.Name)" T="RoleResponse">Name</MudTableSortLabel></MudTh>
+        <MudTh>Description</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate Context="role">
+        <MudTd DataLabel="Name">@role.Name</MudTd>
+        <MudTd DataLabel="Description">@role.Description</MudTd>
+        <MudTd DataLabel="Actions">
+            <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
+                <MudIconButton Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" title="Edit"
+                               OnClick="@(() => EditAsync(role))" />
+
+                <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" title="Delete"
+                               OnClick="@(() => DeleteAsync(role))" />
+            </MudButtonGroup>
+        </MudTd>
+    </RowTemplate>
+</ServerDataTable>
+
+@code {
+    private ServerDataTable<RoleResponse> _table = default!;
+    private string? _loadError;
+
+    private Task CreateAsync() =>
+        DialogService.ShowAndReloadAsync<CreateRoleDialog>("New Role", _table.ReloadAsync);
+
+    private Task EditAsync(RoleResponse role) =>
+        DialogService.ShowAndReloadAsync("Edit Role", new DialogParameters<EditRoleDialog> { { x => x.Role, role } }, _table.ReloadAsync);
+
+    private async Task DeleteAsync(RoleResponse role)
+    {
+        if (!await DialogService.ConfirmDeleteAsync("role", role.Name))
+        {
+            return;
+        }
+
+        var result = await ApiClient.DeleteAsync(ApiRoutes.Roles.ById(role.Id));
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await _table.ReloadAsync();
+    }
+}

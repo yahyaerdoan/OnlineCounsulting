@@ -1,0 +1,80 @@
+@page "/accept-invite"
+@attribute [ExcludeFromInteractiveRouting]
+@layout MainLayout
+@using OnlineConsulting.Maui.Shared.Infrastructure.Auth
+@using OnlineConsulting.Maui.Shared.Infrastructure.Forms
+@inject IHttpClientFactory HttpClientFactory
+@inject NavigationManager Navigation
+@inject FormState<AcceptInviteModel> Form
+
+<PageTitle>Accept invite</PageTitle>
+
+<AuthCard Subtitle="Set up your ComfortPro account">
+    @if (_accepted)
+    {
+        <MudAlert Severity="Severity.Success" Class="mb-4">Your account is ready.</MudAlert>
+        <MudButton Href="/login" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Class="auth-submit">Go to sign in</MudButton>
+    }
+    else if (string.IsNullOrWhiteSpace(Token))
+    {
+        <ApiErrorAlert Message="This invite link is missing or invalid." />
+    }
+    else
+    {
+        <ApiErrorAlert Message="@_errorMessage" />
+
+        <EditForm EditContext="@Form.EditContext" method="post" OnValidSubmit="SubmitAsync" FormName="acceptInvite">
+            <AuthTextField Label="First name" Icon="@Icons.Material.Filled.Person" Placeholder="Jane"
+                           @bind-Value="_model.FirstName" AutoFocus="true" />
+
+            <AuthTextField Label="Last name" Icon="@Icons.Material.Filled.Person" Placeholder="Doe"
+                           @bind-Value="_model.LastName" />
+
+            <AuthTextField Label="Password" Icon="@Icons.Material.Filled.Lock" Placeholder="********" Type="password"
+                           @bind-Value="_model.Password" />
+
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Class="auth-submit">Create account</MudButton>
+        </EditForm>
+    }
+</AuthCard>
+
+@code {
+    [SupplyParameterFromQuery]
+    private string? Token { get; set; }
+
+    [SupplyParameterFromForm]
+    private AcceptInviteModel _model
+    {
+        get => field ??= new AcceptInviteModel();
+        set;
+    }
+
+    private string? _errorMessage;
+    private bool _accepted;
+
+    protected override void OnInitialized() => Form.Bind(_model);
+
+    private Task SubmitAsync() => Form.SubmitAsync(async () =>
+    {
+        _errorMessage = null;
+
+        var anonymousClient = HttpClientFactory.CreateClient(ApiHttpClientNames.Anonymous);
+        var api = new ApiClient(anonymousClient);
+
+        var result = await api.PostAsync(ApiRoutes.Auth.AcceptInvite, new
+        {
+            token = Token,
+            firstName = _model.FirstName,
+            lastName = _model.LastName,
+            password = _model.Password,
+        });
+
+        if (!result.IsSuccessful)
+        {
+            _errorMessage = Form.DisplayErrors(result);
+            return;
+        }
+
+        _accepted = true;
+    });
+}

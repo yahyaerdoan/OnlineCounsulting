@@ -1,4 +1,4 @@
-﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.Partnerships.Abstractions;
@@ -15,7 +15,7 @@ public record CreatePartnershipSocialLinkCommand(Guid PartnershipId, string Name
     : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
     [JsonIgnore]
-    public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write];
+    public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Add];
 }
 
 public class CreatePartnershipSocialLinkHandler(IPartnershipSocialLinkRepository repository, IPartnershipRepository partnershipRepository)

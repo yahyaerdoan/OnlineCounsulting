@@ -3,14 +3,16 @@ using FluentValidation.Resources;
 
 namespace OnlineConsulting.SharedKernel.Validation;
 
-/// <summary>Overrides FluentValidation's default English message templates (which wrap the property
-/// name in quotes, e.g. "'UserNameOrEmail' must not be empty.") with plain phrasing, solution-wide,
-/// for every rule that doesn't set its own WithMessage(). Call once at startup.</summary>
+/// <summary>Overrides FluentValidation's default quoted messages with plain phrasing, solution-wide.</summary>
 public static class FriendlyValidationMessages
 {
     public static void Apply()
     {
         var english = (LanguageManager)ValidatorOptions.Global.LanguageManager;
+
+        // Force "en" - LanguageManager won't fall back from CurrentUICulture (e.g. "en-US") to it.
+        english.Culture = new System.Globalization.CultureInfo("en");
+
         english.AddTranslation("en", "NotEmptyValidator", "{PropertyName} is required.");
         english.AddTranslation("en", "NotNullValidator", "{PropertyName} is required.");
         english.AddTranslation("en", "MaximumLengthValidator", "{PropertyName} must be {MaxLength} characters or fewer.");

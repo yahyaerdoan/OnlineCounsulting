@@ -226,6 +226,11 @@
     max-width: 40rem;
 }
 
+/* MudTabs default uppercases labels - same fix as buttons, Title Case reads better. */
+.mud-tab {
+    text-transform: none;
+}
+
 .stat-card {
     border-radius: 12px !important;
     padding: .9rem 1.1rem !important;

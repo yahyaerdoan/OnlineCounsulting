@@ -1,0 +1,56 @@
+@namespace OnlineConsulting.Maui.Shared.Pages.Admin.Settings
+@using OnlineConsulting.Maui.Shared.Infrastructure.Forms
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+@inject FormState<EditUserFormModel> Form
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">Edit @User.FirstName @User.LastName</MudText>
+    </TitleContent>
+    <DialogContent>
+        <EntitySummaryHeader Title="@($"{User.FirstName} {User.LastName}")" Subtitle="@User.Email" />
+
+        <EditForm EditContext="@Form.EditContext">
+            <MudStack Spacing="3">
+                <MudTextField @bind-Value="_model.FirstName" For="@(() => _model.FirstName)" Label="First name" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                <MudTextField @bind-Value="_model.LastName" For="@(() => _model.LastName)" Label="Last name" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudStack>
+        </EditForm>
+    </DialogContent>
+    <DialogActions>
+        <DialogActionButtons OnOk="SaveAsync" IsBusy="@Form.IsBusy" />
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public UserResponse User { get; set; } = default!;
+
+    private readonly EditUserFormModel _model = new();
+
+    protected override void OnInitialized()
+    {
+        _model.FirstName = User.FirstName;
+        _model.LastName = User.LastName;
+        Form.Bind(_model);
+    }
+
+    private Task SaveAsync() => Form.SubmitAsync(async () =>
+    {
+        var result = await ApiClient.PutAsync(ApiRoutes.Users.ById(User.Id),
+            new { firstName = _model.FirstName, lastName = _model.LastName, isActive = User.IsActive });
+
+        if (!result.IsSuccessful)
+        {
+            Form.DisplayErrors(result, Snackbar);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        MudDialog.Close(DialogResult.Ok(true));
+    });
+}

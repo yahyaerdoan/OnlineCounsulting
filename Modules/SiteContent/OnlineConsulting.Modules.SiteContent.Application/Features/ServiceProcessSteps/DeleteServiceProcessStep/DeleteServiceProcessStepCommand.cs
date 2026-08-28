@@ -1,4 +1,4 @@
-﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.ServiceProcessSteps.Abstractions;
@@ -11,7 +11,7 @@ namespace OnlineConsulting.Modules.SiteContent.Application.Features.ServiceProce
 public record DeleteServiceProcessStepCommand(Guid Id) : IRequest<OperationResult>, ISecureAddRequest
 {
     [JsonIgnore]
-    public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write];
+    public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Delete];
 }
 
 public class DeleteServiceProcessStepHandler(IServiceProcessStepRepository repository) : IRequestHandler<DeleteServiceProcessStepCommand, OperationResult>

@@ -1,4 +1,4 @@
-﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Media.Application.Abstractions;
 using OnlineConsulting.Modules.Media.Application.Common;
@@ -16,7 +16,7 @@ public record UploadMediaAssetCommand(Stream FileStream, string FileName, string
     : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
     [JsonIgnore]
-    public string[] Roles => [MediaOperationClaims.Admin, MediaOperationClaims.Write];
+    public string[] Roles => [MediaOperationClaims.Admin, MediaOperationClaims.Write, MediaOperationClaims.Add];
 }
 
 public class UploadMediaAssetHandler(IMediaAssetRepository repository, IStorageService storageService) : IRequestHandler<UploadMediaAssetCommand, OperationDataResult<Guid>>

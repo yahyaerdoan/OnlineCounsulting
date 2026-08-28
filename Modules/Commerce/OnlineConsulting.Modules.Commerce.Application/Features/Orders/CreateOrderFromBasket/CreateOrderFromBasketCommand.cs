@@ -28,7 +28,7 @@ public record CreateOrderFromBasketCommand(Guid UserId, string Email) : IRequest
     public string[] Roles => [];
 }
 
-public class CreateOrderFromBasketHandler(IBasketRepository basketRepository, IBasketItemRepository basketItemRepository, IUserAddressRepository userAddressRepository, IOrderRepository orderRepository, IOrderItemRepository orderItemRepository, IEmailOutboxWriter outboxWriter, IEmailTemplate<OrderConfirmationEmailModel> confirmationTemplate, IPaymentGateway paymentGateway)
+public class CreateOrderFromBasketHandler(IBasketRepository basketRepository, IBasketItemRepository basketItemRepository, IUserAddressRepository userAddressRepository, IOrderRepository orderRepository, IOrderItemRepository orderItemRepository, IEmailOutboxWriter<ICommerceOutboxModule> outboxWriter, IEmailTemplate<OrderConfirmationEmailModel> confirmationTemplate, IPaymentGateway paymentGateway)
     : IRequestHandler<CreateOrderFromBasketCommand, OperationDataResult<CreateOrderResult>>
 {
     public async Task<OperationDataResult<CreateOrderResult>> Handle(CreateOrderFromBasketCommand request, CancellationToken cancellationToken)
@@ -62,9 +62,7 @@ public class CreateOrderFromBasketHandler(IBasketRepository basketRepository, IB
         var orderId = Guid.NewGuid();
         var total = basketItems.Items.Sum(i => TaxCalculator.Calculate(i.Price, i.Quantity, i.TaxRate).TotalPrice);
 
-        // Payment is started before the Order row exists so OrderId can be used as the gateway's own
-        // idempotency key and webhook reference - retrying this handler (e.g. after a timeout) can't
-        // double-charge, and the eventual webhook already knows exactly which order to confirm.
+        // OrderId doubles as the gateway idempotency key - retries can't double-charge.
         var paymentIntent = await paymentGateway.CreatePaymentIntentAsync(
             new CreatePaymentIntentRequest(total, "usd", orderId.ToString(), request.Email, IdempotencyKey: orderId.ToString()),
             cancellationToken);
@@ -73,6 +71,7 @@ public class CreateOrderFromBasketHandler(IBasketRepository basketRepository, IB
 
         var confirmationModel = new OrderConfirmationEmailModel(order.OrderNumber, basketItems.Items.Count, total);
 
+        // Relies on basketItemRepository.DeleteAsync below to flush this staged row - keep Enqueue before it.
         outboxWriter.Enqueue(request.Email, confirmationTemplate.Subject(confirmationModel), confirmationTemplate.Build(confirmationModel), sourceReference: $"Order:{order.Id}");
 
         foreach (var basketItem in basketItems.Items)

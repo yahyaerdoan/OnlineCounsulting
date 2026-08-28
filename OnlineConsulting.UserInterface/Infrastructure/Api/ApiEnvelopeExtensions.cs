@@ -4,8 +4,7 @@ using ResultHandler.Mapping;
 
 namespace OnlineConsulting.UserInterface.Infrastructure.Api;
 
-/// <summary>ApiEnvelope&lt;T&gt; is a separate record rather than a subclass of ApiEnvelope, so admin feature
-/// services that only need the success/message half of a create-style call drop the payload through this.</summary>
+/// <summary>Drops the payload off the generic ApiEnvelope for callers that only need success/message.</summary>
 public static class ApiEnvelopeExtensions
 {
     public static ApiEnvelope WithoutData<T>(this ApiEnvelope<T> envelope) =>

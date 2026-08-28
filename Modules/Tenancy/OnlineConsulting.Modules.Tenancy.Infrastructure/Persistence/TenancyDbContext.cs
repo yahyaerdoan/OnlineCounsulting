@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using OnlineConsulting.Modules.Tenancy.Domain;
+using OnlineConsulting.SharedKernel.Notifications;
 
 namespace OnlineConsulting.Modules.Tenancy.Infrastructure.Persistence;
 
@@ -12,6 +13,7 @@ public class TenancyDbContext(DbContextOptions<TenancyDbContext> options) : DbCo
     public DbSet<Bundle> Bundles => Set<Bundle>();
     public DbSet<TenantSubscription> TenantSubscriptions => Set<TenantSubscription>();
     public DbSet<TenantSubscriptionItem> TenantSubscriptionItems => Set<TenantSubscriptionItem>();
+    public DbSet<OutboxEmail> OutboxEmails => Set<OutboxEmail>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -72,6 +74,8 @@ public class TenancyDbContext(DbContextOptions<TenancyDbContext> options) : DbCo
             _ = builder.Property(i => i.RowVersion).IsRowVersion();
             _ = builder.HasIndex(i => i.TenantSubscriptionId);
         });
+
+        modelBuilder.ConfigureOutboxEmail();
 
         base.OnModelCreating(modelBuilder);
     }

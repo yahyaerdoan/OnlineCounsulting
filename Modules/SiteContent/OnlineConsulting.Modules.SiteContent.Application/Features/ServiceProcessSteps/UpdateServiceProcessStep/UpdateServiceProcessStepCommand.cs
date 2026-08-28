@@ -1,4 +1,4 @@
-﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.ServiceProcessSteps.Abstractions;
@@ -12,7 +12,7 @@ public record UpdateServiceProcessStepCommand(Guid Id, string Title, string Desc
     : IRequest<OperationResult>, ISecureAddRequest
 {
     [JsonIgnore]
-    public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write];
+    public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Update];
 }
 
 public class UpdateServiceProcessStepHandler(IServiceProcessStepRepository repository) : IRequestHandler<UpdateServiceProcessStepCommand, OperationResult>

@@ -58,7 +58,7 @@ public static class IdentityModule
         _ = services.AddScoped<IInviteRepository, InviteRepository>();
         _ = services.AddScoped<IUserExistenceReader, UserExistenceReader>();
 
-        _ = services.AddScoped<IEmailOutboxWriter, EmailOutboxWriter>();
+        _ = services.AddScoped<IEmailOutboxWriter<IIdentityOutboxModule>, EmailOutboxWriter>();
         _ = services.AddScoped<IEmailTemplate<ConfirmEmailEmailModel>, ConfirmEmailTemplate>();
         _ = services.AddScoped<IEmailTemplate<WelcomeEmailModel>, WelcomeTemplate>();
         _ = services.AddScoped<IEmailTemplate<PolicyNoticeEmailModel>, PolicyNoticeTemplate>();

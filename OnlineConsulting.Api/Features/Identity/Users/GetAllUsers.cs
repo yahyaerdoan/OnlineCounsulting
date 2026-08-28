@@ -12,7 +12,7 @@ public class GetAllUsers : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        // POST /query, not HTTP QUERY (RFC 10008) - Swagger/Swashbuckle can't document that verb.
+        // POST /query, not HTTP QUERY - Swagger can't document that verb.
         _ = app.MapPost("/api/users/query", Handle)
             .WithTags("Identity/Users")
             .RequireAuthorization()

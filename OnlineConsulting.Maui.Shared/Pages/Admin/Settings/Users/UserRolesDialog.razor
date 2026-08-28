@@ -1,3 +1,4 @@
+@namespace OnlineConsulting.Maui.Shared.Pages.Admin.Settings
 @inject IApiClient ApiClient
 @inject ISnackbar Snackbar
 
@@ -64,7 +65,7 @@
             return;
         }
 
-        Snackbar.ShowSuccess("Roles updated.");
+        Snackbar.ShowSuccess(result.DisplayMessage);
         MudDialog.Close(DialogResult.Ok(true));
     }
 }

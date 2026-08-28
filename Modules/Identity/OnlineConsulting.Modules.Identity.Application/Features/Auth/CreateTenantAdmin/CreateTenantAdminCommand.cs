@@ -18,7 +18,7 @@ public record CreateTenantAdminCommand(Guid TenantId, string FirstName, string L
 
 public record CreateTenantAdminResult(Guid UserId);
 
-public class CreateTenantAdminHandler(UserManager<User> userManager, IEmailOutboxWriter outboxWriter, IEmailTemplate<ConfirmEmailEmailModel> confirmEmailTemplate, IOptions<AuthEmailOptions> emailOptions)
+public class CreateTenantAdminHandler(UserManager<User> userManager, IEmailOutboxWriter<IIdentityOutboxModule> outboxWriter, IEmailTemplate<ConfirmEmailEmailModel> confirmEmailTemplate, IOptions<AuthEmailOptions> emailOptions)
     : IRequestHandler<CreateTenantAdminCommand, OperationDataResult<CreateTenantAdminResult>>
 {
     public async Task<OperationDataResult<CreateTenantAdminResult>> Handle(CreateTenantAdminCommand request, CancellationToken cancellationToken)
@@ -40,17 +40,18 @@ public class CreateTenantAdminHandler(UserManager<User> userManager, IEmailOutbo
             return Result.Invalid<CreateTenantAdminResult>([.. createResult.Errors.Select(e => e.Description)]);
         }
 
+        var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
+        var confirmationUrl = $"{emailOptions.Value.ClientOrigin}/confirm-email?userId={user.Id}&token={Uri.EscapeDataString(token)}";
+        var confirmModel = new ConfirmEmailEmailModel(user.FirstName, confirmationUrl);
+
+        // Enqueue before AddToRoleAsync - AddToRoleAsync's own SaveChangesAsync is what flushes this staged row.
+        outboxWriter.Enqueue(user.Email ?? string.Empty, confirmEmailTemplate.Subject(confirmModel), confirmEmailTemplate.Build(confirmModel), sourceReference: $"User:{user.Id}");
+
         var roleResult = await userManager.AddToRoleAsync(user, GeneralOperationClaims.Admin);
         if (!roleResult.Succeeded)
         {
             return Result.Invalid<CreateTenantAdminResult>([.. roleResult.Errors.Select(e => e.Description)]);
         }
-
-        var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
-        var confirmationUrl = $"{emailOptions.Value.ClientOrigin}/confirm-email?userId={user.Id}&token={Uri.EscapeDataString(token)}";
-        var confirmModel = new ConfirmEmailEmailModel(user.FirstName, confirmationUrl);
-
-        outboxWriter.Enqueue(user.Email ?? string.Empty, confirmEmailTemplate.Subject(confirmModel), confirmEmailTemplate.Build(confirmModel), sourceReference: $"User:{user.Id}");
 
         return Result.Created(new CreateTenantAdminResult(user.Id), "The tenant admin account has been successfully created. Please check your email to confirm your account.");
     }

@@ -1,4 +1,4 @@
-@typeparam TItem where TItem : IQueryableFields
+﻿@typeparam TItem where TItem : IQueryableFields
 @inject IApiClient ApiClient
 
 @* Generic paginated/searchable/sortable MudTable wrapper - reuse for every admin list screen. *@
@@ -7,9 +7,9 @@
         <MudSpacer />
         @if (TItem.SearchFields.Length > 0)
         {
-            <MudTextField T="string" ValueChanged="OnSearch" Immediate="true" DebounceInterval="300"
+            <MudTextField T="string" ValueChanged="OnSearch" Immediate="true" DebounceInterval="300" Margin="Margin.Dense"
                           Placeholder="@SearchPlaceholder" Adornment="Adornment.Start"
-                          AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Small" Class="mt-0" />
+                          AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Small" />
         }
         @ToolbarContent
     </ToolBarContent>

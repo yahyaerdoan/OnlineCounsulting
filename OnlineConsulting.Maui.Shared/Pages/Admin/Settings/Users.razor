@@ -25,7 +25,7 @@
         <MudTd DataLabel="Roles">
             @foreach (var role in user.Roles)
             {
-                <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Text" Class="mr-1">@role</MudChip>
+                <MudChip T="string" Size="Size.Small" Color="Color.Default" Variant="Variant.Text" Class="mr-1">@role</MudChip>
             }
         </MudTd>
         <MudTd DataLabel="Status">
@@ -34,16 +34,20 @@
             </MudChip>
         </MudTd>
         <MudTd DataLabel="Actions">
-            <MudIconButton Icon="@Icons.Material.Filled.ManageAccounts" Size="Size.Small" Color="Color.Primary" title="Manage roles"
-                           OnClick="@(() => ManageRolesAsync(user))" />
+            <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
+                <MudIconButton Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" title="Edit"
+                               OnClick="@(() => EditAsync(user))" />
 
-            <MudIconButton Icon="@(user.IsActive ? Icons.Material.Filled.PersonOff : Icons.Material.Filled.PersonAddAlt1)"
-                           Size="Size.Small" Color="@(user.IsActive ? Color.Warning : Color.Success)"
-                           title="@(user.IsActive ? "Deactivate" : "Activate")"
-                           OnClick="@(() => ToggleActiveAsync(user))" />
+                <MudIconButton Icon="@Icons.Material.Filled.ManageAccounts" Color="Color.Default" title="Manage roles"
+                               OnClick="@(() => ManageRolesAsync(user))" />
 
-            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" title="Delete"
-                           OnClick="@(() => DeleteAsync(user))" />
+                <MudToggleIconButton Toggled="user.IsActive" ToggledChanged="@(_ => ToggleActiveAsync(user))"
+                                      Icon="@Icons.Material.Filled.PersonAddAlt1" Color="Color.Success" title="Activate/Deactivate"
+                                      ToggledIcon="@Icons.Material.Filled.PersonOff" ToggledColor="Color.Warning" />
+
+                <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" title="Delete"
+                               OnClick="@(() => DeleteAsync(user))" />
+            </MudButtonGroup>
         </MudTd>
     </RowTemplate>
 </ServerDataTable>
@@ -52,17 +56,11 @@
     private ServerDataTable<UserResponse> _table = default!;
     private string? _loadError;
 
-    private async Task ManageRolesAsync(UserResponse user)
-    {
-        var parameters = new DialogParameters<UserRolesDialog> { { x => x.User, user } };
-        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
-        var dialog = await DialogService.ShowAsync<UserRolesDialog>("Edit Roles", parameters, options);
-        var result = await dialog.Result;
-        if (result is { Canceled: false })
-        {
-            await _table.ReloadAsync();
-        }
-    }
+    private Task EditAsync(UserResponse user) =>
+        DialogService.ShowAndReloadAsync("Edit User", new DialogParameters<EditUserDialog> { { x => x.User, user } }, _table.ReloadAsync);
+
+    private Task ManageRolesAsync(UserResponse user) =>
+        DialogService.ShowAndReloadAsync("Edit Roles", new DialogParameters<UserRolesDialog> { { x => x.User, user } }, _table.ReloadAsync);
 
     private async Task ToggleActiveAsync(UserResponse user)
     {
@@ -75,7 +73,7 @@
             return;
         }
 
-        Snackbar.ShowSuccess(user.IsActive ? "User deactivated." : "User activated.");
+        Snackbar.ShowSuccess(result.DisplayMessage);
         await _table.ReloadAsync();
     }
 
@@ -93,7 +91,7 @@
             return;
         }
 
-        Snackbar.ShowSuccess("User deleted.");
+        Snackbar.ShowSuccess(result.DisplayMessage);
         await _table.ReloadAsync();
     }
 }

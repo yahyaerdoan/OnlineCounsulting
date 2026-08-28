@@ -33,7 +33,7 @@ public record CreateInviteCommand(string Email, string? RoleName = null) : IRequ
     public string[] Roles => [InvitesOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, InvitesOperationClaims.Add];
 }
 
-public class CreateInviteHandler(IInviteRepository inviteRepository, RoleManager<Role> roleManager, UserManager<User> userManager, ITenantProvider tenantProvider, ICurrentUserAccessor currentUserAccessor, IEmailOutboxWriter outboxWriter, IEmailTemplate<InviteEmailModel> inviteTemplate, IOptions<AuthEmailOptions> emailOptions)
+public class CreateInviteHandler(IInviteRepository inviteRepository, RoleManager<Role> roleManager, UserManager<User> userManager, ITenantProvider tenantProvider, ICurrentUserAccessor currentUserAccessor, IEmailOutboxWriter<IIdentityOutboxModule> outboxWriter, IEmailTemplate<InviteEmailModel> inviteTemplate, IOptions<AuthEmailOptions> emailOptions)
     : IRequestHandler<CreateInviteCommand, OperationResult>
 {
     private const int InviteValidityDays = 7;
@@ -83,12 +83,13 @@ public class CreateInviteHandler(IInviteRepository inviteRepository, RoleManager
             InvitedByUserId = invitedByUserId,
         };
 
-        _ = await inviteRepository.AddAsync(invite);
-
         var inviteUrl = $"{emailOptions.Value.ClientOrigin}/accept-invite?token={Uri.EscapeDataString(invite.Token)}";
         var inviteModel = new InviteEmailModel(inviteUrl);
 
+        // Enqueue before AddAsync - AddAsync's own SaveChangesAsync is what flushes this staged row.
         outboxWriter.Enqueue(invite.Email, inviteTemplate.Subject(inviteModel), inviteTemplate.Build(inviteModel), sourceReference: $"Invite:{invite.Id}");
+
+        _ = await inviteRepository.AddAsync(invite);
 
         return Result.Created("The invite has been sent.");
     }

@@ -1,4 +1,4 @@
-﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using Core.ApplicationLayer.Pipelines.Cachings.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.FeatureFlags.Application.Abstractions;
@@ -16,7 +16,7 @@ namespace OnlineConsulting.Modules.FeatureFlags.Application.Features.GetFeatureF
 public record GetFeatureFlagsQuery(Guid TenantId) : IRequest<OperationDataResult<List<FeatureFlagResponse>>>, ISecureAddRequest, ICacheAddRequest
 {
     [JsonIgnore]
-    public string[] Roles => [FeatureFlagsOperationClaims.Admin];
+    public string[] Roles => [FeatureFlagsOperationClaims.Admin, FeatureFlagsOperationClaims.Read];
 
     [JsonIgnore]
     public string CacheKey => $"GetFeatureFlags({TenantId})";

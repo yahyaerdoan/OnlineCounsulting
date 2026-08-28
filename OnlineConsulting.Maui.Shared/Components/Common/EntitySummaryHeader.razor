@@ -1,14 +1,21 @@
-@* Plug-and-play "who/what this dialog is about" header: avatar-with-initials + title + subtitle. *@
+﻿@* Plug-and-play "who/what this dialog is about" header: avatar-with-initials + title + subtitle. *@
 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3" Class="mb-4">
+
     <MudAvatar Color="Color.Primary" Variant="Variant.Filled" Size="Size.Medium">@ResolvedInitials</MudAvatar>
+
     <MudStack Spacing="0">
+
         <MudText Typo="Typo.subtitle1">@Title</MudText>
+
         @if (!string.IsNullOrWhiteSpace(Subtitle))
         {
             <MudText Typo="Typo.body2" Color="Color.Secondary">@Subtitle</MudText>
         }
+
     </MudStack>
+
 </MudStack>
+
 <MudDivider Class="mb-4" />
 
 @code {

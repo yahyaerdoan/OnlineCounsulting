@@ -1,4 +1,4 @@
-﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Scheduling.Application.Common;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Availability.Abstractions;
@@ -11,7 +11,7 @@ namespace OnlineConsulting.Modules.Scheduling.Application.Features.Availability.
 public record DeleteAvailabilityRuleCommand(Guid Id) : IRequest<OperationResult>, ISecureAddRequest
 {
     [JsonIgnore]
-    public string[] Roles => [SchedulingOperationClaims.Admin, SchedulingOperationClaims.Write];
+    public string[] Roles => [SchedulingOperationClaims.Admin, SchedulingOperationClaims.Write, SchedulingOperationClaims.Delete];
 }
 
 public class DeleteAvailabilityRuleHandler(IAvailabilityRuleRepository repository) : IRequestHandler<DeleteAvailabilityRuleCommand, OperationResult>

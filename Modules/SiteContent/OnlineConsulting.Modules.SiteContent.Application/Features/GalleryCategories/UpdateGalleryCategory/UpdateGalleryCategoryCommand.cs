@@ -1,4 +1,4 @@
-﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryCategories.Abstractions;
@@ -11,7 +11,7 @@ namespace OnlineConsulting.Modules.SiteContent.Application.Features.GalleryCateg
 public record UpdateGalleryCategoryCommand(Guid Id, string Name, string? Description = null) : IRequest<OperationResult>, ISecureAddRequest
 {
     [JsonIgnore]
-    public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write];
+    public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Update];
 }
 
 public class UpdateGalleryCategoryHandler(IGalleryCategoryRepository repository) : IRequestHandler<UpdateGalleryCategoryCommand, OperationResult>

@@ -12,7 +12,7 @@ namespace OnlineConsulting.Modules.Inquiries.Application.Features.Messages.Submi
 
 public record SubmitMessageCommand(string FirstName, string LastName, string Email, string Subject, string Description) : IRequest<OperationResult>;
 
-public class SubmitMessageHandler(IMessageRepository repository, IEmailOutboxWriter outboxWriter, IEmailTemplate<MessageReceivedEmailModel> receivedTemplate, IEmailTemplate<NewInquiryNotificationEmailModel> notificationTemplate, IOptions<InquiriesOptions> options)
+public class SubmitMessageHandler(IMessageRepository repository, IEmailOutboxWriter<IInquiriesOutboxModule> outboxWriter, IEmailTemplate<MessageReceivedEmailModel> receivedTemplate, IEmailTemplate<NewInquiryNotificationEmailModel> notificationTemplate, IOptions<InquiriesOptions> options)
     : IRequestHandler<SubmitMessageCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(SubmitMessageCommand request, CancellationToken cancellationToken)

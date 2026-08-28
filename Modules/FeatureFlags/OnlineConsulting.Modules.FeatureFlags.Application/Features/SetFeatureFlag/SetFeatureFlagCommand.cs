@@ -1,4 +1,4 @@
-﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using Core.ApplicationLayer.Pipelines.Cachings.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.FeatureFlags.Application.Features.Constants;
@@ -14,7 +14,7 @@ public record SetFeatureFlagCommand(string Key, bool IsEnabled) : IRequest<Opera
     public Guid TenantId { get; init; }
 
     [JsonIgnore]
-    public string[] Roles => [FeatureFlagsOperationClaims.Admin];
+    public string[] Roles => [FeatureFlagsOperationClaims.Admin, FeatureFlagsOperationClaims.Update];
 
     [JsonIgnore]
     public string CacheKey => string.Empty;

@@ -43,7 +43,9 @@ public class CoreUiModule : IUiModule
         new NavSection("Settings", Icons.Material.Filled.Settings, Color.Tertiary,
         [
             new NavItem("Users", $"{AdminPrefix}/settings/users", Icons.Material.Filled.People),
-            new NavItem("Roles & Permissions", $"{AdminPrefix}/settings/roles", Icons.Material.Filled.AdminPanelSettings),
+            new NavItem("Invites", $"{AdminPrefix}/settings/invites", Icons.Material.Filled.MarkEmailUnread),
+            new NavItem("Roles", $"{AdminPrefix}/settings/roles", Icons.Material.Filled.AdminPanelSettings),
+            new NavItem("Permissions", $"{AdminPrefix}/settings/permissions", Icons.Material.Filled.Security),
             new NavItem("Feature Flags", $"{AdminPrefix}/settings/feature-flags", Icons.Material.Filled.Flag),
         ]),
     ];

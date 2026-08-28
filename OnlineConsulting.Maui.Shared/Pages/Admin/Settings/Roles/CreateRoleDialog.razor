@@ -1,0 +1,49 @@
+@namespace OnlineConsulting.Maui.Shared.Pages.Admin.Settings
+@using OnlineConsulting.Maui.Shared.Infrastructure.Forms
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+@inject FormState<RoleFormModel> Form
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">New Role</MudText>
+    </TitleContent>
+    <DialogContent>
+        <EntitySummaryHeader Title="New Role" Subtitle="Permissions can be assigned after creation." />
+
+        <EditForm EditContext="@Form.EditContext">
+            <MudStack Spacing="3">
+                <MudTextField @bind-Value="_model.Name" For="@(() => _model.Name)" Label="Name" Variant="Variant.Outlined" Margin="Margin.Dense"
+                              Placeholder="e.g. Support Agent" />
+
+                <MudTextField @bind-Value="_model.Description" For="@(() => _model.Description)" Label="Description" Variant="Variant.Outlined" Margin="Margin.Dense"
+                              Lines="1" MaxLines="5" Sizing="InputSizing.Auto" Placeholder="What can people in this role do?" />
+            </MudStack>
+        </EditForm>
+    </DialogContent>
+    <DialogActions>
+        <DialogActionButtons OnOk="CreateAsync" IsBusy="@Form.IsBusy" />
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    private readonly RoleFormModel _model = new();
+
+    protected override void OnInitialized() => Form.Bind(_model);
+
+    private Task CreateAsync() => Form.SubmitAsync(async () =>
+    {
+        var result = await ApiClient.PostAsync(ApiRoutes.Roles.Base, new { name = _model.Name, description = _model.Description });
+        if (!result.IsSuccessful)
+        {
+            Form.DisplayErrors(result, Snackbar);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        MudDialog.Close(DialogResult.Ok(true));
+    });
+}

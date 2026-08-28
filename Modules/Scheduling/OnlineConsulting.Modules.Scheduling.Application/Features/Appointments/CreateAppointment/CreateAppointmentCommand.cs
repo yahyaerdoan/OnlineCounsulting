@@ -21,7 +21,7 @@ public record CreateAppointmentCommand(Guid UserId, string Email, Guid? ServiceI
     public string[] Roles => [];
 }
 
-public class CreateAppointmentHandler(IAppointmentRepository repository, IEmailOutboxWriter outboxWriter, IEmailTemplate<AppointmentConfirmationEmailModel> confirmationTemplate)
+public class CreateAppointmentHandler(IAppointmentRepository repository, IEmailOutboxWriter<ISchedulingOutboxModule> outboxWriter, IEmailTemplate<AppointmentConfirmationEmailModel> confirmationTemplate)
     : IRequestHandler<CreateAppointmentCommand, OperationDataResult<Guid>>
 {
     public async Task<OperationDataResult<Guid>> Handle(CreateAppointmentCommand request, CancellationToken cancellationToken)

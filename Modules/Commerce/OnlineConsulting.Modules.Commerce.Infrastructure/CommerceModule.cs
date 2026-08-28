@@ -36,7 +36,7 @@ public static class CommerceModule
         _ = services.AddScoped<IBasketItemRepository, BasketItemRepository>();
         _ = services.AddScoped<IOrderRepository, OrderRepository>();
         _ = services.AddScoped<IOrderItemRepository, OrderItemRepository>();
-        _ = services.AddScoped<IEmailOutboxWriter, EmailOutboxWriter>();
+        _ = services.AddScoped<IEmailOutboxWriter<ICommerceOutboxModule>, EmailOutboxWriter>();
         _ = services.AddScoped<IEmailTemplate<OrderConfirmationEmailModel>, OrderConfirmationTemplate>();
 
         _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));

@@ -1,4 +1,4 @@
-﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryCategories.Abstractions;
@@ -11,7 +11,7 @@ namespace OnlineConsulting.Modules.SiteContent.Application.Features.GalleryCateg
 public record DeleteGalleryCategoryCommand(Guid Id) : IRequest<OperationResult>, ISecureAddRequest
 {
     [JsonIgnore]
-    public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write];
+    public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Delete];
 }
 
 public class DeleteGalleryCategoryHandler(IGalleryCategoryRepository repository) : IRequestHandler<DeleteGalleryCategoryCommand, OperationResult>

@@ -10,12 +10,14 @@ using OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.Abstractions
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Infrastructure.Cleanup;
+using OnlineConsulting.Modules.Tenancy.Infrastructure.Notifications;
 using OnlineConsulting.Modules.Tenancy.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Tenancy.Infrastructure.Pipelines;
 using OnlineConsulting.Modules.Tenancy.Infrastructure.Pricing;
 using OnlineConsulting.Modules.Tenancy.Infrastructure.Repositories;
 using OnlineConsulting.Modules.Tenancy.Infrastructure.Status;
 using OnlineConsulting.SharedKernel.Auditing;
+using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Tenancy.Infrastructure;
@@ -40,6 +42,7 @@ public static class TenancyModule
         _ = services.AddScoped<ITenantStatusReader, TenantStatusReader>();
         _ = services.AddScoped<ITenantModulePricingReader, TenantModulePricingReader>();
         _ = services.AddScoped<ITenantOwnershipReader, TenantOwnershipReader>();
+        _ = services.AddScoped<IEmailOutboxWriter<ITenancyOutboxModule>, EmailOutboxWriter>();
 
         _ = services.Configure<TenancyCleanupOptions>(configuration.GetSection("Tenancy:OrphanCleanup"));
         _ = services.AddHostedService<OrphanedTenantCleanupService>();

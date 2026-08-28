@@ -1,0 +1,77 @@
+@page "/admin/settings/invites"
+@attribute [Authorize]
+@inject IApiClient ApiClient
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<PageTitle>Invites</PageTitle>
+
+<PageHeroBanner Title="Invites" Subtitle="Track and manage pending teammate invites.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.PersonAddAlt1"
+                   OnClick="InviteAsync">Invite Teammate</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+<ServerDataTable TItem="InviteResponse" @ref="_table" ApiBasePath="@ApiRoutes.Invites.All"
+                 SearchPlaceholder="Search email" OnLoadError="@(message => _loadError = message)">
+    <HeaderContent>
+        <MudTh><MudTableSortLabel SortLabel="@nameof(InviteResponse.Email)" T="InviteResponse">Email</MudTableSortLabel></MudTh>
+        <MudTh>Role</MudTh>
+        <MudTh><MudTableSortLabel SortLabel="@nameof(InviteResponse.Status)" T="InviteResponse">Status</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortLabel="@nameof(InviteResponse.ExpiresAt)" T="InviteResponse">Expires</MudTableSortLabel></MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate Context="invite">
+        <MudTd DataLabel="Email">@invite.Email</MudTd>
+        <MudTd DataLabel="Role">@invite.RoleName</MudTd>
+        <MudTd DataLabel="Status">
+            <MudChip T="string" Size="Size.Small" Color="@InviteStatusColor(invite.Status)">@invite.Status</MudChip>
+        </MudTd>
+        <MudTd DataLabel="Expires">@invite.ExpiresAt.ToLocalTime().ToString("d")</MudTd>
+        <MudTd DataLabel="Actions">
+            @if (invite.Status == "Pending")
+            {
+                <MudIconButton Icon="@Icons.Material.Outlined.Cancel" Size="Size.Small" Color="Color.Error" title="Cancel invite"
+                               OnClick="@(() => CancelInviteAsync(invite))" />
+            }
+        </MudTd>
+    </RowTemplate>
+</ServerDataTable>
+
+@code {
+    private ServerDataTable<InviteResponse> _table = default!;
+    private string? _loadError;
+
+    private Task InviteAsync() =>
+        DialogService.ShowAndReloadAsync<InviteUserDialog>("Invite Teammate", _table.ReloadAsync);
+
+    private async Task CancelInviteAsync(InviteResponse invite)
+    {
+        if (!await DialogService.ConfirmAsync("Cancel Invite", $"Cancel the invite sent to \"{invite.Email}\"?"))
+        {
+            return;
+        }
+
+        var result = await ApiClient.DeleteAsync(ApiRoutes.Invites.ById(invite.Id));
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await _table.ReloadAsync();
+    }
+
+    private static Color InviteStatusColor(string status) => status switch
+    {
+        "Pending" => Color.Info,
+        "Accepted" => Color.Success,
+        "Expired" => Color.Warning,
+        "Revoked" => Color.Default,
+        _ => Color.Default,
+    };
+}

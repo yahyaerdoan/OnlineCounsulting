@@ -15,7 +15,7 @@ namespace OnlineConsulting.Modules.Identity.Application.Features.Auth.ConfirmEma
 /// <summary>Confirms a user's email from the link sent by ConfirmEmailTemplate.</summary>
 public record ConfirmEmailCommand(Guid UserId, string Token) : IRequest<OperationResult>, ITransactionAddRequest;
 
-public class ConfirmEmailHandler(UserManager<User> userManager, IEmailOutboxWriter outboxWriter, IEmailTemplate<WelcomeEmailModel> welcomeTemplate, IEmailTemplate<PolicyNoticeEmailModel> policyTemplate, IOptions<AuthEmailOptions> emailOptions)
+public class ConfirmEmailHandler(UserManager<User> userManager, IEmailOutboxWriter<IIdentityOutboxModule> outboxWriter, IEmailTemplate<WelcomeEmailModel> welcomeTemplate, IEmailTemplate<PolicyNoticeEmailModel> policyTemplate, IOptions<AuthEmailOptions> emailOptions)
     : IRequestHandler<ConfirmEmailCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(ConfirmEmailCommand request, CancellationToken cancellationToken)

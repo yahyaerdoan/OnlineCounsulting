@@ -11,7 +11,7 @@ namespace OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.Sub
 
 public record SubscribeNewsletterCommand(string Email) : IRequest<OperationResult>;
 
-public class SubscribeNewsletterHandler(INewsletterSubscriberRepository repository, IEmailOutboxWriter outboxWriter, IEmailTemplate<NewsletterSubscribedEmailModel> template)
+public class SubscribeNewsletterHandler(INewsletterSubscriberRepository repository, IEmailOutboxWriter<IInquiriesOutboxModule> outboxWriter, IEmailTemplate<NewsletterSubscribedEmailModel> template)
     : IRequestHandler<SubscribeNewsletterCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(SubscribeNewsletterCommand request, CancellationToken cancellationToken)

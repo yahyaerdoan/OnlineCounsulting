@@ -39,7 +39,7 @@ public static class SchedulingModule
         _ = services.AddScoped<IWorkOrderRepository, WorkOrderRepository>();
         _ = services.AddScoped<IWorkOrderMediaItemRepository, WorkOrderMediaItemRepository>();
         _ = services.AddScoped<IAppointmentMediaItemRepository, AppointmentMediaItemRepository>();
-        _ = services.AddScoped<IEmailOutboxWriter, EmailOutboxWriter>();
+        _ = services.AddScoped<IEmailOutboxWriter<ISchedulingOutboxModule>, EmailOutboxWriter>();
         _ = services.AddScoped<IEmailTemplate<AppointmentConfirmationEmailModel>, AppointmentConfirmationTemplate>();
         _ = services.AddScoped<ITechnicianTrackingHubService, TechnicianTrackingHubService>();
 

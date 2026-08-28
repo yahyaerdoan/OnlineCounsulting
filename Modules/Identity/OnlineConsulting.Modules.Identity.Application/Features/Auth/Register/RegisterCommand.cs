@@ -15,7 +15,7 @@ namespace OnlineConsulting.Modules.Identity.Application.Features.Auth.Register;
 public record RegisterCommand(string FirstName, string LastName, string UserName, string Email, string Password)
     : IRequest<OperationResult>, ITransactionAddRequest;
 
-public class RegisterHandler(UserManager<User> userManager, IEmailOutboxWriter outboxWriter, IEmailTemplate<ConfirmEmailEmailModel> confirmEmailTemplate, IOptions<AuthEmailOptions> emailOptions)
+public class RegisterHandler(UserManager<User> userManager, IEmailOutboxWriter<IIdentityOutboxModule> outboxWriter, IEmailTemplate<ConfirmEmailEmailModel> confirmEmailTemplate, IOptions<AuthEmailOptions> emailOptions)
     : IRequestHandler<RegisterCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(RegisterCommand request, CancellationToken cancellationToken)
@@ -43,6 +43,9 @@ public class RegisterHandler(UserManager<User> userManager, IEmailOutboxWriter o
         var confirmModel = new ConfirmEmailEmailModel(user.FirstName, confirmationUrl);
 
         outboxWriter.Enqueue(user.Email ?? string.Empty, confirmEmailTemplate.Subject(confirmModel), confirmEmailTemplate.Build(confirmModel), sourceReference: $"User:{user.Id}");
+
+        // No further save follows Enqueue here - force one so the staged outbox row is actually flushed.
+        _ = await userManager.UpdateAsync(user);
 
         return Result.Created("The user has been successfully created. Please check your email to confirm your account.");
     }

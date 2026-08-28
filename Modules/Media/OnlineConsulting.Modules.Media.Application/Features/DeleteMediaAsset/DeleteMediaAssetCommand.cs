@@ -1,4 +1,4 @@
-﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Media.Application.Abstractions;
 using OnlineConsulting.Modules.Media.Application.Features.Constants;
@@ -13,7 +13,7 @@ namespace OnlineConsulting.Modules.Media.Application.Features.DeleteMediaAsset;
 public record DeleteMediaAssetCommand(Guid Id) : IRequest<OperationResult>, ISecureAddRequest
 {
     [JsonIgnore]
-    public string[] Roles => [MediaOperationClaims.Admin, MediaOperationClaims.Write];
+    public string[] Roles => [MediaOperationClaims.Admin, MediaOperationClaims.Write, MediaOperationClaims.Delete];
 }
 
 public class DeleteMediaAssetHandler(IMediaAssetRepository repository, IStorageService storageService) : IRequestHandler<DeleteMediaAssetCommand, OperationResult>

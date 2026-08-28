@@ -1,4 +1,4 @@
-﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Scheduling.Application.Common;
@@ -21,7 +21,7 @@ public record CreateWorkOrderCommand(Guid AppointmentId, Guid TechnicianUserId, 
     : IRequest<OperationDataResult<Guid>>, ISecureAddRequest, ITransactionAddRequest
 {
     [JsonIgnore]
-    public string[] Roles => [SchedulingOperationClaims.Admin, SchedulingOperationClaims.Write];
+    public string[] Roles => [SchedulingOperationClaims.Admin, SchedulingOperationClaims.Write, SchedulingOperationClaims.Add];
 }
 
 public class CreateWorkOrderHandler(IWorkOrderRepository workOrderRepository, IAppointmentRepository appointmentRepository, IPushNotificationSender pushNotificationSender)

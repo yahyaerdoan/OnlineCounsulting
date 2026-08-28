@@ -17,7 +17,7 @@ namespace OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.
 public record GetAllAppointmentsQuery(string? Status, PageRequest PageRequest) : IRequest<OperationDataResult<Paginate<AppointmentResponse>>>, ISecureAddRequest
 {
     [JsonIgnore]
-    public string[] Roles => [SchedulingOperationClaims.Admin, SchedulingOperationClaims.Write];
+    public string[] Roles => [SchedulingOperationClaims.Admin, SchedulingOperationClaims.Write, SchedulingOperationClaims.Read];
 }
 
 public class GetAllAppointmentsHandler(IAppointmentRepository repository)

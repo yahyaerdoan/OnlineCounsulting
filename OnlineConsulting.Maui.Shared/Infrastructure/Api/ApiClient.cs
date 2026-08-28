@@ -6,9 +6,7 @@ using System.Text.Json;
 
 namespace OnlineConsulting.Maui.Shared.Infrastructure.Api;
 
-/// <summary>Token attach/refresh/expiry-notify lives here, not in a DelegatingHandler - handlers
-/// added via AddHttpMessageHandler get their own pooled DI scope, unsafe for per-user state. The
-/// optional deps are null for the anonymous pre-auth client (Login, TokenRefresher's own call).</summary>
+/// <summary>Optional deps are null for the anonymous pre-auth client (Login, TokenRefresher).</summary>
 public class ApiClient(HttpClient httpClient, IAccessTokenProvider? tokenProvider = null, TokenRefresher? tokenRefresher = null, AuthenticationExpiredNotifier? expiredNotifier = null) : IApiClient
 {
     private const string NetworkErrorMessage = "Could not reach the server. Check your connection and try again.";
@@ -18,7 +16,7 @@ public class ApiClient(HttpClient httpClient, IAccessTokenProvider? tokenProvide
     public Task<ApiEnvelope<T>> GetAsync<T>(string path, CancellationToken cancellationToken = default) =>
         SendAsync<T>(HttpMethod.Get, path, null, cancellationToken);
 
-    /// <summary>POST to a /query sub-resource - Swagger/Swashbuckle can't document HTTP QUERY (RFC 10008).</summary>
+    /// <summary>POST to a /query sub-resource - Swagger can't document HTTP QUERY.</summary>
     public Task<ApiEnvelope<T>> QueryAsync<T>(string path, object? body, CancellationToken cancellationToken = default) =>
         SendAsync<T>(HttpMethod.Post, path, JsonContent.Create(body, options: JsonOptions), cancellationToken);
 

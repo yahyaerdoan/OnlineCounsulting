@@ -1,4 +1,4 @@
-﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryCategories.Abstractions;
@@ -14,7 +14,7 @@ namespace OnlineConsulting.Modules.SiteContent.Application.Features.GalleryCateg
 public record GetAllGalleryCategoriesQuery : IRequest<OperationDataResult<List<GalleryCategoryResponse>>>, ISecureAddRequest
 {
     [JsonIgnore]
-    public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write];
+    public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Read];
 }
 
 public class GetAllGalleryCategoriesHandler(IGalleryCategoryRepository repository)

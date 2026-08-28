@@ -2,10 +2,10 @@ using Microsoft.AspNetCore.Components.Forms;
 
 namespace OnlineConsulting.Maui.Shared.Infrastructure.Api;
 
-/// <summary>Maps an unsuccessful ApiEnvelope onto an EditForm. General-error display (Snackbar, inline, ...) is left to the caller.</summary>
+/// <summary>Maps an unsuccessful ApiEnvelope onto an EditForm's validation state.</summary>
 public static class ApiEnvelopeFormExtensions
 {
-    /// <summary>Field errors go into the validation store (returns null). No field errors -> returns the general error message to display yourself.</summary>
+    /// <summary>Returns the general error, or null if it wrote field errors instead.</summary>
     public static string? DisplayErrors(this IApiResult result, EditContext editContext, ValidationMessageStore validationMessages)
     {
         validationMessages.Clear();

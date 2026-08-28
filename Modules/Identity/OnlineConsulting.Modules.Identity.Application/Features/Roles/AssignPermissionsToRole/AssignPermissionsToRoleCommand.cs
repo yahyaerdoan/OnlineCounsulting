@@ -32,7 +32,16 @@ public class AssignPermissionsToRoleHandler(RoleManager<Role> roleManager, IHttp
             return Result.Forbidden("Only an existing full-access role holder can grant full access to another role.");
         }
 
-        var unknownPermissions = request.Permissions.Where(p => p != PermissionClaimTypes.FullAccess && !permissionCatalog.AllPermissions.Contains(p)).ToList();
+        if (request.Permissions.Contains(GlobalOperationClaims.SuperAdmin)
+            && !(httpContextAccessor.HttpContext?.User.ClaimRoles()?.Contains(GlobalOperationClaims.SuperAdmin) ?? false))
+        {
+            return Result.Forbidden("Only Super Admin can grant Super Admin access to another role.");
+        }
+
+        // SuperAdmin is a bypass sentinel (see RoleSeeder), not a catalog permission - same treatment as FullAccess.
+        var unknownPermissions = request.Permissions
+            .Where(p => p != PermissionClaimTypes.FullAccess && p != GlobalOperationClaims.SuperAdmin && !permissionCatalog.AllPermissions.Contains(p))
+            .ToList();
         if (unknownPermissions.Count > 0)
         {
             return Result.BadRequest($"Unknown permission(s): {string.Join(", ", unknownPermissions)}.");

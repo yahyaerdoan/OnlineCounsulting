@@ -1,4 +1,4 @@
-﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Contact.Abstractions;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Contact.Constants;
@@ -15,7 +15,7 @@ public record UpdateContactCommand(string Email, string Phone, string Address, s
     : IRequest<OperationResult>, ISecureAddRequest
 {
     [JsonIgnore]
-    public string[] Roles => [ContactOperationClaims.Admin, ContactOperationClaims.Write];
+    public string[] Roles => [ContactOperationClaims.Admin, ContactOperationClaims.Write, ContactOperationClaims.Update];
 }
 
 public class UpdateContactHandler(ICompanyContactRepository repository) : IRequestHandler<UpdateContactCommand, OperationResult>

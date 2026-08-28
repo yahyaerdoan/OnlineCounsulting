@@ -1,4 +1,4 @@
-﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Scheduling.Application.Common;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Abstractions;
@@ -14,7 +14,7 @@ namespace OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.
 public record ConfirmAppointmentCommand(Guid Id) : IRequest<OperationResult>, ISecureAddRequest
 {
     [JsonIgnore]
-    public string[] Roles => [SchedulingOperationClaims.Admin, SchedulingOperationClaims.Write];
+    public string[] Roles => [SchedulingOperationClaims.Admin, SchedulingOperationClaims.Write, SchedulingOperationClaims.Update];
 }
 
 public class ConfirmAppointmentHandler(IAppointmentRepository repository) : IRequestHandler<ConfirmAppointmentCommand, OperationResult>
