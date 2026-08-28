@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
+using MediatR;
 using OnlineConsulting.Modules.Inquiries.Application.Common.Templates;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.Abstractions;
 using OnlineConsulting.Modules.Inquiries.Domain;
@@ -9,7 +10,7 @@ using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.Subscribe;
 
-public record SubscribeNewsletterCommand(string Email) : IRequest<OperationResult>;
+public record SubscribeNewsletterCommand(string Email) : IRequest<OperationResult>, ITransactionAddRequest;
 
 public class SubscribeNewsletterHandler(INewsletterSubscriberRepository repository, IEmailOutboxWriter<IInquiriesOutboxModule> outboxWriter, IEmailTemplate<NewsletterSubscribedEmailModel> template)
     : IRequestHandler<SubscribeNewsletterCommand, OperationResult>
@@ -24,11 +25,11 @@ public class SubscribeNewsletterHandler(INewsletterSubscriberRepository reposito
 
         var subscriber = new NewsletterSubscriber { Id = Guid.NewGuid(), Email = request.Email };
 
+        _ = await repository.AddAsync(subscriber);
+
         var model = new NewsletterSubscribedEmailModel(request.Email);
 
-        outboxWriter.Enqueue(request.Email, template.Subject(model), template.Build(model), sourceReference: $"NewsletterSubscriber:{subscriber.Id}");
-
-        _ = await repository.AddAsync(subscriber);
+        await outboxWriter.EnqueueAsync(request.Email, template.Subject(model), template.Build(model), sourceReference: $"NewsletterSubscriber:{subscriber.Id}", cancellationToken: cancellationToken);
 
         return Result.Created("Subscribed successfully.");
     }

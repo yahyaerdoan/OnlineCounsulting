@@ -21,12 +21,7 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Identity.Application.Features.Invites.CreateInvite;
 
-/// <summary>Invites a new teammate into the caller's own tenant by email. TenantId is always resolved
-/// server-side from the caller's JWT claim via ITenantProvider, never accepted from the client, so a tenant
-/// admin can only ever invite into their own tenant - there is no cross-tenant target to spoof. RoleName is
-/// optional and defaults to GlobalOperationClaims.Member - the sensible default for "add a teammate"; callers
-/// may still explicitly request GeneralOperationClaims.Admin, which is validated against RoleManager the same
-/// way as any other role name, and GlobalOperationClaims.SuperAdmin remains explicitly rejected below.</summary>
+/// <summary>Invites a teammate into the caller's own tenant. TenantId comes from the JWT, never the client. RoleName defaults to Member; SuperAdmin is rejected.</summary>
 public record CreateInviteCommand(string Email, string? RoleName = null) : IRequest<OperationResult>, ISecureAddRequest, ITransactionAddRequest
 {
     [JsonIgnore]
@@ -54,8 +49,9 @@ public class CreateInviteHandler(IInviteRepository inviteRepository, RoleManager
         }
 
         var tenantId = tenantProvider.TenantId;
+        var normalizedEmail = userManager.NormalizeEmail(request.Email);
 
-        if (await userManager.Users.AnyAsync(u => u.NormalizedEmail == request.Email.ToUpperInvariant(), cancellationToken))
+        if (await userManager.Users.AnyAsync(u => u.TenantId == tenantId && u.NormalizedEmail == normalizedEmail, cancellationToken))
         {
             return Result.Conflict(InviteMessages.EmailAlreadyRegistered);
         }
@@ -86,8 +82,7 @@ public class CreateInviteHandler(IInviteRepository inviteRepository, RoleManager
         var inviteUrl = $"{emailOptions.Value.ClientOrigin}/accept-invite?token={Uri.EscapeDataString(invite.Token)}";
         var inviteModel = new InviteEmailModel(inviteUrl);
 
-        // Enqueue before AddAsync - AddAsync's own SaveChangesAsync is what flushes this staged row.
-        outboxWriter.Enqueue(invite.Email, inviteTemplate.Subject(inviteModel), inviteTemplate.Build(inviteModel), sourceReference: $"Invite:{invite.Id}");
+        await outboxWriter.EnqueueAsync(invite.Email, inviteTemplate.Subject(inviteModel), inviteTemplate.Build(inviteModel), sourceReference: $"Invite:{invite.Id}", cancellationToken: cancellationToken);
 
         _ = await inviteRepository.AddAsync(invite);
 

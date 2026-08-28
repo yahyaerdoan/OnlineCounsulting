@@ -7,12 +7,13 @@ using OnlineConsulting.Modules.Identity.Application.Common.Templates;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
+using OnlineConsulting.SharedKernel.Slugs;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Identity.Application.Features.Auth.CreateTenantAdmin;
 
-/// <summary>Creates the first user of a brand-new tenant, called from OnlineConsulting.Api's Tenancy signup endpoint right after Tenancy's own ReserveTenantCommand succeeds and BEFORE Tenancy's ActivateTenantSubscriptionCommand runs (three separate ISender.Send calls from the Api layer, not one handler crossing module boundaries - see ReserveTenantCommand's doc comment). This ordering is deliberate: UserManager.CreateAsync's atomic unique index on email is the real, DB-enforced guard against duplicate signups, and it now runs before any billing happens, so a rejected duplicate email here never leaves an orphaned Stripe charge behind. Not reachable on its own route - no ISecureAddRequest, but only ever invoked server-side right after a fresh Tenant is created, never bound directly to a public request body.</summary>
+/// <summary>Creates a tenant's first user. Runs before billing so a duplicate-email rejection never leaves an orphaned charge. Server-side only, no public route.</summary>
 public record CreateTenantAdminCommand(Guid TenantId, string FirstName, string LastName, string Email, string Password, string? PhoneNumber = null)
     : IRequest<OperationDataResult<CreateTenantAdminResult>>, ITransactionAddRequest;
 
@@ -23,9 +24,12 @@ public class CreateTenantAdminHandler(UserManager<User> userManager, IEmailOutbo
 {
     public async Task<OperationDataResult<CreateTenantAdminResult>> Handle(CreateTenantAdminCommand request, CancellationToken cancellationToken)
     {
+        var userName = await SlugGenerator.GenerateUniqueAsync($"{request.FirstName} {request.LastName}",
+            async candidate => await userManager.FindByNameAsync(candidate) is not null);
+
         var user = new User
         {
-            UserName = request.Email,
+            UserName = userName,
             Email = request.Email,
             FirstName = request.FirstName,
             LastName = request.LastName,
@@ -41,18 +45,21 @@ public class CreateTenantAdminHandler(UserManager<User> userManager, IEmailOutbo
         }
 
         var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
+
         var confirmationUrl = $"{emailOptions.Value.ClientOrigin}/confirm-email?userId={user.Id}&token={Uri.EscapeDataString(token)}";
+
         var confirmModel = new ConfirmEmailEmailModel(user.FirstName, confirmationUrl);
 
-        // Enqueue before AddToRoleAsync - AddToRoleAsync's own SaveChangesAsync is what flushes this staged row.
-        outboxWriter.Enqueue(user.Email ?? string.Empty, confirmEmailTemplate.Subject(confirmModel), confirmEmailTemplate.Build(confirmModel), sourceReference: $"User:{user.Id}");
+        await outboxWriter.EnqueueAsync(user.Email ?? string.Empty, confirmEmailTemplate.Subject(confirmModel), confirmEmailTemplate.Build(confirmModel), sourceReference: $"User:{user.Id}", cancellationToken: cancellationToken);
 
         var roleResult = await userManager.AddToRoleAsync(user, GeneralOperationClaims.Admin);
+
         if (!roleResult.Succeeded)
         {
             return Result.Invalid<CreateTenantAdminResult>([.. roleResult.Errors.Select(e => e.Description)]);
         }
 
-        return Result.Created(new CreateTenantAdminResult(user.Id), "The tenant admin account has been successfully created. Please check your email to confirm your account.");
+        return Result.Created(new CreateTenantAdminResult(user.Id),
+            $"Account created. Your username is \"{userName}\" - you can also sign in with your email. Please check your email to confirm your account.");
     }
 }

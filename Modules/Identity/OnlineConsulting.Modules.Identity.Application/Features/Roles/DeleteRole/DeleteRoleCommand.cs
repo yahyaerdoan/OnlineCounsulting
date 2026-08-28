@@ -1,7 +1,6 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
-using OnlineConsulting.Modules.Identity.Application.Features.Roles.Constants;
 using OnlineConsulting.Modules.Identity.Application.Features.Roles.Rules;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
@@ -13,8 +12,9 @@ namespace OnlineConsulting.Modules.Identity.Application.Features.Roles.DeleteRol
 
 public record DeleteRoleCommand(Guid RoleId) : IRequest<OperationResult>, ISecureAddRequest
 {
+    // Role isn't tenant-scoped (no TenantId) - only SuperAdmin may delete a role shared across tenants.
     [JsonIgnore]
-    public string[] Roles => [RolesOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, RolesOperationClaims.Delete];
+    public string[] Roles => [GlobalOperationClaims.SuperAdmin];
 }
 
 public class DeleteRoleHandler(RoleManager<Role> roleManager) : IRequestHandler<DeleteRoleCommand, OperationResult>

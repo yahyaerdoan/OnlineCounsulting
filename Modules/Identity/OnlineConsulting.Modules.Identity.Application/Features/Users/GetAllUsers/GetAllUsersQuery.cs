@@ -42,6 +42,17 @@ public class GetAllUsersHandler(UserManager<User> userManager, RoleManager<Role>
             ? userManager.Users
             : userManager.Users.Where(u => u.TenantId == tenantProvider.TenantId);
 
+        if (!isSuperAdmin)
+        {
+            // A non-SuperAdmin can share TenantId with a SuperAdmin (e.g. invited directly by one) -
+            // never reveal that account to anyone who can't act on it (see TenantOwnerProtection).
+            var superAdminIds = (await userManager.GetUsersInRoleAsync(GlobalOperationClaims.SuperAdmin)).Select(u => u.Id).ToHashSet();
+            if (superAdminIds.Count > 0)
+            {
+                usersQuery = usersQuery.Where(u => !superAdminIds.Contains(u.Id));
+            }
+        }
+
         var pagedUsers = await usersQuery.ToDynamicPaginateAsync(
             request.PageRequest, request.DynamicQuery, defaultOrderBy: u => u.LastName, cancellationToken);
 

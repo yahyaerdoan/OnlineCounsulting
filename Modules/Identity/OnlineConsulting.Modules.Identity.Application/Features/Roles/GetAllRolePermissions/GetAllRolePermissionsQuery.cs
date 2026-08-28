@@ -1,8 +1,10 @@
 using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+using Core.SecurityLayer.Authorization;
 using Core.SecurityLayer.Constants;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using OnlineConsulting.Modules.Identity.Application.Features.Auth;
 using OnlineConsulting.Modules.Identity.Application.Features.Roles.Constants;
 using OnlineConsulting.Modules.Identity.Application.Features.Roles.Contracts;
 using OnlineConsulting.Modules.Identity.Domain;
@@ -20,7 +22,7 @@ public record GetAllRolePermissionsQuery : IRequest<OperationDataResult<List<Rol
     public string[] Roles => [RolesOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, RolesOperationClaims.Read];
 }
 
-public class GetAllRolePermissionsHandler(RoleManager<Role> roleManager) : IRequestHandler<GetAllRolePermissionsQuery, OperationDataResult<List<RolePermissionsResponse>>>
+public class GetAllRolePermissionsHandler(RoleManager<Role> roleManager, IPermissionCatalog permissionCatalog) : IRequestHandler<GetAllRolePermissionsQuery, OperationDataResult<List<RolePermissionsResponse>>>
 {
     public async Task<OperationDataResult<List<RolePermissionsResponse>>> Handle(GetAllRolePermissionsQuery request, CancellationToken cancellationToken)
     {
@@ -34,7 +36,8 @@ public class GetAllRolePermissionsHandler(RoleManager<Role> roleManager) : IRequ
                 .Select(c => c.Value)
                 .ToList();
 
-            items.Add(new RolePermissionsResponse { RoleId = role.Id, RoleName = role.Name ?? string.Empty, Permissions = permissions });
+            var expanded = RolePermissionResolver.ExpandForDisplay(permissions, permissionCatalog);
+            items.Add(new RolePermissionsResponse { RoleId = role.Id, RoleName = role.Name ?? string.Empty, Permissions = expanded });
         }
 
         return Result.Success(items, "Role permissions retrieved successfully.");

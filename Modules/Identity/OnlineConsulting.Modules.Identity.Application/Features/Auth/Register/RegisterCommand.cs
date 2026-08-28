@@ -42,10 +42,7 @@ public class RegisterHandler(UserManager<User> userManager, IEmailOutboxWriter<I
 
         var confirmModel = new ConfirmEmailEmailModel(user.FirstName, confirmationUrl);
 
-        outboxWriter.Enqueue(user.Email ?? string.Empty, confirmEmailTemplate.Subject(confirmModel), confirmEmailTemplate.Build(confirmModel), sourceReference: $"User:{user.Id}");
-
-        // No further save follows Enqueue here - force one so the staged outbox row is actually flushed.
-        _ = await userManager.UpdateAsync(user);
+        await outboxWriter.EnqueueAsync(user.Email ?? string.Empty, confirmEmailTemplate.Subject(confirmModel), confirmEmailTemplate.Build(confirmModel), sourceReference: $"User:{user.Id}", cancellationToken: cancellationToken);
 
         return Result.Created("The user has been successfully created. Please check your email to confirm your account.");
     }

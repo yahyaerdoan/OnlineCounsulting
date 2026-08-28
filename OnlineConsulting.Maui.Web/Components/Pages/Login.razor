@@ -16,7 +16,7 @@
 <PageTitle>Sign in</PageTitle>
 
 <AuthCard Subtitle="Sign in to your ComfortPro admin workspace">
-    <LoginErrorSnackbar ErrorMessage="@_errorMessage" GoodbyeToken="@Goodbye" />
+    <LoginErrorSnackbar ErrorMessage="@_errorMessage" GoodbyeToken="@Goodbye" Notice="@Notice" />
 
     <EditForm EditContext="@Form.EditContext" method="post" OnValidSubmit="SubmitAsync" FormName="login">
         <AuthTextField Label="Username or email" Icon="@Icons.Material.Filled.Person" Placeholder="yourname"
@@ -46,6 +46,9 @@
     [SupplyParameterFromQuery]
     private string? Goodbye { get; set; }
 
+    [SupplyParameterFromQuery]
+    private string? Notice { get; set; }
+
     [SupplyParameterFromForm]
     private LoginModel _model
     {
@@ -60,7 +63,13 @@
     private Task SubmitAsync() => Form.SubmitAsync(async () =>
     {
         _errorMessage = null;
-        var httpContext = HttpContextAccessor.HttpContext!;
+        var httpContext = HttpContextAccessor.HttpContext;
+        if (httpContext is null)
+        {
+            _errorMessage = "Could not sign in. Please try again.";
+            StateHasChanged();
+            return;
+        }
 
         var anonymousClient = HttpClientFactory.CreateClient(ApiHttpClientNames.Anonymous);
         var loginApi = new ApiClient(anonymousClient);
@@ -86,7 +95,7 @@
         var userResult = await meApi.GetAsync<CurrentUserResponse>(ApiRoutes.Users.Me);
         if (!userResult.IsSuccessful || userResult.ResultData is null)
         {
-            _errorMessage = "Signed in, but could not load your profile. Please try again.";
+            _errorMessage = Form.DisplayErrors(userResult) ?? "Signed in, but could not load your profile. Please try again.";
             StateHasChanged();
             return;
         }

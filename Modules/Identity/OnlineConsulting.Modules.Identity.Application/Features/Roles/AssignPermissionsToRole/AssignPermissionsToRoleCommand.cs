@@ -18,8 +18,9 @@ namespace OnlineConsulting.Modules.Identity.Application.Features.Roles.AssignPer
 
 public record AssignPermissionsToRoleCommand(Guid RoleId, List<string> Permissions) : IRequest<OperationResult>, ISecureAddRequest, ITransactionAddRequest
 {
+    // Role isn't tenant-scoped (no TenantId) - only SuperAdmin may edit a role shared across tenants.
     [JsonIgnore]
-    public string[] Roles => [RolesOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, RolesOperationClaims.Update];
+    public string[] Roles => [GlobalOperationClaims.SuperAdmin];
 }
 
 public class AssignPermissionsToRoleHandler(RoleManager<Role> roleManager, IHttpContextAccessor httpContextAccessor, IPermissionCatalog permissionCatalog) : IRequestHandler<AssignPermissionsToRoleCommand, OperationResult>

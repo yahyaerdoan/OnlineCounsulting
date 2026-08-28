@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using OnlineConsulting.Modules.Identity.Application.Features.Invites.Abstractions;
 using OnlineConsulting.Modules.Identity.Application.Features.Invites.Constants;
 using OnlineConsulting.Modules.Identity.Domain;
+using OnlineConsulting.SharedKernel.Slugs;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
@@ -43,9 +44,12 @@ public class AcceptInviteHandler(IInviteRepository inviteRepository, UserManager
             return Result.Conflict(InviteMessages.EmailAlreadyRegistered);
         }
 
+        var userName = await SlugGenerator.GenerateUniqueAsync($"{request.FirstName} {request.LastName}",
+            async candidate => await userManager.FindByNameAsync(candidate) is not null);
+
         var user = new User
         {
-            UserName = invite.Email,
+            UserName = userName,
             Email = invite.Email,
             FirstName = request.FirstName,
             LastName = request.LastName,
@@ -71,6 +75,6 @@ public class AcceptInviteHandler(IInviteRepository inviteRepository, UserManager
         invite.AcceptedAt = DateTime.UtcNow;
         _ = await inviteRepository.UpdateAsync(invite);
 
-        return Result.Created("Your account has been created. You can now log in.");
+        return Result.Created($"Account created. Your username is \"{userName}\" - you can also sign in with your email.");
     }
 }

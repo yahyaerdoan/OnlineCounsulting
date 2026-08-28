@@ -1,7 +1,6 @@
 using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
-using OnlineConsulting.Modules.Identity.Application.Features.Roles.Constants;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
 using ResultHandler.Core.Base;
@@ -12,8 +11,9 @@ namespace OnlineConsulting.Modules.Identity.Application.Features.Roles.CreateRol
 
 public record CreateRoleCommand(string Name, string? Description) : IRequest<OperationResult>, ISecureAddRequest
 {
+    // Role isn't tenant-scoped (no TenantId) - only SuperAdmin may create a role shared across tenants.
     [JsonIgnore]
-    public string[] Roles => [RolesOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, RolesOperationClaims.Add];
+    public string[] Roles => [GlobalOperationClaims.SuperAdmin];
 }
 
 public class CreateRoleHandler(RoleManager<Role> roleManager) : IRequestHandler<CreateRoleCommand, OperationResult>

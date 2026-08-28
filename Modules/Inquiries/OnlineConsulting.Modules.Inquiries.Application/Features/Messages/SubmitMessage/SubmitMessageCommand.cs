@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
+using MediatR;
 using Microsoft.Extensions.Options;
 using OnlineConsulting.Modules.Inquiries.Application.Common.Templates;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Messages.Abstractions;
@@ -10,7 +11,7 @@ using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Inquiries.Application.Features.Messages.SubmitMessage;
 
-public record SubmitMessageCommand(string FirstName, string LastName, string Email, string Subject, string Description) : IRequest<OperationResult>;
+public record SubmitMessageCommand(string FirstName, string LastName, string Email, string Subject, string Description) : IRequest<OperationResult>, ITransactionAddRequest;
 
 public class SubmitMessageHandler(IMessageRepository repository, IEmailOutboxWriter<IInquiriesOutboxModule> outboxWriter, IEmailTemplate<MessageReceivedEmailModel> receivedTemplate, IEmailTemplate<NewInquiryNotificationEmailModel> notificationTemplate, IOptions<InquiriesOptions> options)
     : IRequestHandler<SubmitMessageCommand, OperationResult>
@@ -28,15 +29,15 @@ public class SubmitMessageHandler(IMessageRepository repository, IEmailOutboxWri
         };
         var sourceReference = $"Message:{message.Id}";
 
+        _ = await repository.AddAsync(message);
+
         var receivedModel = new MessageReceivedEmailModel(request.FirstName, request.Subject);
 
-        outboxWriter.Enqueue(request.Email, receivedTemplate.Subject(receivedModel), receivedTemplate.Build(receivedModel), sourceReference: sourceReference);
+        await outboxWriter.EnqueueAsync(request.Email, receivedTemplate.Subject(receivedModel), receivedTemplate.Build(receivedModel), sourceReference: sourceReference, cancellationToken: cancellationToken);
 
         var notificationModel = new NewInquiryNotificationEmailModel(request.FirstName, request.LastName, request.Email, request.Subject, request.Description);
 
-        outboxWriter.Enqueue(options.Value.AdminNotificationEmail, notificationTemplate.Subject(notificationModel), notificationTemplate.Build(notificationModel), sourceReference: sourceReference);
-
-        _ = await repository.AddAsync(message);
+        await outboxWriter.EnqueueAsync(options.Value.AdminNotificationEmail, notificationTemplate.Subject(notificationModel), notificationTemplate.Build(notificationModel), sourceReference: sourceReference, cancellationToken: cancellationToken);
 
         return Result.Created("Message submitted successfully.");
     }

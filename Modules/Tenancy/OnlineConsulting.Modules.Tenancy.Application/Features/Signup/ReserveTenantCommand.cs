@@ -14,8 +14,7 @@ using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.Signup;
 
-/// <summary>First half of self-service tenant signup - public, no auth required (a Tenant doesn't exist yet for the caller to authenticate against). Creates/reuses the Tenant (PendingPayment), TenantSubscription (PendingPayment) and one Pending TenantSubscriptionItem per requested module - no ISubscriptionGateway call, no billing, nothing irreversible. This exists as its own command (rather than staying folded into what used to be SignUpTenantCommand) so the Api layer can run OnlineConsulting.Api/Features/Tenancy/SignUp.cs's orchestration in an order where the atomic, free, already-existing DB guard against duplicate emails (Identity's CreateTenantAdminCommand -> UserManager.CreateAsync's unique index) runs BEFORE the expensive irreversible side effect (ActivateTenantSubscriptionCommand's Stripe charge) - closing the residual signup-email race that a check-then-act FindByEmailAsync pre-check could never fully close.
-/// IS a normal ITransactionAddRequest, unlike the old combined handler: every write here is local to this database, there is no provider call mid-handler whose success/failure needs to be independently durable step-by-step, so wrapping the whole thing in one transaction is safe and simpler.</summary>
+/// <summary>First half of self-service tenant signup - public, no auth. Creates/reuses the Tenant and its PendingPayment items, no billing yet. Split out so signup can run the free email-uniqueness check before the irreversible Stripe charge.</summary>
 public record ReserveTenantCommand(
     string CompanyName,
     List<string> ModuleKeys,

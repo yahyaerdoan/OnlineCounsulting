@@ -89,6 +89,16 @@
         var result = await ApiClient.PutAsync(ApiRoutes.Roles.Permissions(role.RoleId), new { permissions = role.Assigned.ToArray() });
         if (!result.IsSuccessful)
         {
+            // Revert the optimistic toggle - the server never applied it.
+            if (isAssigned)
+            {
+                _ = role.Assigned.Remove(permission);
+            }
+            else
+            {
+                _ = role.Assigned.Add(permission);
+            }
+
             Snackbar.ShowError(result.DisplayMessage);
             return;
         }

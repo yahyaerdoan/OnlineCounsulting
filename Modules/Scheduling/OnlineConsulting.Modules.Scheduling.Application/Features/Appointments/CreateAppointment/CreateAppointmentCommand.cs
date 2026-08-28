@@ -1,4 +1,5 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Scheduling.Application.Common;
 using OnlineConsulting.Modules.Scheduling.Application.Common.Templates;
@@ -13,9 +14,9 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.CreateAppointment;
 
-/// <summary>Books a service (ServiceId set) or requests a generic meeting with the tenant (ServiceId null) - same underlying Appointment either way. UserId is always resolved server-side from the authenticated caller, never trusted from the client. Single write (AddAsync only) - deliberately not ITransactionAddRequest, which is reserved for handlers with 2+ SaveChanges calls (see project rule: adding it to a single-SaveChanges handler causes an MSDTC error).</summary>
+/// <summary>Books a service (ServiceId set) or requests a generic meeting with the tenant (ServiceId null) - same underlying Appointment either way. UserId is always resolved server-side from the authenticated caller, never trusted from the client. ITransactionAddRequest keeps the appointment write and its confirmation-email outbox row atomic (EfTransactionAddingBehavior, not TransactionScope, so no MSDTC risk).</summary>
 public record CreateAppointmentCommand(Guid UserId, string Email, Guid? ServiceId, DateTimeOffset ScheduledStart, DateTimeOffset ScheduledEnd, string? CustomerNote, string? ServiceAddress = null)
-    : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
+    : IRequest<OperationDataResult<Guid>>, ISecureAddRequest, ITransactionAddRequest
 {
     [JsonIgnore]
     public string[] Roles => [];
@@ -56,13 +57,10 @@ public class CreateAppointmentHandler(IAppointmentRepository repository, IEmailO
             RequiresPrepayment = false,
         };
 
-        // Staged before AddAsync (not saved yet - EnqueueEmail just tracks the row) so AddAsync's own
-        // SaveChangesAsync flushes both in one round-trip; this handler isn't ITransactionAddRequest,
-        // so there's no later write to piggyback on if the outbox row were staged afterward.
-        var confirmationModel = new AppointmentConfirmationEmailModel(appointment.ScheduledStart, appointment.ScheduledEnd, appointment.ServiceId is not null);
-        outboxWriter.Enqueue(request.Email, confirmationTemplate.Subject(confirmationModel), confirmationTemplate.Build(confirmationModel), sourceReference: $"Appointment:{appointment.Id}");
-
         _ = await repository.AddAsync(appointment);
+
+        var confirmationModel = new AppointmentConfirmationEmailModel(appointment.ScheduledStart, appointment.ScheduledEnd, appointment.ServiceId is not null);
+        await outboxWriter.EnqueueAsync(request.Email, confirmationTemplate.Subject(confirmationModel), confirmationTemplate.Build(confirmationModel), sourceReference: $"Appointment:{appointment.Id}", cancellationToken: cancellationToken);
 
         return Result.Created(appointment.Id, "Appointment requested successfully.");
     }

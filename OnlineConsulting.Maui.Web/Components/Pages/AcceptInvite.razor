@@ -1,4 +1,4 @@
-@page "/accept-invite"
+﻿@page "/accept-invite"
 @attribute [ExcludeFromInteractiveRouting]
 @layout MainLayout
 @using OnlineConsulting.Maui.Shared.Infrastructure.Auth
@@ -10,32 +10,20 @@
 <PageTitle>Accept invite</PageTitle>
 
 <AuthCard Subtitle="Set up your ComfortPro account">
-    @if (_accepted)
-    {
-        <MudAlert Severity="Severity.Success" Class="mb-4">Your account is ready.</MudAlert>
-        <MudButton Href="/login" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Class="auth-submit">Go to sign in</MudButton>
-    }
-    else if (string.IsNullOrWhiteSpace(Token))
-    {
-        <ApiErrorAlert Message="This invite link is missing or invalid." />
-    }
-    else
-    {
-        <ApiErrorAlert Message="@_errorMessage" />
+    <ApiErrorAlert Message="@_errorMessage" Floating="true" />
 
-        <EditForm EditContext="@Form.EditContext" method="post" OnValidSubmit="SubmitAsync" FormName="acceptInvite">
-            <AuthTextField Label="First name" Icon="@Icons.Material.Filled.Person" Placeholder="Jane"
-                           @bind-Value="_model.FirstName" AutoFocus="true" />
+    <EditForm EditContext="@Form.EditContext" method="post" OnValidSubmit="SubmitAsync" FormName="acceptInvite">
+        <AuthTextField Label="First name" Icon="@Icons.Material.Filled.Person" Placeholder="Jane"
+                       @bind-Value="_model.FirstName" AutoFocus="true" />
 
-            <AuthTextField Label="Last name" Icon="@Icons.Material.Filled.Person" Placeholder="Doe"
-                           @bind-Value="_model.LastName" />
+        <AuthTextField Label="Last name" Icon="@Icons.Material.Filled.Person" Placeholder="Doe"
+                       @bind-Value="_model.LastName" />
 
-            <AuthTextField Label="Password" Icon="@Icons.Material.Filled.Lock" Placeholder="********" Type="password"
-                           @bind-Value="_model.Password" />
+        <AuthTextField Label="Password" Icon="@Icons.Material.Filled.Lock" Placeholder="********" Type="password"
+                       @bind-Value="_model.Password" />
 
-            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Class="auth-submit">Create account</MudButton>
-        </EditForm>
-    }
+        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Class="auth-submit">Create account</MudButton>
+    </EditForm>
 </AuthCard>
 
 @code {
@@ -50,7 +38,6 @@
     }
 
     private string? _errorMessage;
-    private bool _accepted;
 
     protected override void OnInitialized() => Form.Bind(_model);
 
@@ -75,6 +62,7 @@
             return;
         }
 
-        _accepted = true;
+        var notice = Uri.EscapeDataString(result.DisplayMessage ?? string.Empty);
+        Navigation.NavigateTo($"/login?notice={notice}", forceLoad: true);
     });
 }

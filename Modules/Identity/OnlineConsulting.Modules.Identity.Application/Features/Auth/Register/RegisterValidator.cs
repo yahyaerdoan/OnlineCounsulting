@@ -14,13 +14,21 @@ public class RegisterValidator : AbstractValidator<RegisterCommand>
         _ = RuleFor(x => x.UserName)
             .NotEmpty()
             // Sync, not async: FluentValidation's implicit ASP.NET pipeline only supports sync rules.
-            .Must(userName => !userManager.Users.Any(u => u.NormalizedUserName == userName.ToUpperInvariant()))
+            .Must(userName =>
+            {
+                var normalizedUserName = userManager.NormalizeName(userName);
+                return !userManager.Users.Any(u => u.NormalizedUserName == normalizedUserName);
+            })
             .WithMessage("This username is already taken.");
 
         _ = RuleFor(x => x.Email)
             .NotEmpty()
             .EmailAddress()
-            .Must(email => !userManager.Users.Any(u => u.NormalizedEmail == email.ToUpperInvariant()))
+            .Must(email =>
+            {
+                var normalizedEmail = userManager.NormalizeEmail(email);
+                return !userManager.Users.Any(u => u.NormalizedEmail == normalizedEmail);
+            })
             .WithMessage("This email is already registered.");
 
         _ = RuleFor(x => x.Password)

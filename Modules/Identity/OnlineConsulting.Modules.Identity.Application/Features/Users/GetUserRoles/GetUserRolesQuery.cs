@@ -1,4 +1,5 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+using Core.SecurityLayer.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -37,6 +38,13 @@ public class GetUserRolesHandler(UserManager<User> userManager, RoleManager<Role
         }
 
         var allRoles = await roleManager.Roles.ToListAsync(cancellationToken);
+
+        var callerRoles = httpContextAccessor.HttpContext?.User.ClaimRoles() ?? [];
+        if (!callerRoles.Contains(GlobalOperationClaims.SuperAdmin))
+        {
+            allRoles = [.. allRoles.Where(r => r.Name != GlobalOperationClaims.SuperAdmin)];
+        }
+
         if (allRoles.Count == 0)
         {
             return Result.NotFound<List<RoleAssignmentResponse>>("Roles not found.");

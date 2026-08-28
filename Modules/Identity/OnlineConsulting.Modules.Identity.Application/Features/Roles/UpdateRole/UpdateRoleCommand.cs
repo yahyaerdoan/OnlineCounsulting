@@ -1,7 +1,6 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
-using OnlineConsulting.Modules.Identity.Application.Features.Roles.Constants;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
 using ResultHandler.Core.Base;
@@ -12,8 +11,9 @@ namespace OnlineConsulting.Modules.Identity.Application.Features.Roles.UpdateRol
 
 public record UpdateRoleCommand(Guid Id, string Name, string? Description) : IRequest<OperationResult>, ISecureAddRequest
 {
+    // Role isn't tenant-scoped (no TenantId) - only SuperAdmin may edit a role shared across tenants.
     [JsonIgnore]
-    public string[] Roles => [RolesOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, RolesOperationClaims.Update];
+    public string[] Roles => [GlobalOperationClaims.SuperAdmin];
 }
 
 public class UpdateRoleHandler(RoleManager<Role> roleManager) : IRequestHandler<UpdateRoleCommand, OperationResult>

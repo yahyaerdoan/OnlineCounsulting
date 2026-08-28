@@ -1,4 +1,5 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+using Core.SecurityLayer.Constants;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -7,6 +8,7 @@ using OnlineConsulting.Modules.Identity.Application.Features.Users.Constants;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Rules;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -20,7 +22,7 @@ public record DeleteUserCommand(Guid UserId) : IRequest<OperationResult>, ISecur
     public string[] Roles => [UsersOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, UsersOperationClaims.Delete];
 }
 
-public class DeleteUserHandler(UserManager<User> userManager, ITenantOwnershipReader tenantOwnershipReader, ITenantProvider tenantProvider, IHttpContextAccessor httpContextAccessor)
+public class DeleteUserHandler(UserManager<User> userManager, ITenantOwnershipReader tenantOwnershipReader, ITenantProvider tenantProvider, IHttpContextAccessor httpContextAccessor, ICurrentUserAccessor currentUserAccessor)
     : IRequestHandler<DeleteUserCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
@@ -31,10 +33,25 @@ public class DeleteUserHandler(UserManager<User> userManager, ITenantOwnershipRe
             return UserBusinessRules.NoUserDataFound();
         }
 
-        var ownerGuardResult = await TenantOwnerProtection.EnsureCallerMayModifyAsync(tenantOwnershipReader, tenantProvider, httpContextAccessor, user.TenantId, user.Id, cancellationToken);
+        if (currentUserAccessor.UserId == user.Id.ToString())
+        {
+            return Result.Forbidden("You cannot delete your own account.");
+        }
+
+        var ownerGuardResult = await TenantOwnerProtection.EnsureCallerMayModifyAsync(userManager, tenantOwnershipReader, tenantProvider, httpContextAccessor, user, cancellationToken);
         if (ownerGuardResult is not null)
         {
             return ownerGuardResult;
+        }
+
+        if (await userManager.IsInRoleAsync(user, GeneralOperationClaims.Admin))
+        {
+            var tenantAdmins = await userManager.GetUsersInRoleAsync(GeneralOperationClaims.Admin);
+            var hasOtherActiveAdmin = tenantAdmins.Any(a => a.Id != user.Id && a.TenantId == user.TenantId && a.IsActive);
+            if (!hasOtherActiveAdmin)
+            {
+                return Result.Forbidden("Cannot delete this user - this tenant would be left with no active admin.");
+            }
         }
 
         var result = await userManager.DeleteAsync(user);

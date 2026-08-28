@@ -7,15 +7,15 @@ using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.
 using OnlineConsulting.Modules.Tenancy.Domain;
 using OnlineConsulting.SharedKernel.Payments;
 using OnlineConsulting.SharedKernel.Persistence;
+using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.Signup;
 
-/// <summary>Second half of self-service tenant signup - bills the Pending TenantSubscriptionItem rows that ReserveTenantCommand already recorded, via ISubscriptionGateway (EnsureCustomerAsync/CreateSubscriptionAsync for the first item, AddSubscriptionItemAsync for the rest). Deliberately plain IRequest, not ISecureAddRequest: OnlineConsulting.Api/Features/Tenancy/SignUp.cs sends this right after CreateTenantAdminCommand succeeds, still inside the anonymous public signup endpoint (no JWT/tenant claim exists yet), so it cannot depend on TenantOwnershipGuard/ITenantProvider the way AddModuleCommand/RemoveModuleCommand do. A tenant stuck at PendingPayment/Failed after this fails (Stripe error) already has its Tenant/User rows, so it can retry billing alone via the separate authenticated POST /api/tenancy/{tenantId}/activate endpoint - that endpoint applies the TenantOwnershipGuard check itself before sending this same command.
-/// Resumable/retryable on its own for the same TenantId, exactly like the old combined SignUpTenantCommand was: each TenantSubscriptionItem is loaded by its persisted Status (Pending/Failed still need billing, Active already succeeded), ProviderSubscriptionId/ProviderSubscriptionItemId already set are skipped rather than re-billed, and a stale Failed TenantSubscription.Status left over from a response that failed to parse after a genuinely-successful Stripe call is corrected back to Active on resume.
-/// Deliberately NOT ITransactionAddRequest, same reasoning as the old SignUpTenantCommand: the handler charges a real card via ISubscriptionGateway partway through, and a DB transaction that only commits after the whole handler returns would roll back local status/id updates if a later step throws - leaving a real Stripe charge with zero trace in this database. Every repository call below is its own immediately-saved write.</summary>
-public record ActivateTenantSubscriptionCommand(Guid TenantId, string PaymentMethodId) : IRequest<OperationDataResult<ActivateTenantSubscriptionResult>>;
+/// <summary>Bills the Pending TenantSubscriptionItem rows via ISubscriptionGateway. Runs BEFORE CreateTenantAdminCommand in SignUp.cs (pay-first) - no user/email is ever created for a signup that never pays. Also reused, unchanged, by the authenticated retry endpoint POST /api/tenancy/{tenantId}/activate for a tenant/subscription stuck mid-provisioning. Not ITransactionAddRequest: it charges a real card partway through, and a transaction that only commits at the end would roll back local status on a later throw while the real charge stays captured.</summary>
+public record ActivateTenantSubscriptionCommand(Guid TenantId, string PaymentMethodId)
+    : IRequest<OperationDataResult<ActivateTenantSubscriptionResult>>, IBypassesTenantStatusCheck;
 
 /// <summary>ClientSecret mirrors SubscribeToMembershipResult - null for Stripe, a PayPal approval URL when PayPal is active. Null on a resume call where the base subscription was already created in a prior attempt.</summary>
 public record ActivateTenantSubscriptionResult(Guid TenantId, string? ClientSecret);
@@ -82,14 +82,22 @@ public class ActivateTenantSubscriptionHandler(ITenantRepository tenantRepositor
                     idempotencyKey: $"tenant-signup-subscription:{tenantSubscription.Id}",
                     cancellationToken: cancellationToken);
 
+                // A declined first charge is a hard failure here, not PastDue - PastDue means an already-paying
+                // tenant's renewal failed, which doesn't apply to a subscription that never succeeded once.
+                if (subscription.Status == PaymentStatuses.Failed)
+                {
+                    tenant.Status = TenantStatuses.Failed;
+                    tenantSubscription.Status = TenantSubscriptionStatuses.Failed;
+                    _ = await tenantRepository.UpdateAsync(tenant);
+                    _ = await tenantSubscriptionRepository.UpdateAsync(tenantSubscription);
+                    return Result.BadRequest<ActivateTenantSubscriptionResult>(SignupMessages.PaymentSetupFailed);
+                }
+
                 tenantSubscription.ProviderSubscriptionId = subscription.ProviderSubscriptionId;
                 tenantSubscription.RenewalDate = subscription.CurrentPeriodEnd.UtcDateTime;
-                tenantSubscription.Status = subscription.Status switch
-                {
-                    PaymentStatuses.Succeeded => TenantSubscriptionStatuses.Active,
-                    PaymentStatuses.Failed => TenantSubscriptionStatuses.PastDue,
-                    _ => TenantSubscriptionStatuses.PendingPayment,
-                };
+                tenantSubscription.Status = subscription.Status == PaymentStatuses.Succeeded
+                    ? TenantSubscriptionStatuses.Active
+                    : TenantSubscriptionStatuses.PendingPayment;
                 _ = await tenantSubscriptionRepository.UpdateAsync(tenantSubscription);
 
                 firstItem.ProviderSubscriptionItemId = subscription.FirstItemProviderId;

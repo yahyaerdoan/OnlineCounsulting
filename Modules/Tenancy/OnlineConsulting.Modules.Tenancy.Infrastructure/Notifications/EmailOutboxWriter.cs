@@ -5,6 +5,9 @@ namespace OnlineConsulting.Modules.Tenancy.Infrastructure.Notifications;
 
 public class EmailOutboxWriter(TenancyDbContext context) : IEmailOutboxWriter<ITenancyOutboxModule>
 {
-    public void Enqueue(string to, string subject, string htmlBody, string? cc = null, string? sourceReference = null) =>
+    public async Task EnqueueAsync(string to, string subject, string htmlBody, string? cc = null, string? sourceReference = null, CancellationToken cancellationToken = default)
+    {
         context.EnqueueEmail(to, subject, htmlBody, cc, sourceReference);
+        _ = await context.SaveChangesAsync(cancellationToken);
+    }
 }

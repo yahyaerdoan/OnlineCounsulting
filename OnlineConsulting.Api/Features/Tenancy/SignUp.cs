@@ -19,7 +19,7 @@ public record SignUpTenantRequest(
     string PaymentMethodId,
     string? AdminPhoneNumber = null);
 
-/// <summary>Public self-service tenant signup. Order is deliberate and closes a previously-documented residual race: (1) ReserveTenantCommand (Tenancy) creates the Tenant/TenantSubscription/Pending TenantSubscriptionItem rows - cheap, local, no billing; (2) CreateTenantAdminCommand (Identity) creates the first user - UserManager.CreateAsync's own unique index on email is the real, atomic, DB-enforced guard against duplicate signups, and it now runs BEFORE any billing, so a rejected duplicate email never leaves an orphaned Stripe charge behind; (3) SetTenantOwnerCommand (Tenancy) records that new user as Tenant.OwnerUserId, distinguishing the actual owner from any other Admin-role user later invited into the same tenant; only then (4) ActivateTenantSubscriptionCommand (Tenancy) actually charges the card. No UserManager.FindByEmailAsync pre-check here anymore - it used to run first specifically to protect against paying for a tenant that could end up with no user, but that's no longer possible now that user creation happens before billing, so the pre-check was redundant (and never fully closed the race itself - see previous ARCHITECTURE_MIGRATION.md entry). If step (4) fails after (1)-(3) succeeded, the Tenant/User already exist - a legitimate partial-success state, not a bug: the tenant is PendingPayment/Failed with a real admin user who can log in and retry billing via POST /api/tenancy/{tenantId}/activate (ActivateTenantSubscription.cs) instead of registering again.</summary>
+/// <summary>Public self-service tenant signup - pay-first. Charges the card (ActivateTenantSubscriptionCommand) before creating any user/email, so a decline never leaves an Identity account behind. If user creation fails afterward (rare concurrent-duplicate-email race), RollbackTenantSignupCommand cancels the just-captured charge - nobody pays for a tenant with no admin user.</summary>
 public class SignUp : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
@@ -28,7 +28,7 @@ public class SignUp : IEndpoint
             .WithTags("Tenancy")
             .RequireRateLimiting(ServiceRegistration.AuthRateLimiterPolicy)
             .WithName("SignUpTenant")
-            .WithDescription("Creates a new tenant, its first (admin) user, and starts its subscription for the selected modules.");
+            .WithDescription("Charges the selected modules and, once payment succeeds, creates the tenant's first (admin) user.");
     }
 
     private static async Task<IResult> Handle([FromBody] SignUpTenantRequest request, ISender sender, HttpContext httpContext)
@@ -41,20 +41,21 @@ public class SignUp : IEndpoint
 
         var tenantId = reserveResult.Data.TenantId;
 
+        var activateResult = await sender.Send(new ActivateTenantSubscriptionCommand(tenantId, request.PaymentMethodId));
+        if (!activateResult.IsSuccessful)
+        {
+            return activateResult.ToEnvelopedResult(httpContext);
+        }
+
         var adminResult = await sender.Send(new CreateTenantAdminCommand(
             tenantId, request.AdminFirstName, request.AdminLastName, request.AdminEmail, request.AdminPassword, request.AdminPhoneNumber));
         if (!adminResult.IsSuccessful || adminResult.Data is null)
         {
+            _ = await sender.Send(new RollbackTenantSignupCommand(tenantId));
             return adminResult.ToEnvelopedResult(httpContext);
         }
 
         var ownerResult = await sender.Send(new SetTenantOwnerCommand(tenantId, adminResult.Data.UserId));
-        if (!ownerResult.IsSuccessful)
-        {
-            return ownerResult.ToEnvelopedResult(httpContext);
-        }
-
-        var activateResult = await sender.Send(new ActivateTenantSubscriptionCommand(tenantId, request.PaymentMethodId));
-        return activateResult.ToEnvelopedResult(httpContext);
+        return ownerResult.ToEnvelopedResult(httpContext);
     }
 }

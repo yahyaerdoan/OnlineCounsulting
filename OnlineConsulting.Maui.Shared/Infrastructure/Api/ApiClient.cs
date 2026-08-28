@@ -80,9 +80,9 @@ public class ApiClient(HttpClient httpClient, IAccessTokenProvider? tokenProvide
         if (tokenProvider is not null)
         {
             var tokens = await tokenProvider.GetTokenSetAsync();
-            if (tokens is not null && tokens.IsNearExpiry(RefreshBuffer))
+            if (tokens is not null && tokens.IsNearExpiry(RefreshBuffer) && tokenRefresher is not null)
             {
-                tokens = await tokenRefresher!.RefreshAsync(tokens, cancellationToken) ?? tokens;
+                tokens = await tokenRefresher.RefreshAsync(tokens, cancellationToken) ?? tokens;
             }
 
             if (tokens is not null)

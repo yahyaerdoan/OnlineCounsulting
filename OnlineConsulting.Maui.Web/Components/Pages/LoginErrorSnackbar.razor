@@ -11,11 +11,13 @@
     [Parameter]
     public string? ErrorMessage { get; set; }
 
-    /// <summary>Unique per logout (see Program.cs) - Login re-posts to itself keeping this in the
-    /// URL, so a plain shown/not-shown flag would suppress every later logout too. Comparing tokens
-    /// only skips repeat posts of the same logout.</summary>
+    /// <summary>Unique per logout - dedups repeat Login re-posts of the same logout via sessionStorage.</summary>
     [Parameter]
     public string? GoodbyeToken { get; set; }
+
+    /// <summary>One-shot success toast carried over via redirect (e.g. AcceptInvite's username notice).</summary>
+    [Parameter]
+    public string? Notice { get; set; }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -27,6 +29,12 @@
         if (!string.IsNullOrEmpty(ErrorMessage))
         {
             Snackbar.ShowError(ErrorMessage);
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(Notice))
+        {
+            Snackbar.ShowSuccess(Notice);
             return;
         }
 

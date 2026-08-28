@@ -1,6 +1,6 @@
 @if (Message is not null)
 {
-    <MudAlert Severity="@Severity" Dense="true" Class="@AlertClass" Icon="@Icons.Material.Filled.ErrorOutline">@Message</MudAlert>
+    <MudAlert Severity="@Severity" Dense="true" Class="@AlertClass" Icon="@AlertIcon">@Message</MudAlert>
 }
 
 @code {
@@ -17,4 +17,12 @@
     public bool Floating { get; set; }
 
     private string AlertClass => Floating ? "api-error-toast" : "mb-4";
+
+    private string AlertIcon => Severity switch
+    {
+        Severity.Success => Icons.Material.Filled.CheckCircleOutline,
+        Severity.Warning => Icons.Material.Filled.WarningAmber,
+        Severity.Info => Icons.Material.Filled.Info,
+        _ => Icons.Material.Filled.ErrorOutline,
+    };
 }

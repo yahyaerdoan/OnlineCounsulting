@@ -1,6 +1,8 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using Core.ApplicationLayer.Pipelines.Loggings.Abstractions;
 using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
+using Core.SecurityLayer.Constants;
+using Core.SecurityLayer.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -34,10 +36,34 @@ public class AssignRoleToUserHandler(UserManager<User> userManager, ITenantOwner
             return UserBusinessRules.UserNotFoundOrInvalidData();
         }
 
-        var ownerGuardResult = await TenantOwnerProtection.EnsureCallerMayModifyAsync(tenantOwnershipReader, tenantProvider, httpContextAccessor, user.TenantId, user.Id, cancellationToken);
+        var ownerGuardResult = await TenantOwnerProtection.EnsureCallerMayModifyAsync(userManager, tenantOwnershipReader, tenantProvider, httpContextAccessor, user, cancellationToken);
         if (ownerGuardResult is not null)
         {
             return ownerGuardResult;
+        }
+
+        var callerRoles = httpContextAccessor.HttpContext?.User.ClaimRoles() ?? [];
+        var superAdminAssignment = request.RoleAssignments.FirstOrDefault(a => a.RoleName == GlobalOperationClaims.SuperAdmin);
+        if (superAdminAssignment is not null && !callerRoles.Contains(GlobalOperationClaims.SuperAdmin))
+        {
+            // Callers resend the whole role matrix (see UserRolesDialog.razor), so an unchanged
+            // SuperAdmin=false entry must pass - only reject an actual grant/revoke attempt.
+            var currentlySuperAdmin = await userManager.IsInRoleAsync(user, GlobalOperationClaims.SuperAdmin);
+            if (currentlySuperAdmin != superAdminAssignment.IsAssigned)
+            {
+                return Result.Forbidden("Only a Super Admin may grant or revoke the Super Admin role.");
+            }
+        }
+
+        var adminAssignment = request.RoleAssignments.FirstOrDefault(a => a.RoleName == GeneralOperationClaims.Admin);
+        if (adminAssignment is { IsAssigned: false } && await userManager.IsInRoleAsync(user, GeneralOperationClaims.Admin))
+        {
+            var tenantAdmins = await userManager.GetUsersInRoleAsync(GeneralOperationClaims.Admin);
+            var hasOtherActiveAdmin = tenantAdmins.Any(a => a.Id != user.Id && a.TenantId == user.TenantId && a.IsActive);
+            if (!hasOtherActiveAdmin)
+            {
+                return Result.Forbidden("Cannot remove the Admin role - this tenant would be left with no active admin.");
+            }
         }
 
         foreach (var assignment in request.RoleAssignments)

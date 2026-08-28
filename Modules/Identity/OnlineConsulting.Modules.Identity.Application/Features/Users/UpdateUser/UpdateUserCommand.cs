@@ -1,4 +1,5 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+using Core.SecurityLayer.Constants;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -6,6 +7,7 @@ using OnlineConsulting.Modules.Identity.Application.Common;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Constants;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -19,7 +21,7 @@ public record UpdateUserCommand(Guid Id, string FirstName, string LastName, bool
     public string[] Roles => [UsersOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, UsersOperationClaims.Update];
 }
 
-public class UpdateUserHandler(UserManager<User> userManager, ITenantOwnershipReader tenantOwnershipReader, ITenantProvider tenantProvider, IHttpContextAccessor httpContextAccessor)
+public class UpdateUserHandler(UserManager<User> userManager, ITenantOwnershipReader tenantOwnershipReader, ITenantProvider tenantProvider, IHttpContextAccessor httpContextAccessor, ICurrentUserAccessor currentUserAccessor)
     : IRequestHandler<UpdateUserCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
@@ -30,10 +32,25 @@ public class UpdateUserHandler(UserManager<User> userManager, ITenantOwnershipRe
             return Result.BadRequest("Failed to map the provided user data. Please ensure the input is valid and try again.");
         }
 
-        var ownerGuardResult = await TenantOwnerProtection.EnsureCallerMayModifyAsync(tenantOwnershipReader, tenantProvider, httpContextAccessor, user.TenantId, user.Id, cancellationToken);
+        if (!request.IsActive && currentUserAccessor.UserId == user.Id.ToString())
+        {
+            return Result.Forbidden("You cannot deactivate your own account.");
+        }
+
+        var ownerGuardResult = await TenantOwnerProtection.EnsureCallerMayModifyAsync(userManager, tenantOwnershipReader, tenantProvider, httpContextAccessor, user, cancellationToken);
         if (ownerGuardResult is not null)
         {
             return ownerGuardResult;
+        }
+
+        if (!request.IsActive && user.IsActive && await userManager.IsInRoleAsync(user, GeneralOperationClaims.Admin))
+        {
+            var tenantAdmins = await userManager.GetUsersInRoleAsync(GeneralOperationClaims.Admin);
+            var hasOtherActiveAdmin = tenantAdmins.Any(a => a.Id != user.Id && a.TenantId == user.TenantId && a.IsActive);
+            if (!hasOtherActiveAdmin)
+            {
+                return Result.Forbidden("Cannot deactivate this user - this tenant would be left with no active admin.");
+            }
         }
 
         user.FirstName = request.FirstName;

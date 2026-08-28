@@ -33,14 +33,16 @@ public class ConfirmEmailHandler(UserManager<User> userManager, IEmailOutboxWrit
 
         var welcomeModel = new WelcomeEmailModel(user.FirstName, user.LastName);
 
-        outboxWriter.Enqueue(user.Email!, welcomeTemplate.Subject(welcomeModel), welcomeTemplate.Build(welcomeModel), sourceReference: $"User:{user.Id}");
+        var email = user.Email ?? string.Empty;
 
-        var policyModel = new PolicyNoticeEmailModel(user.FirstName,
-            $"{emailOptions.Value.ClientOrigin}/privacy-policy", $"{emailOptions.Value.ClientOrigin}/terms-of-service");
-        outboxWriter.Enqueue(user.Email!, policyTemplate.Subject(policyModel), policyTemplate.Build(policyModel),
-            sourceReference: $"User:{user.Id}");
+        await outboxWriter.EnqueueAsync(email, welcomeTemplate.Subject(welcomeModel), welcomeTemplate.Build(welcomeModel), sourceReference: $"User:{user.Id}", cancellationToken: cancellationToken);
+
+        var policyModel = new PolicyNoticeEmailModel(user.FirstName, $"{emailOptions.Value.ClientOrigin}/privacy-policy", $"{emailOptions.Value.ClientOrigin}/terms-of-service");
+
+        await outboxWriter.EnqueueAsync(email, policyTemplate.Subject(policyModel), policyTemplate.Build(policyModel), sourceReference: $"User:{user.Id}", cancellationToken: cancellationToken);
 
         var confirmResult = await userManager.ConfirmEmailAsync(user, request.Token);
+
         return !confirmResult.Succeeded
             ? Result.BadRequest(string.Join("; ", confirmResult.Errors.Select(e => e.Description)))
             : Result.Success("Email confirmed successfully.");

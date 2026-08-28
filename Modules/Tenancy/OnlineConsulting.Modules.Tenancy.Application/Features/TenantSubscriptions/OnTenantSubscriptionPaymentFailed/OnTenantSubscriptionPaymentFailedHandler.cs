@@ -35,13 +35,13 @@ public class OnTenantSubscriptionPaymentFailedHandler(ITenantSubscriptionReposit
 
         tenant.Status = TenantStatuses.PastDue;
 
-        // Enqueue before UpdateAsync - UpdateAsync's own SaveChangesAsync is what flushes this staged row.
-        outboxWriter.Enqueue(
+        _ = await tenantRepository.UpdateAsync(tenant);
+
+        await outboxWriter.EnqueueAsync(
             tenant.PrimaryContactEmail,
             "Payment failed for your subscription",
             $"We couldn't process your latest subscription payment for {tenant.Name}. Please update your payment method to avoid losing access to your purchased modules.",
-            sourceReference: $"Tenant:{tenant.Id}");
-
-        _ = await tenantRepository.UpdateAsync(tenant);
+            sourceReference: $"Tenant:{tenant.Id}",
+            cancellationToken: cancellationToken);
     }
 }

@@ -63,16 +63,13 @@ public class CreateOrderFromBasketHandler(IBasketRepository basketRepository, IB
         var total = basketItems.Items.Sum(i => TaxCalculator.Calculate(i.Price, i.Quantity, i.TaxRate).TotalPrice);
 
         // OrderId doubles as the gateway idempotency key - retries can't double-charge.
-        var paymentIntent = await paymentGateway.CreatePaymentIntentAsync(
-            new CreatePaymentIntentRequest(total, "usd", orderId.ToString(), request.Email, IdempotencyKey: orderId.ToString()),
-            cancellationToken);
+        var paymentIntent = await paymentGateway.CreatePaymentIntentAsync(new CreatePaymentIntentRequest(total, "usd", orderId.ToString(), request.Email, IdempotencyKey: orderId.ToString()), cancellationToken);
 
         var order = await CreateOrderWithItemsAsync(orderId, request.UserId, shippingAddress.Id, billingAddress.Id, basketItems.Items, paymentIntent);
 
         var confirmationModel = new OrderConfirmationEmailModel(order.OrderNumber, basketItems.Items.Count, total);
 
-        // Relies on basketItemRepository.DeleteAsync below to flush this staged row - keep Enqueue before it.
-        outboxWriter.Enqueue(request.Email, confirmationTemplate.Subject(confirmationModel), confirmationTemplate.Build(confirmationModel), sourceReference: $"Order:{order.Id}");
+        await outboxWriter.EnqueueAsync(request.Email, confirmationTemplate.Subject(confirmationModel), confirmationTemplate.Build(confirmationModel), sourceReference: $"Order:{order.Id}", cancellationToken: cancellationToken);
 
         foreach (var basketItem in basketItems.Items)
         {
@@ -120,6 +117,6 @@ public class CreateOrderFromBasketHandler(IBasketRepository basketRepository, IB
         return order;
     }
 
-    /// <summary>The gateway's normalized status at intent-creation time - a synchronous "succeeded" (e.g. the Mock gateway, or a provider that captures immediately) marks the order Paid right away; anything else stays Pending until PaymentSucceededNotification/PaymentFailedNotification arrives from the webhook.</summary>
+    /// <summary>Synchronous "succeeded" marks the order Paid immediately; otherwise stays Pending until the webhook notification arrives.</summary>
     private static string MapPaymentStatus(string gatewayStatus) => gatewayStatus == SharedPaymentStatuses.Succeeded ? OrderPaymentStatuses.Paid : OrderPaymentStatuses.Pending;
 }
