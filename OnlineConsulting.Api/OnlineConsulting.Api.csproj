@@ -11,17 +11,17 @@
     <!-- Pinned directly (nearest-wins) so it doesn't float up to whatever Core.ApplicationLayer's
          nuspec requests transitively - must match FluentValidation.AspNetCore's supported major
          version (BusinessLogic.csproj) or MVC model validation throws TypeLoadException. -->
-    <PackageReference Include="Core.CrossCuttingConcernLayer" Version="[1.0.23-beta.23]" />
-    <PackageReference Include="Core.SecurityLayer" Version="[1.0.23-beta.23]" />
-    <PackageReference Include="FluentValidation" Version="12.1.1" />
-    <PackageReference Include="Hateoas.AspNetCore" Version="1.3.0" />
-    <PackageReference Include="MediatR" Version="14.2.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.10" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
-    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.10" />
-    <PackageReference Include="Microsoft.OpenApi" Version="2.12.2" />
-    <PackageReference Include="ResponseResultHandler.AspNetCore" Version="12.0.0-beta.26" />
-    <PackageReference Include="Scalar.AspNetCore" Version="2.17.2" />
+    <PackageReference Include="Core.CrossCuttingConcernLayer" />
+    <PackageReference Include="Core.SecurityLayer" />
+    <PackageReference Include="FluentValidation" />
+    <PackageReference Include="Hateoas.AspNetCore" />
+    <PackageReference Include="MediatR" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" />
+    <PackageReference Include="Microsoft.OpenApi" />
+    <PackageReference Include="ResponseResultHandler.AspNetCore" />
+    <PackageReference Include="Scalar.AspNetCore" />
   </ItemGroup>
 
   <Target Name="DisableCompileTimeOpenApiXmlGenerator" BeforeTargets="CoreCompile">

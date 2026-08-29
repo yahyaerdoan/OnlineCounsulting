@@ -7,12 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Core.ApplicationLayer" Version="[1.0.23-beta.23]" />
-    <PackageReference Include="Core.PersistenceLayer" Version="[1.0.23-beta.23]" />
-    <PackageReference Include="FluentValidation" Version="12.1.1" />
-    <PackageReference Include="Hateoas" Version="1.0.0" />
-    <PackageReference Include="MediatR" Version="14.2.0" />
-    <PackageReference Include="ResponseResultHandler" Version="12.0.0-beta.26" />
+    <PackageReference Include="Core.ApplicationLayer" />
+    <PackageReference Include="Core.PersistenceLayer" />
+    <PackageReference Include="FluentValidation" />
+    <PackageReference Include="Hateoas" />
+    <PackageReference Include="MediatR" />
+    <PackageReference Include="ResponseResultHandler" />
   </ItemGroup>
 
   <ItemGroup>
