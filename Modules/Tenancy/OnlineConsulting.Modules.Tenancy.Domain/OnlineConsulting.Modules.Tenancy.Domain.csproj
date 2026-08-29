@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Core.PersistenceLayer" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\..\OnlineConsulting.SharedKernel\OnlineConsulting.SharedKernel.csproj" />
   </ItemGroup>
 

@@ -8,7 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Core.ApplicationLayer" />
     <PackageReference Include="Core.CrossCuttingConcernLayer" />
+    <PackageReference Include="Core.PersistenceLayer" />
     <PackageReference Include="Core.SecurityLayer" />
     <PackageReference Include="FluentValidation" />
     <PackageReference Include="Hateoas.AspNetCore" />

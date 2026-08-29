@@ -513,6 +513,7 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" />
+    <PackageReference Include="Core.SecurityLayer" />
     <!-- Pinned directly (nearest-wins) - must match FluentValidation.AspNetCore's supported major
          version or MVC model validation throws TypeLoadException at runtime. -->
     <PackageReference Include="FluentValidation" />
