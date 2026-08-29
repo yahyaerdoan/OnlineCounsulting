@@ -54,12 +54,9 @@ public class CreateTenantAdminHandler(UserManager<User> userManager, IEmailOutbo
 
         var roleResult = await userManager.AddToRoleAsync(user, GeneralOperationClaims.Admin);
 
-        if (!roleResult.Succeeded)
-        {
-            return Result.Invalid<CreateTenantAdminResult>([.. roleResult.Errors.Select(e => e.Description)]);
-        }
-
-        return Result.Created(new CreateTenantAdminResult(user.Id),
+        return !roleResult.Succeeded
+            ? Result.Invalid<CreateTenantAdminResult>([.. roleResult.Errors.Select(e => e.Description)])
+            : Result.Created(new CreateTenantAdminResult(user.Id),
             $"Account created. Your username is \"{userName}\" - you can also sign in with your email. Please check your email to confirm your account.");
     }
 }

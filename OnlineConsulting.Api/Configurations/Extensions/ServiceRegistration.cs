@@ -70,7 +70,7 @@ public static class ServiceRegistration
     {
         _ = services.AddOpenApi("v1", options =>
         {
-            options.AddDocumentTransformer((document, _, _) =>
+            _ = options.AddDocumentTransformer((document, _, _) =>
             {
                 document.Info = new OpenApiInfo { Title = "OnlineConsulting API", Version = "v1" };
 
@@ -94,7 +94,7 @@ public static class ServiceRegistration
 
                 return Task.CompletedTask;
             });
-            options.AddOperationTransformer<AuthorizeOperationTransformer>();
+            _ = options.AddOperationTransformer<AuthorizeOperationTransformer>();
         });
     }
 }

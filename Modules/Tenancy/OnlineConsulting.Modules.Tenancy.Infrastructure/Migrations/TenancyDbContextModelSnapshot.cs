@@ -390,7 +390,10 @@ namespace OnlineConsulting.Modules.Tenancy.Infrastructure.Migrations
 
                     b.HasIndex("Status", "NextAttemptAt");
 
-                    b.ToTable("OutboxEmails", "Notifications");
+                    b.ToTable("OutboxEmails", "Notifications", t =>
+                        {
+                            t.ExcludeFromMigrations();
+                        });
                 });
 #pragma warning restore 612, 618
         }

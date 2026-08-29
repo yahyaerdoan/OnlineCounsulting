@@ -61,42 +61,61 @@ public class OutboxDispatcher(IServiceScopeFactory scopeFactory, IOptions<Outbox
             return;
         }
 
-        await Parallel.ForEachAsync(due,
+        // Sends run in parallel (that's what MaxConcurrentSends caps), but the resulting entity
+        // mutations are applied afterward on this single thread - DbContext's ChangeTracker isn't
+        // thread-safe, so nothing here may touch a tracked entity from inside the parallel loop.
+        var outcomes = new Exception?[due.Count];
+        await Parallel.ForEachAsync(Enumerable.Range(0, due.Count),
             new ParallelOptions { MaxDegreeOfParallelism = settings.MaxConcurrentSends, CancellationToken = cancellationToken },
-            (email, ct) => new ValueTask(DispatchOneAsync(email, emailSender, settings, ct)));
+            async (i, ct) => outcomes[i] = await SendAsync(due[i], emailSender, ct));
+
+        for (var i = 0; i < due.Count; i++)
+        {
+            Apply(due[i], outcomes[i], settings);
+        }
 
         _ = await context.SaveChangesAsync(cancellationToken);
     }
 
-    private async Task DispatchOneAsync(OutboxEmail email, IEmailSender emailSender, OutboxDispatcherOptions settings, CancellationToken cancellationToken)
+    private async Task<Exception?> SendAsync(OutboxEmail email, IEmailSender emailSender, CancellationToken cancellationToken)
     {
-        email.Attempts++;
-
         try
         {
             await _sendPipeline.ExecuteAsync(ct => new ValueTask(emailSender.SendAsync(email.To, email.Subject, email.HtmlBody, email.Cc, ct)), cancellationToken);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            return ex;
+        }
+    }
 
+    private void Apply(OutboxEmail email, Exception? sendError, OutboxDispatcherOptions settings)
+    {
+        email.Attempts++;
+
+        if (sendError is null)
+        {
             email.Status = OutboxEmailStatus.Sent;
             email.SentAt = DateTimeOffset.UtcNow;
             email.LastError = null;
             logger.LogInformation("Sent outbox email {EmailId} to {To} after {Attempts} attempt(s).", email.Id, email.To, email.Attempts);
+            return;
         }
-        catch (Exception ex)
-        {
-            email.LastError = ex.Message;
 
-            if (email.Attempts >= settings.MaxAttempts)
-            {
-                email.Status = OutboxEmailStatus.Failed;
-                logger.LogError(ex, "Outbox email {EmailId} to {To} permanently failed after {Attempts} attempts.", email.Id, email.To, email.Attempts);
-            }
-            else
-            {
-                var delay = TimeSpan.FromMinutes(Math.Pow(2, email.Attempts));
-                email.NextAttemptAt = DateTimeOffset.UtcNow.Add(delay > settings.BackoffCap ? settings.BackoffCap : delay);
-                logger.LogWarning(ex, "Outbox email {EmailId} to {To} failed (attempt {Attempts}/{MaxAttempts}), retrying at {NextAttemptAt}.",
-                    email.Id, email.To, email.Attempts, settings.MaxAttempts, email.NextAttemptAt);
-            }
+        email.LastError = sendError.Message;
+
+        if (email.Attempts >= settings.MaxAttempts)
+        {
+            email.Status = OutboxEmailStatus.Failed;
+            logger.LogError(sendError, "Outbox email {EmailId} to {To} permanently failed after {Attempts} attempts.", email.Id, email.To, email.Attempts);
+        }
+        else
+        {
+            var delay = TimeSpan.FromMinutes(Math.Pow(2, email.Attempts));
+            email.NextAttemptAt = DateTimeOffset.UtcNow.Add(delay > settings.BackoffCap ? settings.BackoffCap : delay);
+            logger.LogWarning(sendError, "Outbox email {EmailId} to {To} failed (attempt {Attempts}/{MaxAttempts}), retrying at {NextAttemptAt}.",
+                email.Id, email.To, email.Attempts, settings.MaxAttempts, email.NextAttemptAt);
         }
     }
 }

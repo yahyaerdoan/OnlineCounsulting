@@ -14,7 +14,7 @@ public static class OutboxEmailModelBuilderExtensions
             {
                 if (!ownsMigration)
                 {
-                    t.ExcludeFromMigrations();
+                    _ = t.ExcludeFromMigrations();
                 }
             });
             _ = builder.Property(e => e.To).HasMaxLength(320).IsRequired();

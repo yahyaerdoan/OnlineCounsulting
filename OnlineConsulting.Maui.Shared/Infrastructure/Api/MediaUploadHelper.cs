@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Components.Forms;
+﻿using Microsoft.AspNetCore.Components.Forms;
 using System.Net.Http.Headers;
 
 namespace OnlineConsulting.Maui.Shared.Infrastructure.Api;
@@ -17,12 +17,9 @@ public static class MediaUploadHelper
         content.Add(streamContent, "file", file.Name);
 
         var uploadResult = await apiClient.PostFileAsync<Guid>(ApiRoutes.Media.Upload, content, cancellationToken);
-        if (!uploadResult.IsSuccessful)
-        {
-            return new ApiEnvelope<MediaAssetResponse>(null, false, uploadResult.StatusCode, uploadResult.StatusMessage, uploadResult.Errors);
-        }
-
-        return await apiClient.GetAsync<MediaAssetResponse>($"/api/media/{uploadResult.ResultData}", cancellationToken);
+        return !uploadResult.IsSuccessful
+            ? new ApiEnvelope<MediaAssetResponse>(null, false, uploadResult.StatusCode, uploadResult.StatusMessage, uploadResult.Errors)
+            : await apiClient.GetAsync<MediaAssetResponse>($"/api/media/{uploadResult.ResultData}", cancellationToken);
     }
 
     /// <summary>Resolves a MediaAsset id to its display Url - null if the asset is missing or the request fails.</summary>
