@@ -2,6 +2,7 @@
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Media.Application.Features.GetMediaAsset;
 using ResultHandler.AspNetCore.Extensions;
+using ResultHandler.Facade;
 
 namespace OnlineConsulting.Api.Features.Media;
 
@@ -18,6 +19,12 @@ public class GetMediaAsset : IEndpoint
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)
     {
         var result = await sender.Send(new GetMediaAssetQuery(id));
-        return result.ToEnvelopedResult(httpContext);
+        if (!result.IsSuccessful)
+        {
+            return result.ToEnvelopedResult(httpContext);
+        }
+
+        var resolved = result.Data with { Url = MediaUrlResolver.Resolve(result.Data.Url, httpContext) };
+        return Result.Success(resolved, result.Title).ToEnvelopedResult(httpContext);
     }
 }

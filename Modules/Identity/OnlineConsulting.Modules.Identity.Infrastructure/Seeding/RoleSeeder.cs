@@ -27,6 +27,8 @@ public static class RoleSeeder
 
         await GrantPermissionAsync(roleManager, GeneralOperationClaims.Admin, PermissionClaimTypes.FullAccess);
         await GrantPermissionAsync(roleManager, GlobalOperationClaims.SuperAdmin, GlobalOperationClaims.SuperAdmin);
+        // Same bypass claim as Admin - SuperAdmin gets every permission, no per-module Roles entry needed.
+        await GrantPermissionAsync(roleManager, GlobalOperationClaims.SuperAdmin, PermissionClaimTypes.FullAccess);
     }
 
     private static async Task GrantPermissionAsync(RoleManager<Role> roleManager, string roleName, string permission)

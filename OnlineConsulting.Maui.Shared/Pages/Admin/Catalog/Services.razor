@@ -1,6 +1,87 @@
 @page "/admin/catalog/services"
 @attribute [Authorize]
+@inject IApiClient ApiClient
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
 
 <PageTitle>Services</PageTitle>
 
-<ComingSoon Title="Services" Subtitle="Manage the services your team offers and their pricing." />
+<PageHeroBanner Title="Services" Subtitle="Manage the services your team offers and their pricing.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.Add"
+                   OnClick="@(() => Navigation.NavigateTo($"{AppRoutes.AdminHome}/catalog/services/new"))">New Service</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+<ServerDataTable TItem="ServiceResponse" @ref="_table" ApiBasePath="@ApiRoutes.Services.All"
+                 SearchPlaceholder="Search title or description" OnLoadError="@(message => _loadError = message)">
+    <HeaderContent>
+        <MudTh><MudTableSortLabel SortLabel="@nameof(ServiceResponse.Title)" T="ServiceResponse">Title</MudTableSortLabel></MudTh>
+        <MudTh>Category</MudTh>
+        <MudTh>Price</MudTh>
+        <MudTh>Featured</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate Context="service">
+        <MudTd DataLabel="Title">@service.Title</MudTd>
+        <MudTd DataLabel="Category">@GetCategoryTitle(service.CategoryId)</MudTd>
+        <MudTd DataLabel="Price">@FormatPrice(service)</MudTd>
+        <MudTd DataLabel="Featured">
+            @if (service.FeaturedArea)
+            {
+                <MudIcon Icon="@Icons.Material.Outlined.Check" Color="Color.Success" Size="Size.Small" />
+            }
+        </MudTd>
+        <MudTd DataLabel="Actions">
+            <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
+                <MudIconButton Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" title="Edit"
+                               OnClick="@(() => Navigation.NavigateTo($"{AppRoutes.AdminHome}/catalog/services/{service.Id}/edit"))" />
+
+                <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" title="Delete"
+                               OnClick="@(() => DeleteAsync(service))" />
+            </MudButtonGroup>
+        </MudTd>
+    </RowTemplate>
+</ServerDataTable>
+
+@code {
+    private ServerDataTable<ServiceResponse> _table = default!;
+    private string? _loadError;
+    private Dictionary<Guid, string> _categoryTitlesById = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var categories = await CategoryLookupHelper.GetAllAsync(ApiClient);
+        _categoryTitlesById = categories.ToDictionary(c => c.Id, c => c.Title);
+    }
+
+    private string GetCategoryTitle(Guid categoryId) => _categoryTitlesById.GetValueOrDefault(categoryId, "-");
+
+    private static string FormatPrice(ServiceResponse service) => service.PriceType switch
+    {
+        ServicePriceTypes.StartingAt => $"From {service.Price:C}",
+        ServicePriceTypes.Range when service.PriceMax is not null => $"{service.Price:C} - {service.PriceMax:C}",
+        _ => service.Price.ToString("C"),
+    };
+
+    private async Task DeleteAsync(ServiceResponse service)
+    {
+        if (!await DialogService.ConfirmDeleteAsync("service", service.Title))
+        {
+            return;
+        }
+
+        var result = await ApiClient.DeleteAsync(ApiRoutes.Services.ById(service.Id));
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await _table.ReloadAsync();
+    }
+}

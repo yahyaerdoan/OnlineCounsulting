@@ -5,6 +5,7 @@ using OnlineConsulting.Modules.Services.Application.Features.Constants;
 using OnlineConsulting.Modules.Services.Application.Features.Rules;
 using OnlineConsulting.Modules.Services.Application.Features.ServiceMediaItems.Abstractions;
 using OnlineConsulting.Modules.Services.Domain;
+using OnlineConsulting.SharedKernel.Authorization;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using ResultHandler.Functional;
@@ -16,7 +17,7 @@ namespace OnlineConsulting.Modules.Services.Application.Features.ServiceMediaIte
 public record AddServiceMediaItemCommand(Guid ServiceId, Guid MediaAssetId, int DisplayOrder = 0) : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
     [JsonIgnore]
-    public string[] Roles => [ServicesOperationClaims.Admin, ServicesOperationClaims.Write, ServicesOperationClaims.Update];
+    public string[] Roles => [ServicesOperationClaims.Admin, ServicesOperationClaims.Write, ServicesOperationClaims.Update, GlobalOperationClaims.SuperAdmin];
 }
 
 public class AddServiceMediaItemHandler(IServiceMediaItemRepository repository, IServiceRepository serviceRepository)

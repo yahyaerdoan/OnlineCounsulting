@@ -3,6 +3,7 @@ using MediatR;
 using OnlineConsulting.Modules.Media.Application.Abstractions;
 using OnlineConsulting.Modules.Media.Application.Features.Constants;
 using OnlineConsulting.Modules.Media.Application.Features.Rules;
+using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.Media;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -13,7 +14,7 @@ namespace OnlineConsulting.Modules.Media.Application.Features.DeleteMediaAsset;
 public record DeleteMediaAssetCommand(Guid Id) : IRequest<OperationResult>, ISecureAddRequest
 {
     [JsonIgnore]
-    public string[] Roles => [MediaOperationClaims.Admin, MediaOperationClaims.Write, MediaOperationClaims.Delete];
+    public string[] Roles => [MediaOperationClaims.Admin, MediaOperationClaims.Write, MediaOperationClaims.Delete, GlobalOperationClaims.SuperAdmin];
 }
 
 public class DeleteMediaAssetHandler(IMediaAssetRepository repository, IStorageService storageService) : IRequestHandler<DeleteMediaAssetCommand, OperationResult>

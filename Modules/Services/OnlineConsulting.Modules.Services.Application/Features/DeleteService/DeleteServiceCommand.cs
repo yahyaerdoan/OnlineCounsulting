@@ -3,6 +3,7 @@ using MediatR;
 using OnlineConsulting.Modules.Services.Application.Abstractions;
 using OnlineConsulting.Modules.Services.Application.Features.Constants;
 using OnlineConsulting.Modules.Services.Application.Features.Rules;
+using OnlineConsulting.SharedKernel.Authorization;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -12,7 +13,7 @@ namespace OnlineConsulting.Modules.Services.Application.Features.DeleteService;
 public record DeleteServiceCommand(Guid Id) : IRequest<OperationResult>, ISecureAddRequest
 {
     [JsonIgnore]
-    public string[] Roles => [ServicesOperationClaims.Admin, ServicesOperationClaims.Write, ServicesOperationClaims.Delete];
+    public string[] Roles => [ServicesOperationClaims.Admin, ServicesOperationClaims.Write, ServicesOperationClaims.Delete, GlobalOperationClaims.SuperAdmin];
 }
 
 public class DeleteServiceHandler(IServiceRepository repository) : IRequestHandler<DeleteServiceCommand, OperationResult>

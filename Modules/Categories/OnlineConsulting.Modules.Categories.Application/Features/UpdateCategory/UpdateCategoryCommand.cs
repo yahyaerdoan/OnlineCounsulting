@@ -3,6 +3,7 @@ using MediatR;
 using OnlineConsulting.Modules.Categories.Application.Abstractions;
 using OnlineConsulting.Modules.Categories.Application.Features.Constants;
 using OnlineConsulting.Modules.Categories.Application.Features.Rules;
+using OnlineConsulting.SharedKernel.Authorization;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -14,7 +15,7 @@ public record UpdateCategoryCommand(Guid Id, string Title, string Description, s
     : IRequest<OperationResult>, ISecureAddRequest
 {
     [JsonIgnore]
-    public string[] Roles => [CategoriesOperationClaims.Admin, CategoriesOperationClaims.Write, CategoriesOperationClaims.Update];
+    public string[] Roles => [CategoriesOperationClaims.Admin, CategoriesOperationClaims.Write, CategoriesOperationClaims.Update, GlobalOperationClaims.SuperAdmin];
 }
 
 public class UpdateCategoryHandler(ICategoryRepository repository) : IRequestHandler<UpdateCategoryCommand, OperationResult>

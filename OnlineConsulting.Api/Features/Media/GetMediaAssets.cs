@@ -19,6 +19,14 @@ public class GetMediaAssets : IEndpoint
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext, int? index = null, int? size = null)
     {
         var result = await sender.Send(new GetMediaAssetsQuery(PageRequestFactory.Create(index, size)));
+        if (result.IsSuccessful)
+        {
+            for (var i = 0; i < result.Data.Items.Count; i++)
+            {
+                result.Data.Items[i] = result.Data.Items[i] with { Url = MediaUrlResolver.Resolve(result.Data.Items[i].Url, httpContext) };
+            }
+        }
+
         return result.ToEnvelopedResult(httpContext);
     }
 }

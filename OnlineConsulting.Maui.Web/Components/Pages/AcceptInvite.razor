@@ -13,13 +13,13 @@
     <ApiErrorAlert Message="@_errorMessage" Floating="true" />
 
     <EditForm EditContext="@Form.EditContext" method="post" OnValidSubmit="SubmitAsync" FormName="acceptInvite">
-        <AuthTextField Label="First name" Icon="@Icons.Material.Filled.Person" Placeholder="Jane"
+        <AuthTextField Label="First name" Icon="@Icons.Material.Outlined.Person" Placeholder="Jane"
                        @bind-Value="_model.FirstName" AutoFocus="true" />
 
-        <AuthTextField Label="Last name" Icon="@Icons.Material.Filled.Person" Placeholder="Doe"
+        <AuthTextField Label="Last name" Icon="@Icons.Material.Outlined.Person" Placeholder="Doe"
                        @bind-Value="_model.LastName" />
 
-        <AuthTextField Label="Password" Icon="@Icons.Material.Filled.Lock" Placeholder="********" Type="password"
+        <AuthTextField Label="Password" Icon="@Icons.Material.Outlined.Lock" Placeholder="********" Type="password"
                        @bind-Value="_model.Password" />
 
         <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Class="auth-submit">Create account</MudButton>

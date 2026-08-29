@@ -12,23 +12,23 @@
 
 <MudGrid Spacing="3">
     <MudItem xs="12" sm="6" md="3">
-        <StatCard Icon="@Icons.Material.Filled.Person" Label="Signed in as" Value="@(_currentUser?.UserName ?? "-")" Accent="StatAccent.Indigo" />
+        <StatCard Icon="@Icons.Material.Outlined.Person" Label="Signed in as" Value="@(_currentUser?.UserName ?? "-")" Accent="StatAccent.Indigo" />
     </MudItem>
     <MudItem xs="12" sm="6" md="3">
-        <StatCard Icon="@Icons.Material.Filled.Badge" Label="Roles"
+        <StatCard Icon="@Icons.Material.Outlined.Badge" Label="Roles"
                   Value="@(_currentUser is { Roles.Count: > 0 } ? string.Join(", ", _currentUser.Roles) : "-")" Accent="StatAccent.Teal" />
     </MudItem>
     <MudItem xs="12" sm="6" md="3">
-        <StatCard Icon="@Icons.Material.Filled.VerifiedUser" Label="Permissions"
+        <StatCard Icon="@Icons.Material.Outlined.VerifiedUser" Label="Permissions"
                   Value="@((_currentUser?.Permissions.Count ?? 0).ToString())" Accent="StatAccent.Amber" />
     </MudItem>
     <MudItem xs="12" sm="6" md="3">
-        <StatCard Icon="@Icons.Material.Filled.Business" Label="Tenant" Value="@(_currentUser?.TenantId.ToString()[..8] ?? "-")" Accent="StatAccent.Sky" />
+        <StatCard Icon="@Icons.Material.Outlined.Business" Label="Tenant" Value="@(_currentUser?.TenantId.ToString()[..8] ?? "-")" Accent="StatAccent.Sky" />
     </MudItem>
 </MudGrid>
 
 <MudPaper Class="roadmap-card mt-4" Elevation="0" Outlined="true">
-    <MudChip T="string" Color="Color.Primary" Variant="Variant.Text" Class="mb-2" Icon="@Icons.Material.Filled.RocketLaunch" Size="Size.Small">In progress</MudChip>
+    <MudChip T="string" Color="Color.Primary" Variant="Variant.Text" Class="mb-2" Icon="@Icons.Material.Outlined.RocketLaunch" Size="Size.Small">In progress</MudChip>
     <MudText Typo="Typo.subtitle2" Class="mb-1">The new Blazor MAUI + MudBlazor admin shell</MudText>
     <MudText Typo="Typo.body2" Color="Color.Secondary">
         Module screens (Catalog, Operations, Growth, Platform, Settings) will move here one at a time from the

@@ -20,9 +20,9 @@
 
     private string AlertIcon => Severity switch
     {
-        Severity.Success => Icons.Material.Filled.CheckCircleOutline,
-        Severity.Warning => Icons.Material.Filled.WarningAmber,
-        Severity.Info => Icons.Material.Filled.Info,
-        _ => Icons.Material.Filled.ErrorOutline,
+        Severity.Success => Icons.Material.Outlined.CheckCircleOutline,
+        Severity.Warning => Icons.Material.Outlined.WarningAmber,
+        Severity.Info => Icons.Material.Outlined.Info,
+        _ => Icons.Material.Outlined.ErrorOutline,
     };
 }

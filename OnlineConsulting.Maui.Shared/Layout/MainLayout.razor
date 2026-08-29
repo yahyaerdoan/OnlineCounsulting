@@ -27,10 +27,10 @@
                 <div class="status-bar-safe-area"></div>
             }
             <MudAppBar Elevation="0" Class="app-bar-elevated" Fixed="@(!PlatformInfo.IsNativeMobile)">
-                <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
+                <MudIconButton Icon="@Icons.Material.Outlined.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
                 <BrandMark Class="ml-2" />
                 <MudSpacer />
-                <MudIconButton Icon="@(_isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
+                <MudIconButton Icon="@(_isDarkMode ? Icons.Material.Outlined.LightMode : Icons.Material.Outlined.DarkMode)"
                                Color="Color.Inherit" OnClick="@ToggleDarkMode" />
                 <UserAccountMenu User="context.User" />
             </MudAppBar>
@@ -60,13 +60,13 @@
                         polished admin, tailored per customer.
                     </MudText>
                     <MudList T="string" Class="auth-brand-features">
-                        <MudListItem T="string" Icon="@Icons.Material.Filled.Check" Class="auth-feature-item">
+                        <MudListItem T="string" Icon="@Icons.Material.Outlined.Check" Class="auth-feature-item">
                             Real-time appointments and dispatch
                         </MudListItem>
-                        <MudListItem T="string" Icon="@Icons.Material.Filled.Check" Class="auth-feature-item">
+                        <MudListItem T="string" Icon="@Icons.Material.Outlined.Check" Class="auth-feature-item">
                             Per-tenant billing, plans and add-ons
                         </MudListItem>
-                        <MudListItem T="string" Icon="@Icons.Material.Filled.Check" Class="auth-feature-item">
+                        <MudListItem T="string" Icon="@Icons.Material.Outlined.Check" Class="auth-feature-item">
                             Role-based access across your whole team
                         </MudListItem>
                     </MudList>

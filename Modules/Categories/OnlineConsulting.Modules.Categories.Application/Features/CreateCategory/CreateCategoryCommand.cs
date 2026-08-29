@@ -3,6 +3,7 @@ using MediatR;
 using OnlineConsulting.Modules.Categories.Application.Abstractions;
 using OnlineConsulting.Modules.Categories.Application.Features.Constants;
 using OnlineConsulting.Modules.Categories.Domain;
+using OnlineConsulting.SharedKernel.Authorization;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -12,7 +13,7 @@ namespace OnlineConsulting.Modules.Categories.Application.Features.CreateCategor
 public record CreateCategoryCommand(string Title, string Description, string Icon, string? IconColor = null) : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
     [JsonIgnore]
-    public string[] Roles => [CategoriesOperationClaims.Admin, CategoriesOperationClaims.Write, CategoriesOperationClaims.Add];
+    public string[] Roles => [CategoriesOperationClaims.Admin, CategoriesOperationClaims.Write, CategoriesOperationClaims.Add, GlobalOperationClaims.SuperAdmin];
 }
 
 public class CreateCategoryHandler(ICategoryRepository repository) : IRequestHandler<CreateCategoryCommand, OperationDataResult<Guid>>

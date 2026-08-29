@@ -26,7 +26,7 @@ public class GetAllRolesPagedHandler(RoleManager<Role> roleManager) : IRequestHa
 {
     public async Task<OperationDataResult<Paginate<RoleResponse>>> Handle(GetAllRolesPagedQuery request, CancellationToken cancellationToken)
     {
-        var pagedRoles = await roleManager.Roles.ToDynamicPaginateAsync(request.PageRequest, request.DynamicQuery, defaultOrderBy: r => r.Name ?? string.Empty, cancellationToken);
+        var pagedRoles = await roleManager.Roles.ToDynamicPaginateAsync(request.PageRequest, request.DynamicQuery, defaultOrderBy: r => r.Name ?? string.Empty, tieBreaker: r => r.Id, cancellationToken);
 
         var items = pagedRoles.Items
             .Select(r => new RoleResponse { Id = r.Id, Name = r.Name ?? string.Empty, Description = r.Description })

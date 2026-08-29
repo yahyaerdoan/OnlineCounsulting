@@ -1,0 +1,69 @@
+@namespace OnlineConsulting.Maui.Shared.Pages.Admin.Catalog
+
+<MudGrid Spacing="2">
+    <MudItem xs="12" sm="8">
+        <MudTextField @bind-Value="Model.Title" For="@(() => Model.Title)" Label="Title" Variant="Variant.Outlined" Margin="Margin.Dense" />
+    </MudItem>
+    <MudItem xs="12" sm="4">
+        <MudSelect T="Guid" @bind-Value="Model.CategoryId" For="@(() => Model.CategoryId)" Label="Category" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true">
+            @foreach (var category in Categories)
+            {
+                <MudSelectItem T="Guid" Value="@category.Id">@category.Title</MudSelectItem>
+            }
+        </MudSelect>
+    </MudItem>
+
+    <MudItem xs="12">
+        <MudTextField @bind-Value="Model.Description" For="@(() => Model.Description)" Label="Description" Variant="Variant.Outlined" Margin="Margin.Dense"
+                      Lines="1" MaxLines="5" Sizing="InputSizing.Auto" HelperText="Short summary shown in listings" />
+    </MudItem>
+
+    <MudItem xs="12">
+        <MudTextField @bind-Value="Model.DetailedDescription" For="@(() => Model.DetailedDescription)" Label="Detailed description" Variant="Variant.Outlined" Margin="Margin.Dense"
+                      Lines="4" />
+    </MudItem>
+
+    <MudItem xs="12" sm="4">
+        <MudSelect T="string" @bind-Value="Model.PriceType" For="@(() => Model.PriceType)" Label="Price type" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true">
+            <MudSelectItem T="string" Value="@ServicePriceTypes.Fixed">Fixed</MudSelectItem>
+            <MudSelectItem T="string" Value="@ServicePriceTypes.StartingAt">Starting at</MudSelectItem>
+            <MudSelectItem T="string" Value="@ServicePriceTypes.Range">Range</MudSelectItem>
+        </MudSelect>
+    </MudItem>
+    <MudItem xs="@(IsRangePriced ? 6 : 12)" sm="@(IsRangePriced ? 4 : 8)">
+        <MudNumericField @bind-Value="Model.Price" For="@(() => Model.Price)" Label="Price" Variant="Variant.Outlined" Margin="Margin.Dense" Format="F2"
+                         Adornment="Adornment.Start" AdornmentText="$" HideSpinButtons="true" />
+    </MudItem>
+    @if (IsRangePriced)
+    {
+        <MudItem xs="6" sm="4">
+            <MudNumericField @bind-Value="Model.PriceMax" For="@(() => Model.PriceMax)" Label="Price max" Variant="Variant.Outlined" Margin="Margin.Dense" Format="F2"
+                             Adornment="Adornment.Start" AdornmentText="$" HideSpinButtons="true" />
+        </MudItem>
+    }
+
+    <MudItem xs="6" sm="4">
+        <MudNumericField @bind-Value="Model.DiscountRate" For="@(() => Model.DiscountRate)" Label="Discount" Variant="Variant.Outlined" Margin="Margin.Dense" Min="0" Max="100"
+                         Adornment="Adornment.End" AdornmentText="%" HideSpinButtons="true" />
+    </MudItem>
+    <MudItem xs="6" sm="4">
+        <MudNumericField @bind-Value="Model.TaxRate" For="@(() => Model.TaxRate)" Label="Tax" Variant="Variant.Outlined" Margin="Margin.Dense" Min="0" Max="100"
+                         Adornment="Adornment.End" AdornmentText="%" HideSpinButtons="true" />
+    </MudItem>
+    <MudItem xs="12" sm="4">
+        <MudTextField Value="@DiscountedPrice.ToString("C")" ReadOnly="true" Disabled="true" Label="Discounted price" Variant="Variant.Outlined" Margin="Margin.Dense" />
+    </MudItem>
+</MudGrid>
+
+@code {
+    [Parameter, EditorRequired]
+    public ServiceFormModel Model { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public List<CategoryResponse> Categories { get; set; } = [];
+
+    /// <summary>Live preview - mirrors ServicePriceCalculator.CalculateDiscountedPrice.</summary>
+    private decimal DiscountedPrice => Model.Price - (Model.Price * Model.DiscountRate / 100m);
+
+    private bool IsRangePriced => Model.PriceType == ServicePriceTypes.Range;
+}

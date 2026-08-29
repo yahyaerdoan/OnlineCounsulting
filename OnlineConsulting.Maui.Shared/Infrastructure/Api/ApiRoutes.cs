@@ -49,4 +49,27 @@ public static class ApiRoutes
         /// <summary>Every role's permissions in one call - backs the permission matrix page.</summary>
         public const string PermissionsMatrix = "/api/roles/permissions";
     }
+
+    public static class Categories
+    {
+        public const string All = "/api/categories/query";
+        public const string Base = "/api/categories";
+
+        public static string ById(Guid id) => $"/api/categories/{id}";
+    }
+
+    public static class Services
+    {
+        public const string All = "/api/services/query";
+        public const string Base = "/api/services";
+        public const string MediaItems = "/api/services/media-items";
+
+        public static string ById(Guid id) => $"/api/services/{id}";
+        public static string RemoveMediaItem(Guid id) => $"/api/services/media-items/{id}";
+    }
+
+    public static class Media
+    {
+        public const string Upload = "/api/media";
+    }
 }

@@ -18,7 +18,7 @@
                 <MudTextField @bind-Value="_model.Email" For="@(() => _model.Email)" Label="Email address" Variant="Variant.Outlined" Margin="Margin.Dense"
                               InputType="InputType.Email" Placeholder="jane@example.com" />
 
-                <MudSelect @bind-Value="_model.RoleName" For="@(() => _model.RoleName)" Label="Role" Variant="Variant.Outlined" Margin="Margin.Dense"
+                <MudSelect @bind-Value="_model.RoleName" For="@(() => _model.RoleName)" Label="Role" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true"
                            HelperText="Controls what they can access. You can change this later.">
                     @foreach (var role in _roles)
                     {

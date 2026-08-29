@@ -15,6 +15,7 @@ public static class ServiceCollectionExtensions
     {
         _ = services.AddSingleton<IUiModule>(new HostUiModule(hostAssembly));
         _ = services.AddSingleton<IUiModule, CoreUiModule>();
+        _ = services.AddSingleton<IUiModule, CatalogUiModule>();
         _ = services.AddSingleton<UiModuleRegistry>();
 
         _ = services.AddCascadingAuthenticationState();

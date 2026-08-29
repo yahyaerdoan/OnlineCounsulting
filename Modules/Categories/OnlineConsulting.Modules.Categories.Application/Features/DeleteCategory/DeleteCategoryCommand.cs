@@ -3,6 +3,7 @@ using MediatR;
 using OnlineConsulting.Modules.Categories.Application.Abstractions;
 using OnlineConsulting.Modules.Categories.Application.Features.Constants;
 using OnlineConsulting.Modules.Categories.Application.Features.Rules;
+using OnlineConsulting.SharedKernel.Authorization;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -13,7 +14,7 @@ namespace OnlineConsulting.Modules.Categories.Application.Features.DeleteCategor
 public record DeleteCategoryCommand(Guid Id) : IRequest<OperationResult>, ISecureAddRequest
 {
     [JsonIgnore]
-    public string[] Roles => [CategoriesOperationClaims.Admin, CategoriesOperationClaims.Write, CategoriesOperationClaims.Delete];
+    public string[] Roles => [CategoriesOperationClaims.Admin, CategoriesOperationClaims.Write, CategoriesOperationClaims.Delete, GlobalOperationClaims.SuperAdmin];
 }
 
 public class DeleteCategoryHandler(ICategoryRepository repository) : IRequestHandler<DeleteCategoryCommand, OperationResult>

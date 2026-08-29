@@ -175,11 +175,11 @@ if (!app.Environment.IsDevelopment())
 //Nice error pages for error status codes (401/403/404/405/500 etc.)
 app.UseStatusCodePagesWithReExecute("/errorpage/{0}");
 
-app.UseCors();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
+app.UseCors();
 app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();

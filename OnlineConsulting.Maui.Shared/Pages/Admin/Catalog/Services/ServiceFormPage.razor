@@ -1,0 +1,277 @@
+@page "/admin/catalog/services/new"
+@page "/admin/catalog/services/{Id:guid}/edit"
+@namespace OnlineConsulting.Maui.Shared.Pages.Admin.Catalog
+@attribute [Authorize]
+@using OnlineConsulting.Maui.Shared.Infrastructure.Forms
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject FormState<ServiceFormModel> Form
+
+<PageTitle>@(Id is null ? "New Service" : "Edit Service")</PageTitle>
+
+<PageHeroBanner Title="@(Id is null ? "New Service" : "Edit Service")" Subtitle="Shown to customers browsing your catalog.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.ArrowBack"
+                   OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/catalog/services"))">Back to Services</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+<EditForm EditContext="@Form.EditContext">
+    <MudPaper Class="pa-4">
+        <MudGrid Spacing="3">
+            <MudItem xs="12" md="8">
+                <MudText Typo="Typo.subtitle2" Class="mb-2">Service details</MudText>
+                <ServiceFormFields Model="_model" Categories="_categories" />
+
+                <MudDivider Class="my-4" />
+                <MudText Typo="Typo.subtitle2" Class="mb-2">Gallery</MudText>
+
+                @if (_galleryItems.Count > 0)
+                {
+                    <MudGrid Spacing="2" Class="mb-3">
+                        @foreach (var item in _galleryItems)
+                        {
+                            <MudItem xs="4" sm="3" md="3" lg="2">
+                                <MudCard Elevation="2" Class="rounded-lg">
+                                    <MudCardMedia Image="@item.Url" Height="88" />
+                                    <MudCardActions Class="justify-center pa-1">
+                                        <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" Size="Size.Small"
+                                                       OnClick="@(() => RemoveGalleryItemAsync(item))" />
+                                    </MudCardActions>
+                                </MudCard>
+                            </MudItem>
+                        }
+                    </MudGrid>
+                }
+
+                <MudFileUpload T="IReadOnlyList<IBrowserFile>" OnFilesChanged="OnGalleryFileSelectedAsync" Accept="image/*" DragAndDrop="true" Disabled="_isUploadingGalleryItem" />
+                @if (_isUploadingGalleryItem)
+                {
+                    <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mt-2" />
+                }
+            </MudItem>
+
+            <MudItem xs="12" md="4">
+                <MudText Typo="Typo.subtitle2" Class="mb-2">Cover image</MudText>
+                <CoverImagePicker ImageUrl="@_coverImageUrl" IsUploading="_isUploadingCover" OnFileSelected="OnCoverFileSelectedAsync" />
+
+                <MudDivider Class="my-4" />
+
+                <MudText Typo="Typo.subtitle2" Class="mb-2">Status</MudText>
+                <MudStack Spacing="1">
+                    <MudSwitch T="bool" @bind-Value="_model.FeaturedArea" Label="Featured" Color="Color.Primary" Size="Size.Small" />
+                    <MudSwitch T="bool" @bind-Value="_model.RequiresPrepayment" Label="Requires prepayment" Color="Color.Primary" Size="Size.Small" />
+                    <MudSwitch T="bool" @bind-Value="_model.IsEmergencyAvailable" Label="Emergency available" Color="Color.Primary" Size="Size.Small" />
+                </MudStack>
+            </MudItem>
+        </MudGrid>
+
+        <MudDivider Class="my-4" />
+
+        <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2">
+            <MudButton Variant="Variant.Text" OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/catalog/services"))">Cancel</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAsync" Disabled="@Form.IsBusy">
+                @(Id is null ? "Create" : "Save")
+            </MudButton>
+        </MudStack>
+    </MudPaper>
+</EditForm>
+
+@code {
+    [Parameter]
+    public Guid? Id { get; set; }
+
+    private readonly ServiceFormModel _model = new();
+    private List<CategoryResponse> _categories = [];
+    private string? _coverImageUrl;
+    private string? _loadError;
+    private bool _isUploadingCover;
+    private bool _isUploadingGalleryItem;
+
+    private List<GalleryItem> _galleryItems = [];
+
+    /// <summary>MediaItemId is null until SaveAsync attaches it to a real service.</summary>
+    private sealed record GalleryItem(Guid MediaAssetId, string Url, Guid? MediaItemId);
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Bind before any await - Blazor can render (and touch Form.EditContext) after the first yield point.
+        Form.Bind(_model);
+
+        if (Id is { } serviceId)
+        {
+            var detailResult = await ApiClient.GetAsync<ServiceDetailResponse>(ApiRoutes.Services.ById(serviceId));
+            if (!detailResult.IsSuccessful || detailResult.ResultData is null)
+            {
+                _loadError = detailResult.DisplayMessage;
+                return;
+            }
+
+            var service = detailResult.ResultData;
+            _model.CategoryId = service.CategoryId;
+            _model.Title = service.Title;
+            _model.Description = service.Description;
+            _model.DetailedDescription = service.DetailedDescription;
+            _model.Price = service.Price;
+            _model.PriceType = service.PriceType;
+            _model.PriceMax = service.PriceMax;
+            _model.FeaturedArea = service.FeaturedArea;
+            _model.DiscountRate = service.DiscountRate;
+            _model.TaxRate = service.TaxRate;
+            _model.RequiresPrepayment = service.RequiresPrepayment;
+            _model.IsEmergencyAvailable = service.IsEmergencyAvailable;
+            _model.CoverMediaAssetId = service.CoverMediaAssetId;
+
+            var galleryLookups = await Task.WhenAll(service.MediaItems.Select(async item =>
+                (item.MediaAssetId, item.Id, Url: await MediaUploadHelper.GetUrlAsync(ApiClient, item.MediaAssetId))));
+
+            foreach (var lookup in galleryLookups)
+            {
+                if (lookup.Url is { } url)
+                {
+                    _galleryItems.Add(new GalleryItem(lookup.MediaAssetId, url, lookup.Id));
+                }
+            }
+        }
+
+        _categories = await CategoryLookupHelper.GetAllAsync(ApiClient);
+        if (Id is null && _categories.Count > 0)
+        {
+            _model.CategoryId = _categories[0].Id;
+        }
+
+        if (_model.CoverMediaAssetId is { } coverId)
+        {
+            _coverImageUrl = await MediaUploadHelper.GetUrlAsync(ApiClient, coverId);
+        }
+    }
+
+    private async Task OnCoverFileSelectedAsync(InputFileChangeEventArgs e)
+    {
+        _isUploadingCover = true;
+        var result = await MediaUploadHelper.UploadAsync(ApiClient, e.File);
+        _isUploadingCover = false;
+
+        if (!result.IsSuccessful || result.ResultData is null)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        _model.CoverMediaAssetId = result.ResultData.Id;
+        _coverImageUrl = result.ResultData.Url;
+    }
+
+    private async Task OnGalleryFileSelectedAsync(InputFileChangeEventArgs e)
+    {
+        _isUploadingGalleryItem = true;
+
+        foreach (var file in e.GetMultipleFiles())
+        {
+            await AddGalleryFileAsync(file);
+        }
+
+        _isUploadingGalleryItem = false;
+    }
+
+    private async Task AddGalleryFileAsync(IBrowserFile file)
+    {
+        var uploadResult = await MediaUploadHelper.UploadAsync(ApiClient, file);
+        if (!uploadResult.IsSuccessful || uploadResult.ResultData is null)
+        {
+            Snackbar.ShowError(uploadResult.DisplayMessage);
+            return;
+        }
+
+        if (Id is not { } serviceId)
+        {
+            // No service yet (Create) - queue locally, SaveAsync attaches it after creating.
+            _galleryItems.Add(new GalleryItem(uploadResult.ResultData.Id, uploadResult.ResultData.Url, null));
+            return;
+        }
+
+        var attachResult = await AttachGalleryItemAsync(serviceId, uploadResult.ResultData.Id, _galleryItems.Count);
+        if (!attachResult.IsSuccessful)
+        {
+            Snackbar.ShowError(attachResult.DisplayMessage);
+            return;
+        }
+
+        _galleryItems.Add(new GalleryItem(uploadResult.ResultData.Id, uploadResult.ResultData.Url, attachResult.ResultData));
+    }
+
+    private Task<ApiEnvelope<Guid>> AttachGalleryItemAsync(Guid serviceId, Guid mediaAssetId, int displayOrder) =>
+        ApiClient.PostAsync<Guid>(ApiRoutes.Services.MediaItems, new { serviceId, mediaAssetId, displayOrder });
+
+    private async Task RemoveGalleryItemAsync(GalleryItem item)
+    {
+        if (item.MediaItemId is { } mediaItemId)
+        {
+            var result = await ApiClient.DeleteAsync(ApiRoutes.Services.RemoveMediaItem(mediaItemId));
+            if (!result.IsSuccessful)
+            {
+                Snackbar.ShowError(result.DisplayMessage);
+                return;
+            }
+        }
+
+        _galleryItems.Remove(item);
+    }
+
+    private Task SaveAsync() => Form.SubmitAsync(async () =>
+    {
+        var body = new
+        {
+            categoryId = _model.CategoryId,
+            title = _model.Title,
+            description = _model.Description,
+            detailedDescription = _model.DetailedDescription,
+            price = _model.Price,
+            featuredArea = _model.FeaturedArea,
+            discountRate = _model.DiscountRate,
+            taxRate = _model.TaxRate,
+            requiresPrepayment = _model.RequiresPrepayment,
+            isEmergencyAvailable = _model.IsEmergencyAvailable,
+            coverMediaAssetId = _model.CoverMediaAssetId,
+            priceType = _model.PriceType,
+            priceMax = _model.PriceMax,
+        };
+
+        if (Id is null)
+        {
+            var createResult = await ApiClient.PostAsync<Guid>(ApiRoutes.Services.Base, body);
+            if (!createResult.IsSuccessful)
+            {
+                Form.DisplayErrors(createResult, Snackbar);
+                return;
+            }
+
+            var attachResults = await Task.WhenAll(_galleryItems.Select((item, i) => AttachGalleryItemAsync(createResult.ResultData, item.MediaAssetId, i)));
+            foreach (var attachResult in attachResults.Where(r => !r.IsSuccessful))
+            {
+                Snackbar.ShowError(attachResult.DisplayMessage);
+            }
+
+            CompleteSave(createResult.DisplayMessage);
+            return;
+        }
+
+        var result = await ApiClient.PutAsync(ApiRoutes.Services.ById(Id.Value), body);
+        if (!result.IsSuccessful)
+        {
+            Form.DisplayErrors(result, Snackbar);
+            return;
+        }
+
+        CompleteSave(result.DisplayMessage);
+    });
+
+    private void CompleteSave(string message)
+    {
+        Snackbar.ShowSuccess(message);
+        Navigation.NavigateTo(AppRoutes.AdminHome + "/catalog/services");
+    }
+}

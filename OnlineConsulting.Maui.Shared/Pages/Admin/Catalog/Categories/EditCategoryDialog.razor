@@ -1,0 +1,54 @@
+@namespace OnlineConsulting.Maui.Shared.Pages.Admin.Catalog
+@using OnlineConsulting.Maui.Shared.Infrastructure.Forms
+@using OnlineConsulting.Maui.Shared.Infrastructure.Icons
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+@inject FormState<CategoryFormModel> Form
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">Edit @Category.Title</MudText>
+    </TitleContent>
+    <DialogContent>
+        <EntitySummaryHeader Title="@Category.Title" Subtitle="@Category.Description" />
+
+        <EditForm EditContext="@Form.EditContext">
+            <CategoryFormFields Model="_model" />
+        </EditForm>
+    </DialogContent>
+    <DialogActions>
+        <DialogActionButtons OnOk="SaveAsync" IsBusy="@Form.IsBusy" />
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public CategoryResponse Category { get; set; } = default!;
+
+    private readonly CategoryFormModel _model = new();
+
+    protected override void OnInitialized()
+    {
+        _model.Title = Category.Title;
+        _model.Description = Category.Description;
+        _model.Icon = IconCatalog.Resolve(Category.Icon);
+        _model.IconColor = Category.IconColor;
+        Form.Bind(_model);
+    }
+
+    private Task SaveAsync() => Form.SubmitAsync(async () =>
+    {
+        var result = await ApiClient.PutAsync(ApiRoutes.Categories.ById(Category.Id), new { title = _model.Title, description = _model.Description, icon = _model.Icon, iconColor = _model.IconColor });
+        if (!result.IsSuccessful)
+        {
+            Form.DisplayErrors(result, Snackbar);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        MudDialog.Close(DialogResult.Ok(true));
+    });
+}

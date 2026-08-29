@@ -35,7 +35,7 @@ public class GetAllInvitesHandler(IInviteRepository inviteRepository, ITenantPro
             ? inviteRepository.Query()
             : inviteRepository.Query().Where(i => i.TenantId == tenantProvider.TenantId);
 
-        var pagedInvites = await invitesQuery.ToDynamicPaginateAsync(request.PageRequest, request.DynamicQuery, defaultOrderBy: i => i.CreatedDate, cancellationToken);
+        var pagedInvites = await invitesQuery.ToDynamicPaginateAsync(request.PageRequest, request.DynamicQuery, defaultOrderBy: i => i.CreatedDate, tieBreaker: i => i.Id, cancellationToken);
 
         var items = pagedInvites.Items.Select(i => new InviteResponse
         {

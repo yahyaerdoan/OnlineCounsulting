@@ -14,7 +14,7 @@
         <MudSpacer />
         <MudTextField T="string" ValueChanged="@(v => _filter = v)" Immediate="true" DebounceInterval="300" Margin="Margin.Dense"
                       Placeholder="Search modules" Adornment="Adornment.Start"
-                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Small" />
+                      AdornmentIcon="@Icons.Material.Outlined.Search" IconSize="Size.Small" />
     </MudStack>
 
     @foreach (var (module, permissions) in _catalog.Where(m => m.Key.Contains(_filter, StringComparison.OrdinalIgnoreCase)))

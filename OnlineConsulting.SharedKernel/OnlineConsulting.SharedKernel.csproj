@@ -7,9 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Core.ApplicationLayer" Version="[1.0.22-beta.22]" />
-    <PackageReference Include="Core.PersistenceLayer" Version="[1.0.22-beta.22]" />
-    <PackageReference Include="Core.SecurityLayer" Version="[1.0.22-beta.22]" />
+    <PackageReference Include="Core.ApplicationLayer" Version="[1.0.23-beta.23]" />
+    <PackageReference Include="Core.PersistenceLayer" Version="[1.0.23-beta.23]" />
+    <PackageReference Include="Core.SecurityLayer" Version="[1.0.23-beta.23]" />
     <PackageReference Include="FluentValidation" Version="12.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.11" />
     <PackageReference Include="MediatR" Version="14.2.0" />

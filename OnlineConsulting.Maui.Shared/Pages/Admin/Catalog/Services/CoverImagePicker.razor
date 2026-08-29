@@ -1,0 +1,27 @@
+@namespace OnlineConsulting.Maui.Shared.Pages.Admin.Catalog
+
+<MudStack Spacing="2">
+    @if (ImageUrl is not null)
+    {
+        <MudCard Outlined="true">
+            <MudCardMedia Image="@ImageUrl" Height="140" />
+        </MudCard>
+    }
+
+    <MudFileUpload T="IBrowserFile" OnFilesChanged="OnFileSelected" Accept="image/*" DragAndDrop="true" Disabled="IsUploading" />
+    @if (IsUploading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+    }
+</MudStack>
+
+@code {
+    [Parameter]
+    public string? ImageUrl { get; set; }
+
+    [Parameter]
+    public bool IsUploading { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback<InputFileChangeEventArgs> OnFileSelected { get; set; }
+}

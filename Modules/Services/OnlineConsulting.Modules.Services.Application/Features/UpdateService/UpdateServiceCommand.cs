@@ -4,6 +4,7 @@ using OnlineConsulting.Modules.Services.Application.Abstractions;
 using OnlineConsulting.Modules.Services.Application.Common;
 using OnlineConsulting.Modules.Services.Application.Features.Constants;
 using OnlineConsulting.Modules.Services.Application.Features.Rules;
+using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.Slugs;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -15,7 +16,7 @@ public record UpdateServiceCommand(Guid Id, Guid CategoryId, string Title, strin
     : IRequest<OperationResult>, ISecureAddRequest
 {
     [JsonIgnore]
-    public string[] Roles => [ServicesOperationClaims.Admin, ServicesOperationClaims.Write, ServicesOperationClaims.Update];
+    public string[] Roles => [ServicesOperationClaims.Admin, ServicesOperationClaims.Write, ServicesOperationClaims.Update, GlobalOperationClaims.SuperAdmin];
 }
 
 public class UpdateServiceHandler(IServiceRepository repository) : IRequestHandler<UpdateServiceCommand, OperationResult>

@@ -382,3 +382,9 @@
     from { opacity: 0; transform: translateY(4px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* Shrinks MudFileUpload's built-in drag-and-drop area (CoverImagePicker, service gallery) -
+   Mud's own default height is oversized for a small sidebar/tile upload widget. */
+.mud-file-upload-dragarea {
+    height: 96px;
+}

@@ -54,7 +54,7 @@ public class GetAllUsersHandler(UserManager<User> userManager, RoleManager<Role>
         }
 
         var pagedUsers = await usersQuery.ToDynamicPaginateAsync(
-            request.PageRequest, request.DynamicQuery, defaultOrderBy: u => u.LastName, cancellationToken);
+            request.PageRequest, request.DynamicQuery, defaultOrderBy: u => u.LastName, tieBreaker: u => u.Id, cancellationToken);
 
         if (pagedUsers.Items.Count == 0)
         {
@@ -68,12 +68,12 @@ public class GetAllUsersHandler(UserManager<User> userManager, RoleManager<Role>
             }, UserMessages.NoUserDataFound);
         }
 
-        var permissionsByRole = await GetPermissionsByRoleAsync(roleManager, cancellationToken);
+        var (permissionsByRole, roleNamesByUserId) = await GetRoleDataAsync(userManager, roleManager, cancellationToken);
 
         var items = new List<UserResponse>();
         foreach (var user in pagedUsers.Items)
         {
-            var roles = await userManager.GetRolesAsync(user);
+            var roles = roleNamesByUserId[user.Id];
             var permissions = RolePermissionResolver.ExpandForDisplay(
                 [.. roles.SelectMany(role => permissionsByRole.GetValueOrDefault(role, [])).Distinct()], permissionCatalog);
 
@@ -102,10 +102,13 @@ public class GetAllUsersHandler(UserManager<User> userManager, RoleManager<Role>
         }, "User data retrieved successfully.");
     }
 
-    private static async Task<Dictionary<string, List<string>>> GetPermissionsByRoleAsync(RoleManager<Role> roleManager, CancellationToken cancellationToken)
+    /// <summary>One pass over the (small, fixed) role set instead of one GetRolesAsync call per user on the page.</summary>
+    private static async Task<(Dictionary<string, List<string>> PermissionsByRole, ILookup<Guid, string> RoleNamesByUserId)> GetRoleDataAsync(
+        UserManager<User> userManager, RoleManager<Role> roleManager, CancellationToken cancellationToken)
     {
         var roles = await roleManager.Roles.ToListAsync(cancellationToken);
         var permissionsByRole = new Dictionary<string, List<string>>();
+        var userRolePairs = new List<(Guid UserId, string RoleName)>();
 
         foreach (var role in roles)
         {
@@ -116,8 +119,10 @@ public class GetAllUsersHandler(UserManager<User> userManager, RoleManager<Role>
 
             var claims = await roleManager.GetClaimsAsync(role);
             permissionsByRole[role.Name] = [.. claims.Where(c => c.Type == PermissionClaimTypes.Type).Select(c => c.Value)];
+
+            userRolePairs.AddRange((await userManager.GetUsersInRoleAsync(role.Name)).Select(user => (user.Id, role.Name)));
         }
 
-        return permissionsByRole;
+        return (permissionsByRole, userRolePairs.ToLookup(pair => pair.UserId, pair => pair.RoleName));
     }
 }

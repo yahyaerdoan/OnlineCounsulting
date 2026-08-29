@@ -4,6 +4,7 @@ using OnlineConsulting.Modules.Media.Application.Abstractions;
 using OnlineConsulting.Modules.Media.Application.Common;
 using OnlineConsulting.Modules.Media.Application.Features.Constants;
 using OnlineConsulting.Modules.Media.Domain;
+using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.Media;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -16,7 +17,7 @@ public record UploadMediaAssetCommand(Stream FileStream, string FileName, string
     : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
     [JsonIgnore]
-    public string[] Roles => [MediaOperationClaims.Admin, MediaOperationClaims.Write, MediaOperationClaims.Add];
+    public string[] Roles => [MediaOperationClaims.Admin, MediaOperationClaims.Write, MediaOperationClaims.Add, GlobalOperationClaims.SuperAdmin];
 }
 
 public class UploadMediaAssetHandler(IMediaAssetRepository repository, IStorageService storageService) : IRequestHandler<UploadMediaAssetCommand, OperationDataResult<Guid>>

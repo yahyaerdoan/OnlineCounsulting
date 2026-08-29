@@ -1,0 +1,41 @@
+﻿@namespace OnlineConsulting.Maui.Shared.Components.Common
+@using OnlineConsulting.Maui.Shared.Infrastructure.Icons
+@using System.Linq.Expressions
+
+<MudStack Spacing="1" Class="flex-grow-1">
+    <div @onclick="@(() => _autocomplete.OpenMenuAsync())">
+        <MudAutocomplete @ref="_autocomplete" T="string" Value="Value" ValueChanged="ValueChanged" For="For" Label="@Label" Placeholder="Type to search icons"
+                          Variant="Variant.Outlined" Margin="Margin.Dense" SearchFunc="SearchAsync" ToStringFunc="IconCatalog.NameOf"
+                          MaxItems="50" CoerceText="false" ResetValueOnEmptyText="true" Dense="true" Strict="false"
+                          Adornment="Adornment.End" AdornmentIcon="@PreviewIcon">
+            <ItemTemplate Context="icon">
+                <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
+                    <MudIcon Icon="@icon" Size="Size.Small" />
+                    <MudText>@IconCatalog.NameOf(icon)</MudText>
+                </MudStack>
+            </ItemTemplate>
+        </MudAutocomplete>
+    </div>
+    <MudLink Href="https://mudblazor.com/features/icons#icons" Target="_blank" Typo="Typo.caption">Browse all icons</MudLink>
+</MudStack>
+
+@code {
+    [Parameter]
+    public string? Value { get; set; }
+
+    [Parameter]
+    public EventCallback<string?> ValueChanged { get; set; }
+
+    [Parameter]
+    public Expression<Func<string?>>? For { get; set; }
+
+    [Parameter]
+    public string Label { get; set; } = "Icon";
+
+    private MudAutocomplete<string> _autocomplete = default!;
+
+    private string? PreviewIcon => string.IsNullOrWhiteSpace(Value) ? null : IconCatalog.Resolve(Value);
+
+    private Task<IEnumerable<string>> SearchAsync(string? term, CancellationToken cancellationToken) =>
+        Task.FromResult<IEnumerable<string>>(IconCatalog.Search(term));
+}

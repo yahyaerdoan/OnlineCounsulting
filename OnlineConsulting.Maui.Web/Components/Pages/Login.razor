@@ -19,10 +19,10 @@
     <LoginErrorSnackbar ErrorMessage="@_errorMessage" GoodbyeToken="@Goodbye" Notice="@Notice" />
 
     <EditForm EditContext="@Form.EditContext" method="post" OnValidSubmit="SubmitAsync" FormName="login">
-        <AuthTextField Label="Username or email" Icon="@Icons.Material.Filled.Person" Placeholder="yourname"
+        <AuthTextField Label="Username or email" Icon="@Icons.Material.Outlined.Person" Placeholder="yourname"
                        @bind-Value="_model.UserNameOrEmail" AutoFocus="true" />
 
-        <AuthTextField Label="Password" Icon="@Icons.Material.Filled.Lock" Placeholder="********" Type="password"
+        <AuthTextField Label="Password" Icon="@Icons.Material.Outlined.Lock" Placeholder="********" Type="password"
                        @bind-Value="_model.Password" />
 
         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-5">
