@@ -8,9 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Pinned directly (nearest-wins) so it doesn't float up to whatever Core.ApplicationLayer's
-         nuspec requests transitively - must match FluentValidation.AspNetCore's supported major
-         version (BusinessLogic.csproj) or MVC model validation throws TypeLoadException. -->
     <PackageReference Include="Core.CrossCuttingConcernLayer" />
     <PackageReference Include="Core.SecurityLayer" />
     <PackageReference Include="FluentValidation" />
