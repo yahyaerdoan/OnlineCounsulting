@@ -367,3 +367,4 @@ FodyWeavers.xsd
 
 # Local architecture/migration working log - internal notes, not for GitHub
 ARCHITECTURE_MIGRATION.md
+.worktrees/
