@@ -65,6 +65,8 @@ namespace OnlineConsulting.Modules.FeatureFlags.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("TenantId", "DeletedDate");
+
                     b.HasIndex("TenantId", "Key")
                         .IsUnique();
 

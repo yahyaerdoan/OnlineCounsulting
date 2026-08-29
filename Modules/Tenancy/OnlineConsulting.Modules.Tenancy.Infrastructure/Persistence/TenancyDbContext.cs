@@ -75,7 +75,7 @@ public class TenancyDbContext(DbContextOptions<TenancyDbContext> options) : DbCo
             _ = builder.HasIndex(i => i.TenantSubscriptionId);
         });
 
-        modelBuilder.ConfigureOutboxEmail();
+        modelBuilder.ConfigureOutboxEmail(ownsMigration: false);
 
         base.OnModelCreating(modelBuilder);
     }

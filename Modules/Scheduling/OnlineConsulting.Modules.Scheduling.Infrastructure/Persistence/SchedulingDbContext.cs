@@ -63,7 +63,7 @@ public class SchedulingDbContext(DbContextOptions<SchedulingDbContext> options, 
             _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
-        modelBuilder.ConfigureOutboxEmail();
+        modelBuilder.ConfigureOutboxEmail(ownsMigration: false);
 
         base.OnModelCreating(modelBuilder);
     }

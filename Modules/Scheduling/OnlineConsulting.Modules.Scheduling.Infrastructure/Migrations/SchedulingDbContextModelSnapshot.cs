@@ -94,6 +94,8 @@ namespace OnlineConsulting.Modules.Scheduling.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
+                    b.HasIndex("TenantId", "DeletedDate");
+
                     b.HasIndex("TenantId", "ScheduledStart");
 
                     b.ToTable("Appointments", "Scheduling");
@@ -143,6 +145,8 @@ namespace OnlineConsulting.Modules.Scheduling.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AppointmentId");
+
+                    b.HasIndex("TenantId", "DeletedDate");
 
                     b.ToTable("AppointmentMediaItems", "Scheduling");
                 });
@@ -194,6 +198,8 @@ namespace OnlineConsulting.Modules.Scheduling.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("TenantId", "DayOfWeek");
+
+                    b.HasIndex("TenantId", "DeletedDate");
 
                     b.ToTable("AvailabilityRules", "Scheduling");
                 });
@@ -259,6 +265,8 @@ namespace OnlineConsulting.Modules.Scheduling.Infrastructure.Migrations
 
                     b.HasIndex("TechnicianUserId");
 
+                    b.HasIndex("TenantId", "DeletedDate");
+
                     b.ToTable("WorkOrders", "Scheduling");
                 });
 
@@ -309,6 +317,8 @@ namespace OnlineConsulting.Modules.Scheduling.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("WorkOrderId");
+
+                    b.HasIndex("TenantId", "DeletedDate");
 
                     b.ToTable("WorkOrderMediaItems", "Scheduling");
                 });

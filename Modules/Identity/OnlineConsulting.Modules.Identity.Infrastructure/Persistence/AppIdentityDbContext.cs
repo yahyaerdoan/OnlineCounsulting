@@ -44,7 +44,7 @@ public class AppIdentityDbContext(DbContextOptions<AppIdentityDbContext> options
             _ = builder.HasIndex(i => new { i.TenantId, i.Email });
         });
 
-        modelBuilder.ConfigureOutboxEmail();
+        modelBuilder.ConfigureOutboxEmail(ownsMigration: false);
 
         base.OnModelCreating(modelBuilder);
     }

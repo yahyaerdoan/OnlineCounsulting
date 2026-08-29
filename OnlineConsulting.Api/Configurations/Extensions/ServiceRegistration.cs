@@ -18,7 +18,7 @@ public static class ServiceRegistration
         // Identity/JWT wiring and role/permission policies live in IdentityModule and AuthorizationAddingBehavior, so this only needs "must be logged in".
         _ = services.AddAuthorization();
         services.AddCors();
-        services.AddSwagger();
+        services.AddApiOpenApi();
         services.AddApiRateLimiting();
 
         // Backs ExceptionMiddleware (Program.cs), which logs every unhandled exception before mapping it to a ProblemDetails response.
@@ -66,29 +66,35 @@ public static class ServiceRegistration
             .AllowCredentials()));
     }
 
-    private static void AddSwagger(this IServiceCollection services)
+    private static void AddApiOpenApi(this IServiceCollection services)
     {
-        _ = services.AddEndpointsApiExplorer();
-        _ = services.AddSwaggerGen(c =>
+        _ = services.AddOpenApi("v1", options =>
         {
-            c.SwaggerDoc("v1", new OpenApiInfo { Title = "OnlineConsulting API", Version = "v1" });
+            options.AddDocumentTransformer((document, _, _) =>
+            {
+                document.Info = new OpenApiInfo { Title = "OnlineConsulting API", Version = "v1" };
 
-            var securityScheme = new OpenApiSecurityScheme
-            {
-                Name = "Authorization",
-                Description = "JWT access token (paste the raw token - \"Bearer \" is added automatically)",
-                In = ParameterLocation.Header,
-                Type = SecuritySchemeType.Http,
-                Scheme = "bearer",
-                BearerFormat = "JWT"
-            };
-            c.AddSecurityDefinition("Bearer", securityScheme);
-            // Must bind the reference to the generated OpenApiDocument (hostDocument param), or Swashbuckle 10.x silently drops the requirement and the Authorize button stops attaching tokens.
-            c.AddSecurityRequirement(document => new OpenApiSecurityRequirement
-            {
-                [new OpenApiSecuritySchemeReference("Bearer", document)] = []
+                var components = document.Components ??= new OpenApiComponents();
+                var securitySchemes = components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
+                securitySchemes["Bearer"] = new OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    Description = "JWT access token (paste the raw token - \"Bearer \" is added automatically)",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer",
+                    BearerFormat = "JWT",
+                };
+
+                var security = document.Security ??= [];
+                security.Add(new OpenApiSecurityRequirement
+                {
+                    [new OpenApiSecuritySchemeReference("Bearer", document)] = [],
+                });
+
+                return Task.CompletedTask;
             });
-            c.OperationFilter<AuthorizeOperationFilter>();
+            options.AddOperationTransformer<AuthorizeOperationTransformer>();
         });
     }
 }

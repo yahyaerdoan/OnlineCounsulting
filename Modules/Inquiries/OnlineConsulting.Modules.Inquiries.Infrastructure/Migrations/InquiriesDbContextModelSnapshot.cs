@@ -82,6 +82,8 @@ namespace OnlineConsulting.Modules.Inquiries.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("TenantId", "DeletedDate");
+
                     b.ToTable("CompanyContacts", "Inquiries");
                 });
 
@@ -144,6 +146,8 @@ namespace OnlineConsulting.Modules.Inquiries.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("TenantId", "DeletedDate");
+
                     b.ToTable("Messages", "Inquiries");
                 });
 
@@ -187,6 +191,8 @@ namespace OnlineConsulting.Modules.Inquiries.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Email");
+
+                    b.HasIndex("TenantId", "DeletedDate");
 
                     b.ToTable("NewsletterSubscribers", "Inquiries");
                 });

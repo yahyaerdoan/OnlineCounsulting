@@ -76,6 +76,8 @@ namespace OnlineConsulting.Modules.Commerce.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
+                    b.HasIndex("TenantId", "DeletedDate");
+
                     b.ToTable("Baskets", "Commerce");
                 });
 
@@ -138,6 +140,8 @@ namespace OnlineConsulting.Modules.Commerce.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("BasketId");
+
+                    b.HasIndex("TenantId", "DeletedDate");
 
                     b.ToTable("BasketItems", "Commerce");
                 });
@@ -210,6 +214,8 @@ namespace OnlineConsulting.Modules.Commerce.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
+                    b.HasIndex("TenantId", "DeletedDate");
+
                     b.ToTable("Orders", "Commerce");
                 });
 
@@ -272,6 +278,8 @@ namespace OnlineConsulting.Modules.Commerce.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("OrderId");
+
+                    b.HasIndex("TenantId", "DeletedDate");
 
                     b.ToTable("OrderItems", "Commerce");
                 });
@@ -358,6 +366,8 @@ namespace OnlineConsulting.Modules.Commerce.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("UserId");
+
+                    b.HasIndex("TenantId", "DeletedDate");
 
                     b.ToTable("UserAddresses", "Commerce");
                 });

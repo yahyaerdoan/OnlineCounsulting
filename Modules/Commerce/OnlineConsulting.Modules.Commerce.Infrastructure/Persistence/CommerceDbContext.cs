@@ -77,7 +77,7 @@ public class CommerceDbContext(DbContextOptions<CommerceDbContext> options, ITen
             _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
-        modelBuilder.ConfigureOutboxEmail();
+        modelBuilder.ConfigureOutboxEmail(ownsMigration: true);
 
         base.OnModelCreating(modelBuilder);
     }

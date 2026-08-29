@@ -3,27 +3,30 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using OnlineConsulting.Modules.Categories.Infrastructure.Persistence;
+using OnlineConsulting.Modules.FeatureFlags.Infrastructure.Persistence;
 
 #nullable disable
 
-namespace OnlineConsulting.Modules.Categories.Infrastructure.Migrations
+namespace OnlineConsulting.Modules.FeatureFlags.Infrastructure.Migrations
 {
-    [DbContext(typeof(CategoriesDbContext))]
-    partial class CategoriesDbContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(FeatureFlagsDbContext))]
+    [Migration("20260829015430_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasDefaultSchema("Categories")
+                .HasDefaultSchema("FeatureFlags")
                 .HasAnnotation("ProductVersion", "10.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("OnlineConsulting.Modules.Categories.Domain.Category", b =>
+            modelBuilder.Entity("OnlineConsulting.Modules.FeatureFlags.Domain.FeatureFlag", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -41,19 +44,13 @@ namespace OnlineConsulting.Modules.Categories.Infrastructure.Migrations
                     b.Property<DateTimeOffset?>("DeletedDate")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("bit");
 
-                    b.Property<string>("Icon")
+                    b.Property<string>("Key")
                         .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
-
-                    b.Property<string>("IconColor")
-                        .HasMaxLength(7)
-                        .HasColumnType("nvarchar(7)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
@@ -62,11 +59,6 @@ namespace OnlineConsulting.Modules.Categories.Infrastructure.Migrations
 
                     b.Property<Guid>("TenantId")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("nvarchar(max)");
@@ -78,7 +70,10 @@ namespace OnlineConsulting.Modules.Categories.Infrastructure.Migrations
 
                     b.HasIndex("TenantId", "DeletedDate");
 
-                    b.ToTable("Categories", "Categories");
+                    b.HasIndex("TenantId", "Key")
+                        .IsUnique();
+
+                    b.ToTable("FeatureFlags", "FeatureFlags");
                 });
 #pragma warning restore 612, 618
         }

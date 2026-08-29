@@ -4,12 +4,19 @@ namespace OnlineConsulting.SharedKernel.Notifications;
 
 public static class OutboxEmailModelBuilderExtensions
 {
-    /// <summary>Maps OutboxEmail to the same fixed schema/table for every DbContext that calls this.</summary>
-    public static void ConfigureOutboxEmail(this ModelBuilder modelBuilder)
+    /// <summary>Maps OutboxEmail to the shared OutboxEmails table. Only one caller should pass
+    /// <paramref name="ownsMigration"/>: true - others must pass false or migrations duplicate the table.</summary>
+    public static void ConfigureOutboxEmail(this ModelBuilder modelBuilder, bool ownsMigration)
     {
         _ = modelBuilder.Entity<OutboxEmail>(builder =>
         {
-            _ = builder.ToTable("OutboxEmails", "Notifications");
+            _ = builder.ToTable("OutboxEmails", "Notifications", t =>
+            {
+                if (!ownsMigration)
+                {
+                    t.ExcludeFromMigrations();
+                }
+            });
             _ = builder.Property(e => e.To).HasMaxLength(320).IsRequired();
             _ = builder.Property(e => e.Cc).HasMaxLength(320);
             _ = builder.Property(e => e.Subject).HasMaxLength(500).IsRequired();

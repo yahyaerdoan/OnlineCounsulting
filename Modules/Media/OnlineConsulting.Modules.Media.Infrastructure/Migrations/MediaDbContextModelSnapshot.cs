@@ -88,6 +88,8 @@ namespace OnlineConsulting.Modules.Media.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("TenantId", "DeletedDate");
+
                     b.ToTable("MediaAssets", "Media");
                 });
 #pragma warning restore 612, 618

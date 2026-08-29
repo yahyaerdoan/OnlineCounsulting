@@ -89,6 +89,8 @@ namespace OnlineConsulting.Modules.Equipment.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
+                    b.HasIndex("TenantId", "DeletedDate");
+
                     b.ToTable("EquipmentItems", "Equipment");
                 });
 #pragma warning restore 612, 618

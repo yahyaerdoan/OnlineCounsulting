@@ -7,7 +7,7 @@ namespace OnlineConsulting.Modules.Scheduling.Infrastructure.Hubs;
 
 /// <summary>Relays a technician's live GPS position to the customer watching a specific appointment. Purely a real-time relay - positions are never persisted (a WorkOrder/Appointment row isn't the right place for a stream of GPS pings, and nothing downstream needs history of them). Group membership is re-validated against the current Appointment on every join, not cached, since AssignedTechnicianUserId can change between connections.</summary>
 [Authorize]
-public class TechnicianTrackingHub(IAppointmentRepository appointmentRepository) : Hub
+public class TechnicianTrackingHub(IAppointmentRepository appointmentRepository) : Hub<ITechnicianTrackingClient>
 {
     public async Task JoinAppointmentTracking(Guid appointmentId)
     {
@@ -38,13 +38,7 @@ public class TechnicianTrackingHub(IAppointmentRepository appointmentRepository)
             throw new HubException("Not authorized to push a location for this appointment.");
         }
 
-        await Clients.Group(GroupName(appointmentId)).SendAsync("ReceivedTechnicianLocation", new
-        {
-            appointmentId,
-            latitude,
-            longitude,
-            timestamp = DateTimeOffset.UtcNow,
-        });
+        await Clients.Group(GroupName(appointmentId)).ReceivedTechnicianLocation(new TechnicianLocationUpdate(appointmentId, latitude, longitude, DateTimeOffset.UtcNow));
     }
 
     public override Task OnDisconnectedAsync(Exception? exception)

@@ -1,5 +1,6 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Concretions;
 using Core.ApplicationLayer.Pipelines.Cachings.Concretions.CacheBehaviors;
+using Core.ApplicationLayer.Pipelines.Cachings.Concretions.CacheSettings;
 using Core.ApplicationLayer.Pipelines.Loggings.Concretions;
 using Core.ApplicationLayer.Pipelines.Validations.Concretions;
 using Core.CrossCuttingConcernLayer.ExceptionHandlings.Extensions;
@@ -45,6 +46,7 @@ using OnlineConsulting.ServiceDefaults;
 using OnlineConsulting.SharedKernel.Tenancy;
 using OnlineConsulting.SharedKernel.Validation;
 using OnlineConsulting.Storage;
+using Scalar.AspNetCore;
 
 FriendlyValidationMessages.Apply();
 
@@ -65,6 +67,7 @@ _ = string.IsNullOrWhiteSpace(redisConnection)
     ? builder.Services.AddDistributedMemoryCache()
     : builder.Services.AddStackExchangeRedisCache(options => options.Configuration = redisConnection);
 
+builder.Services.Configure<CacheSetting>(builder.Configuration.GetSection("CacheSettings"));
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CacheAddingBehavior<,>));
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CacheRemovingBehavior<,>));
 
@@ -138,8 +141,8 @@ app.UseForwardedHeaders();
 
 if (app.Environment.IsDevelopment())
 {
-    _ = app.UseSwagger();
-    _ = app.UseSwaggerUI();
+    _ = app.MapOpenApi();
+    _ = app.MapScalarApiReference();
 }
 
 app.UseHttpsRedirection();

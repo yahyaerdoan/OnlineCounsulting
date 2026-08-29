@@ -17,17 +17,13 @@
     <PackageReference Include="Hateoas.AspNetCore" Version="1.3.0" />
     <PackageReference Include="MediatR" Version="14.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.10" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" GeneratePathProperty="true" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.10" />
+    <PackageReference Include="Microsoft.OpenApi" Version="2.12.2" />
     <PackageReference Include="ResponseResultHandler.AspNetCore" Version="12.0.0-beta.26" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
+    <PackageReference Include="Scalar.AspNetCore" Version="2.17.2" />
   </ItemGroup>
 
-  <!-- The ASP.NET Core OpenApi XML-comment source generator self-registers DI services
-       that fail ServiceProvider validation even though AddOpenApi() is never called (only
-       WithOpenApi()-style transformers are used, for Swashbuckle). The generator ships both via the
-       Microsoft.AspNetCore.OpenApi package's analyzer and (in .NET 10) baked into the shared
-       framework's Microsoft.AspNetCore.App.SourceGenerators.dll, so remove both by filename. -->
   <Target Name="DisableCompileTimeOpenApiXmlGenerator" BeforeTargets="CoreCompile">
     <ItemGroup>
       <Analyzer Remove="@(Analyzer)" Condition="'%(Analyzer.Filename)' == 'Microsoft.AspNetCore.OpenApi.SourceGenerators' or '%(Analyzer.Filename)' == 'Microsoft.AspNetCore.App.SourceGenerators'" />

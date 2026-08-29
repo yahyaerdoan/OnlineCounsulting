@@ -10,7 +10,7 @@ public class NotificationsDbContext(DbContextOptions<NotificationsDbContext> opt
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.ConfigureOutboxEmail();
+        modelBuilder.ConfigureOutboxEmail(ownsMigration: false);
 
         base.OnModelCreating(modelBuilder);
     }

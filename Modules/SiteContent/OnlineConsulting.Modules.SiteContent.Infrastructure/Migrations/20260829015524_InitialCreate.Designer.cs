@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OnlineConsulting.Modules.SiteContent.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using OnlineConsulting.Modules.SiteContent.Infrastructure.Persistence;
 namespace OnlineConsulting.Modules.SiteContent.Infrastructure.Migrations
 {
     [DbContext(typeof(SiteContentDbContext))]
-    partial class SiteContentDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260829015524_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
