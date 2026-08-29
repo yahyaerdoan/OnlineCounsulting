@@ -12,6 +12,7 @@ using OnlineConsulting.Modules.Identity.Application.Features.Users.Contracts;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Rules;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -25,7 +26,7 @@ public record AssignRoleToUserCommand(Guid UserId, List<RoleAssignmentRequest> R
     public string[] Roles => [UsersOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, UsersOperationClaims.Write];
 }
 
-public class AssignRoleToUserHandler(UserManager<User> userManager, ITenantOwnershipReader tenantOwnershipReader, ITenantProvider tenantProvider, IHttpContextAccessor httpContextAccessor)
+public class AssignRoleToUserHandler(UserManager<User> userManager, ITenantOwnershipReader tenantOwnershipReader, ITenantProvider tenantProvider, IHttpContextAccessor httpContextAccessor, ICurrentUserAccessor currentUserAccessor)
     : IRequestHandler<AssignRoleToUserCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(AssignRoleToUserCommand request, CancellationToken cancellationToken)
@@ -44,14 +45,31 @@ public class AssignRoleToUserHandler(UserManager<User> userManager, ITenantOwner
 
         var callerRoles = httpContextAccessor.HttpContext?.User.ClaimRoles() ?? [];
         var superAdminAssignment = request.RoleAssignments.FirstOrDefault(a => a.RoleName == GlobalOperationClaims.SuperAdmin);
-        if (superAdminAssignment is not null && !callerRoles.Contains(GlobalOperationClaims.SuperAdmin))
+        if (superAdminAssignment is not null)
         {
+            var currentlySuperAdmin = await userManager.IsInRoleAsync(user, GlobalOperationClaims.SuperAdmin);
+            var isRevoke = currentlySuperAdmin && !superAdminAssignment.IsAssigned;
+
             // Callers resend the whole role matrix (see UserRolesDialog.razor), so an unchanged
             // SuperAdmin=false entry must pass - only reject an actual grant/revoke attempt.
-            var currentlySuperAdmin = await userManager.IsInRoleAsync(user, GlobalOperationClaims.SuperAdmin);
-            if (currentlySuperAdmin != superAdminAssignment.IsAssigned)
+            if (!callerRoles.Contains(GlobalOperationClaims.SuperAdmin) && currentlySuperAdmin != superAdminAssignment.IsAssigned)
             {
                 return Result.Forbidden("Only a Super Admin may grant or revoke the Super Admin role.");
+            }
+
+            if (isRevoke && currentUserAccessor.UserId == user.Id.ToString())
+            {
+                return Result.Forbidden("You cannot revoke your own Super Admin role.");
+            }
+
+            if (isRevoke)
+            {
+                var superAdmins = await userManager.GetUsersInRoleAsync(GlobalOperationClaims.SuperAdmin);
+                var hasOtherSuperAdmin = superAdmins.Any(a => a.Id != user.Id && a.IsActive);
+                if (!hasOtherSuperAdmin)
+                {
+                    return Result.Forbidden("Cannot revoke the Super Admin role - the platform would be left with no Super Admin.");
+                }
             }
         }
 
