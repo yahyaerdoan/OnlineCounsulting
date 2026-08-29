@@ -6,10 +6,10 @@
     <PackageVersion Include="AWSSDK.S3" Version="4.0.102.1" />
     <PackageVersion Include="AutoMapper" Version="16.2.0" />
     <PackageVersion Include="Azure.Storage.Blobs" Version="12.29.1" />
-    <PackageVersion Include="Core.ApplicationLayer" Version="[1.0.23-beta.23]" />
-    <PackageVersion Include="Core.CrossCuttingConcernLayer" Version="[1.0.23-beta.23]" />
-    <PackageVersion Include="Core.PersistenceLayer" Version="[1.0.23-beta.23]" />
-    <PackageVersion Include="Core.SecurityLayer" Version="[1.0.23-beta.23]" />
+    <PackageVersion Include="Core.ApplicationLayer" Version="1.0.25-beta.25" />
+    <PackageVersion Include="Core.CrossCuttingConcernLayer" Version="1.0.25-beta.25" />
+    <PackageVersion Include="Core.PersistenceLayer" Version="1.0.25-beta.25" />
+    <PackageVersion Include="Core.SecurityLayer" Version="1.0.25-beta.25" />
     <PackageVersion Include="FirebaseAdmin" Version="3.3.0" />
     <PackageVersion Include="FluentValidation" Version="12.1.1" />
     <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="11.5.1" />
