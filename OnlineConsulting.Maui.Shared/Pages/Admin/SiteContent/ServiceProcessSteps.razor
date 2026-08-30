@@ -1,0 +1,69 @@
+@page "/admin/site-content/service-process-steps"
+@attribute [Authorize]
+@using OnlineConsulting.Maui.Shared.Infrastructure.Icons
+@inject IApiClient ApiClient
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<PageTitle>Service Process Steps</PageTitle>
+
+<PageHeroBanner Title="Service Process Steps" Subtitle="Manage the 'how it works' steps shown on the public site.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.Add"
+                   OnClick="CreateAsync">New Step</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+<ServerDataTable TItem="ServiceProcessStepResponse" @ref="_table" ApiBasePath="@ApiRoutes.SiteContent.ServiceProcessStep.All"
+                 SearchPlaceholder="Search title or description" OnLoadError="@(message => _loadError = message)">
+    <HeaderContent>
+        <MudTh>Icon</MudTh>
+        <MudTh><MudTableSortLabel SortLabel="@nameof(ServiceProcessStepResponse.Title)" T="ServiceProcessStepResponse">Title</MudTableSortLabel></MudTh>
+        <MudTh>Description</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate Context="step">
+        <MudTd DataLabel="Icon"><MudIcon Icon="@IconCatalog.Resolve(step.Icon)" Style="@IconCatalog.ColorStyle(step.IconColor)" Size="Size.Small" /></MudTd>
+        <MudTd DataLabel="Title">@step.Title</MudTd>
+        <MudTd DataLabel="Description">@step.Description</MudTd>
+        <MudTd DataLabel="Actions">
+            <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
+                <MudIconButton Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" title="Edit"
+                               OnClick="@(() => EditAsync(step))" />
+
+                <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" title="Delete"
+                               OnClick="@(() => DeleteAsync(step))" />
+            </MudButtonGroup>
+        </MudTd>
+    </RowTemplate>
+</ServerDataTable>
+
+@code {
+    private ServerDataTable<ServiceProcessStepResponse> _table = default!;
+    private string? _loadError;
+
+    private void CreateAsync() => Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/service-process-steps/new");
+
+    private void EditAsync(ServiceProcessStepResponse step) => Navigation.NavigateTo(AppRoutes.AdminHome + $"/site-content/service-process-steps/{step.Id}/edit");
+
+    private async Task DeleteAsync(ServiceProcessStepResponse step)
+    {
+        if (!await DialogService.ConfirmDeleteAsync("service process step", step.Title))
+        {
+            return;
+        }
+
+        var result = await ApiClient.DeleteAsync(ApiRoutes.SiteContent.ServiceProcessStep.ById(step.Id));
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await _table.ReloadAsync();
+    }
+}

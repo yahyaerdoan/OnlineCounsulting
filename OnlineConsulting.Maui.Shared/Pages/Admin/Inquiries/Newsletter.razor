@@ -1,0 +1,51 @@
+@page "/admin/inquiries/newsletter"
+@attribute [Authorize]
+@inject IApiClient ApiClient
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<PageTitle>Newsletter Subscribers</PageTitle>
+
+<PageHeroBanner Title="Newsletter Subscribers" Subtitle="Everyone who signed up for updates on your public site." />
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+<ServerDataTable TItem="NewsletterSubscriberResponse" @ref="_table" ApiBasePath="@ApiRoutes.Inquiries.Newsletter.All"
+                 SearchPlaceholder="Search email" OnLoadError="@(message => _loadError = message)">
+    <HeaderContent>
+        <MudTh>Email</MudTh>
+        <MudTh><MudTableSortLabel SortLabel="@nameof(NewsletterSubscriberResponse.CreatedDate)" T="NewsletterSubscriberResponse">Subscribed</MudTableSortLabel></MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate Context="subscriber">
+        <MudTd DataLabel="Email">@subscriber.Email</MudTd>
+        <MudTd DataLabel="Subscribed">@DateTimeFormat.FormatDateTime(subscriber.CreatedDate)</MudTd>
+        <MudTd DataLabel="Actions">
+            <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" Size="Size.Small" title="Remove"
+                           OnClick="@(() => RemoveAsync(subscriber))" />
+        </MudTd>
+    </RowTemplate>
+</ServerDataTable>
+
+@code {
+    private ServerDataTable<NewsletterSubscriberResponse> _table = default!;
+    private string? _loadError;
+
+    private async Task RemoveAsync(NewsletterSubscriberResponse subscriber)
+    {
+        if (!await DialogService.ConfirmDeleteAsync("subscriber", subscriber.Email))
+        {
+            return;
+        }
+
+        var result = await ApiClient.DeleteAsync(ApiRoutes.Inquiries.Newsletter.ById(subscriber.Id));
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await _table.ReloadAsync();
+    }
+}

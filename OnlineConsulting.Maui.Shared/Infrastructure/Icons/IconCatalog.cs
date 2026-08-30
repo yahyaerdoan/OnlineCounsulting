@@ -61,6 +61,9 @@ public static class IconCatalog
         return ValuesByName.Value.TryGetValue(name, out var value) ? value : storedValue;
     }
 
+    /// <summary>Inline style for a MudIcon's stored color, or null to fall back to the theme default.</summary>
+    public static string? ColorStyle(string? iconColor) => iconColor is null ? null : $"color:{iconColor}";
+
     private static List<(string Name, string Value)> BuildCatalog()
     {
         var result = new List<(string Name, string Value)>();

@@ -4,13 +4,14 @@
 @inject IApiClient ApiClient
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
+@inject NavigationManager Navigation
 
 <PageTitle>Categories</PageTitle>
 
 <PageHeroBanner Title="Categories" Subtitle="Manage the service categories customers browse in your catalog.">
     <ActionContent>
         <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.Add"
-                   OnClick="CreateAsync">New Category</MudButton>
+                   OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/catalog/categories/new"))">New Category</MudButton>
     </ActionContent>
 </PageHeroBanner>
 
@@ -25,13 +26,13 @@
         <MudTh>Actions</MudTh>
     </HeaderContent>
     <RowTemplate Context="category">
-        <MudTd DataLabel="Icon"><MudIcon Icon="@IconCatalog.Resolve(category.Icon)" Style="@(category.IconColor is null ? null : $"color:{category.IconColor}")" Size="Size.Small" /></MudTd>
+        <MudTd DataLabel="Icon"><MudIcon Icon="@IconCatalog.Resolve(category.Icon)" Style="@IconCatalog.ColorStyle(category.IconColor)" Size="Size.Small" /></MudTd>
         <MudTd DataLabel="Title">@category.Title</MudTd>
         <MudTd DataLabel="Description">@category.Description</MudTd>
         <MudTd DataLabel="Actions">
             <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
                 <MudIconButton Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" title="Edit"
-                               OnClick="@(() => EditAsync(category))" />
+                               OnClick="@(() => Navigation.NavigateTo($"{AppRoutes.AdminHome}/catalog/categories/{category.Id}/edit"))" />
 
                 <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" title="Delete"
                                OnClick="@(() => DeleteAsync(category))" />
@@ -43,12 +44,6 @@
 @code {
     private ServerDataTable<CategoryResponse> _table = default!;
     private string? _loadError;
-
-    private Task CreateAsync() =>
-        DialogService.ShowAndReloadAsync<CreateCategoryDialog>("New Category", _table.ReloadAsync);
-
-    private Task EditAsync(CategoryResponse category) =>
-        DialogService.ShowAndReloadAsync("Edit Category", new DialogParameters<EditCategoryDialog> { { x => x.Category, category } }, _table.ReloadAsync);
 
     private async Task DeleteAsync(CategoryResponse category)
     {

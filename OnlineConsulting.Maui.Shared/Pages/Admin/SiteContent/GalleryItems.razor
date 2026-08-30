@@ -1,0 +1,64 @@
+@page "/admin/site-content/gallery-items"
+@attribute [Authorize]
+@inject IApiClient ApiClient
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<PageTitle>Gallery Items</PageTitle>
+
+<PageHeroBanner Title="Gallery Items" Subtitle="Manage the photos shown in your public gallery.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.Add"
+                   OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/gallery-items/new"))">New Item</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+<ServerDataTable TItem="GalleryItemResponse" @ref="_table" ApiBasePath="@ApiRoutes.SiteContent.GalleryItem.All"
+                 SearchPlaceholder="Search description" OnLoadError="@(message => _loadError = message)">
+    <HeaderContent>
+        <MudTh>Description</MudTh>
+        <MudTh>Categories</MudTh>
+        <MudTh><MudTableSortLabel SortLabel="@nameof(GalleryItemResponse.DisplayOrder)" T="GalleryItemResponse">Order</MudTableSortLabel></MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate Context="item">
+        <MudTd DataLabel="Description">@item.Description</MudTd>
+        <MudTd DataLabel="Categories">@string.Join(", ", item.Categories.Select(c => c.Name))</MudTd>
+        <MudTd DataLabel="Order">@item.DisplayOrder</MudTd>
+        <MudTd DataLabel="Actions">
+            <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
+                <MudIconButton Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" title="Edit"
+                               OnClick="@(() => Navigation.NavigateTo($"{AppRoutes.AdminHome}/site-content/gallery-items/{item.Id}/edit"))" />
+
+                <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" title="Delete"
+                               OnClick="@(() => DeleteAsync(item))" />
+            </MudButtonGroup>
+        </MudTd>
+    </RowTemplate>
+</ServerDataTable>
+
+@code {
+    private ServerDataTable<GalleryItemResponse> _table = default!;
+    private string? _loadError;
+
+    private async Task DeleteAsync(GalleryItemResponse item)
+    {
+        if (!await DialogService.ConfirmDeleteAsync("gallery item", item.Description))
+        {
+            return;
+        }
+
+        var result = await ApiClient.DeleteAsync(ApiRoutes.SiteContent.GalleryItem.ById(item.Id));
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await _table.ReloadAsync();
+    }
+}

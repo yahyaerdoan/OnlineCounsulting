@@ -1,0 +1,40 @@
+@namespace OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent
+@using MudBlazor.Utilities
+@using OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent.SocialLinkModels
+
+<MudStack Spacing="3">
+    <MudTextField @bind-Value="Model.Name" For="@(() => Model.Name)" Label="Name" Variant="Variant.Outlined" Margin="Margin.Dense" />
+
+    <MudTextField @bind-Value="Model.Url" For="@(() => Model.Url)" Label="URL" Variant="Variant.Outlined" Margin="Margin.Dense" />
+
+    <MudNumericField @bind-Value="Model.DisplayOrder" For="@(() => Model.DisplayOrder)" Label="Display order" Variant="Variant.Outlined" Margin="Margin.Dense" />
+
+    <IconPicker @bind-Value="Model.Icon" For="@(() => Model.Icon)" />
+
+    <MudStack Spacing="1">
+        <MudColorPicker Value="@ColorValue" ValueChanged="OnColorChanged" Label="Icon color"
+                         Variant="Variant.Outlined" Margin="Margin.Dense" />
+        <MudLink Href="https://mudblazor.com/features/colors" Target="_blank" Typo="Typo.caption">Browse colors</MudLink>
+    </MudStack>
+</MudStack>
+
+@code {
+    [Parameter, EditorRequired]
+    public SocialLinkFormModel Model { get; set; } = default!;
+
+    private MudColor? ColorValue
+    {
+        get
+        {
+            var color = Model.IconColor;
+            if (string.IsNullOrWhiteSpace(color))
+            {
+                return null;
+            }
+
+            return color;
+        }
+    }
+
+    private void OnColorChanged(MudColor? color) => Model.IconColor = color?.ToString(MudColorOutputFormats.Hex);
+}

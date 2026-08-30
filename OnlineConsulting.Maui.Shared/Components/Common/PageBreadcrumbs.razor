@@ -1,7 +1,9 @@
 ﻿@implements IDisposable
+@using OnlineConsulting.Maui.Shared.Infrastructure.Navigation
 @using OnlineConsulting.Maui.Shared.Layout
 @inject NavigationManager Navigation
 @inject UiModuleRegistry ModuleRegistry
+@inject BreadcrumbState Breadcrumb
 
 <MudBreadcrumbs Items="@_trail" Class="pa-0 mb-2 page-breadcrumbs">
     <SeparatorTemplate>
@@ -15,16 +17,27 @@
     protected override void OnInitialized()
     {
         Navigation.LocationChanged += OnLocationChanged;
+        Breadcrumb.Changed += OnBreadcrumbStateChanged;
         BuildTrail();
     }
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
+        // Clear before rebuilding - the outgoing page's extra segment must not flash on the new route.
+        Breadcrumb.Set(null);
         BuildTrail();
         InvokeAsync(StateHasChanged);
     }
 
-    /// <summary>Derives "Home / Section / Page" from the same NavSection data as the drawer.</summary>
+    private void OnBreadcrumbStateChanged()
+    {
+        BuildTrail();
+        InvokeAsync(StateHasChanged);
+    }
+
+    /// <summary>Derives "Home / Section / Page[ / Sub-page]" from the same NavSection data as the
+    /// drawer, matched by longest href prefix so routed sub-pages (create/edit forms, drill-downs)
+    /// inherit their parent NavItem's trail; PageBreadcrumbExtra supplies the trailing segment.</summary>
     private void BuildTrail()
     {
         var currentHref = "/" + Navigation.ToBaseRelativePath(Navigation.Uri).Split('?')[0].TrimEnd('/');
@@ -37,16 +50,29 @@
 
         var match = ModuleRegistry.NavSections
             .SelectMany(section => section.Items.Select(item => (section, item)))
-            .FirstOrDefault(pair => string.Equals(pair.item.Href, currentHref, StringComparison.OrdinalIgnoreCase));
+            .Where(pair => string.Equals(pair.item.Href, currentHref, StringComparison.OrdinalIgnoreCase)
+                || currentHref.StartsWith(pair.item.Href + "/", StringComparison.OrdinalIgnoreCase))
+            .OrderByDescending(pair => pair.item.Href.Length)
+            .FirstOrDefault();
 
         if (match.item is not null)
         {
+            var isCurrentPage = string.Equals(match.item.Href, currentHref, StringComparison.OrdinalIgnoreCase);
             trail.Add(new BreadcrumbItem(match.section.Title, href: null, disabled: true));
-            trail.Add(new BreadcrumbItem(match.item.Text, href: match.item.Href, disabled: true));
+            trail.Add(new BreadcrumbItem(match.item.Text, href: match.item.Href, disabled: isCurrentPage));
+
+            if (!isCurrentPage && Breadcrumb.ExtraSegment is { } extra)
+            {
+                trail.Add(new BreadcrumbItem(extra, href: null, disabled: true));
+            }
         }
 
         _trail = trail;
     }
 
-    public void Dispose() => Navigation.LocationChanged -= OnLocationChanged;
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= OnLocationChanged;
+        Breadcrumb.Changed -= OnBreadcrumbStateChanged;
+    }
 }

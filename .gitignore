@@ -368,3 +368,6 @@ FodyWeavers.xsd
 # Local architecture/migration working log - internal notes, not for GitHub
 ARCHITECTURE_MIGRATION.md
 .worktrees/
+
+# SDD implementation plans - internal working docs, not for GitHub
+docs/superpowers/plans/

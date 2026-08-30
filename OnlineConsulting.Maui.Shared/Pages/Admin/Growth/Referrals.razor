@@ -1,6 +1,43 @@
 @page "/admin/growth/referrals"
 @attribute [Authorize]
+@using OnlineConsulting.Maui.Shared.Pages.Admin.Growth
+@inject IApiClient ApiClient
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
 
 <PageTitle>Referrals</PageTitle>
 
-<ComingSoon Title="Referrals" Subtitle="Track referral programs and reward payouts." />
+<PageHeroBanner Title="Referrals" Subtitle="Customer referral codes and reward payouts." />
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+<ServerDataTable TItem="ReferralResponse" @ref="_table" ApiBasePath="@ApiRoutes.Growth.Referrals.All"
+                 SearchPlaceholder="Search code, status or email" OnLoadError="@(message => _loadError = message)">
+    <HeaderContent>
+        <MudTh>Code</MudTh>
+        <MudTh>Referrer</MudTh>
+        <MudTh>Referred</MudTh>
+        <MudTh>Status</MudTh>
+        <MudTh Class="mud-table-cell-align-right">Reward</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate Context="referral">
+        <MudTd DataLabel="Code">@referral.Code</MudTd>
+        <MudTd DataLabel="Referrer">@(referral.ReferrerName ?? referral.ReferrerEmail ?? "-")</MudTd>
+        <MudTd DataLabel="Referred">@(referral.ReferredName ?? referral.ReferredEmail ?? "-")</MudTd>
+        <MudTd DataLabel="Status">@referral.Status</MudTd>
+        <MudTd DataLabel="Reward" Class="mud-table-cell-align-right">@(referral.RewardAmount is { } amount ? CurrencyFormat.Format(amount) : "-")</MudTd>
+        <MudTd DataLabel="Actions">
+            <MudIconButton Icon="@Icons.Material.Outlined.CardGiftcard" Color="Color.Primary" Size="Size.Small" title="Complete"
+                           Disabled="@(referral.Status == "Rewarded")" OnClick="@(() => CompleteAsync(referral))" />
+        </MudTd>
+    </RowTemplate>
+</ServerDataTable>
+
+@code {
+    private ServerDataTable<ReferralResponse> _table = default!;
+    private string? _loadError;
+
+    private Task CompleteAsync(ReferralResponse referral) =>
+        DialogService.ShowAndReloadAsync("Complete Referral", new DialogParameters<CompleteReferralDialog> { { x => x.Referral, referral } }, _table.ReloadAsync);
+}

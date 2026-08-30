@@ -1,0 +1,113 @@
+@page "/admin/site-content/testimonials/new"
+@page "/admin/site-content/testimonials/{Id:guid}/edit"
+@namespace OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent
+@attribute [Authorize]
+@using OnlineConsulting.Maui.Shared.Infrastructure.Forms
+@using OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent.TestimonialModels
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject FormState<TestimonialFormModel> Form
+
+<PageTitle>@(Id is null ? "New Testimonial" : "Edit Testimonial")</PageTitle>
+
+<PageHeroBanner Title="@(Id is null ? "New Testimonial" : "Edit Testimonial")" Subtitle="Shown in the public testimonials section.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.ArrowBack"
+                   OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/testimonials"))">Back to Testimonials</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+<PageBreadcrumbExtra Text="@(Id is null ? "New Testimonial" : "Edit Testimonial")" />
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+<EditForm EditContext="@Form.EditContext">
+    <MudPaper Class="pa-4">
+        <TestimonialFormFields Model="_model" />
+
+        <MudDivider Class="my-4" />
+
+        <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2">
+            <MudButton Variant="Variant.Text" OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/testimonials"))">Cancel</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAsync" Disabled="@Form.IsBusy">
+                @(Id is null ? "Create" : "Save")
+            </MudButton>
+        </MudStack>
+    </MudPaper>
+</EditForm>
+
+@code {
+    [Parameter]
+    public Guid? Id { get; set; }
+
+    private readonly TestimonialFormModel _model = new();
+    private string? _loadError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Bind before any await - Blazor can render (and touch Form.EditContext) after the first yield point.
+        Form.Bind(_model);
+
+        if (Id is not { } testimonialId)
+        {
+            return;
+        }
+
+        // No GetById endpoint exists - fetch the unbounded public list and find the entry.
+        var listResult = await ApiClient.GetAsync<List<TestimonialResponse>>(ApiRoutes.SiteContent.Testimonial.Base);
+        var testimonial = listResult.IsSuccessful ? listResult.ResultData?.Find(t => t.Id == testimonialId) : null;
+        if (testimonial is null)
+        {
+            _loadError = listResult.DisplayMessage;
+            return;
+        }
+
+        _model.FirstName = testimonial.FirstName;
+        _model.LastName = testimonial.LastName;
+        _model.Title = testimonial.Title;
+        _model.Description = testimonial.Description;
+        _model.ImageUrl = testimonial.ImageUrl;
+        _model.DisplayOrder = testimonial.DisplayOrder;
+    }
+
+    private Task SaveAsync() => Form.SubmitAsync(async () =>
+    {
+        var body = new
+        {
+            firstName = _model.FirstName,
+            lastName = _model.LastName,
+            title = _model.Title,
+            description = _model.Description,
+            imageUrl = _model.ImageUrl,
+            displayOrder = _model.DisplayOrder,
+        };
+
+        if (Id is null)
+        {
+            var createResult = await ApiClient.PostAsync(ApiRoutes.SiteContent.Testimonial.Base, body);
+            if (!createResult.IsSuccessful)
+            {
+                Form.DisplayErrors(createResult, Snackbar);
+                return;
+            }
+
+            CompleteSave(createResult.DisplayMessage);
+            return;
+        }
+
+        var result = await ApiClient.PutAsync(ApiRoutes.SiteContent.Testimonial.ById(Id.Value), body);
+        if (!result.IsSuccessful)
+        {
+            Form.DisplayErrors(result, Snackbar);
+            return;
+        }
+
+        CompleteSave(result.DisplayMessage);
+    });
+
+    private void CompleteSave(string message)
+    {
+        Snackbar.ShowSuccess(message);
+        Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/testimonials");
+    }
+}

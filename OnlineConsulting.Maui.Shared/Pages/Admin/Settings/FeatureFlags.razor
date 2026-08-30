@@ -1,6 +1,83 @@
 @page "/admin/settings/feature-flags"
 @attribute [Authorize]
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
 
 <PageTitle>Feature Flags</PageTitle>
 
-<ComingSoon Title="Feature Flags" Subtitle="Toggle features on or off per tenant without a deploy." />
+<PageHeroBanner Title="Feature Flags" Subtitle="Toggle features on or off for this tenant without a deploy." />
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mt-4" />
+}
+else
+{
+    <SearchableTable TItem="FeatureFlagResponse" Items="_flags" Filter="@((flag, text) => flag.Key.Contains(text, StringComparison.OrdinalIgnoreCase))"
+                      SearchPlaceholder="Search feature">
+        <HeaderContent>
+            <MudTh>Feature</MudTh>
+            <MudTh>Price</MudTh>
+            <MudTh Class="mud-table-cell-align-right">Enabled</MudTh>
+        </HeaderContent>
+        <RowTemplate Context="flag">
+            <MudTd DataLabel="Feature">
+                @flag.Key
+                @if (!flag.IsPurchased && flag.Price is not null)
+                {
+                    <MudChip T="string" Size="Size.Small" Color="Color.Default" Class="ml-2">Not purchased</MudChip>
+                }
+            </MudTd>
+            <MudTd DataLabel="Price">@(flag.Price is { } price ? CurrencyFormat.Format(price) : "-")</MudTd>
+            <MudTd DataLabel="Enabled" Class="mud-table-cell-align-right">
+                <MudSwitch T="bool" Value="@flag.IsEnabled" ValueChanged="@(isEnabled => ToggleAsync(flag, isEnabled))" Color="Color.Primary" Disabled="@(_togglingKey == flag.Key)" />
+            </MudTd>
+        </RowTemplate>
+    </SearchableTable>
+}
+
+@code {
+    private List<FeatureFlagResponse> _flags = [];
+    private bool _loading = true;
+    private string? _loadError;
+    private string? _togglingKey;
+
+    protected override Task OnInitializedAsync() => ReloadAsync();
+
+    private async Task ReloadAsync()
+    {
+        _loading = true;
+        var result = await ApiClient.GetAsync<List<FeatureFlagResponse>>(ApiRoutes.Settings.FeatureFlags.Get);
+        if (!result.IsSuccessful || result.ResultData is null)
+        {
+            _loadError = result.DisplayMessage;
+            _flags = [];
+        }
+        else
+        {
+            _flags = result.ResultData;
+        }
+
+        _loading = false;
+    }
+
+    private async Task ToggleAsync(FeatureFlagResponse flag, bool isEnabled)
+    {
+        _togglingKey = flag.Key;
+
+        var result = await ApiClient.PutAsync(ApiRoutes.Settings.FeatureFlags.Set(flag.Key), new { isEnabled });
+
+        _togglingKey = null;
+
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await ReloadAsync();
+    }
+}

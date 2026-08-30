@@ -1,0 +1,68 @@
+@page "/admin/site-content/feature-highlights"
+@attribute [Authorize]
+@inject IApiClient ApiClient
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<PageTitle>Feature Highlights</PageTitle>
+
+<PageHeroBanner Title="Feature Highlights" Subtitle="Manage the 'what we provide' feature cards shown on the public site.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.Add"
+                   OnClick="CreateAsync">New Highlight</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+<ServerDataTable TItem="FeatureHighlightResponse" @ref="_table" ApiBasePath="@ApiRoutes.SiteContent.FeatureHighlight.All"
+                 SearchPlaceholder="Search title or description" OnLoadError="@(message => _loadError = message)">
+    <HeaderContent>
+        <MudTh>Image</MudTh>
+        <MudTh><MudTableSortLabel SortLabel="@nameof(FeatureHighlightResponse.Title)" T="FeatureHighlightResponse">Title</MudTableSortLabel></MudTh>
+        <MudTh>Description</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate Context="highlight">
+        <MudTd DataLabel="Image"><MudAvatar Size="Size.Small" Square="true"><MudImage Src="@highlight.ImageUrl" /></MudAvatar></MudTd>
+        <MudTd DataLabel="Title">@highlight.Title</MudTd>
+        <MudTd DataLabel="Description">@highlight.Description</MudTd>
+        <MudTd DataLabel="Actions">
+            <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
+                <MudIconButton Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" title="Edit"
+                               OnClick="@(() => EditAsync(highlight))" />
+
+                <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" title="Delete"
+                               OnClick="@(() => DeleteAsync(highlight))" />
+            </MudButtonGroup>
+        </MudTd>
+    </RowTemplate>
+</ServerDataTable>
+
+@code {
+    private ServerDataTable<FeatureHighlightResponse> _table = default!;
+    private string? _loadError;
+
+    private void CreateAsync() => Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/feature-highlights/new");
+
+    private void EditAsync(FeatureHighlightResponse highlight) => Navigation.NavigateTo(AppRoutes.AdminHome + $"/site-content/feature-highlights/{highlight.Id}/edit");
+
+    private async Task DeleteAsync(FeatureHighlightResponse highlight)
+    {
+        if (!await DialogService.ConfirmDeleteAsync("feature highlight", highlight.Title))
+        {
+            return;
+        }
+
+        var result = await ApiClient.DeleteAsync(ApiRoutes.SiteContent.FeatureHighlight.ById(highlight.Id));
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await _table.ReloadAsync();
+    }
+}

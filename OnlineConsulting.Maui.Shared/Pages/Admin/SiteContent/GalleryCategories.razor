@@ -1,0 +1,67 @@
+@page "/admin/site-content/gallery-categories"
+@attribute [Authorize]
+@inject IApiClient ApiClient
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<PageTitle>Gallery Categories</PageTitle>
+
+<PageHeroBanner Title="Gallery Categories" Subtitle="Manage the tags your gallery photos are grouped by.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.Add"
+                   OnClick="CreateAsync">New Category</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+<ServerDataTable TItem="GalleryCategoryResponse" @ref="_table" ApiBasePath="@ApiRoutes.SiteContent.GalleryCategory.All"
+                 SearchPlaceholder="Search name or description" OnLoadError="@(message => _loadError = message)">
+    <HeaderContent>
+        <MudTh><MudTableSortLabel SortLabel="@nameof(GalleryCategoryResponse.Name)" T="GalleryCategoryResponse">Name</MudTableSortLabel></MudTh>
+        <MudTh>Description</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate Context="category">
+        <MudTd DataLabel="Name">@category.Name</MudTd>
+        <MudTd DataLabel="Description">@category.Description</MudTd>
+        <MudTd DataLabel="Actions">
+            <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
+                <MudIconButton Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" title="Edit"
+                               OnClick="@(() => EditAsync(category))" />
+
+                <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" title="Delete"
+                               OnClick="@(() => DeleteAsync(category))" />
+            </MudButtonGroup>
+        </MudTd>
+    </RowTemplate>
+</ServerDataTable>
+
+@code {
+    private ServerDataTable<GalleryCategoryResponse> _table = default!;
+    private string? _loadError;
+
+    private Task CreateAsync() =>
+        DialogService.ShowAndReloadAsync<CreateGalleryCategoryDialog>("New Gallery Category", _table.ReloadAsync);
+
+    private Task EditAsync(GalleryCategoryResponse category) =>
+        DialogService.ShowAndReloadAsync("Edit Gallery Category", new DialogParameters<EditGalleryCategoryDialog> { { x => x.Category, category } }, _table.ReloadAsync);
+
+    private async Task DeleteAsync(GalleryCategoryResponse category)
+    {
+        if (!await DialogService.ConfirmDeleteAsync("gallery category", category.Name))
+        {
+            return;
+        }
+
+        var result = await ApiClient.DeleteAsync(ApiRoutes.SiteContent.GalleryCategory.ById(category.Id));
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await _table.ReloadAsync();
+    }
+}

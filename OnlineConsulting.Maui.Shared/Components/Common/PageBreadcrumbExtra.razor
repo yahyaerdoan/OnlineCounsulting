@@ -1,0 +1,12 @@
+@implements IDisposable
+@using OnlineConsulting.Maui.Shared.Infrastructure.Navigation
+@inject BreadcrumbState Breadcrumb
+
+@code {
+    [Parameter, EditorRequired]
+    public string Text { get; set; } = string.Empty;
+
+    protected override void OnParametersSet() => Breadcrumb.Set(Text);
+
+    public void Dispose() => Breadcrumb.Set(null);
+}

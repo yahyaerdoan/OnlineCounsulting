@@ -1,8 +1,19 @@
-﻿using OnlineConsulting.Modules.Inquiries.Domain;
+using Hateoas;
+using OnlineConsulting.Modules.Inquiries.Domain;
 
 namespace OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.Contracts;
 
-public record NewsletterSubscriberResponse(Guid Id, string Email, DateTimeOffset CreatedDate)
+/// <summary>Subscriber response as a class with required init properties, since records can't inherit the plain LinkedResponse class.</summary>
+public class NewsletterSubscriberResponse : LinkedResponse
 {
-    public static NewsletterSubscriberResponse FromDomain(NewsletterSubscriber subscriber) => new(subscriber.Id, subscriber.Email, subscriber.CreatedDate);
+    public required Guid Id { get; init; }
+    public required string Email { get; init; }
+    public required DateTimeOffset CreatedDate { get; init; }
+
+    public static NewsletterSubscriberResponse FromDomain(NewsletterSubscriber subscriber) => new()
+    {
+        Id = subscriber.Id,
+        Email = subscriber.Email,
+        CreatedDate = subscriber.CreatedDate,
+    };
 }

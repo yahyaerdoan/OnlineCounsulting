@@ -1,0 +1,137 @@
+@page "/admin/growth/promotions/new"
+@page "/admin/growth/promotions/{Id:guid}/edit"
+@attribute [Authorize]
+@using OnlineConsulting.Maui.Shared.Infrastructure.Forms
+@using OnlineConsulting.Maui.Shared.Pages.Admin.Growth.PromotionModels
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject FormState<PromotionFormModel> Form
+
+<PageTitle>@(Id is null ? "New Promotion" : "Edit Promotion")</PageTitle>
+
+<PageHeroBanner Title="@(Id is null ? "New Promotion" : "Edit Promotion")" Subtitle="Shown to customers browsing your public site.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.ArrowBack"
+                   OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/growth/promotions"))">Back to Promotions</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+<PageBreadcrumbExtra Text="@(Id is null ? "New Promotion" : "Edit Promotion")" />
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+<EditForm EditContext="@Form.EditContext">
+    <MudPaper Class="pa-4">
+        <MudGrid>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_model.Title" For="@(() => _model.Title)" Label="Title" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_model.Description" For="@(() => _model.Description)" Label="Description" Variant="Variant.Outlined" Margin="Margin.Dense"
+                              Lines="1" MaxLines="5" Sizing="InputSizing.Auto" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="_model.CtaText" For="@(() => _model.CtaText)" Label="Call-to-action text" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="_model.CtaUrl" For="@(() => _model.CtaUrl)" Label="Call-to-action URL" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudDatePicker @bind-Date="_model.ExpiresAt" Label="Expires" Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudNumericField @bind-Value="_model.DisplayOrder" For="@(() => _model.DisplayOrder)" Label="Display order" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
+        </MudGrid>
+
+        <MudDivider Class="my-4" />
+
+        <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2">
+            <MudButton Variant="Variant.Text" OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/growth/promotions"))">Cancel</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAsync" Disabled="@Form.IsBusy">
+                @(Id is null ? "Create" : "Save")
+            </MudButton>
+        </MudStack>
+    </MudPaper>
+</EditForm>
+
+@code {
+    [Parameter]
+    public Guid? Id { get; set; }
+
+    private readonly PromotionFormModel _model = new();
+    private string? _loadError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Bind before any await - Blazor can render (and touch Form.EditContext) after the first yield point.
+        Form.Bind(_model);
+
+        if (Id is not { } promotionId)
+        {
+            return;
+        }
+
+        var result = await ApiClient.QueryAsync<PaginatedResponse<PromotionResponse>>(ApiRoutes.Paged(ApiRoutes.Growth.Promotions.All, 0, int.MaxValue), null);
+        if (!result.IsSuccessful || result.ResultData is null)
+        {
+            _loadError = result.DisplayMessage;
+            return;
+        }
+
+        var promotion = result.ResultData.Items.FirstOrDefault(p => p.Id == promotionId);
+        if (promotion is null)
+        {
+            _loadError = "Promotion not found.";
+            return;
+        }
+
+        _model.Title = promotion.Title;
+        _model.Description = promotion.Description;
+        _model.CtaText = promotion.CtaText;
+        _model.CtaUrl = promotion.CtaUrl;
+        _model.ExpiresAt = promotion.ExpiresAt?.DateTime;
+        _model.DisplayOrder = promotion.DisplayOrder;
+    }
+
+    private Task SaveAsync() => Form.SubmitAsync(async () =>
+    {
+        var body = new
+        {
+            title = _model.Title,
+            description = _model.Description,
+            ctaText = _model.CtaText,
+            ctaUrl = _model.CtaUrl,
+            expiresAt = (DateTimeOffset?)_model.ExpiresAt,
+            displayOrder = _model.DisplayOrder,
+        };
+
+        if (Id is null)
+        {
+            var createResult = await ApiClient.PostAsync(ApiRoutes.Growth.Promotions.Base, body);
+            if (!createResult.IsSuccessful)
+            {
+                Form.DisplayErrors(createResult, Snackbar);
+                return;
+            }
+
+            CompleteSave(createResult.DisplayMessage);
+            return;
+        }
+
+        var result = await ApiClient.PutAsync(ApiRoutes.Growth.Promotions.ById(Id.Value), body);
+        if (!result.IsSuccessful)
+        {
+            Form.DisplayErrors(result, Snackbar);
+            return;
+        }
+
+        CompleteSave(result.DisplayMessage);
+    });
+
+    private void CompleteSave(string message)
+    {
+        Snackbar.ShowSuccess(message);
+        Navigation.NavigateTo(AppRoutes.AdminHome + "/growth/promotions");
+    }
+}

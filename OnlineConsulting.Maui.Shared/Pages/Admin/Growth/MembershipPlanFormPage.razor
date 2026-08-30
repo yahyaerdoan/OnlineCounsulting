@@ -1,0 +1,169 @@
+@page "/admin/growth/memberships/new"
+@page "/admin/growth/memberships/{Id:guid}/edit"
+@attribute [Authorize]
+@using OnlineConsulting.Maui.Shared.Infrastructure.Forms
+@using OnlineConsulting.Maui.Shared.Pages.Admin.Growth.MembershipPlanModels
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject FormState<MembershipPlanFormModel> Form
+
+<PageTitle>@(Id is null ? "New Plan" : "Edit Plan")</PageTitle>
+
+<PageHeroBanner Title="@(Id is null ? "New Membership Plan" : "Edit Membership Plan")" Subtitle="A subscription tier customers can purchase.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.ArrowBack"
+                   OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/growth/memberships"))">Back to Memberships</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+<PageBreadcrumbExtra Text="@(Id is null ? "New Plan" : "Edit Plan")" />
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+<EditForm EditContext="@Form.EditContext">
+    <MudPaper Class="pa-4">
+        <MudGrid>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="_model.Name" For="@(() => _model.Name)" Label="Name" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                @if (Id is null)
+                {
+                    <MudSelect T="string" @bind-Value="_model.BillingCycle" Label="Billing cycle" Variant="Variant.Outlined" Margin="Margin.Dense">
+                        <MudSelectItem T="string" Value="@("Monthly")">Monthly</MudSelectItem>
+                        <MudSelectItem T="string" Value="@("Annual")">Annual</MudSelectItem>
+                    </MudSelect>
+                }
+                else
+                {
+                    <MudTextField Value="@_model.BillingCycle" Label="Billing cycle" Variant="Variant.Outlined" Margin="Margin.Dense" ReadOnly="true" Disabled="true" />
+                }
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                @if (Id is null)
+                {
+                    <MudNumericField @bind-Value="_model.Price" For="@(() => _model.Price)" Label="Price" Variant="Variant.Outlined" Margin="Margin.Dense" Min="0" Format="F2"
+                                     Adornment="Adornment.Start" AdornmentText="$" HideSpinButtons="true" />
+                }
+                else
+                {
+                    <MudTextField Value="@CurrencyFormat.Format(_model.Price)" Label="Price" Variant="Variant.Outlined" Margin="Margin.Dense" ReadOnly="true" Disabled="true" />
+                }
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudNumericField @bind-Value="_model.IncludedVisitsPerYear" For="@(() => _model.IncludedVisitsPerYear)" Label="Included visits/year" Variant="Variant.Outlined" Margin="Margin.Dense" Min="0" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudNumericField @bind-Value="_model.DiscountPercent" For="@(() => _model.DiscountPercent)" Label="Discount" Variant="Variant.Outlined" Margin="Margin.Dense" Min="0" Max="100" Format="F2"
+                                 Adornment="Adornment.End" AdornmentText="%" HideSpinButtons="true" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudNumericField @bind-Value="_model.CreditAmount" For="@(() => _model.CreditAmount)" Label="Credit amount" Variant="Variant.Outlined" Margin="Margin.Dense" Min="0" Format="F2"
+                                 Adornment="Adornment.Start" AdornmentText="$" HideSpinButtons="true" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_model.Benefits" For="@(() => _model.Benefits)" Label="Benefits" Variant="Variant.Outlined" Margin="Margin.Dense"
+                              Lines="1" MaxLines="5" Sizing="InputSizing.Auto" />
+            </MudItem>
+        </MudGrid>
+
+        <MudDivider Class="my-4" />
+
+        <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2">
+            <MudButton Variant="Variant.Text" OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/growth/memberships"))">Cancel</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAsync" Disabled="@Form.IsBusy">
+                @(Id is null ? "Create" : "Save")
+            </MudButton>
+        </MudStack>
+    </MudPaper>
+</EditForm>
+
+@code {
+    [Parameter]
+    public Guid? Id { get; set; }
+
+    private readonly MembershipPlanFormModel _model = new();
+    private string? _loadError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Bind before any await - Blazor can render (and touch Form.EditContext) after the first yield point.
+        Form.Bind(_model);
+
+        if (Id is not { } planId)
+        {
+            return;
+        }
+
+        var result = await ApiClient.GetAsync<PaginatedResponse<MembershipPlanResponse>>(ApiRoutes.Paged(ApiRoutes.Growth.MembershipPlans.All, 0, 100));
+        if (!result.IsSuccessful || result.ResultData is null)
+        {
+            _loadError = result.DisplayMessage;
+            return;
+        }
+
+        var plan = result.ResultData.Items.FirstOrDefault(p => p.Id == planId);
+        if (plan is null)
+        {
+            _loadError = "Plan not found.";
+            return;
+        }
+
+        _model.Name = plan.Name;
+        _model.BillingCycle = plan.BillingCycle;
+        _model.Price = plan.Price;
+        _model.IncludedVisitsPerYear = plan.IncludedVisitsPerYear;
+        _model.DiscountPercent = plan.DiscountPercent;
+        _model.CreditAmount = plan.CreditAmount;
+        _model.Benefits = plan.Benefits;
+    }
+
+    private Task SaveAsync() => Form.SubmitAsync(async () =>
+    {
+        if (Id is null)
+        {
+            var createResult = await ApiClient.PostAsync(ApiRoutes.Growth.MembershipPlans.Base, new
+            {
+                name = _model.Name,
+                billingCycle = _model.BillingCycle,
+                price = _model.Price,
+                includedVisitsPerYear = _model.IncludedVisitsPerYear,
+                discountPercent = _model.DiscountPercent,
+                creditAmount = _model.CreditAmount,
+                benefits = _model.Benefits,
+            });
+
+            if (!createResult.IsSuccessful)
+            {
+                Form.DisplayErrors(createResult, Snackbar);
+                return;
+            }
+
+            CompleteSave(createResult.DisplayMessage);
+            return;
+        }
+
+        var result = await ApiClient.PutAsync(ApiRoutes.Growth.MembershipPlans.ById(Id.Value), new
+        {
+            name = _model.Name,
+            includedVisitsPerYear = _model.IncludedVisitsPerYear,
+            discountPercent = _model.DiscountPercent,
+            creditAmount = _model.CreditAmount,
+            benefits = _model.Benefits,
+        });
+
+        if (!result.IsSuccessful)
+        {
+            Form.DisplayErrors(result, Snackbar);
+            return;
+        }
+
+        CompleteSave(result.DisplayMessage);
+    });
+
+    private void CompleteSave(string message)
+    {
+        Snackbar.ShowSuccess(message);
+        Navigation.NavigateTo(AppRoutes.AdminHome + "/growth/memberships");
+    }
+}

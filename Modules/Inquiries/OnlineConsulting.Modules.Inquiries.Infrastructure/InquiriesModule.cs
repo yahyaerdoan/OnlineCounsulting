@@ -38,6 +38,7 @@ public static class InquiriesModule
         _ = services.AddScoped<IEmailOutboxWriter<IInquiriesOutboxModule>, EmailOutboxWriter>();
 
         _ = services.AddScoped<IEmailTemplate<MessageReceivedEmailModel>, MessageReceivedTemplate>();
+        _ = services.AddScoped<IEmailTemplate<MessageReplyEmailModel>, MessageReplyTemplate>();
         _ = services.AddScoped<IEmailTemplate<NewInquiryNotificationEmailModel>, NewInquiryNotificationTemplate>();
         _ = services.AddScoped<IEmailTemplate<NewsletterSubscribedEmailModel>, NewsletterSubscribedTemplate>();
 

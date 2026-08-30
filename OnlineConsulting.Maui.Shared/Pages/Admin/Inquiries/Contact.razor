@@ -1,0 +1,93 @@
+@page "/admin/inquiries/contact"
+@attribute [Authorize]
+@using OnlineConsulting.Maui.Shared.Infrastructure.Forms
+@using OnlineConsulting.Maui.Shared.Pages.Admin.Inquiries.ContactModels
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+@inject FormState<ContactFormModel> Form
+
+<PageTitle>Contact Information</PageTitle>
+
+<PageHeroBanner Title="Contact Information" Subtitle="The company contact details shown on the public site." />
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mt-4" />
+}
+else
+{
+    <MudPaper Class="pa-4 mt-4" Outlined="true">
+        <EditForm EditContext="@Form.EditContext">
+            <MudGrid>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_model.Email" For="@(() => _model.Email)" Label="Email" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_model.Phone" For="@(() => _model.Phone)" Label="Phone" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_model.Address" For="@(() => _model.Address)" Label="Address" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_model.Description" For="@(() => _model.Description)" Label="Description" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                  Lines="1" MaxLines="5" Sizing="InputSizing.Auto" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_model.WorkingHours" For="@(() => _model.WorkingHours)" Label="Working hours" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+            </MudGrid>
+
+            <MudStack Row="true" Justify="Justify.FlexEnd" Class="mt-4">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAsync" Disabled="@Form.IsBusy">Save</MudButton>
+            </MudStack>
+        </EditForm>
+    </MudPaper>
+}
+
+@code {
+    private readonly ContactFormModel _model = new();
+    private bool _loading = true;
+    private string? _loadError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Form.Bind(_model);
+
+        var result = await ApiClient.GetAsync<CompanyContactResponse>(ApiRoutes.Inquiries.Contact.Get);
+        if (!result.IsSuccessful || result.ResultData is null)
+        {
+            _loadError = result.DisplayMessage;
+            _loading = false;
+            return;
+        }
+
+        _model.Email = result.ResultData.Email;
+        _model.Phone = result.ResultData.Phone;
+        _model.Address = result.ResultData.Address;
+        _model.Description = result.ResultData.Description;
+        _model.WorkingHours = result.ResultData.WorkingHours;
+        _loading = false;
+    }
+
+    private Task SaveAsync() => Form.SubmitAsync(async () =>
+    {
+        var result = await ApiClient.PutAsync(ApiRoutes.Inquiries.Contact.Update, new
+        {
+            email = _model.Email,
+            phone = _model.Phone,
+            address = _model.Address,
+            description = _model.Description,
+            workingHours = _model.WorkingHours,
+        });
+
+        if (!result.IsSuccessful)
+        {
+            Form.DisplayErrors(result, Snackbar);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+    });
+}

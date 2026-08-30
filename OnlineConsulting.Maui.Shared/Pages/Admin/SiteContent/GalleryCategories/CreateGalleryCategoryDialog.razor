@@ -1,19 +1,19 @@
-@namespace OnlineConsulting.Maui.Shared.Pages.Admin.Catalog
+@namespace OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent
 @using OnlineConsulting.Maui.Shared.Infrastructure.Forms
-@using OnlineConsulting.Maui.Shared.Pages.Admin.Catalog.CategoryModels
+@using OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent.GalleryCategoryModels
 @inject IApiClient ApiClient
 @inject ISnackbar Snackbar
-@inject FormState<CategoryFormModel> Form
+@inject FormState<GalleryCategoryFormModel> Form
 
 <MudDialog>
     <TitleContent>
-        <MudText Typo="Typo.h6">New Category</MudText>
+        <MudText Typo="Typo.h6">New Gallery Category</MudText>
     </TitleContent>
     <DialogContent>
-        <EntitySummaryHeader Title="New Category" Subtitle="Shown to customers browsing your catalog." />
+        <EntitySummaryHeader Title="New Gallery Category" Subtitle="Tags gallery photos are grouped by." />
 
         <EditForm EditContext="@Form.EditContext">
-            <CategoryFormFields Model="_model" />
+            <GalleryCategoryFormFields Model="_model" />
         </EditForm>
     </DialogContent>
     <DialogActions>
@@ -25,13 +25,13 @@
     [CascadingParameter]
     private IMudDialogInstance MudDialog { get; set; } = default!;
 
-    private readonly CategoryFormModel _model = new();
+    private readonly GalleryCategoryFormModel _model = new();
 
     protected override void OnInitialized() => Form.Bind(_model);
 
     private Task CreateAsync() => Form.SubmitAsync(async () =>
     {
-        var result = await ApiClient.PostAsync(ApiRoutes.Categories.Base, new { title = _model.Title, description = _model.Description, icon = _model.Icon, iconColor = _model.IconColor });
+        var result = await ApiClient.PostAsync(ApiRoutes.SiteContent.GalleryCategory.Base, new { name = _model.Name, description = _model.Description });
         if (!result.IsSuccessful)
         {
             Form.DisplayErrors(result, Snackbar);

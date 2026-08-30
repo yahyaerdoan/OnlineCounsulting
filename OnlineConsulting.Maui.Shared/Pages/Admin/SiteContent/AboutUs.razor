@@ -1,0 +1,73 @@
+@page "/admin/site-content/about-us"
+@attribute [Authorize]
+@inject IApiClient ApiClient
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<PageTitle>About Us</PageTitle>
+
+<PageHeroBanner Title="About Us" Subtitle="Manage the About Us content blocks shown on the public site.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.Add"
+                   OnClick="CreateAsync">New Entry</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+<ServerDataTable TItem="AboutUsResponse" @ref="_table" ApiBasePath="@ApiRoutes.SiteContent.AboutUs.All"
+                 SearchPlaceholder="Search title or description" OnLoadError="@(message => _loadError = message)">
+    <HeaderContent>
+        <MudTh>Cover</MudTh>
+        <MudTh><MudTableSortLabel SortLabel="@nameof(AboutUsResponse.Title)" T="AboutUsResponse">Title</MudTableSortLabel></MudTh>
+        <MudTh>Description</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate Context="entry">
+        <MudTd DataLabel="Cover">
+            @if (entry.CoverImage is not null)
+            {
+                <MudAvatar Size="Size.Small" Square="true"><MudImage Src="@entry.CoverImage" /></MudAvatar>
+            }
+        </MudTd>
+        <MudTd DataLabel="Title">@entry.Title</MudTd>
+        <MudTd DataLabel="Description">@entry.Description</MudTd>
+        <MudTd DataLabel="Actions">
+            <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
+                <MudIconButton Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" title="Edit"
+                               OnClick="@(() => EditAsync(entry))" />
+
+                <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" title="Delete"
+                               OnClick="@(() => DeleteAsync(entry))" />
+            </MudButtonGroup>
+        </MudTd>
+    </RowTemplate>
+</ServerDataTable>
+
+@code {
+    private ServerDataTable<AboutUsResponse> _table = default!;
+    private string? _loadError;
+
+    private void CreateAsync() => Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/about-us/new");
+
+    private void EditAsync(AboutUsResponse entry) => Navigation.NavigateTo(AppRoutes.AdminHome + $"/site-content/about-us/{entry.Id}/edit");
+
+    private async Task DeleteAsync(AboutUsResponse entry)
+    {
+        if (!await DialogService.ConfirmDeleteAsync("About Us entry", entry.Title))
+        {
+            return;
+        }
+
+        var result = await ApiClient.DeleteAsync(ApiRoutes.SiteContent.AboutUs.ById(entry.Id));
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await _table.ReloadAsync();
+    }
+}

@@ -1,0 +1,65 @@
+@page "/admin/commerce/orders"
+@attribute [Authorize]
+@inject IApiClient ApiClient
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<PageTitle>Orders</PageTitle>
+
+<PageHeroBanner Title="Orders" Subtitle="Every customer order across your business." />
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+<ServerDataTable TItem="AdminOrderResponse" @ref="_table" ApiBasePath="@ApiRoutes.Commerce.Orders.All"
+                 SearchPlaceholder="Search order number, email or name" OnLoadError="@(message => _loadError = message)">
+    <HeaderContent>
+        <MudTh><MudTableSortLabel SortLabel="@nameof(AdminOrderResponse.CreatedDate)" T="AdminOrderResponse">Date</MudTableSortLabel></MudTh>
+        <MudTh>Order #</MudTh>
+        <MudTh>Customer</MudTh>
+        <MudTh>Status</MudTh>
+        <MudTh>Payment</MudTh>
+        <MudTh Class="mud-table-cell-align-right">Total</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate Context="order">
+        <MudTd DataLabel="Date">@DateTimeFormat.FormatDateTime(order.CreatedDate)</MudTd>
+        <MudTd DataLabel="Order #">@order.OrderNumber</MudTd>
+        <MudTd DataLabel="Customer">@(order.UserName ?? order.UserEmail ?? "-")</MudTd>
+        <MudTd DataLabel="Status">@order.OrderStatus</MudTd>
+        <MudTd DataLabel="Payment">
+            <MudChip T="string" Size="Size.Small" Color="@(order.PaymentStatus == "Paid" ? Color.Success : order.PaymentStatus == "Refunded" ? Color.Default : Color.Warning)">@order.PaymentStatus</MudChip>
+        </MudTd>
+        <MudTd DataLabel="Total" Class="mud-table-cell-align-right">@CurrencyFormat.Format(order.TotalPrice)</MudTd>
+        <MudTd DataLabel="Actions">
+            <MudIconButton Icon="@Icons.Material.Outlined.Undo" Color="Color.Error" Size="Size.Small" title="Refund"
+                           Disabled="@(order.PaymentStatus != "Paid")" OnClick="@(() => RefundAsync(order))" />
+        </MudTd>
+    </RowTemplate>
+</ServerDataTable>
+
+@code {
+    private ServerDataTable<AdminOrderResponse> _table = default!;
+    private string? _loadError;
+
+    private async Task RefundAsync(AdminOrderResponse order)
+    {
+        var confirmed = await DialogService.ConfirmAsync(
+            "Refund Order",
+            $"Refund order {order.OrderNumber} for {CurrencyFormat.Format(order.TotalPrice)}? This issues a real refund through the live payment gateway and cannot be undone.");
+
+        if (!confirmed)
+        {
+            return;
+        }
+
+        var result = await ApiClient.PostAsync(ApiRoutes.Commerce.Orders.Refund(order.Id), new { });
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await _table.ReloadAsync();
+    }
+}

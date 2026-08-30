@@ -1,0 +1,85 @@
+@namespace OnlineConsulting.Maui.Shared.Pages.Admin.Platform
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">Manage Modules - @Tenant.Name</MudText>
+    </TitleContent>
+    <DialogContent>
+        @if (_loading)
+        {
+            <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+        }
+        else
+        {
+            <MudStack Spacing="2">
+                @foreach (var offering in _allOfferings)
+                {
+                    var isActive = _activeModuleKeys.Contains(offering.Key);
+                    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                        <MudText>@offering.Name</MudText>
+                        <MudSwitch T="bool" Value="@isActive" ValueChanged="@(active => ToggleModuleAsync(offering.Key, active))" Color="Color.Primary" Disabled="@(_togglingKey == offering.Key)" />
+                    </MudStack>
+                }
+            </MudStack>
+        }
+        <ApiErrorAlert Message="@_error" Severity="Severity.Error" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@(() => MudDialog.Close(DialogResult.Ok(true)))">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public TenantResponse Tenant { get; set; } = default!;
+
+    private List<ModuleOfferingResponse> _allOfferings = [];
+    private HashSet<string> _activeModuleKeys = [];
+    private bool _loading = true;
+    private string? _togglingKey;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var offeringsResult = await ApiClient.GetAsync<PaginatedResponse<ModuleOfferingResponse>>(ApiRoutes.Paged(ApiRoutes.Platform.ModuleOfferings.All, 0, int.MaxValue));
+        _allOfferings = offeringsResult.IsSuccessful && offeringsResult.ResultData is not null ? offeringsResult.ResultData.Items : [];
+
+        // TenantResponse (mirrors TenantSummaryResponse) already carries the tenant's active module keys - no separate call needed.
+        _activeModuleKeys = [.. Tenant.ActiveModuleKeys];
+
+        _loading = false;
+    }
+
+    private async Task ToggleModuleAsync(string key, bool active)
+    {
+        _togglingKey = key;
+
+        var result = active
+            ? await ApiClient.PostAsync(ApiRoutes.Platform.Tenants.AddModule(Tenant.Id, key), new { })
+            : await ApiClient.DeleteAsync(ApiRoutes.Platform.Tenants.RemoveModule(Tenant.Id, key));
+
+        _togglingKey = null;
+
+        if (!result.IsSuccessful)
+        {
+            _error = result.DisplayMessage;
+            return;
+        }
+
+        _error = null;
+
+        if (active)
+        {
+            _ = _activeModuleKeys.Add(key);
+        }
+        else
+        {
+            _ = _activeModuleKeys.Remove(key);
+        }
+    }
+}

@@ -1,0 +1,91 @@
+@page "/admin/site-content/page-banners"
+@attribute [Authorize]
+@using OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent
+@inject IApiClient ApiClient
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<PageTitle>Page Banners</PageTitle>
+
+<PageHeroBanner Title="Page Banners" Subtitle="Title/description banner shown at the top of interior pages.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.Add"
+                   OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/page-banners/new"))">New Page Banner</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mt-4" />
+}
+else
+{
+    <SearchableTable TItem="PageBannerResponse" Items="_banners" Filter="@((banner, text) => banner.Title.Contains(text, StringComparison.OrdinalIgnoreCase))"
+                      SearchPlaceholder="Search title">
+        <HeaderContent>
+            <MudTh>Title</MudTh>
+            <MudTh>Description</MudTh>
+            <MudTh Class="mud-table-cell-align-right">Order</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate Context="banner">
+            <MudTd DataLabel="Title">@banner.Title</MudTd>
+            <MudTd DataLabel="Description">@banner.Description</MudTd>
+            <MudTd DataLabel="Order" Class="mud-table-cell-align-right">@banner.DisplayOrder</MudTd>
+            <MudTd DataLabel="Actions">
+                <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
+                    <MudIconButton Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" Size="Size.Small" title="Edit"
+                                   OnClick="@(() => Navigation.NavigateTo($"{AppRoutes.AdminHome}/site-content/page-banners/{banner.Id}/edit"))" />
+                    <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" Size="Size.Small" title="Delete"
+                                   OnClick="@(() => DeleteAsync(banner))" />
+                </MudButtonGroup>
+            </MudTd>
+        </RowTemplate>
+    </SearchableTable>
+}
+
+@code {
+    private List<PageBannerResponse> _banners = [];
+    private bool _loading = true;
+    private string? _loadError;
+
+    protected override Task OnInitializedAsync() => ReloadAsync();
+
+    private async Task ReloadAsync()
+    {
+        _loading = true;
+        var result = await ApiClient.GetAsync<List<PageBannerResponse>>(ApiRoutes.SiteContent.PageBanners.Base);
+        if (!result.IsSuccessful || result.ResultData is null)
+        {
+            _loadError = result.DisplayMessage;
+            _banners = [];
+        }
+        else
+        {
+            _banners = result.ResultData;
+        }
+
+        _loading = false;
+    }
+
+    private async Task DeleteAsync(PageBannerResponse banner)
+    {
+        if (!await DialogService.ConfirmDeleteAsync("page banner", banner.Title))
+        {
+            return;
+        }
+
+        var result = await ApiClient.DeleteAsync(ApiRoutes.SiteContent.PageBanners.ById(banner.Id));
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await ReloadAsync();
+    }
+}

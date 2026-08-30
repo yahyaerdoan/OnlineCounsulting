@@ -1,6 +1,61 @@
 @page "/admin/platform/module-offerings"
 @attribute [Authorize]
+@inject IApiClient ApiClient
+@inject NavigationManager Navigation
 
-<PageTitle>Module Catalog</PageTitle>
+<PageTitle>Module Offerings</PageTitle>
 
-<ComingSoon Title="Module Catalog" Subtitle="Manage which feature modules are available to each tenant plan." />
+<PageHeroBanner Title="Module Offerings" Subtitle="The modules tenants can subscribe to.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.Add"
+                   OnClick="@(() => Navigation.NavigateTo($"{AppRoutes.AdminHome}/platform/module-offerings/new"))">New Module Offering</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+}
+else
+{
+    <SearchableTable TItem="ModuleOfferingResponse" Items="@_offerings" SearchPlaceholder="Search module offerings"
+                      Filter="@((offering, text) => offering.Name.Contains(text, StringComparison.OrdinalIgnoreCase) || offering.Key.Contains(text, StringComparison.OrdinalIgnoreCase))">
+        <HeaderContent>
+            <MudTh>Name</MudTh>
+            <MudTh Class="mud-table-cell-align-right">Price</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate Context="offering">
+            <MudTd DataLabel="Name">@offering.Name</MudTd>
+            <MudTd DataLabel="Price" Class="mud-table-cell-align-right">@CurrencyFormat.Format(offering.Price)</MudTd>
+            <MudTd DataLabel="Actions">
+                <MudIconButton Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" Size="Size.Small" title="Edit"
+                               OnClick="@(() => Navigation.NavigateTo($"{AppRoutes.AdminHome}/platform/module-offerings/{offering.Id}/edit"))" />
+            </MudTd>
+        </RowTemplate>
+    </SearchableTable>
+}
+
+@code {
+    private List<ModuleOfferingResponse> _offerings = [];
+    private bool _loading = true;
+    private string? _loadError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await ApiClient.GetAsync<PaginatedResponse<ModuleOfferingResponse>>(ApiRoutes.Paged(ApiRoutes.Platform.ModuleOfferings.All, 0, int.MaxValue));
+        if (!result.IsSuccessful || result.ResultData is null)
+        {
+            _loadError = result.DisplayMessage;
+            _offerings = [];
+        }
+        else
+        {
+            _offerings = result.ResultData.Items;
+        }
+
+        _loading = false;
+    }
+}

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using OnlineConsulting.Maui.Shared.Infrastructure.Auth;
 using OnlineConsulting.Maui.Shared.Infrastructure.Forms;
+using OnlineConsulting.Maui.Shared.Infrastructure.Navigation;
 using OnlineConsulting.Maui.Shared.Layout;
 using System.Reflection;
 
@@ -16,12 +17,16 @@ public static class ServiceCollectionExtensions
         _ = services.AddSingleton<IUiModule>(new HostUiModule(hostAssembly));
         _ = services.AddSingleton<IUiModule, CoreUiModule>();
         _ = services.AddSingleton<IUiModule, CatalogUiModule>();
+        _ = services.AddSingleton<IUiModule, SiteContentUiModule>();
+        _ = services.AddSingleton<IUiModule, InquiriesUiModule>();
+        _ = services.AddSingleton<IUiModule, CommerceUiModule>();
         _ = services.AddSingleton<UiModuleRegistry>();
 
         _ = services.AddCascadingAuthenticationState();
 
         _ = services.AddScoped<AuthenticationExpiredNotifier>();
         _ = services.AddScoped<TokenRefresher>();
+        _ = services.AddScoped<BreadcrumbState>();
 
         _ = services.AddTransient(typeof(FormState<>));
 

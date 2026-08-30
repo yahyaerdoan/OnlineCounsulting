@@ -1,0 +1,112 @@
+@page "/admin/site-content/service-offerings/new"
+@page "/admin/site-content/service-offerings/{Id:guid}/edit"
+@namespace OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent
+@attribute [Authorize]
+@using OnlineConsulting.Maui.Shared.Infrastructure.Forms
+@using OnlineConsulting.Maui.Shared.Infrastructure.Icons
+@using OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent.ServiceOfferingModels
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject FormState<ServiceOfferingFormModel> Form
+
+<PageTitle>@(Id is null ? "New Service Offering" : "Edit Service Offering")</PageTitle>
+
+<PageHeroBanner Title="@(Id is null ? "New Service Offering" : "Edit Service Offering")" Subtitle="Shown on the public 'what we provide' section.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.ArrowBack"
+                   OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/service-offerings"))">Back to Service Offerings</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+<PageBreadcrumbExtra Text="@(Id is null ? "New Service Offering" : "Edit Service Offering")" />
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+<EditForm EditContext="@Form.EditContext">
+    <MudPaper Class="pa-4">
+        <ServiceOfferingFormFields Model="_model" />
+
+        <MudDivider Class="my-4" />
+
+        <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2">
+            <MudButton Variant="Variant.Text" OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/service-offerings"))">Cancel</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAsync" Disabled="@Form.IsBusy">
+                @(Id is null ? "Create" : "Save")
+            </MudButton>
+        </MudStack>
+    </MudPaper>
+</EditForm>
+
+@code {
+    [Parameter]
+    public Guid? Id { get; set; }
+
+    private readonly ServiceOfferingFormModel _model = new();
+    private string? _loadError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Bind before any await - Blazor can render (and touch Form.EditContext) after the first yield point.
+        Form.Bind(_model);
+
+        if (Id is not { } offeringId)
+        {
+            return;
+        }
+
+        // No GetById endpoint exists - fetch the unbounded public list and find the entry.
+        var listResult = await ApiClient.GetAsync<List<ServiceOfferingResponse>>(ApiRoutes.SiteContent.ServiceOffering.Base);
+        var offering = listResult.IsSuccessful ? listResult.ResultData?.Find(o => o.Id == offeringId) : null;
+        if (offering is null)
+        {
+            _loadError = listResult.DisplayMessage;
+            return;
+        }
+
+        _model.Title = offering.Title;
+        _model.Description = offering.Description;
+        _model.Icon = IconCatalog.Resolve(offering.Icon);
+        _model.IconColor = offering.IconColor;
+        _model.DisplayOrder = offering.DisplayOrder;
+    }
+
+    private Task SaveAsync() => Form.SubmitAsync(async () =>
+    {
+        var body = new
+        {
+            title = _model.Title,
+            description = _model.Description,
+            icon = _model.Icon,
+            iconColor = _model.IconColor,
+            displayOrder = _model.DisplayOrder,
+        };
+
+        if (Id is null)
+        {
+            var createResult = await ApiClient.PostAsync(ApiRoutes.SiteContent.ServiceOffering.Base, body);
+            if (!createResult.IsSuccessful)
+            {
+                Form.DisplayErrors(createResult, Snackbar);
+                return;
+            }
+
+            CompleteSave(createResult.DisplayMessage);
+            return;
+        }
+
+        var result = await ApiClient.PutAsync(ApiRoutes.SiteContent.ServiceOffering.ById(Id.Value), body);
+        if (!result.IsSuccessful)
+        {
+            Form.DisplayErrors(result, Snackbar);
+            return;
+        }
+
+        CompleteSave(result.DisplayMessage);
+    });
+
+    private void CompleteSave(string message)
+    {
+        Snackbar.ShowSuccess(message);
+        Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/service-offerings");
+    }
+}

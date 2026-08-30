@@ -1,0 +1,109 @@
+@page "/admin/site-content/gallery-items/new"
+@page "/admin/site-content/gallery-items/{Id:guid}/edit"
+@namespace OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent
+@attribute [Authorize]
+@using OnlineConsulting.Maui.Shared.Infrastructure.Forms
+@using OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent.GalleryItemModels
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject FormState<GalleryItemFormModel> Form
+
+<PageTitle>@(Id is null ? "New Gallery Item" : "Edit Gallery Item")</PageTitle>
+
+<PageHeroBanner Title="@(Id is null ? "New Gallery Item" : "Edit Gallery Item")" Subtitle="Shown in the public photo gallery.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.ArrowBack"
+                   OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/gallery-items"))">Back to Gallery Items</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+<PageBreadcrumbExtra Text="@(Id is null ? "New Gallery Item" : "Edit Gallery Item")" />
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+<EditForm EditContext="@Form.EditContext">
+    <MudPaper Class="pa-4">
+        <GalleryItemFormFields Model="_model" Categories="_categories" InitialPhotoUrl="@_photoUrl" />
+
+        <MudDivider Class="my-4" />
+
+        <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2">
+            <MudButton Variant="Variant.Text" OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/gallery-items"))">Cancel</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAsync" Disabled="@Form.IsBusy">
+                @(Id is null ? "Create" : "Save")
+            </MudButton>
+        </MudStack>
+    </MudPaper>
+</EditForm>
+
+@code {
+    [Parameter]
+    public Guid? Id { get; set; }
+
+    private readonly GalleryItemFormModel _model = new();
+    private List<GalleryCategoryResponse> _categories = [];
+    private string? _photoUrl;
+    private string? _loadError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Bind before any await - Blazor can render (and touch Form.EditContext) after the first yield point.
+        Form.Bind(_model);
+
+        var categoriesResult = await ApiClient.GetAsync<List<GalleryCategoryResponse>>(ApiRoutes.SiteContent.GalleryCategory.Base);
+        _categories = categoriesResult.IsSuccessful && categoriesResult.ResultData is not null ? categoriesResult.ResultData : [];
+
+        if (Id is not { } itemId)
+        {
+            return;
+        }
+
+        // No single-item GET endpoint - fetch the unbounded list and find it, as EquipmentFormPage does for its customer picker.
+        var listResult = await ApiClient.QueryAsync<PaginatedResponse<GalleryItemResponse>>(ApiRoutes.Paged(ApiRoutes.SiteContent.GalleryItem.All, 0, int.MaxValue), null);
+        var item = listResult.IsSuccessful ? listResult.ResultData?.Items.FirstOrDefault(i => i.Id == itemId) : null;
+        if (item is null)
+        {
+            _loadError = listResult.DisplayMessage;
+            return;
+        }
+
+        _model.Description = item.Description;
+        _model.CategoryIds = [.. item.Categories.Select(c => c.Id)];
+        _model.PhotoMediaAssetId = item.PhotoMediaAssetId;
+        _model.DisplayOrder = item.DisplayOrder;
+
+        if (item.PhotoMediaAssetId is { } photoId)
+        {
+            _photoUrl = await MediaUploadHelper.GetUrlAsync(ApiClient, photoId);
+        }
+    }
+
+    private Task SaveAsync() => Form.SubmitAsync(async () =>
+    {
+        var body = new
+        {
+            description = _model.Description,
+            categoryIds = _model.CategoryIds,
+            photoMediaAssetId = _model.PhotoMediaAssetId,
+            displayOrder = _model.DisplayOrder,
+        };
+
+        var result = Id is { } itemId
+            ? await ApiClient.PutAsync(ApiRoutes.SiteContent.GalleryItem.ById(itemId), body)
+            : await ApiClient.PostAsync(ApiRoutes.SiteContent.GalleryItem.Base, body);
+
+        if (!result.IsSuccessful)
+        {
+            Form.DisplayErrors(result, Snackbar);
+            return;
+        }
+
+        CompleteSave(result.DisplayMessage);
+    });
+
+    private void CompleteSave(string message)
+    {
+        Snackbar.ShowSuccess(message);
+        Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/gallery-items");
+    }
+}

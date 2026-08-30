@@ -1,0 +1,64 @@
+@page "/admin/site-content/hero-slides"
+@attribute [Authorize]
+@inject IApiClient ApiClient
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<PageTitle>Hero Slides</PageTitle>
+
+<PageHeroBanner Title="Hero Slides" Subtitle="Manage the homepage hero carousel slides.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.Add"
+                   OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/hero-slides/new"))">New Slide</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+<ServerDataTable TItem="HeroSlideResponse" @ref="_table" ApiBasePath="@ApiRoutes.SiteContent.HeroSlide.All"
+                 SearchPlaceholder="Search title or description" OnLoadError="@(message => _loadError = message)">
+    <HeaderContent>
+        <MudTh>Image</MudTh>
+        <MudTh><MudTableSortLabel SortLabel="@nameof(HeroSlideResponse.Title)" T="HeroSlideResponse">Title</MudTableSortLabel></MudTh>
+        <MudTh>Description</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate Context="slide">
+        <MudTd DataLabel="Image"><MudAvatar Size="Size.Small" Square="true"><MudImage Src="@slide.ImageUrl" /></MudAvatar></MudTd>
+        <MudTd DataLabel="Title">@slide.Title</MudTd>
+        <MudTd DataLabel="Description">@slide.Description</MudTd>
+        <MudTd DataLabel="Actions">
+            <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
+                <MudIconButton Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" title="Edit"
+                               OnClick="@(() => Navigation.NavigateTo($"{AppRoutes.AdminHome}/site-content/hero-slides/{slide.Id}/edit"))" />
+
+                <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" title="Delete"
+                               OnClick="@(() => DeleteAsync(slide))" />
+            </MudButtonGroup>
+        </MudTd>
+    </RowTemplate>
+</ServerDataTable>
+
+@code {
+    private ServerDataTable<HeroSlideResponse> _table = default!;
+    private string? _loadError;
+
+    private async Task DeleteAsync(HeroSlideResponse slide)
+    {
+        if (!await DialogService.ConfirmDeleteAsync("hero slide", slide.Title))
+        {
+            return;
+        }
+
+        var result = await ApiClient.DeleteAsync(ApiRoutes.SiteContent.HeroSlide.ById(slide.Id));
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await _table.ReloadAsync();
+    }
+}

@@ -1,6 +1,6 @@
 ﻿namespace OnlineConsulting.Maui.Shared.Pages.Admin.Catalog.CategoryModels;
 
-/// <summary>Shared by CreateCategoryDialog and EditCategoryDialog.</summary>
+/// <summary>Bound by CategoryFormPage.</summary>
 public class CategoryFormModel
 {
     public string Title { get; set; } = string.Empty;

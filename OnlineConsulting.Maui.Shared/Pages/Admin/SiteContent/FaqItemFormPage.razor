@@ -1,0 +1,146 @@
+@page "/admin/site-content/faq-items/new"
+@page "/admin/site-content/faq-items/{Id:guid}/edit"
+@namespace OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent
+@attribute [Authorize]
+@using OnlineConsulting.Maui.Shared.Infrastructure.Forms
+@using OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent.FaqItemModels
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject FormState<FaqItemFormModel> Form
+
+<PageTitle>@(Id is null ? "New FAQ Item" : "Edit FAQ Item")</PageTitle>
+
+<PageHeroBanner Title="@(Id is null ? "New FAQ Item" : "Edit FAQ Item")" Subtitle="Shown on the related service's page.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.ArrowBack"
+                   OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/faq-items"))">Back to FAQ Items</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+<PageBreadcrumbExtra Text="@(Id is null ? "New FAQ Item" : "Edit FAQ Item")" />
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+@if (!_loading && _services.Count == 0 && _loadError is null)
+{
+    <ApiErrorAlert Message="Create a service first before adding FAQ items." Severity="Severity.Warning" />
+}
+else if (!_loading)
+{
+    <EditForm EditContext="@Form.EditContext">
+        <MudPaper Class="pa-4">
+            <MudGrid Spacing="3">
+                <MudItem xs="12" md="6">
+                    <MudSelect T="Guid" @bind-Value="_model.ServiceId" Label="Service" Variant="Variant.Outlined" Margin="Margin.Dense">
+                        @foreach (var service in _services)
+                        {
+                            <MudSelectItem T="Guid" Value="@service.Id">@service.Title</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudNumericField T="int" @bind-Value="_model.DisplayOrder" Label="Display order" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_model.Question" Label="Question" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_model.Answer" Label="Answer" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="4" />
+                </MudItem>
+            </MudGrid>
+
+            <MudDivider Class="my-4" />
+
+            <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2">
+                <MudButton Variant="Variant.Text" OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/faq-items"))">Cancel</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAsync" Disabled="@Form.IsBusy">
+                    @(Id is null ? "Create" : "Save")
+                </MudButton>
+            </MudStack>
+        </MudPaper>
+    </EditForm>
+}
+
+@code {
+    [Parameter]
+    public Guid? Id { get; set; }
+
+    private readonly FaqItemFormModel _model = new();
+    private List<ServiceResponse> _services = [];
+    private string? _loadError;
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Bind before any await - Blazor can render (and touch Form.EditContext) after the first yield point.
+        Form.Bind(_model);
+
+        if (Id is { } faqItemId)
+        {
+            // No GetById endpoint exists - fetch the unbounded public list and find the entry.
+            var listResult = await ApiClient.GetAsync<List<FaqItemResponse>>(ApiRoutes.SiteContent.FaqItems.Base);
+            var faqItem = listResult.IsSuccessful ? listResult.ResultData?.Find(f => f.Id == faqItemId) : null;
+            if (faqItem is null)
+            {
+                _loadError = listResult.DisplayMessage;
+                _loading = false;
+                return;
+            }
+
+            _model.ServiceId = faqItem.ServiceId;
+            _model.Question = faqItem.Question;
+            _model.Answer = faqItem.Answer;
+            _model.DisplayOrder = faqItem.DisplayOrder;
+        }
+
+        // /api/services is paginated - fetch a large-enough page for a dropdown, same idiom as CategoryLookupHelper.
+        var servicesResult = await ApiClient.GetAsync<PaginatedResponse<ServiceResponse>>($"{ApiRoutes.Services.Base}?size=100");
+        _services = servicesResult.IsSuccessful && servicesResult.ResultData is not null ? servicesResult.ResultData.Items : [];
+
+        if (Id is null && _services.Count > 0)
+        {
+            _model.ServiceId = _services[0].Id;
+        }
+
+        _loading = false;
+    }
+
+    private Task SaveAsync() => Form.SubmitAsync(async () =>
+    {
+        var body = new
+        {
+            serviceId = _model.ServiceId,
+            question = _model.Question,
+            answer = _model.Answer,
+            displayOrder = _model.DisplayOrder,
+        };
+
+        if (Id is null)
+        {
+            var createResult = await ApiClient.PostAsync(ApiRoutes.SiteContent.FaqItems.Base, body);
+            if (!createResult.IsSuccessful)
+            {
+                Form.DisplayErrors(createResult, Snackbar);
+                return;
+            }
+
+            CompleteSave(createResult.DisplayMessage);
+            return;
+        }
+
+        var result = await ApiClient.PutAsync(ApiRoutes.SiteContent.FaqItems.ById(Id.Value), body);
+        if (!result.IsSuccessful)
+        {
+            Form.DisplayErrors(result, Snackbar);
+            return;
+        }
+
+        CompleteSave(result.DisplayMessage);
+    });
+
+    private void CompleteSave(string message)
+    {
+        Snackbar.ShowSuccess(message);
+        Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/faq-items");
+    }
+}

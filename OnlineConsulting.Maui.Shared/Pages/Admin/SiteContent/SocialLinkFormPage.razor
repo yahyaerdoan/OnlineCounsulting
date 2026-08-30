@@ -1,0 +1,112 @@
+@page "/admin/site-content/social-links/new"
+@page "/admin/site-content/social-links/{Id:guid}/edit"
+@namespace OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent
+@attribute [Authorize]
+@using OnlineConsulting.Maui.Shared.Infrastructure.Forms
+@using OnlineConsulting.Maui.Shared.Infrastructure.Icons
+@using OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent.SocialLinkModels
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject FormState<SocialLinkFormModel> Form
+
+<PageTitle>@(Id is null ? "New Social Link" : "Edit Social Link")</PageTitle>
+
+<PageHeroBanner Title="@(Id is null ? "New Social Link" : "Edit Social Link")" Subtitle="Shown in the site header/footer social icons.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.ArrowBack"
+                   OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/social-links"))">Back to Social Links</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+<PageBreadcrumbExtra Text="@(Id is null ? "New Social Link" : "Edit Social Link")" />
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+<EditForm EditContext="@Form.EditContext">
+    <MudPaper Class="pa-4">
+        <SocialLinkFormFields Model="_model" />
+
+        <MudDivider Class="my-4" />
+
+        <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2">
+            <MudButton Variant="Variant.Text" OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/social-links"))">Cancel</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAsync" Disabled="@Form.IsBusy">
+                @(Id is null ? "Create" : "Save")
+            </MudButton>
+        </MudStack>
+    </MudPaper>
+</EditForm>
+
+@code {
+    [Parameter]
+    public Guid? Id { get; set; }
+
+    private readonly SocialLinkFormModel _model = new();
+    private string? _loadError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Bind before any await - Blazor can render (and touch Form.EditContext) after the first yield point.
+        Form.Bind(_model);
+
+        if (Id is not { } linkId)
+        {
+            return;
+        }
+
+        // No GetById endpoint exists - fetch the unbounded public list and find the entry.
+        var listResult = await ApiClient.GetAsync<List<SocialLinkResponse>>(ApiRoutes.SiteContent.SocialLink.Base);
+        var link = listResult.IsSuccessful ? listResult.ResultData?.Find(l => l.Id == linkId) : null;
+        if (link is null)
+        {
+            _loadError = listResult.DisplayMessage;
+            return;
+        }
+
+        _model.Name = link.Name;
+        _model.Url = link.Url;
+        _model.Icon = IconCatalog.Resolve(link.Icon);
+        _model.IconColor = link.IconColor;
+        _model.DisplayOrder = link.DisplayOrder;
+    }
+
+    private Task SaveAsync() => Form.SubmitAsync(async () =>
+    {
+        var body = new
+        {
+            name = _model.Name,
+            url = _model.Url,
+            icon = _model.Icon,
+            iconColor = _model.IconColor,
+            displayOrder = _model.DisplayOrder,
+        };
+
+        if (Id is null)
+        {
+            var createResult = await ApiClient.PostAsync(ApiRoutes.SiteContent.SocialLink.Base, body);
+            if (!createResult.IsSuccessful)
+            {
+                Form.DisplayErrors(createResult, Snackbar);
+                return;
+            }
+
+            CompleteSave(createResult.DisplayMessage);
+            return;
+        }
+
+        var result = await ApiClient.PutAsync(ApiRoutes.SiteContent.SocialLink.ById(Id.Value), body);
+        if (!result.IsSuccessful)
+        {
+            Form.DisplayErrors(result, Snackbar);
+            return;
+        }
+
+        CompleteSave(result.DisplayMessage);
+    });
+
+    private void CompleteSave(string message)
+    {
+        Snackbar.ShowSuccess(message);
+        Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/social-links");
+    }
+}

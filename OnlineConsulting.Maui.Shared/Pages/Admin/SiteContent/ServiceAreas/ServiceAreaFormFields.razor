@@ -1,0 +1,27 @@
+@namespace OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent
+@using OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent.ServiceAreaModels
+
+<MudStack Spacing="3">
+    <MudTextField @bind-Value="Model.Name" For="@(() => Model.Name)" Label="Name" Variant="Variant.Outlined" Margin="Margin.Dense" />
+
+    <MudTextField @bind-Value="Model.State" For="@(() => Model.State)" Label="State" Variant="Variant.Outlined" Margin="Margin.Dense" />
+
+    @if (Slug is not null)
+    {
+        <MudTextField Value="@Slug" Label="Slug" Variant="Variant.Outlined" Margin="Margin.Dense" ReadOnly="true" Disabled="true" />
+    }
+
+    <MudTextField @bind-Value="Model.IntroText" For="@(() => Model.IntroText)" Label="Intro text" Variant="Variant.Outlined" Margin="Margin.Dense"
+                  Lines="1" MaxLines="5" Sizing="InputSizing.Auto" />
+
+    <MudNumericField @bind-Value="Model.DisplayOrder" For="@(() => Model.DisplayOrder)" Label="Display order" Variant="Variant.Outlined" Margin="Margin.Dense" />
+</MudStack>
+
+@code {
+    [Parameter, EditorRequired]
+    public ServiceAreaFormModel Model { get; set; } = default!;
+
+    /// <summary>Null on Create (not generated yet) - shown read-only only once an area exists.</summary>
+    [Parameter]
+    public string? Slug { get; set; }
+}

@@ -1,0 +1,68 @@
+@page "/admin/site-content/testimonials"
+@attribute [Authorize]
+@inject IApiClient ApiClient
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<PageTitle>Testimonials</PageTitle>
+
+<PageHeroBanner Title="Testimonials" Subtitle="Manage the customer testimonials shown on the public site.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.Add"
+                   OnClick="CreateAsync">New Testimonial</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+<ServerDataTable TItem="TestimonialResponse" @ref="_table" ApiBasePath="@ApiRoutes.SiteContent.Testimonial.All"
+                 SearchPlaceholder="Search name or title" OnLoadError="@(message => _loadError = message)">
+    <HeaderContent>
+        <MudTh>Photo</MudTh>
+        <MudTh><MudTableSortLabel SortLabel="@nameof(TestimonialResponse.FirstName)" T="TestimonialResponse">Name</MudTableSortLabel></MudTh>
+        <MudTh>Title</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate Context="testimonial">
+        <MudTd DataLabel="Photo"><MudAvatar Size="Size.Small"><MudImage Src="@testimonial.ImageUrl" /></MudAvatar></MudTd>
+        <MudTd DataLabel="Name">@testimonial.FirstName @testimonial.LastName</MudTd>
+        <MudTd DataLabel="Title">@testimonial.Title</MudTd>
+        <MudTd DataLabel="Actions">
+            <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
+                <MudIconButton Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" title="Edit"
+                               OnClick="@(() => EditAsync(testimonial))" />
+
+                <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" title="Delete"
+                               OnClick="@(() => DeleteAsync(testimonial))" />
+            </MudButtonGroup>
+        </MudTd>
+    </RowTemplate>
+</ServerDataTable>
+
+@code {
+    private ServerDataTable<TestimonialResponse> _table = default!;
+    private string? _loadError;
+
+    private void CreateAsync() => Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/testimonials/new");
+
+    private void EditAsync(TestimonialResponse testimonial) => Navigation.NavigateTo(AppRoutes.AdminHome + $"/site-content/testimonials/{testimonial.Id}/edit");
+
+    private async Task DeleteAsync(TestimonialResponse testimonial)
+    {
+        if (!await DialogService.ConfirmDeleteAsync("testimonial", $"{testimonial.FirstName} {testimonial.LastName}"))
+        {
+            return;
+        }
+
+        var result = await ApiClient.DeleteAsync(ApiRoutes.SiteContent.Testimonial.ById(testimonial.Id));
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await _table.ReloadAsync();
+    }
+}

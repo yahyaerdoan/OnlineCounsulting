@@ -1,0 +1,118 @@
+@page "/admin/operations/appointments/{AppointmentId:guid}/work-order"
+@namespace OnlineConsulting.Maui.Shared.Pages.Admin.Operations
+@attribute [Authorize]
+@inject IApiClient ApiClient
+@inject NavigationManager Navigation
+
+<PageTitle>Work Order</PageTitle>
+
+<PageHeroBanner Title="Work Order" Subtitle="Read-only record of the completed appointment.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.ArrowBack"
+                   OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/operations/appointments"))">Back to Appointments</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+<PageBreadcrumbExtra Text="Work Order" />
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+}
+else if (_workOrder is not null)
+{
+    <MudPaper Class="pa-4">
+        <MudSimpleTable Dense="true">
+            <tbody>
+                <tr><td>Technician</td><td>@_technicianLabel</td></tr>
+                <tr><td>Equipment</td><td>@_equipmentLabel</td></tr>
+                <tr><td>Completed At</td><td>@(_workOrder.CompletedAt is { } completedAt ? DateTimeFormat.FormatDateTime(completedAt) : "-")</td></tr>
+                <tr><td>Parts Used</td><td>@(_workOrder.PartsUsed ?? "-")</td></tr>
+                <tr><td>Technician Notes</td><td>@(_workOrder.TechnicianNotes ?? "-")</td></tr>
+            </tbody>
+        </MudSimpleTable>
+
+        <MudDivider Class="my-4" />
+
+        <MudGrid Spacing="3">
+            <MudItem xs="12" md="6">
+                <MudText Typo="Typo.subtitle2" Class="mb-1">Before</MudText>
+                @if (_beforePhotoUrl is not null)
+                {
+                    <MudImage Src="@_beforePhotoUrl" Height="160" Class="rounded-lg" />
+                }
+                else
+                {
+                    <MudText Typo="Typo.body2">-</MudText>
+                }
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudText Typo="Typo.subtitle2" Class="mb-1">After</MudText>
+                @if (_afterPhotoUrl is not null)
+                {
+                    <MudImage Src="@_afterPhotoUrl" Height="160" Class="rounded-lg" />
+                }
+                else
+                {
+                    <MudText Typo="Typo.body2">-</MudText>
+                }
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+}
+
+@code {
+    [Parameter]
+    public Guid AppointmentId { get; set; }
+
+    private WorkOrderResponse? _workOrder;
+    private string _technicianLabel = "-";
+    private string _equipmentLabel = "-";
+    private string? _beforePhotoUrl;
+    private string? _afterPhotoUrl;
+    private bool _loading = true;
+    private string? _loadError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var workOrderResult = await ApiClient.GetAsync<WorkOrderResponse>(ApiRoutes.Operations.WorkOrders.ByAppointmentId(AppointmentId));
+        if (!workOrderResult.IsSuccessful || workOrderResult.ResultData is null)
+        {
+            _loadError = workOrderResult.DisplayMessage;
+            _loading = false;
+            return;
+        }
+
+        _workOrder = workOrderResult.ResultData;
+
+        var usersResult = await ApiClient.QueryAsync<PaginatedResponse<UserResponse>>(ApiRoutes.Paged(ApiRoutes.Users.All, 0, int.MaxValue), null);
+        var technician = usersResult.IsSuccessful && usersResult.ResultData is not null
+            ? usersResult.ResultData.Items.FirstOrDefault(u => u.Id == _workOrder.TechnicianUserId)
+            : null;
+        _technicianLabel = technician is not null ? $"{technician.FirstName} {technician.LastName} ({technician.Email})" : _workOrder.TechnicianUserId.ToString();
+
+        if (_workOrder.EquipmentId is { } equipmentId)
+        {
+            var equipmentResult = await ApiClient.GetAsync<EquipmentItemResponse>(ApiRoutes.Operations.Equipment.ById(equipmentId));
+            _equipmentLabel = equipmentResult.IsSuccessful && equipmentResult.ResultData is { } equipment
+                ? $"{equipment.Type} - {equipment.Brand} {equipment.Model}"
+                : equipmentId.ToString();
+        }
+
+        var beforeItem = _workOrder.MediaItems.FirstOrDefault(m => m.IsBeforePhoto);
+        var afterItem = _workOrder.MediaItems.FirstOrDefault(m => !m.IsBeforePhoto);
+
+        if (beforeItem is not null)
+        {
+            _beforePhotoUrl = await MediaUploadHelper.GetUrlAsync(ApiClient, beforeItem.MediaAssetId);
+        }
+
+        if (afterItem is not null)
+        {
+            _afterPhotoUrl = await MediaUploadHelper.GetUrlAsync(ApiClient, afterItem.MediaAssetId);
+        }
+
+        _loading = false;
+    }
+}

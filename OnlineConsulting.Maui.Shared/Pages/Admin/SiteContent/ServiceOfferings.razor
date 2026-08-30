@@ -1,0 +1,69 @@
+@page "/admin/site-content/service-offerings"
+@attribute [Authorize]
+@using OnlineConsulting.Maui.Shared.Infrastructure.Icons
+@inject IApiClient ApiClient
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<PageTitle>Service Offerings</PageTitle>
+
+<PageHeroBanner Title="Service Offerings" Subtitle="Manage the 'what we provide' items shown on the public site.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.Add"
+                   OnClick="CreateAsync">New Offering</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+<ServerDataTable TItem="ServiceOfferingResponse" @ref="_table" ApiBasePath="@ApiRoutes.SiteContent.ServiceOffering.All"
+                 SearchPlaceholder="Search title or description" OnLoadError="@(message => _loadError = message)">
+    <HeaderContent>
+        <MudTh>Icon</MudTh>
+        <MudTh><MudTableSortLabel SortLabel="@nameof(ServiceOfferingResponse.Title)" T="ServiceOfferingResponse">Title</MudTableSortLabel></MudTh>
+        <MudTh>Description</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate Context="offering">
+        <MudTd DataLabel="Icon"><MudIcon Icon="@IconCatalog.Resolve(offering.Icon)" Style="@IconCatalog.ColorStyle(offering.IconColor)" Size="Size.Small" /></MudTd>
+        <MudTd DataLabel="Title">@offering.Title</MudTd>
+        <MudTd DataLabel="Description">@offering.Description</MudTd>
+        <MudTd DataLabel="Actions">
+            <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
+                <MudIconButton Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" title="Edit"
+                               OnClick="@(() => EditAsync(offering))" />
+
+                <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" title="Delete"
+                               OnClick="@(() => DeleteAsync(offering))" />
+            </MudButtonGroup>
+        </MudTd>
+    </RowTemplate>
+</ServerDataTable>
+
+@code {
+    private ServerDataTable<ServiceOfferingResponse> _table = default!;
+    private string? _loadError;
+
+    private void CreateAsync() => Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/service-offerings/new");
+
+    private void EditAsync(ServiceOfferingResponse offering) => Navigation.NavigateTo(AppRoutes.AdminHome + $"/site-content/service-offerings/{offering.Id}/edit");
+
+    private async Task DeleteAsync(ServiceOfferingResponse offering)
+    {
+        if (!await DialogService.ConfirmDeleteAsync("service offering", offering.Title))
+        {
+            return;
+        }
+
+        var result = await ApiClient.DeleteAsync(ApiRoutes.SiteContent.ServiceOffering.ById(offering.Id));
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await _table.ReloadAsync();
+    }
+}

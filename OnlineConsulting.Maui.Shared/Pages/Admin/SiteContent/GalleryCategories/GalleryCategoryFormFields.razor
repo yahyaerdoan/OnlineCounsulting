@@ -1,0 +1,14 @@
+@namespace OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent
+@using OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent.GalleryCategoryModels
+
+<MudStack Spacing="3">
+    <MudTextField @bind-Value="Model.Name" For="@(() => Model.Name)" Label="Name" Variant="Variant.Outlined" Margin="Margin.Dense" />
+
+    <MudTextField @bind-Value="Model.Description" For="@(() => Model.Description)" Label="Description" Variant="Variant.Outlined" Margin="Margin.Dense"
+                  Lines="1" MaxLines="5" Sizing="InputSizing.Auto" />
+</MudStack>
+
+@code {
+    [Parameter, EditorRequired]
+    public GalleryCategoryFormModel Model { get; set; } = default!;
+}

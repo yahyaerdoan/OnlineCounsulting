@@ -1,0 +1,238 @@
+@page "/admin/site-content/partnerships/new"
+@page "/admin/site-content/partnerships/{Id:guid}/edit"
+@namespace OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent
+@attribute [Authorize]
+@using OnlineConsulting.Maui.Shared.Infrastructure.Forms
+@using OnlineConsulting.Maui.Shared.Infrastructure.Icons
+@using MudBlazor.Utilities
+@using OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent.PartnershipModels
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject FormState<PartnershipFormModel> Form
+
+<PageTitle>@(Id is null ? "New Partnership" : "Edit Partnership")</PageTitle>
+
+<PageHeroBanner Title="@(Id is null ? "New Partnership" : "Edit Partnership")" Subtitle="Shown in the public partnership showcase.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.ArrowBack"
+                   OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/partnerships"))">Back to Partnerships</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+<PageBreadcrumbExtra Text="@(Id is null ? "New Partnership" : "Edit Partnership")" />
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+<EditForm EditContext="@Form.EditContext">
+    <MudPaper Class="pa-4">
+        <PartnershipFormFields Model="_model" InitialPhotoUrl="@_photoUrl" />
+
+        @if (Id is null)
+        {
+            <MudDivider Class="my-4" />
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Add social links after creating, from Edit.</MudText>
+        }
+        else
+        {
+            <MudDivider Class="my-4" />
+            <MudText Typo="Typo.subtitle2" Class="mb-2">Social links</MudText>
+
+            @if (_socialLinks.Count > 0)
+            {
+                <MudStack Spacing="2" Class="mb-3">
+                    @foreach (var link in _socialLinks)
+                    {
+                        <MudPaper Outlined="true" Class="pa-2 d-flex align-center gap-2">
+                            <MudIcon Icon="@IconCatalog.Resolve(link.Icon)" Style="@IconCatalog.ColorStyle(link.IconColor)" Size="Size.Small" />
+                            <MudText Typo="Typo.body2" Class="flex-grow-1">@link.Name - @link.Url</MudText>
+                            <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" Size="Size.Small"
+                                           OnClick="@(() => RemoveSocialLinkAsync(link))" />
+                        </MudPaper>
+                    }
+                </MudStack>
+            }
+
+            <MudGrid Spacing="2">
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_newLinkName" Label="Name" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_newLinkUrl" Label="URL" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <IconPicker @bind-Value="_newLinkIcon" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudColorPicker Value="@NewLinkColorValue" ValueChanged="OnNewLinkColorChanged" Label="Icon color" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+            </MudGrid>
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary" Class="mt-2" StartIcon="@Icons.Material.Outlined.Add"
+                       Disabled="@_isAddingSocialLink" OnClick="AddSocialLinkAsync">Add Social Link</MudButton>
+        }
+
+        <MudDivider Class="my-4" />
+
+        <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2">
+            <MudButton Variant="Variant.Text" OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/partnerships"))">Cancel</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAsync" Disabled="@Form.IsBusy">
+                @(Id is null ? "Create" : "Save")
+            </MudButton>
+        </MudStack>
+    </MudPaper>
+</EditForm>
+
+@code {
+    [Parameter]
+    public Guid? Id { get; set; }
+
+    private readonly PartnershipFormModel _model = new();
+    private List<PartnershipSocialLinkResponse> _socialLinks = [];
+    private string? _photoUrl;
+    private string? _loadError;
+    private string _newLinkName = string.Empty;
+    private string _newLinkUrl = string.Empty;
+    private string _newLinkIcon = string.Empty;
+    private string? _newLinkIconColor;
+    private bool _isAddingSocialLink;
+
+    private MudColor? NewLinkColorValue
+    {
+        get
+        {
+            var color = _newLinkIconColor;
+            if (string.IsNullOrWhiteSpace(color))
+            {
+                return null;
+            }
+
+            return color;
+        }
+    }
+
+    private void OnNewLinkColorChanged(MudColor? color) => _newLinkIconColor = color?.ToString(MudColorOutputFormats.Hex);
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Bind before any await - Blazor can render (and touch Form.EditContext) after the first yield point.
+        Form.Bind(_model);
+
+        if (Id is not { } partnershipId)
+        {
+            return;
+        }
+
+        // No GetById endpoint exists - fetch the unbounded public list and find the entry.
+        var listResult = await ApiClient.GetAsync<List<PartnershipResponse>>(ApiRoutes.SiteContent.Partnership.Base);
+        var partnership = listResult.IsSuccessful ? listResult.ResultData?.Find(p => p.Id == partnershipId) : null;
+        if (partnership is null)
+        {
+            _loadError = listResult.DisplayMessage;
+            return;
+        }
+
+        _model.FirstName = partnership.FirstName;
+        _model.LastName = partnership.LastName;
+        _model.Email = partnership.Email;
+        _model.Title = partnership.Title;
+        _model.CompanyName = partnership.CompanyName;
+        _model.Description = partnership.Description;
+        _model.WebsiteUrl = partnership.WebsiteUrl;
+        _model.PhotoMediaAssetId = partnership.PhotoMediaAssetId;
+        _model.DisplayOrder = partnership.DisplayOrder;
+        _socialLinks = [.. partnership.SocialLinks];
+
+        if (partnership.PhotoMediaAssetId is { } photoId)
+        {
+            _photoUrl = await MediaUploadHelper.GetUrlAsync(ApiClient, photoId);
+        }
+    }
+
+    private async Task AddSocialLinkAsync()
+    {
+        if (Id is not { } partnershipId)
+        {
+            return;
+        }
+
+        _isAddingSocialLink = true;
+        var result = await ApiClient.PostAsync<Guid>(ApiRoutes.SiteContent.PartnershipSocialLink.Base, new
+        {
+            partnershipId,
+            name = _newLinkName,
+            url = _newLinkUrl,
+            icon = _newLinkIcon,
+            iconColor = _newLinkIconColor,
+        });
+        _isAddingSocialLink = false;
+
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        _socialLinks.Add(new PartnershipSocialLinkResponse(result.ResultData, _newLinkName, _newLinkUrl, _newLinkIcon, _newLinkIconColor));
+        _newLinkName = string.Empty;
+        _newLinkUrl = string.Empty;
+        _newLinkIcon = string.Empty;
+        _newLinkIconColor = null;
+        Snackbar.ShowSuccess(result.DisplayMessage);
+    }
+
+    private async Task RemoveSocialLinkAsync(PartnershipSocialLinkResponse link)
+    {
+        var result = await ApiClient.DeleteAsync(ApiRoutes.SiteContent.PartnershipSocialLink.ById(link.Id));
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        _socialLinks.Remove(link);
+        Snackbar.ShowSuccess(result.DisplayMessage);
+    }
+
+    private Task SaveAsync() => Form.SubmitAsync(async () =>
+    {
+        var body = new
+        {
+            firstName = _model.FirstName,
+            lastName = _model.LastName,
+            email = _model.Email,
+            title = _model.Title,
+            companyName = _model.CompanyName,
+            description = _model.Description,
+            websiteUrl = _model.WebsiteUrl,
+            photoMediaAssetId = _model.PhotoMediaAssetId,
+            displayOrder = _model.DisplayOrder,
+        };
+
+        if (Id is null)
+        {
+            var createResult = await ApiClient.PostAsync(ApiRoutes.SiteContent.Partnership.Base, body);
+            if (!createResult.IsSuccessful)
+            {
+                Form.DisplayErrors(createResult, Snackbar);
+                return;
+            }
+
+            CompleteSave(createResult.DisplayMessage);
+            return;
+        }
+
+        var result = await ApiClient.PutAsync(ApiRoutes.SiteContent.Partnership.ById(Id.Value), body);
+        if (!result.IsSuccessful)
+        {
+            Form.DisplayErrors(result, Snackbar);
+            return;
+        }
+
+        CompleteSave(result.DisplayMessage);
+    });
+
+    private void CompleteSave(string message)
+    {
+        Snackbar.ShowSuccess(message);
+        Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/partnerships");
+    }
+}

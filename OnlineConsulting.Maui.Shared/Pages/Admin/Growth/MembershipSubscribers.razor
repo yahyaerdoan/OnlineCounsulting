@@ -1,0 +1,33 @@
+@page "/admin/growth/membership-subscribers"
+@attribute [Authorize]
+@inject NavigationManager Navigation
+
+<PageTitle>Membership Subscribers</PageTitle>
+
+<PageHeroBanner Title="Membership Subscribers" Subtitle="Everyone enrolled in a membership plan.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.ArrowBack"
+                   OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/growth/memberships"))">Back to Plans</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+
+<ApiErrorAlert Message="@_subscriberLoadError" Severity="Severity.Warning" />
+
+<ServerDataTable TItem="CustomerMembershipResponse" @ref="_subscriberTable" ApiBasePath="@ApiRoutes.Growth.CustomerMemberships.All"
+                 SearchPlaceholder="Search status" OnLoadError="@(message => _subscriberLoadError = message)">
+    <HeaderContent>
+        <MudTh><MudTableSortLabel SortLabel="@nameof(CustomerMembershipResponse.StartDate)" T="CustomerMembershipResponse">Started</MudTableSortLabel></MudTh>
+        <MudTh>Status</MudTh>
+        <MudTh>Renews</MudTh>
+    </HeaderContent>
+    <RowTemplate Context="subscription">
+        <MudTd DataLabel="Started">@DateTimeFormat.FormatDateTime(subscription.StartDate)</MudTd>
+        <MudTd DataLabel="Status">@subscription.Status</MudTd>
+        <MudTd DataLabel="Renews">@(subscription.RenewalDate is { } renewal ? DateTimeFormat.FormatDateTime(renewal) : "-")</MudTd>
+    </RowTemplate>
+</ServerDataTable>
+
+@code {
+    private ServerDataTable<CustomerMembershipResponse> _subscriberTable = default!;
+    private string? _subscriberLoadError;
+}

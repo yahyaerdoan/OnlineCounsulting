@@ -1,0 +1,71 @@
+@namespace OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent
+@using OnlineConsulting.Maui.Shared.Pages.Admin.Catalog
+@using OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent.GalleryItemModels
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+
+<MudStack Spacing="3">
+    <MudTextField @bind-Value="Model.Description" For="@(() => Model.Description)" Label="Description" Variant="Variant.Outlined" Margin="Margin.Dense"
+                  Lines="1" MaxLines="5" Sizing="InputSizing.Auto" />
+
+    <MudSelect T="Guid" MultiSelection="true" Label="Categories" Variant="Variant.Outlined" Margin="Margin.Dense"
+               SelectedValues="Model.CategoryIds" SelectedValuesChanged="OnCategoriesChanged">
+        @foreach (var category in Categories)
+        {
+            <MudSelectItem T="Guid" Value="@category.Id">@category.Name</MudSelectItem>
+        }
+    </MudSelect>
+
+    <MudNumericField @bind-Value="Model.DisplayOrder" For="@(() => Model.DisplayOrder)" Label="Display order" Variant="Variant.Outlined" Margin="Margin.Dense" />
+
+    <CoverImagePicker ImageUrl="@_photoUrl" IsUploading="_isUploadingPhoto" OnFileSelected="OnPhotoSelectedAsync" OnAssetSelected="OnAssetSelected"
+                      OnRemove="@(() => { Model.PhotoMediaAssetId = null; _photoUrl = null; })" />
+</MudStack>
+
+@code {
+    [Parameter, EditorRequired]
+    public GalleryItemFormModel Model { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public List<GalleryCategoryResponse> Categories { get; set; } = default!;
+
+    [Parameter]
+    public string? InitialPhotoUrl { get; set; }
+
+    private string? _photoUrl;
+    private bool _isUploadingPhoto;
+    private bool _photoUrlInitialized;
+
+    protected override void OnParametersSet()
+    {
+        if (!_photoUrlInitialized)
+        {
+            _photoUrl = InitialPhotoUrl;
+            _photoUrlInitialized = true;
+        }
+    }
+
+    private void OnCategoriesChanged(IEnumerable<Guid> values) => Model.CategoryIds = [.. values];
+
+    private async Task OnPhotoSelectedAsync(InputFileChangeEventArgs e)
+    {
+        _isUploadingPhoto = true;
+        var result = await MediaUploadHelper.UploadAsync(ApiClient, e.File);
+        _isUploadingPhoto = false;
+
+        if (!result.IsSuccessful || result.ResultData is null)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Model.PhotoMediaAssetId = result.ResultData.Id;
+        _photoUrl = result.ResultData.Url;
+    }
+
+    private void OnAssetSelected(MediaAssetResponse asset)
+    {
+        Model.PhotoMediaAssetId = asset.Id;
+        _photoUrl = asset.Url;
+    }
+}

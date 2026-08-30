@@ -1,0 +1,92 @@
+@page "/admin/operations/availability-rules"
+@attribute [Authorize]
+@using OnlineConsulting.Maui.Shared.Pages.Admin.Operations
+@inject IApiClient ApiClient
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<PageTitle>Availability Rules</PageTitle>
+
+<PageHeroBanner Title="Availability Rules" Subtitle="The recurring weekly windows customers can book appointments into.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.Add"
+                   OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/operations/availability-rules/new"))">New Window</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mt-4" />
+}
+else
+{
+    <SearchableTable TItem="AvailabilityRuleResponse" Items="_rules" Filter="@((rule, text) => rule.DayOfWeek.ToString().Contains(text, StringComparison.OrdinalIgnoreCase))"
+                      SearchPlaceholder="Search day">
+        <HeaderContent>
+            <MudTh>Day</MudTh>
+            <MudTh>Start</MudTh>
+            <MudTh>End</MudTh>
+            <MudTh>Slot length</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate Context="rule">
+            <MudTd DataLabel="Day">@rule.DayOfWeek</MudTd>
+            <MudTd DataLabel="Start">@DateTimeFormat.FormatTime(rule.StartTime)</MudTd>
+            <MudTd DataLabel="End">@DateTimeFormat.FormatTime(rule.EndTime)</MudTd>
+            <MudTd DataLabel="Slot length">@rule.SlotDurationMinutes min</MudTd>
+            <MudTd DataLabel="Actions">
+                <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" Size="Size.Small" title="Delete"
+                               OnClick="@(() => DeleteAsync(rule))" />
+            </MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudText>No availability windows yet.</MudText>
+        </NoRecordsContent>
+    </SearchableTable>
+}
+
+@code {
+    private List<AvailabilityRuleResponse> _rules = [];
+    private bool _loading = true;
+    private string? _loadError;
+
+    protected override Task OnInitializedAsync() => ReloadAsync();
+
+    private async Task ReloadAsync()
+    {
+        _loading = true;
+        var result = await ApiClient.GetAsync<List<AvailabilityRuleResponse>>(ApiRoutes.Scheduling.AvailabilityRule.All);
+        if (!result.IsSuccessful || result.ResultData is null)
+        {
+            _loadError = result.DisplayMessage;
+            _rules = [];
+        }
+        else
+        {
+            _rules = result.ResultData;
+        }
+
+        _loading = false;
+    }
+
+    private async Task DeleteAsync(AvailabilityRuleResponse rule)
+    {
+        if (!await DialogService.ConfirmDeleteAsync("availability window", $"{rule.DayOfWeek} {DateTimeFormat.FormatTime(rule.StartTime)}-{DateTimeFormat.FormatTime(rule.EndTime)}"))
+        {
+            return;
+        }
+
+        var result = await ApiClient.DeleteAsync(ApiRoutes.Scheduling.AvailabilityRule.ById(rule.Id));
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await ReloadAsync();
+    }
+}

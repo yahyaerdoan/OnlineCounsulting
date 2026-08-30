@@ -1,0 +1,139 @@
+@page "/admin/site-content/page-banners/new"
+@page "/admin/site-content/page-banners/{Id:guid}/edit"
+@namespace OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent
+@attribute [Authorize]
+@using OnlineConsulting.Maui.Shared.Infrastructure.Forms
+@using OnlineConsulting.Maui.Shared.Pages.Admin.Catalog
+@using OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent.PageBannerModels
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject FormState<PageBannerFormModel> Form
+
+<PageTitle>@(Id is null ? "New Page Banner" : "Edit Page Banner")</PageTitle>
+
+<PageHeroBanner Title="@(Id is null ? "New Page Banner" : "Edit Page Banner")" Subtitle="Title/description banner shown at the top of interior pages.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.ArrowBack"
+                   OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/page-banners"))">Back to Page Banners</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+<PageBreadcrumbExtra Text="@(Id is null ? "New Page Banner" : "Edit Page Banner")" />
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+<EditForm EditContext="@Form.EditContext">
+    <MudPaper Class="pa-4">
+        <MudStack Spacing="3">
+            <MudTextField @bind-Value="_model.Title" For="@(() => _model.Title)" Label="Title" Variant="Variant.Outlined" Margin="Margin.Dense" />
+
+            <MudTextField @bind-Value="_model.Description" For="@(() => _model.Description)" Label="Description" Variant="Variant.Outlined" Margin="Margin.Dense"
+                          Lines="1" MaxLines="5" Sizing="InputSizing.Auto" />
+
+            <MudNumericField @bind-Value="_model.DisplayOrder" For="@(() => _model.DisplayOrder)" Label="Display order" Variant="Variant.Outlined" Margin="Margin.Dense" />
+
+            <CoverImagePicker ImageUrl="@(string.IsNullOrEmpty(_model.ImageUrl) ? null : _model.ImageUrl)" IsUploading="_isUploading"
+                              OnFileSelected="OnFileSelectedAsync" OnAssetSelected="OnAssetSelected" OnRemove="@(() => _model.ImageUrl = string.Empty)" />
+        </MudStack>
+
+        <MudDivider Class="my-4" />
+
+        <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2">
+            <MudButton Variant="Variant.Text" OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/page-banners"))">Cancel</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAsync" Disabled="@Form.IsBusy">
+                @(Id is null ? "Create" : "Save")
+            </MudButton>
+        </MudStack>
+    </MudPaper>
+</EditForm>
+
+@code {
+    [Parameter]
+    public Guid? Id { get; set; }
+
+    private readonly PageBannerFormModel _model = new();
+    private string? _loadError;
+    private bool _isUploading;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Bind before any await - Blazor can render (and touch Form.EditContext) after the first yield point.
+        Form.Bind(_model);
+
+        if (Id is not { } bannerId)
+        {
+            return;
+        }
+
+        // No GetById endpoint exists - fetch the unbounded flat list and find the entry.
+        var listResult = await ApiClient.GetAsync<List<PageBannerResponse>>(ApiRoutes.SiteContent.PageBanners.Base);
+        var banner = listResult.IsSuccessful ? listResult.ResultData?.Find(b => b.Id == bannerId) : null;
+        if (banner is null)
+        {
+            _loadError = listResult.DisplayMessage;
+            return;
+        }
+
+        _model.Title = banner.Title;
+        _model.Description = banner.Description;
+        _model.ImageUrl = banner.ImageUrl;
+        _model.DisplayOrder = banner.DisplayOrder;
+    }
+
+    private async Task OnFileSelectedAsync(InputFileChangeEventArgs e)
+    {
+        _isUploading = true;
+        var result = await MediaUploadHelper.UploadAsync(ApiClient, e.File);
+        _isUploading = false;
+
+        if (!result.IsSuccessful || result.ResultData is null)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        // PageBanner.ImageUrl is a raw URL string, not a MediaAssetId - store the URL directly.
+        _model.ImageUrl = result.ResultData.Url;
+    }
+
+    private void OnAssetSelected(MediaAssetResponse asset) => _model.ImageUrl = asset.Url;
+
+    private Task SaveAsync() => Form.SubmitAsync(async () =>
+    {
+        var body = new
+        {
+            title = _model.Title,
+            description = _model.Description,
+            imageUrl = _model.ImageUrl,
+            displayOrder = _model.DisplayOrder,
+        };
+
+        if (Id is null)
+        {
+            var createResult = await ApiClient.PostAsync(ApiRoutes.SiteContent.PageBanners.Base, body);
+            if (!createResult.IsSuccessful)
+            {
+                Form.DisplayErrors(createResult, Snackbar);
+                return;
+            }
+
+            CompleteSave(createResult.DisplayMessage);
+            return;
+        }
+
+        var result = await ApiClient.PutAsync(ApiRoutes.SiteContent.PageBanners.ById(Id.Value), body);
+        if (!result.IsSuccessful)
+        {
+            Form.DisplayErrors(result, Snackbar);
+            return;
+        }
+
+        CompleteSave(result.DisplayMessage);
+    });
+
+    private void CompleteSave(string message)
+    {
+        Snackbar.ShowSuccess(message);
+        Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/page-banners");
+    }
+}

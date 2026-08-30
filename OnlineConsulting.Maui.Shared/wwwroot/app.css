@@ -132,8 +132,8 @@
 }
 
 .auth-input:focus {
-    border-color: #4F46E5;
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.14);
+    border-color: var(--mud-palette-primary);
+    box-shadow: 0 0 0 3px rgba(var(--mud-palette-primary-rgb), 0.14);
 }
 
 .auth-input.invalid {
@@ -166,7 +166,7 @@
     left: 12px;
     font-size: .72rem;
     background: var(--mud-palette-surface, #fff);
-    color: #4F46E5;
+    color: var(--mud-palette-primary);
 }
 
 .auth-input.invalid ~ .auth-input-label {
@@ -195,7 +195,7 @@
     font-weight: 600 !important;
     text-transform: none !important;
     font-size: .98rem !important;
-    box-shadow: 0 10px 24px -8px rgba(79, 70, 229, 0.55) !important;
+    box-shadow: 0 10px 24px -8px rgba(var(--mud-palette-primary-rgb), 0.55) !important;
 }
 
 @media (max-width: 900px) {
@@ -211,8 +211,7 @@
 /* ---- Dashboard ---- */
 
 .dash-hero {
-    border-radius: 14px;
-    padding: 1.5rem 1.75rem;
+    padding: 1rem 1rem;
     color: #fff;
     background: var(--mud-palette-primary);
 }
@@ -224,11 +223,6 @@
 .hero-subtitle {
     color: rgba(255, 255, 255, .85);
     max-width: 40rem;
-}
-
-/* MudTabs default uppercases labels - same fix as buttons, Title Case reads better. */
-.mud-tab {
-    text-transform: none;
 }
 
 .stat-card {
@@ -312,15 +306,10 @@
 
 .nav-drawer .mud-nav-link.active,
 .nav-drawer-mobile .mud-nav-link.active {
-    background: rgba(79, 70, 229, 0.1);
-    color: #4F46E5 !important;
+    background: rgba(var(--mud-palette-primary-rgb), 0.1);
+    color: var(--mud-palette-primary) !important;
     font-weight: 600;
 }
-
-:root[data-theme="dark"] .nav-drawer .mud-nav-link.active,
-:root:not([data-theme="light"]) .nav-drawer .mud-nav-link.active,
-:root[data-theme="dark"] .nav-drawer-mobile .mud-nav-link.active,
-:root:not([data-theme="light"]) .nav-drawer-mobile .mud-nav-link.active { background: rgba(129, 140, 248, 0.16); color: #A5B4FC !important; }
 
 .nav-drawer .mud-nav-group-title,
 .nav-drawer-mobile .mud-nav-group-title {

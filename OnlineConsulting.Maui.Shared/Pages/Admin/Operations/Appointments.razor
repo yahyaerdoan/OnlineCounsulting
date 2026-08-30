@@ -1,6 +1,91 @@
-@page "/admin/operations/appointments"
+﻿@page "/admin/operations/appointments"
 @attribute [Authorize]
+@inject IApiClient ApiClient
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
 
 <PageTitle>Appointments</PageTitle>
 
-<ComingSoon Title="Appointments" Subtitle="View and manage upcoming and past customer appointments." />
+<PageHeroBanner Title="Appointments" Subtitle="Dispatch board for scheduled service appointments." />
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+<ServerDataTable TItem="AppointmentResponse" @ref="_table" ApiBasePath="@ApiRoutes.Operations.Appointments.All"
+                 SearchPlaceholder="Search status" OnLoadError="@(message => _loadError = message)">
+    <HeaderContent>
+        <MudTh><MudTableSortLabel SortLabel="@nameof(AppointmentResponse.ScheduledStart)" T="AppointmentResponse">Scheduled</MudTableSortLabel></MudTh>
+        <MudTh>Status</MudTh>
+        <MudTh>Technician</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate Context="appointment">
+        <MudTd DataLabel="Scheduled">@DateTimeFormat.FormatDateTime(appointment.ScheduledStart)</MudTd>
+        <MudTd DataLabel="Status">@appointment.Status</MudTd>
+        <MudTd DataLabel="Technician">@(appointment.AssignedTechnicianUserId is not null ? "Assigned" : "Unassigned")</MudTd>
+        <MudTd DataLabel="Actions">
+            <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
+                <MudIconButton Icon="@Icons.Material.Outlined.Check" Color="Color.Success" Size="Size.Small" title="Confirm"
+                               Disabled="@(appointment.Status != "Pending")" OnClick="@(() => ConfirmAsync(appointment))" />
+                <MudIconButton Icon="@Icons.Material.Outlined.Close" Color="Color.Error" Size="Size.Small" title="Cancel"
+                               OnClick="@(() => CancelAsync(appointment))" />
+                <MudIconButton Icon="@Icons.Material.Outlined.PersonAdd" Color="Color.Default" Size="Size.Small" title="Assign technician"
+                               OnClick="@(() => AssignTechnicianAsync(appointment))" />
+                <MudIconButton Icon="@Icons.Material.Outlined.Build" Color="Color.Default" Size="Size.Small" title="Record work order"
+                               Disabled="@(appointment.AssignedTechnicianUserId is null)" OnClick="@(() => RecordWorkOrderAsync(appointment))" />
+                @if (appointment.Status == "Completed")
+                {
+                    <MudIconButton Icon="@Icons.Material.Outlined.Description" Color="Color.Default" Size="Size.Small" title="View work order"
+                                   OnClick="@(() => ViewWorkOrderAsync(appointment))" />
+                }
+            </MudButtonGroup>
+        </MudTd>
+    </RowTemplate>
+</ServerDataTable>
+
+@code {
+    private ServerDataTable<AppointmentResponse> _table = default!;
+    private string? _loadError;
+
+    private async Task ConfirmAsync(AppointmentResponse appointment)
+    {
+        var result = await ApiClient.PostAsync(ApiRoutes.Operations.Appointments.Confirm(appointment.Id), new { });
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await _table.ReloadAsync();
+    }
+
+    private async Task CancelAsync(AppointmentResponse appointment)
+    {
+        if (!await DialogService.ConfirmAsync("Cancel Appointment", "Cancel this appointment? The customer will be notified."))
+        {
+            return;
+        }
+
+        // CancelAppointmentCommand.UserId is filled server-side from the caller's own identity (see
+        // CancelAppointment.cs), not from any request body - it's a self-service-only endpoint, unchanged here.
+        var result = await ApiClient.PostAsync(ApiRoutes.Operations.Appointments.Cancel(appointment.Id), new { });
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await _table.ReloadAsync();
+    }
+
+    private Task AssignTechnicianAsync(AppointmentResponse appointment) =>
+        DialogService.ShowAndReloadAsync("Assign Technician", new DialogParameters<AssignTechnicianDialog> { { x => x.Appointment, appointment } }, _table.ReloadAsync);
+
+    private void RecordWorkOrderAsync(AppointmentResponse appointment) =>
+        Navigation.NavigateTo($"{AppRoutes.AdminHome}/operations/appointments/{appointment.Id}/record-work-order");
+
+    private void ViewWorkOrderAsync(AppointmentResponse appointment) =>
+        Navigation.NavigateTo($"{AppRoutes.AdminHome}/operations/appointments/{appointment.Id}/work-order");
+}

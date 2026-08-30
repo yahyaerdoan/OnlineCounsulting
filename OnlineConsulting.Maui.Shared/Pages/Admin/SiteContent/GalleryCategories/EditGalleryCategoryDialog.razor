@@ -1,20 +1,19 @@
-@namespace OnlineConsulting.Maui.Shared.Pages.Admin.Catalog
+@namespace OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent
 @using OnlineConsulting.Maui.Shared.Infrastructure.Forms
-@using OnlineConsulting.Maui.Shared.Infrastructure.Icons
-@using OnlineConsulting.Maui.Shared.Pages.Admin.Catalog.CategoryModels
+@using OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent.GalleryCategoryModels
 @inject IApiClient ApiClient
 @inject ISnackbar Snackbar
-@inject FormState<CategoryFormModel> Form
+@inject FormState<GalleryCategoryFormModel> Form
 
 <MudDialog>
     <TitleContent>
-        <MudText Typo="Typo.h6">Edit @Category.Title</MudText>
+        <MudText Typo="Typo.h6">Edit @Category.Name</MudText>
     </TitleContent>
     <DialogContent>
-        <EntitySummaryHeader Title="@Category.Title" Subtitle="@Category.Description" />
+        <EntitySummaryHeader Title="@Category.Name" Subtitle="@Category.Description" />
 
         <EditForm EditContext="@Form.EditContext">
-            <CategoryFormFields Model="_model" />
+            <GalleryCategoryFormFields Model="_model" />
         </EditForm>
     </DialogContent>
     <DialogActions>
@@ -27,22 +26,20 @@
     private IMudDialogInstance MudDialog { get; set; } = default!;
 
     [Parameter, EditorRequired]
-    public CategoryResponse Category { get; set; } = default!;
+    public GalleryCategoryResponse Category { get; set; } = default!;
 
-    private readonly CategoryFormModel _model = new();
+    private readonly GalleryCategoryFormModel _model = new();
 
     protected override void OnInitialized()
     {
-        _model.Title = Category.Title;
+        _model.Name = Category.Name;
         _model.Description = Category.Description;
-        _model.Icon = IconCatalog.Resolve(Category.Icon);
-        _model.IconColor = Category.IconColor;
         Form.Bind(_model);
     }
 
     private Task SaveAsync() => Form.SubmitAsync(async () =>
     {
-        var result = await ApiClient.PutAsync(ApiRoutes.Categories.ById(Category.Id), new { title = _model.Title, description = _model.Description, icon = _model.Icon, iconColor = _model.IconColor });
+        var result = await ApiClient.PutAsync(ApiRoutes.SiteContent.GalleryCategory.ById(Category.Id), new { name = _model.Name, description = _model.Description });
         if (!result.IsSuccessful)
         {
             Form.DisplayErrors(result, Snackbar);

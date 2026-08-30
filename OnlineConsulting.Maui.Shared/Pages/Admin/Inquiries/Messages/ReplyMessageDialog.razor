@@ -1,0 +1,53 @@
+@namespace OnlineConsulting.Maui.Shared.Pages.Admin.Inquiries
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">Reply to @Message.FirstName @Message.LastName</MudText>
+    </TitleContent>
+    <DialogContent>
+        <EntitySummaryHeader Title="@Message.Subject" Subtitle="@Message.Email" />
+
+        <MudTextField @bind-Value="_replyBody" Label="Reply" Variant="Variant.Outlined" Margin="Margin.Dense"
+                      Lines="4" MaxLines="10" Sizing="InputSizing.Auto" Class="mt-3" />
+        @if (_error is not null)
+        {
+            <ApiErrorAlert Message="@_error" Severity="Severity.Error" />
+        }
+    </DialogContent>
+    <DialogActions>
+        <DialogActionButtons OnOk="SendAsync" IsBusy="@_isBusy" />
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public MessageResponse Message { get; set; } = default!;
+
+    private string _replyBody = string.Empty;
+    private bool _isBusy;
+    private string? _error;
+
+    private async Task SendAsync()
+    {
+        _isBusy = true;
+        _error = null;
+
+        var result = await ApiClient.PostAsync(ApiRoutes.Inquiries.Messages.Reply(Message.Id), new { replyBody = _replyBody });
+
+        _isBusy = false;
+
+        if (!result.IsSuccessful)
+        {
+            _error = result.DisplayMessage;
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+}

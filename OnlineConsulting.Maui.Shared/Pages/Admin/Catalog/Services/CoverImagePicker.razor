@@ -3,12 +3,12 @@
 <MudStack Spacing="2">
     @if (ImageUrl is not null)
     {
-        <MudCard Outlined="true">
-            <MudCardMedia Image="@ImageUrl" Height="140" />
-        </MudCard>
+        <MudImage Src="@ImageUrl" Height="160" ObjectFit="ObjectFit.Cover" Class="rounded-lg" />
     }
 
-    <MudFileUpload T="IBrowserFile" OnFilesChanged="OnFileSelected" Accept="image/*" DragAndDrop="true" Disabled="IsUploading" />
+    <MudFileUpload T="IBrowserFile" Files="_selectedFile" FilesChanged="OnSelectedFileChangedAsync" OnFilesChanged="OnFileSelected"
+                   Accept="image/*" DragAndDrop="true" Disabled="IsUploading" />
+
     @if (IsUploading)
     {
         <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
@@ -24,4 +24,21 @@
 
     [Parameter, EditorRequired]
     public EventCallback<InputFileChangeEventArgs> OnFileSelected { get; set; }
+
+    /// <summary>Media Library browsing is disabled for now - kept so callers don't need to change; not wired to any UI.</summary>
+    [Parameter]
+    public EventCallback<MediaAssetResponse> OnAssetSelected { get; set; }
+
+    /// <summary>Fires when the file upload's own delete (x) icon clears the selected file - the single
+    /// place this picker signals "remove the image", replacing a separate Remove button.</summary>
+    [Parameter]
+    public EventCallback OnRemove { get; set; }
+
+    private IBrowserFile? _selectedFile;
+
+    private Task OnSelectedFileChangedAsync(IBrowserFile? file)
+    {
+        _selectedFile = file;
+        return file is null && OnRemove.HasDelegate ? OnRemove.InvokeAsync() : Task.CompletedTask;
+    }
 }

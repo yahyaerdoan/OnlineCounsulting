@@ -1,6 +1,69 @@
 @page "/admin/growth/memberships"
 @attribute [Authorize]
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
 
 <PageTitle>Memberships</PageTitle>
 
-<ComingSoon Title="Memberships" Subtitle="Manage membership plans, add-ons, and subscribers." />
+<PageHeroBanner Title="Memberships" Subtitle="Subscription plans customers can purchase.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.Add"
+                   OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/growth/memberships/new"))">New Plan</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+
+<ApiErrorAlert Message="@_planLoadError" Severity="Severity.Warning" />
+
+@if (_plansLoading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mt-4" />
+}
+else
+{
+    <SearchableTable TItem="MembershipPlanResponse" Items="_plans" Filter="@((plan, text) => plan.Name.Contains(text, StringComparison.OrdinalIgnoreCase))"
+                      SearchPlaceholder="Search plan name">
+        <HeaderContent>
+            <MudTh>Name</MudTh>
+            <MudTh>Billing</MudTh>
+            <MudTh Class="mud-table-cell-align-right">Price</MudTh>
+            <MudTh Class="mud-table-cell-align-right">Visits/yr</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate Context="plan">
+            <MudTd DataLabel="Name">@plan.Name</MudTd>
+            <MudTd DataLabel="Billing">@plan.BillingCycle</MudTd>
+            <MudTd DataLabel="Price" Class="mud-table-cell-align-right">@CurrencyFormat.Format(plan.Price)</MudTd>
+            <MudTd DataLabel="Visits/yr" Class="mud-table-cell-align-right">@plan.IncludedVisitsPerYear</MudTd>
+            <MudTd DataLabel="Actions">
+                <MudIconButton Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" Size="Size.Small" title="Edit"
+                               OnClick="@(() => Navigation.NavigateTo($"{AppRoutes.AdminHome}/growth/memberships/{plan.Id}/edit"))" />
+            </MudTd>
+        </RowTemplate>
+    </SearchableTable>
+}
+
+@code {
+    private List<MembershipPlanResponse> _plans = [];
+    private bool _plansLoading = true;
+    private string? _planLoadError;
+
+    protected override Task OnInitializedAsync() => ReloadPlansAsync();
+
+    private async Task ReloadPlansAsync()
+    {
+        _plansLoading = true;
+        var result = await ApiClient.GetAsync<PaginatedResponse<MembershipPlanResponse>>(ApiRoutes.Paged(ApiRoutes.Growth.MembershipPlans.All, 0, 100));
+        if (!result.IsSuccessful || result.ResultData is null)
+        {
+            _planLoadError = result.DisplayMessage;
+            _plans = [];
+        }
+        else
+        {
+            _plans = result.ResultData.Items;
+        }
+
+        _plansLoading = false;
+    }
+}

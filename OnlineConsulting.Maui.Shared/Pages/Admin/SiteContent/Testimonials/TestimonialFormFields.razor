@@ -1,0 +1,50 @@
+@namespace OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent
+@using OnlineConsulting.Maui.Shared.Pages.Admin.Catalog
+@using OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent.TestimonialModels
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+
+<MudStack Spacing="3">
+    <MudGrid Spacing="3">
+        <MudItem xs="12" sm="6">
+            <MudTextField @bind-Value="Model.FirstName" For="@(() => Model.FirstName)" Label="First name" Variant="Variant.Outlined" Margin="Margin.Dense" />
+        </MudItem>
+        <MudItem xs="12" sm="6">
+            <MudTextField @bind-Value="Model.LastName" For="@(() => Model.LastName)" Label="Last name" Variant="Variant.Outlined" Margin="Margin.Dense" />
+        </MudItem>
+    </MudGrid>
+
+    <MudTextField @bind-Value="Model.Title" For="@(() => Model.Title)" Label="Title" Variant="Variant.Outlined" Margin="Margin.Dense" />
+
+    <MudTextField @bind-Value="Model.Description" For="@(() => Model.Description)" Label="Description" Variant="Variant.Outlined" Margin="Margin.Dense"
+                  Lines="1" MaxLines="5" Sizing="InputSizing.Auto" />
+
+    <MudNumericField @bind-Value="Model.DisplayOrder" For="@(() => Model.DisplayOrder)" Label="Display order" Variant="Variant.Outlined" Margin="Margin.Dense" />
+
+    <CoverImagePicker ImageUrl="@(string.IsNullOrEmpty(Model.ImageUrl) ? null : Model.ImageUrl)" IsUploading="_isUploading"
+                      OnFileSelected="OnFileSelectedAsync" OnAssetSelected="OnAssetSelected" OnRemove="@(() => Model.ImageUrl = string.Empty)" />
+</MudStack>
+
+@code {
+    [Parameter, EditorRequired]
+    public TestimonialFormModel Model { get; set; } = default!;
+
+    private bool _isUploading;
+
+    private async Task OnFileSelectedAsync(InputFileChangeEventArgs e)
+    {
+        _isUploading = true;
+        var result = await MediaUploadHelper.UploadAsync(ApiClient, e.File);
+        _isUploading = false;
+
+        if (!result.IsSuccessful || result.ResultData is null)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Model.ImageUrl = result.ResultData.Url;
+    }
+
+    private void OnAssetSelected(MediaAssetResponse asset) => Model.ImageUrl = asset.Url;
+}

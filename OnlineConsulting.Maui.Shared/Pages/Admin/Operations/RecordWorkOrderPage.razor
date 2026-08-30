@@ -1,0 +1,272 @@
+@page "/admin/operations/appointments/{AppointmentId:guid}/record-work-order"
+@namespace OnlineConsulting.Maui.Shared.Pages.Admin.Operations
+@attribute [Authorize]
+@using OnlineConsulting.Maui.Shared.Infrastructure.Forms
+@using OnlineConsulting.Maui.Shared.Pages.Admin.Operations.OperationsModels
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject FormState<RecordWorkOrderFormModel> Form
+
+<PageTitle>Record Work Order</PageTitle>
+
+<PageHeroBanner Title="Record Work Order" Subtitle="Complete this appointment and capture the technician's work.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.ArrowBack"
+                   OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/operations/appointments"))">Back to Appointments</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+<PageBreadcrumbExtra Text="Record Work Order" />
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+}
+else
+{
+    <EditForm EditContext="@Form.EditContext">
+        <MudPaper Class="pa-4">
+            <MudGrid Spacing="3">
+                <MudItem xs="12" md="6">
+                    <MudSelect T="Guid" @bind-Value="_model.TechnicianUserId" Label="Technician" Variant="Variant.Outlined" Margin="Margin.Dense">
+                        @foreach (var technician in _technicians)
+                        {
+                            <MudSelectItem T="Guid" Value="@technician.Id">@($"{technician.FirstName} {technician.LastName} ({technician.Email})")</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudText Typo="Typo.subtitle2" Class="mb-1">Equipment</MudText>
+                    <MudRadioGroup T="string" @bind-Value="_model.EquipmentMode">
+                        <MudRadio T="string" Value="@ExistingMode" Color="Color.Primary" Dense="true">Use existing equipment on file</MudRadio>
+                        <MudRadio T="string" Value="@NewMode" Color="Color.Primary" Dense="true">Record new equipment</MudRadio>
+                    </MudRadioGroup>
+                </MudItem>
+
+                @if (_model.EquipmentMode == ExistingMode)
+                {
+                    <MudItem xs="12" md="6">
+                        <MudSelect T="Guid?" @bind-Value="_model.EquipmentId" Label="Existing equipment" Variant="Variant.Outlined" Margin="Margin.Dense">
+                            @foreach (var item in _existingEquipment)
+                            {
+                                <MudSelectItem T="Guid?" Value="@item.Id">@($"{item.Type} - {item.Brand} {item.Model}")</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                }
+                else
+                {
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_model.NewEquipmentType" Label="Type" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_model.NewEquipmentSerialNumber" Label="Serial Number" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_model.NewEquipmentBrand" Label="Brand" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudTextField @bind-Value="_model.NewEquipmentModel" Label="Model" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                    </MudItem>
+                }
+
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_model.PartsUsed" Label="Parts used" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="1" MaxLines="3" Sizing="InputSizing.Auto" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_model.TechnicianNotes" Label="Technician notes" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="1" MaxLines="5" Sizing="InputSizing.Auto" />
+                </MudItem>
+
+                <MudItem xs="12" md="6">
+                    <MudText Typo="Typo.subtitle2" Class="mb-1">Before photo</MudText>
+                    @if (_beforePhotoUrl is not null)
+                    {
+                        <MudImage Src="@_beforePhotoUrl" Height="88" Class="rounded-lg mb-2" />
+                    }
+                    <MudFileUpload T="IBrowserFile" OnFilesChanged="@(e => OnPhotoSelectedAsync(e, isBeforePhoto: true))" Accept="image/*" Disabled="_isUploadingBeforePhoto" />
+                    @if (_isUploadingBeforePhoto)
+                    {
+                        <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mt-2" />
+                    }
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudText Typo="Typo.subtitle2" Class="mb-1">After photo</MudText>
+                    @if (_afterPhotoUrl is not null)
+                    {
+                        <MudImage Src="@_afterPhotoUrl" Height="88" Class="rounded-lg mb-2" />
+                    }
+                    <MudFileUpload T="IBrowserFile" OnFilesChanged="@(e => OnPhotoSelectedAsync(e, isBeforePhoto: false))" Accept="image/*" Disabled="_isUploadingAfterPhoto" />
+                    @if (_isUploadingAfterPhoto)
+                    {
+                        <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mt-2" />
+                    }
+                </MudItem>
+            </MudGrid>
+
+            <MudDivider Class="my-4" />
+
+            <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2">
+                <MudButton Variant="Variant.Text" OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/operations/appointments"))">Cancel</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAsync" Disabled="@Form.IsBusy">Complete Appointment</MudButton>
+            </MudStack>
+        </MudPaper>
+    </EditForm>
+}
+
+@code {
+    private const string ExistingMode = "existing";
+    private const string NewMode = "new";
+
+    [Parameter]
+    public Guid AppointmentId { get; set; }
+
+    private readonly RecordWorkOrderFormModel _model = new();
+    private List<UserResponse> _technicians = [];
+    private List<EquipmentItemResponse> _existingEquipment = [];
+    private Guid _customerUserId;
+    private bool _loading = true;
+    private string? _loadError;
+
+    private Guid? _beforePhotoAssetId;
+    private Guid? _afterPhotoAssetId;
+    private string? _beforePhotoUrl;
+    private string? _afterPhotoUrl;
+    private bool _isUploadingBeforePhoto;
+    private bool _isUploadingAfterPhoto;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Bind before any await - Blazor can render (and touch Form.EditContext) after the first yield point.
+        Form.Bind(_model);
+
+        var appointmentResult = await ApiClient.GetAsync<AppointmentResponse>(ApiRoutes.Operations.Appointments.ById(AppointmentId));
+        if (!appointmentResult.IsSuccessful || appointmentResult.ResultData is null)
+        {
+            _loadError = appointmentResult.DisplayMessage;
+            _loading = false;
+            return;
+        }
+
+        var appointment = appointmentResult.ResultData;
+        _customerUserId = appointment.UserId;
+        if (appointment.AssignedTechnicianUserId is { } technicianId)
+        {
+            _model.TechnicianUserId = technicianId;
+        }
+
+        // Legacy AssignTechnicianViewModel offers every tenant user as a candidate - no separate Technician role to filter on.
+        var usersResult = await ApiClient.QueryAsync<PaginatedResponse<UserResponse>>(ApiRoutes.Paged(ApiRoutes.Users.All, 0, int.MaxValue), null);
+        _technicians = usersResult.IsSuccessful && usersResult.ResultData is not null ? usersResult.ResultData.Items : [];
+        if (_model.TechnicianUserId == Guid.Empty && _technicians.Count > 0)
+        {
+            _model.TechnicianUserId = _technicians[0].Id;
+        }
+
+        var equipmentResult = await ApiClient.QueryAsync<PaginatedResponse<EquipmentItemResponse>>(
+            ApiRoutes.Paged(ApiRoutes.Operations.Equipment.All, 0, 200),
+            new DynamicQuery(null, new DynamicFilter(nameof(EquipmentItemResponse.UserId), "eq", _customerUserId.ToString())));
+        _existingEquipment = equipmentResult.IsSuccessful && equipmentResult.ResultData is not null ? equipmentResult.ResultData.Items : [];
+
+        // Mirrors the MVC form's checked="@(Model.ExistingEquipment.Count > 0)" default.
+        _model.EquipmentMode = _existingEquipment.Count > 0 ? ExistingMode : NewMode;
+        if (_existingEquipment.Count > 0)
+        {
+            _model.EquipmentId = _existingEquipment[0].Id;
+        }
+
+        _loading = false;
+    }
+
+    private async Task OnPhotoSelectedAsync(InputFileChangeEventArgs e, bool isBeforePhoto)
+    {
+        if (isBeforePhoto)
+        {
+            _isUploadingBeforePhoto = true;
+        }
+        else
+        {
+            _isUploadingAfterPhoto = true;
+        }
+
+        var result = await MediaUploadHelper.UploadAsync(ApiClient, e.File);
+
+        _isUploadingBeforePhoto = false;
+        _isUploadingAfterPhoto = false;
+
+        if (!result.IsSuccessful || result.ResultData is null)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        if (isBeforePhoto)
+        {
+            _beforePhotoAssetId = result.ResultData.Id;
+            _beforePhotoUrl = result.ResultData.Url;
+        }
+        else
+        {
+            _afterPhotoAssetId = result.ResultData.Id;
+            _afterPhotoUrl = result.ResultData.Url;
+        }
+    }
+
+    private Task SaveAsync() => Form.SubmitAsync(async () =>
+    {
+        var body = new
+        {
+            appointmentId = AppointmentId,
+            technicianUserId = _model.TechnicianUserId,
+            partsUsed = _model.PartsUsed,
+            technicianNotes = _model.TechnicianNotes,
+            completedAt = DateTimeOffset.UtcNow,
+            equipmentId = _model.EquipmentMode == ExistingMode ? _model.EquipmentId : null,
+            newEquipment = _model.EquipmentMode == NewMode
+                ? new
+                {
+                    customerUserId = _customerUserId,
+                    type = _model.NewEquipmentType,
+                    brand = _model.NewEquipmentBrand,
+                    model = _model.NewEquipmentModel,
+                    serialNumber = _model.NewEquipmentSerialNumber,
+                    installDate = (DateTimeOffset?)null,
+                    warrantyExpiresAt = (DateTimeOffset?)null,
+                    notes = (string?)null,
+                }
+                : null,
+        };
+
+        var createResult = await ApiClient.PostAsync<Guid>(ApiRoutes.Operations.WorkOrders.Base, body);
+        if (!createResult.IsSuccessful)
+        {
+            Form.DisplayErrors(createResult, Snackbar);
+            return;
+        }
+
+        var workOrderId = createResult.ResultData;
+        if (_beforePhotoAssetId is { } beforeAssetId)
+        {
+            await AddMediaItemAsync(workOrderId, beforeAssetId, isBeforePhoto: true);
+        }
+
+        if (_afterPhotoAssetId is { } afterAssetId)
+        {
+            await AddMediaItemAsync(workOrderId, afterAssetId, isBeforePhoto: false);
+        }
+
+        Snackbar.ShowSuccess(createResult.DisplayMessage);
+        Navigation.NavigateTo(AppRoutes.AdminHome + "/operations/appointments");
+    });
+
+    private async Task AddMediaItemAsync(Guid workOrderId, Guid mediaAssetId, bool isBeforePhoto)
+    {
+        var result = await ApiClient.PostAsync(ApiRoutes.Operations.WorkOrders.AddMediaItem(workOrderId), new { mediaAssetId, isBeforePhoto, displayOrder = 0 });
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+        }
+    }
+}

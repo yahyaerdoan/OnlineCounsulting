@@ -17,13 +17,14 @@ public class CoreUiModule : IUiModule
         new NavSection("Operations", Icons.Material.Outlined.EventNote, Color.Warning,
         [
             new NavItem("Appointments", $"{AdminPrefix}/operations/appointments", Icons.Material.Outlined.Event),
-            new NavItem("Work Orders", $"{AdminPrefix}/operations/work-orders", Icons.Material.Outlined.Assignment),
             new NavItem("Equipment", $"{AdminPrefix}/operations/equipment", Icons.Material.Outlined.Build),
+            new NavItem("Availability Rules", $"{AdminPrefix}/operations/availability-rules", Icons.Material.Outlined.Schedule),
         ]),
 
         new NavSection("Growth", Icons.Material.Outlined.TrendingUp, Color.Success,
         [
             new NavItem("Memberships", $"{AdminPrefix}/growth/memberships", Icons.Material.Outlined.CardMembership),
+            new NavItem("Membership Subscribers", $"{AdminPrefix}/growth/membership-subscribers", Icons.Material.Outlined.Groups),
             new NavItem("Referrals", $"{AdminPrefix}/growth/referrals", Icons.Material.Outlined.Diversity3),
             new NavItem("Promotions", $"{AdminPrefix}/growth/promotions", Icons.Material.Outlined.LocalOffer),
         ]),
@@ -31,7 +32,8 @@ public class CoreUiModule : IUiModule
         new NavSection("Platform", Icons.Material.Outlined.Business, Color.Secondary,
         [
             new NavItem("Tenants", $"{AdminPrefix}/platform/tenants", Icons.Material.Outlined.Domain, SuperAdminOnly: true),
-            new NavItem("Module Catalog", $"{AdminPrefix}/platform/module-offerings", Icons.Material.Outlined.Widgets, SuperAdminOnly: true),
+            new NavItem("Module Offerings", $"{AdminPrefix}/platform/module-offerings", Icons.Material.Outlined.Widgets, SuperAdminOnly: true),
+            new NavItem("Bundles", $"{AdminPrefix}/platform/bundles", Icons.Material.Outlined.Inventory2, SuperAdminOnly: true),
         ]),
 
         new NavSection("Settings", Icons.Material.Outlined.Settings, Color.Tertiary,

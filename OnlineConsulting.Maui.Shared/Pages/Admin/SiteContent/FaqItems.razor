@@ -1,0 +1,64 @@
+@page "/admin/site-content/faq-items"
+@attribute [Authorize]
+@using OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent
+@inject IApiClient ApiClient
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<PageTitle>FAQ Items</PageTitle>
+
+<PageHeroBanner Title="FAQ Items" Subtitle="Frequently asked questions shown on each service's page.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.Add"
+                   OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/faq-items/new"))">New FAQ Item</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+<ServerDataTable TItem="FaqItemResponse" @ref="_table" ApiBasePath="@ApiRoutes.SiteContent.FaqItems.All"
+                 SearchPlaceholder="Search question or answer" OnLoadError="@(message => _loadError = message)">
+    <HeaderContent>
+        <MudTh>Question</MudTh>
+        <MudTh>Answer</MudTh>
+        <MudTh Class="mud-table-cell-align-right">Order</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate Context="item">
+        <MudTd DataLabel="Question">@item.Question</MudTd>
+        <MudTd DataLabel="Answer">@item.Answer</MudTd>
+        <MudTd DataLabel="Order" Class="mud-table-cell-align-right">@item.DisplayOrder</MudTd>
+        <MudTd DataLabel="Actions">
+            <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
+                <MudIconButton Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" Size="Size.Small" title="Edit"
+                               OnClick="@(() => Navigation.NavigateTo($"{AppRoutes.AdminHome}/site-content/faq-items/{item.Id}/edit"))" />
+                <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" Size="Size.Small" title="Delete"
+                               OnClick="@(() => DeleteAsync(item))" />
+            </MudButtonGroup>
+        </MudTd>
+    </RowTemplate>
+</ServerDataTable>
+
+@code {
+    private ServerDataTable<FaqItemResponse> _table = default!;
+    private string? _loadError;
+
+    private async Task DeleteAsync(FaqItemResponse item)
+    {
+        if (!await DialogService.ConfirmDeleteAsync("FAQ item", item.Question))
+        {
+            return;
+        }
+
+        var result = await ApiClient.DeleteAsync(ApiRoutes.SiteContent.FaqItems.ById(item.Id));
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await _table.ReloadAsync();
+    }
+}

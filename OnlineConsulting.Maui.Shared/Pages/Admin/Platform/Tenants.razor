@@ -1,6 +1,82 @@
 @page "/admin/platform/tenants"
 @attribute [Authorize]
+@using OnlineConsulting.Maui.Shared.Pages.Admin.Platform
+@inject IApiClient ApiClient
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
 
 <PageTitle>Tenants</PageTitle>
 
-<ComingSoon Title="Tenants" Subtitle="Manage tenant accounts, plans, and provisioning." />
+<PageHeroBanner Title="Tenants" Subtitle="Every business using your platform." />
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+<ServerDataTable TItem="TenantResponse" @ref="_table" ApiBasePath="@ApiRoutes.Platform.Tenants.All"
+                 SearchPlaceholder="Search tenant name" OnLoadError="@(message => _loadError = message)">
+    <HeaderContent>
+        <MudTh>Name</MudTh>
+        <MudTh>Status</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate Context="tenant">
+        <MudTd DataLabel="Name">@tenant.Name</MudTd>
+        <MudTd DataLabel="Status">@tenant.Status</MudTd>
+        <MudTd DataLabel="Actions">
+            <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
+                <MudIconButton Icon="@Icons.Material.Outlined.Extension" Color="Color.Default" Size="Size.Small" title="Manage modules"
+                               OnClick="@(() => ManageModulesAsync(tenant))" />
+                @if (tenant.Status == TenantStatusesSuspended)
+                {
+                    <MudIconButton Icon="@Icons.Material.Outlined.PlayArrow" Color="Color.Success" Size="Size.Small" title="Reactivate"
+                                   OnClick="@(() => ReactivateAsync(tenant))" />
+                }
+                else
+                {
+                    <MudIconButton Icon="@Icons.Material.Outlined.Pause" Color="Color.Warning" Size="Size.Small" title="Suspend"
+                                   OnClick="@(() => SuspendAsync(tenant))" />
+                }
+            </MudButtonGroup>
+        </MudTd>
+    </RowTemplate>
+</ServerDataTable>
+
+@code {
+    private const string TenantStatusesSuspended = "Suspended";
+
+    private ServerDataTable<TenantResponse> _table = default!;
+    private string? _loadError;
+
+    private Task ManageModulesAsync(TenantResponse tenant) =>
+        DialogService.ShowAndReloadAsync("Manage Modules", new DialogParameters<ManageTenantModulesDialog> { { x => x.Tenant, tenant } }, _table.ReloadAsync);
+
+    private async Task SuspendAsync(TenantResponse tenant)
+    {
+        if (!await DialogService.ConfirmAsync("Suspend Tenant", $"Suspend {tenant.Name}? They will lose access until reactivated."))
+        {
+            return;
+        }
+
+        var result = await ApiClient.PostAsync(ApiRoutes.Platform.Tenants.Suspend(tenant.Id), new { });
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await _table.ReloadAsync();
+    }
+
+    private async Task ReactivateAsync(TenantResponse tenant)
+    {
+        var result = await ApiClient.PostAsync(ApiRoutes.Platform.Tenants.Reactivate(tenant.Id), new { });
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await _table.ReloadAsync();
+    }
+}

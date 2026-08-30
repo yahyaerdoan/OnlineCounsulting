@@ -1,6 +1,62 @@
 @page "/admin/growth/promotions"
 @attribute [Authorize]
+@inject IApiClient ApiClient
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
 
 <PageTitle>Promotions</PageTitle>
 
-<ComingSoon Title="Promotions" Subtitle="Create and manage promotional offers and discount codes." />
+<PageHeroBanner Title="Promotions" Subtitle="Time-limited offers shown on your public site.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.Add"
+                   OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/growth/promotions/new"))">New Promotion</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+<ServerDataTable TItem="PromotionResponse" @ref="_table" ApiBasePath="@ApiRoutes.Growth.Promotions.All"
+                 SearchPlaceholder="Search title or description" OnLoadError="@(message => _loadError = message)">
+    <HeaderContent>
+        <MudTh><MudTableSortLabel SortLabel="@nameof(PromotionResponse.Title)" T="PromotionResponse">Title</MudTableSortLabel></MudTh>
+        <MudTh>Expires</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate Context="promotion">
+        <MudTd DataLabel="Title">@promotion.Title</MudTd>
+        <MudTd DataLabel="Expires">@(promotion.ExpiresAt is { } expires ? DateTimeFormat.FormatDateTime(expires) : "Never")</MudTd>
+        <MudTd DataLabel="Actions">
+            <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
+                <MudIconButton Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" Size="Size.Small" title="Edit"
+                               OnClick="@(() => Navigation.NavigateTo($"{AppRoutes.AdminHome}/growth/promotions/{promotion.Id}/edit"))" />
+
+                <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" Size="Size.Small" title="Delete"
+                               OnClick="@(() => DeleteAsync(promotion))" />
+            </MudButtonGroup>
+        </MudTd>
+    </RowTemplate>
+</ServerDataTable>
+
+@code {
+    private ServerDataTable<PromotionResponse> _table = default!;
+    private string? _loadError;
+
+    private async Task DeleteAsync(PromotionResponse promotion)
+    {
+        if (!await DialogService.ConfirmDeleteAsync("promotion", promotion.Title))
+        {
+            return;
+        }
+
+        var result = await ApiClient.DeleteAsync(ApiRoutes.Growth.Promotions.ById(promotion.Id));
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await _table.ReloadAsync();
+    }
+}

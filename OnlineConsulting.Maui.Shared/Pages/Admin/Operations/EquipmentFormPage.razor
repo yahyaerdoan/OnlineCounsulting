@@ -1,0 +1,179 @@
+@page "/admin/operations/equipment/new"
+@page "/admin/operations/equipment/{Id:guid}/edit"
+@namespace OnlineConsulting.Maui.Shared.Pages.Admin.Operations
+@attribute [Authorize]
+@using OnlineConsulting.Maui.Shared.Infrastructure.Forms
+@using OnlineConsulting.Maui.Shared.Pages.Admin.Operations.EquipmentModels
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject FormState<EquipmentFormModel> Form
+
+<PageTitle>@(Id is null ? "New Equipment" : "Edit Equipment")</PageTitle>
+
+<PageHeroBanner Title="@(Id is null ? "New Equipment" : "Edit Equipment")" Subtitle="Customer equipment on file for service history.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.ArrowBack"
+                   OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/operations/equipment"))">Back to Equipment</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+<PageBreadcrumbExtra Text="@(Id is null ? "New Equipment" : "Edit Equipment")" />
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+<EditForm EditContext="@Form.EditContext">
+    <MudPaper Class="pa-4">
+        <MudGrid>
+            @if (Id is null)
+            {
+                <MudItem xs="12">
+                    @if (_loadingCustomers)
+                    {
+                        <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+                    }
+                    else
+                    {
+                        <MudSelect T="Guid?" @bind-Value="_model.UserId" Label="Customer" Placeholder="Select a customer" Variant="Variant.Outlined" Margin="Margin.Dense">
+                            @foreach (var customer in _customers)
+                            {
+                                <MudSelectItem T="Guid?" Value="@customer.Id">@($"{customer.FirstName} {customer.LastName} ({customer.Email})")</MudSelectItem>
+                            }
+                        </MudSelect>
+                    }
+                </MudItem>
+            }
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="_model.Type" For="@(() => _model.Type)" Label="Type" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="_model.Brand" For="@(() => _model.Brand)" Label="Brand" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="_model.Model" For="@(() => _model.Model)" Label="Model" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="_model.SerialNumber" For="@(() => _model.SerialNumber)" Label="Serial number" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudDatePicker @bind-Date="_model.InstallDate" Label="Install date" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudDatePicker @bind-Date="_model.WarrantyExpiresAt" Label="Warranty expires" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @bind-Value="_model.Notes" For="@(() => _model.Notes)" Label="Notes" Variant="Variant.Outlined" Margin="Margin.Dense"
+                              Lines="1" MaxLines="5" Sizing="InputSizing.Auto" />
+            </MudItem>
+        </MudGrid>
+
+        <MudDivider Class="my-4" />
+
+        <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2">
+            <MudButton Variant="Variant.Text" OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/operations/equipment"))">Cancel</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAsync" Disabled="@Form.IsBusy">
+                @(Id is null ? "Create" : "Save")
+            </MudButton>
+        </MudStack>
+    </MudPaper>
+</EditForm>
+
+@code {
+    [Parameter]
+    public Guid? Id { get; set; }
+
+    private readonly EquipmentFormModel _model = new();
+    private List<UserResponse> _customers = [];
+    private bool _loadingCustomers;
+    private string? _loadError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Bind before any await - Blazor can render (and touch Form.EditContext) after the first yield point.
+        Form.Bind(_model);
+
+        if (Id is { } equipmentId)
+        {
+            var itemResult = await ApiClient.GetAsync<EquipmentItemResponse>(ApiRoutes.Operations.Equipment.ById(equipmentId));
+            if (!itemResult.IsSuccessful || itemResult.ResultData is null)
+            {
+                _loadError = itemResult.DisplayMessage;
+                return;
+            }
+
+            var item = itemResult.ResultData;
+            _model.Type = item.Type;
+            _model.Brand = item.Brand;
+            _model.Model = item.Model;
+            _model.SerialNumber = item.SerialNumber;
+            _model.InstallDate = item.InstallDate?.DateTime;
+            _model.WarrantyExpiresAt = item.WarrantyExpiresAt?.DateTime;
+            _model.Notes = item.Notes;
+            return;
+        }
+
+        _loadingCustomers = true;
+
+        // Unbounded - a customer picker for a select, not a paged listing of its own.
+        var customersResult = await ApiClient.QueryAsync<PaginatedResponse<UserResponse>>(ApiRoutes.Paged(ApiRoutes.Users.All, 0, int.MaxValue), null);
+        _customers = customersResult.IsSuccessful && customersResult.ResultData is not null ? customersResult.ResultData.Items : [];
+        _loadingCustomers = false;
+    }
+
+    private Task SaveAsync() => Form.SubmitAsync(async () =>
+    {
+        if (Id is null)
+        {
+            if (_model.UserId is null)
+            {
+                _loadError = "Select a customer.";
+                return;
+            }
+
+            var createResult = await ApiClient.PostAsync(ApiRoutes.Operations.Equipment.Base, new
+            {
+                userId = _model.UserId.Value,
+                type = _model.Type,
+                brand = _model.Brand,
+                model = _model.Model,
+                serialNumber = _model.SerialNumber,
+                installDate = (DateTimeOffset?)_model.InstallDate,
+                warrantyExpiresAt = (DateTimeOffset?)_model.WarrantyExpiresAt,
+                notes = _model.Notes,
+            });
+
+            if (!createResult.IsSuccessful)
+            {
+                Form.DisplayErrors(createResult, Snackbar);
+                return;
+            }
+
+            CompleteSave(createResult.DisplayMessage);
+            return;
+        }
+
+        var result = await ApiClient.PutAsync(ApiRoutes.Operations.Equipment.ById(Id.Value), new
+        {
+            type = _model.Type,
+            brand = _model.Brand,
+            model = _model.Model,
+            serialNumber = _model.SerialNumber,
+            installDate = (DateTimeOffset?)_model.InstallDate,
+            warrantyExpiresAt = (DateTimeOffset?)_model.WarrantyExpiresAt,
+            notes = _model.Notes,
+        });
+
+        if (!result.IsSuccessful)
+        {
+            Form.DisplayErrors(result, Snackbar);
+            return;
+        }
+
+        CompleteSave(result.DisplayMessage);
+    });
+
+    private void CompleteSave(string message)
+    {
+        Snackbar.ShowSuccess(message);
+        Navigation.NavigateTo(AppRoutes.AdminHome + "/operations/equipment");
+    }
+}

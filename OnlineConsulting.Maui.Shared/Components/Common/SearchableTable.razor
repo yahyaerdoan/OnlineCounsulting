@@ -1,0 +1,59 @@
+@typeparam TItem
+
+@* Same toolbar/search UX as ServerDataTable, for small bounded lists already fetched flat - no
+   server round trip needed, so this filters the in-memory list instead of paginating. *@
+<MudTable Items="@_filteredItems" Hover="true" Dense="true" Class="@Class">
+    <ToolBarContent>
+        <MudSpacer />
+        <MudTextField T="string" ValueChanged="OnSearch" Immediate="true" DebounceInterval="300" Margin="Margin.Dense"
+                      Placeholder="@SearchPlaceholder" Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Outlined.Search" IconSize="Size.Small" />
+        @ToolbarContent
+    </ToolBarContent>
+    <HeaderContent>@HeaderContent</HeaderContent>
+    <RowTemplate>@RowTemplate(context)</RowTemplate>
+    <NoRecordsContent>
+        @if (NoRecordsContent is not null)
+        {
+            @NoRecordsContent
+        }
+        else
+        {
+            <MudText>No matching records found.</MudText>
+        }
+    </NoRecordsContent>
+</MudTable>
+
+@code {
+    [Parameter, EditorRequired]
+    public IReadOnlyList<TItem> Items { get; set; } = [];
+
+    /// <summary>Case-insensitive match against whichever fields the caller wants searchable.</summary>
+    [Parameter, EditorRequired]
+    public Func<TItem, string, bool> Filter { get; set; } = default!;
+
+    [Parameter]
+    public string SearchPlaceholder { get; set; } = "Search";
+
+    [Parameter, EditorRequired]
+    public RenderFragment HeaderContent { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public RenderFragment<TItem> RowTemplate { get; set; } = default!;
+
+    [Parameter]
+    public RenderFragment? ToolbarContent { get; set; }
+
+    [Parameter]
+    public RenderFragment? NoRecordsContent { get; set; }
+
+    [Parameter]
+    public string Class { get; set; } = "mt-2";
+
+    private string? _searchText;
+
+    private IEnumerable<TItem> _filteredItems =>
+        string.IsNullOrWhiteSpace(_searchText) ? Items : Items.Where(item => Filter(item, _searchText!));
+
+    private void OnSearch(string text) => _searchText = text;
+}

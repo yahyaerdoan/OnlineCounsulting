@@ -1,0 +1,64 @@
+@page "/admin/platform/bundles"
+@attribute [Authorize]
+@inject IApiClient ApiClient
+@inject NavigationManager Navigation
+
+<PageTitle>Bundles</PageTitle>
+
+<PageHeroBanner Title="Bundles" Subtitle="Multi-module packages tenants can subscribe to.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.Add"
+                   OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/platform/bundles/new"))">New Bundle</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+}
+else
+{
+    <SearchableTable TItem="BundleResponse" Items="@_bundles" SearchPlaceholder="Search bundles"
+                      Filter="@((bundle, text) => bundle.Name.Contains(text, StringComparison.OrdinalIgnoreCase))">
+        <HeaderContent>
+            <MudTh>Name</MudTh>
+            <MudTh>Modules</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate Context="bundle">
+            <MudTd DataLabel="Name">@bundle.Name</MudTd>
+            <MudTd DataLabel="Modules">@string.Join(", ", bundle.ModuleKeys)</MudTd>
+            <MudTd DataLabel="Actions">
+                <MudIconButton Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" Size="Size.Small" title="Edit"
+                               OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + $"/platform/bundles/{bundle.Id}/edit"))" />
+            </MudTd>
+        </RowTemplate>
+    </SearchableTable>
+}
+
+@code {
+    private List<BundleResponse> _bundles = [];
+    private bool _loading = true;
+    private string? _loadError;
+
+    protected override async Task OnInitializedAsync() => await ReloadBundlesAsync();
+
+    private async Task ReloadBundlesAsync()
+    {
+        _loading = true;
+        var result = await ApiClient.GetAsync<PaginatedResponse<BundleResponse>>(ApiRoutes.Paged(ApiRoutes.Platform.Bundles.All, 0, int.MaxValue));
+        if (!result.IsSuccessful || result.ResultData is null)
+        {
+            _loadError = result.DisplayMessage;
+            _bundles = [];
+        }
+        else
+        {
+            _bundles = result.ResultData.Items;
+        }
+
+        _loading = false;
+    }
+}

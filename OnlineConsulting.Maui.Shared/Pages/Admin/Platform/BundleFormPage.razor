@@ -1,0 +1,146 @@
+@page "/admin/platform/bundles/new"
+@page "/admin/platform/bundles/{Id:guid}/edit"
+@attribute [Authorize]
+@using OnlineConsulting.Maui.Shared.Infrastructure.Forms
+@using OnlineConsulting.Maui.Shared.Pages.Admin.Platform.BundleModels
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject FormState<BundleFormModel> Form
+
+<PageTitle>@(Id is null ? "New Bundle" : "Edit Bundle")</PageTitle>
+
+<PageHeroBanner Title="@(Id is null ? "New Bundle" : "Edit Bundle")" Subtitle="Multi-module packages tenants can subscribe to.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.ArrowBack"
+                   OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/platform/bundles"))">Back to Bundles</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+<PageBreadcrumbExtra Text="@(Id is null ? "New Bundle" : "Edit Bundle")" />
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+@if (_loadingOfferings)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+}
+else
+{
+    <EditForm EditContext="@Form.EditContext">
+        <MudPaper Class="pa-4">
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_model.Name" For="@(() => _model.Name)" Label="Name" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudSelect T="string" MultiSelection="true" Label="Modules" Variant="Variant.Outlined" Margin="Margin.Dense"
+                               SelectedValues="_model.ModuleKeys" SelectedValuesChanged="@(values => _model.ModuleKeys = [.. values])">
+                        @foreach (var offering in _offerings)
+                        {
+                            <MudSelectItem T="string" Value="@offering.Key">@offering.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudSwitch T="bool" @bind-Value="_model.IsPubliclyVisible" Color="Color.Primary" Label="Publicly visible" />
+                </MudItem>
+            </MudGrid>
+
+            <MudDivider Class="my-4" />
+
+            <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2">
+                <MudButton Variant="Variant.Text" OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/platform/bundles"))">Cancel</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAsync" Disabled="@Form.IsBusy">
+                    @(Id is null ? "Create" : "Save")
+                </MudButton>
+            </MudStack>
+        </MudPaper>
+    </EditForm>
+}
+
+@code {
+    [Parameter]
+    public Guid? Id { get; set; }
+
+    private readonly BundleFormModel _model = new();
+    private List<ModuleOfferingResponse> _offerings = [];
+    private bool _loadingOfferings = true;
+    private string? _loadError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Bind before any await - Blazor can render (and touch Form.EditContext) after the first yield point.
+        Form.Bind(_model);
+
+        var offeringsResult = await ApiClient.GetAsync<PaginatedResponse<ModuleOfferingResponse>>(ApiRoutes.Paged(ApiRoutes.Platform.ModuleOfferings.All, 0, int.MaxValue));
+        _offerings = offeringsResult.IsSuccessful && offeringsResult.ResultData is not null ? offeringsResult.ResultData.Items : [];
+
+        if (Id is { } bundleId)
+        {
+            var bundlesResult = await ApiClient.GetAsync<PaginatedResponse<BundleResponse>>(ApiRoutes.Paged(ApiRoutes.Platform.Bundles.All, 0, int.MaxValue));
+            if (!bundlesResult.IsSuccessful || bundlesResult.ResultData is null)
+            {
+                _loadError = bundlesResult.DisplayMessage;
+                _loadingOfferings = false;
+                return;
+            }
+
+            var bundle = bundlesResult.ResultData.Items.FirstOrDefault(b => b.Id == bundleId);
+            if (bundle is null)
+            {
+                _loadError = "Bundle not found.";
+                _loadingOfferings = false;
+                return;
+            }
+
+            _model.Name = bundle.Name;
+            _model.ModuleKeys = [.. bundle.ModuleKeys];
+            _model.IsPubliclyVisible = bundle.IsPubliclyVisible;
+        }
+
+        _loadingOfferings = false;
+    }
+
+    private Task SaveAsync() => Form.SubmitAsync(async () =>
+    {
+        if (Id is null)
+        {
+            var createResult = await ApiClient.PostAsync(ApiRoutes.Platform.Bundles.Base, new
+            {
+                name = _model.Name,
+                moduleKeys = _model.ModuleKeys,
+                isPubliclyVisible = _model.IsPubliclyVisible,
+            });
+
+            if (!createResult.IsSuccessful)
+            {
+                Form.DisplayErrors(createResult, Snackbar);
+                return;
+            }
+
+            CompleteSave(createResult.DisplayMessage);
+            return;
+        }
+
+        var result = await ApiClient.PutAsync(ApiRoutes.Platform.Bundles.ById(Id.Value), new
+        {
+            name = _model.Name,
+            moduleKeys = _model.ModuleKeys,
+            isPubliclyVisible = _model.IsPubliclyVisible,
+        });
+
+        if (!result.IsSuccessful)
+        {
+            Form.DisplayErrors(result, Snackbar);
+            return;
+        }
+
+        CompleteSave(result.DisplayMessage);
+    });
+
+    private void CompleteSave(string message)
+    {
+        Snackbar.ShowSuccess(message);
+        Navigation.NavigateTo(AppRoutes.AdminHome + "/platform/bundles");
+    }
+}

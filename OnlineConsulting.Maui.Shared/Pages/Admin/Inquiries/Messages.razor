@@ -1,0 +1,73 @@
+@page "/admin/inquiries/messages"
+@attribute [Authorize]
+@using OnlineConsulting.Maui.Shared.Pages.Admin.Inquiries
+@inject IApiClient ApiClient
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<PageTitle>Messages</PageTitle>
+
+<PageHeroBanner Title="Messages" Subtitle="Contact-form submissions from your public site." />
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+<ServerDataTable TItem="MessageResponse" @ref="_table" ApiBasePath="@ApiRoutes.Inquiries.Messages.All"
+                 SearchPlaceholder="Search name, email or subject" OnLoadError="@(message => _loadError = message)">
+    <HeaderContent>
+        <MudTh><MudTableSortLabel SortLabel="@nameof(MessageResponse.CreatedDate)" T="MessageResponse">Received</MudTableSortLabel></MudTh>
+        <MudTh>From</MudTh>
+        <MudTh>Subject</MudTh>
+        <MudTh>Status</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate Context="message">
+        <MudTd DataLabel="Received">@DateTimeFormat.FormatDateTime(message.CreatedDate)</MudTd>
+        <MudTd DataLabel="From">@($"{message.FirstName} {message.LastName}") (@message.Email)</MudTd>
+        <MudTd DataLabel="Subject">@message.Subject</MudTd>
+        <MudTd DataLabel="Status">
+            @if (message.RepliedAt is { } repliedAt)
+            {
+                <MudChip T="string" Color="Color.Success" Size="Size.Small">Replied @DateTimeFormat.FormatDateTime(repliedAt)</MudChip>
+            }
+            else
+            {
+                <MudChip T="string" Color="Color.Default" Size="Size.Small">Awaiting reply</MudChip>
+            }
+        </MudTd>
+        <MudTd DataLabel="Actions">
+            <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
+                <MudIconButton Icon="@Icons.Material.Outlined.Reply" Color="Color.Default" Size="Size.Small" title="Reply"
+                               OnClick="@(() => ReplyAsync(message))" />
+
+                <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" Size="Size.Small" title="Delete"
+                               OnClick="@(() => DeleteAsync(message))" />
+            </MudButtonGroup>
+        </MudTd>
+    </RowTemplate>
+</ServerDataTable>
+
+@code {
+    private ServerDataTable<MessageResponse> _table = default!;
+    private string? _loadError;
+
+    private Task ReplyAsync(MessageResponse message) =>
+        DialogService.ShowAndReloadAsync("Reply", new DialogParameters<ReplyMessageDialog> { { x => x.Message, message } }, _table.ReloadAsync);
+
+    private async Task DeleteAsync(MessageResponse message)
+    {
+        if (!await DialogService.ConfirmDeleteAsync("message", message.Subject))
+        {
+            return;
+        }
+
+        var result = await ApiClient.DeleteAsync(ApiRoutes.Inquiries.Messages.ById(message.Id));
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await _table.ReloadAsync();
+    }
+}

@@ -26,14 +26,14 @@
                     <MudTh>Role</MudTh>
                     @foreach (var permission in permissions)
                     {
-                        <MudTh Style="text-align:center;">@ActionLabel(permission)</MudTh>
+                        <MudTh Class="mud-table-cell-align-center">@ActionLabel(permission)</MudTh>
                     }
                 </HeaderContent>
                 <RowTemplate Context="role">
                     <MudTd DataLabel="Role">@role.RoleName</MudTd>
                     @foreach (var permission in permissions)
                     {
-                        <MudTd DataLabel="@ActionLabel(permission)" Style="text-align:center;">
+                        <MudTd DataLabel="@ActionLabel(permission)" Class="mud-table-cell-align-center">
                             <MudStack Row="true" Justify="Justify.Center">
                                 <MudCheckBox T="bool" Value="@role.Assigned.Contains(permission)"
                                              ValueChanged="@(v => ToggleAsync(role, permission, v))"

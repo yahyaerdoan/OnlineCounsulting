@@ -1,0 +1,160 @@
+@page "/admin/platform/module-offerings/new"
+@page "/admin/platform/module-offerings/{Id:guid}/edit"
+@attribute [Authorize]
+@using OnlineConsulting.Maui.Shared.Infrastructure.Forms
+@using OnlineConsulting.Maui.Shared.Pages.Admin.Platform.ModuleOfferingModels
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject FormState<ModuleOfferingFormModel> Form
+
+<PageTitle>@(Id is null ? "New Module Offering" : "Edit Module Offering")</PageTitle>
+
+<PageHeroBanner Title="@(Id is null ? "New Module Offering" : "Edit Module Offering")" Subtitle="A module tenants can subscribe to.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.ArrowBack"
+                   OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/platform/module-offerings"))">Back to Module Offerings</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+<PageBreadcrumbExtra Text="@(Id is null ? "New Module Offering" : "Edit Module Offering")" />
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+<EditForm EditContext="@Form.EditContext">
+    <MudPaper Class="pa-4">
+        <MudGrid>
+            <MudItem xs="12" sm="6">
+                @if (Id is null)
+                {
+                    <MudTextField @bind-Value="_model.Key" For="@(() => _model.Key)" Label="Key" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                }
+                else
+                {
+                    <MudTextField Value="@_model.Key" Label="Key" Variant="Variant.Outlined" Margin="Margin.Dense" ReadOnly="true" Disabled="true" />
+                }
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="_model.Name" For="@(() => _model.Name)" Label="Name" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                @if (Id is null)
+                {
+                    <MudNumericField @bind-Value="_model.Price" For="@(() => _model.Price)" Label="Price" Variant="Variant.Outlined" Margin="Margin.Dense" Min="0" Format="F2"
+                                     Adornment="Adornment.Start" AdornmentText="$" HideSpinButtons="true" />
+                }
+                else
+                {
+                    <MudTextField Value="@CurrencyFormat.Format(_model.Price)" Label="Price" Variant="Variant.Outlined" Margin="Margin.Dense" ReadOnly="true" Disabled="true" />
+                }
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                @if (Id is null)
+                {
+                    <MudSelect T="string" @bind-Value="_model.BillingCycle" Label="Billing cycle" Variant="Variant.Outlined" Margin="Margin.Dense">
+                        <MudSelectItem T="string" Value="@("Monthly")">Monthly</MudSelectItem>
+                        <MudSelectItem T="string" Value="@("Annual")">Annual</MudSelectItem>
+                    </MudSelect>
+                }
+                else
+                {
+                    <MudTextField Value="@_model.BillingCycle" Label="Billing cycle" Variant="Variant.Outlined" Margin="Margin.Dense" ReadOnly="true" Disabled="true" />
+                }
+            </MudItem>
+            <MudItem xs="12">
+                <MudSwitch T="bool" @bind-Value="_model.IsPubliclyVisible" Color="Color.Primary" Label="Publicly visible" />
+            </MudItem>
+        </MudGrid>
+
+        <MudDivider Class="my-4" />
+
+        <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2">
+            <MudButton Variant="Variant.Text" OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/platform/module-offerings"))">Cancel</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAsync" Disabled="@Form.IsBusy">
+                @(Id is null ? "Create" : "Save")
+            </MudButton>
+        </MudStack>
+    </MudPaper>
+</EditForm>
+
+@code {
+    [Parameter]
+    public Guid? Id { get; set; }
+
+    private readonly ModuleOfferingFormModel _model = new();
+    private string? _loadError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Bind before any await - Blazor can render (and touch Form.EditContext) after the first yield point.
+        Form.Bind(_model);
+
+        if (Id is not { } offeringId)
+        {
+            return;
+        }
+
+        var result = await ApiClient.GetAsync<PaginatedResponse<ModuleOfferingResponse>>(ApiRoutes.Paged(ApiRoutes.Platform.ModuleOfferings.All, 0, int.MaxValue));
+        if (!result.IsSuccessful || result.ResultData is null)
+        {
+            _loadError = result.DisplayMessage;
+            return;
+        }
+
+        var offering = result.ResultData.Items.FirstOrDefault(o => o.Id == offeringId);
+        if (offering is null)
+        {
+            _loadError = "Module offering not found.";
+            return;
+        }
+
+        _model.Key = offering.Key;
+        _model.Name = offering.Name;
+        _model.Price = offering.Price;
+        _model.BillingCycle = offering.BillingCycle;
+        _model.IsPubliclyVisible = offering.IsPubliclyVisible;
+    }
+
+    private Task SaveAsync() => Form.SubmitAsync(async () =>
+    {
+        if (Id is null)
+        {
+            var createResult = await ApiClient.PostAsync(ApiRoutes.Platform.ModuleOfferings.Base, new
+            {
+                key = _model.Key,
+                name = _model.Name,
+                price = _model.Price,
+                billingCycle = _model.BillingCycle,
+                isPubliclyVisible = _model.IsPubliclyVisible,
+            });
+
+            if (!createResult.IsSuccessful)
+            {
+                Form.DisplayErrors(createResult, Snackbar);
+                return;
+            }
+
+            CompleteSave(createResult.DisplayMessage);
+            return;
+        }
+
+        var result = await ApiClient.PutAsync(ApiRoutes.Platform.ModuleOfferings.ById(Id.Value), new
+        {
+            name = _model.Name,
+            isPubliclyVisible = _model.IsPubliclyVisible,
+        });
+
+        if (!result.IsSuccessful)
+        {
+            Form.DisplayErrors(result, Snackbar);
+            return;
+        }
+
+        CompleteSave(result.DisplayMessage);
+    });
+
+    private void CompleteSave(string message)
+    {
+        Snackbar.ShowSuccess(message);
+        Navigation.NavigateTo(AppRoutes.AdminHome + "/platform/module-offerings");
+    }
+}

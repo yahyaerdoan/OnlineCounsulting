@@ -1,0 +1,86 @@
+@page "/admin/operations/availability-rules/new"
+@namespace OnlineConsulting.Maui.Shared.Pages.Admin.Operations
+@attribute [Authorize]
+@using OnlineConsulting.Maui.Shared.Infrastructure.Forms
+@using OnlineConsulting.Maui.Shared.Pages.Admin.Operations.AvailabilityRuleModels
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject FormState<AvailabilityRuleFormModel> Form
+
+<PageTitle>New Availability Window</PageTitle>
+
+<PageHeroBanner Title="New Availability Window" Subtitle="A recurring weekly block customers can book appointments into.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.ArrowBack"
+                   OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/operations/availability-rules"))">Back to Availability Rules</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+<PageBreadcrumbExtra Text="New Window" />
+
+<ApiErrorAlert Message="@_error" Severity="Severity.Error" />
+
+<EditForm EditContext="@Form.EditContext">
+    <MudPaper Class="pa-4">
+        <MudGrid>
+            <MudItem xs="12">
+                <MudSelect T="DayOfWeek" @bind-Value="_model.DayOfWeek" Label="Day of week" Variant="Variant.Outlined" Margin="Margin.Dense">
+                    @foreach (var day in Enum.GetValues<DayOfWeek>())
+                    {
+                        <MudSelectItem T="DayOfWeek" Value="@day">@day</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudTimePicker @bind-Time="_model.StartTime" Label="Start time" Variant="Variant.Outlined" Margin="Margin.Dense" AmPm="true" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudTimePicker @bind-Time="_model.EndTime" Label="End time" Variant="Variant.Outlined" Margin="Margin.Dense" AmPm="true" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudNumericField @bind-Value="_model.SlotDurationMinutes" For="@(() => _model.SlotDurationMinutes)" Label="Slot duration (minutes)"
+                                  Variant="Variant.Outlined" Margin="Margin.Dense" Min="5" Max="480" />
+            </MudItem>
+        </MudGrid>
+
+        <MudDivider Class="my-4" />
+
+        <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2">
+            <MudButton Variant="Variant.Text" OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/operations/availability-rules"))">Cancel</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CreateAsync" Disabled="@Form.IsBusy">Create</MudButton>
+        </MudStack>
+    </MudPaper>
+</EditForm>
+
+@code {
+    private readonly AvailabilityRuleFormModel _model = new();
+    private string? _error;
+
+    protected override void OnInitialized() => Form.Bind(_model);
+
+    private Task CreateAsync() => Form.SubmitAsync(async () =>
+    {
+        if (_model.StartTime is null || _model.EndTime is null)
+        {
+            _error = "Start time and end time are required.";
+            return;
+        }
+
+        var result = await ApiClient.PostAsync(ApiRoutes.Scheduling.AvailabilityRule.Base, new
+        {
+            dayOfWeek = (int)_model.DayOfWeek,
+            startTime = _model.StartTime.Value,
+            endTime = _model.EndTime.Value,
+            slotDurationMinutes = _model.SlotDurationMinutes,
+        });
+
+        if (!result.IsSuccessful)
+        {
+            Form.DisplayErrors(result, Snackbar);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        Navigation.NavigateTo(AppRoutes.AdminHome + "/operations/availability-rules");
+    });
+}

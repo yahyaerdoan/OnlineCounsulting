@@ -1,0 +1,53 @@
+@namespace OnlineConsulting.Maui.Shared.Pages.Admin.Growth
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">Complete Referral</MudText>
+    </TitleContent>
+    <DialogContent>
+        <EntitySummaryHeader Title="@Referral.Code" Subtitle="@($"Referrer: {Referral.ReferrerName ?? Referral.ReferrerEmail}")" />
+
+        <MudNumericField T="decimal" @bind-Value="_rewardAmount" Label="Reward amount" Variant="Variant.Outlined" Margin="Margin.Dense" Min="0.01m" Format="F2" Class="mt-3"
+                         Adornment="Adornment.Start" AdornmentText="$" HideSpinButtons="true" />
+        @if (_error is not null)
+        {
+            <ApiErrorAlert Message="@_error" Severity="Severity.Error" />
+        }
+    </DialogContent>
+    <DialogActions>
+        <DialogActionButtons OnOk="CompleteAsync" IsBusy="@_isBusy" />
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public ReferralResponse Referral { get; set; } = default!;
+
+    private decimal _rewardAmount = 10m;
+    private bool _isBusy;
+    private string? _error;
+
+    private async Task CompleteAsync()
+    {
+        _isBusy = true;
+        _error = null;
+
+        var result = await ApiClient.PostAsync(ApiRoutes.Growth.Referrals.Complete(Referral.Id), new { rewardAmount = _rewardAmount });
+
+        _isBusy = false;
+
+        if (!result.IsSuccessful)
+        {
+            _error = result.DisplayMessage;
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+}

@@ -1,0 +1,93 @@
+@page "/admin/catalog/categories/new"
+@page "/admin/catalog/categories/{Id:guid}/edit"
+@namespace OnlineConsulting.Maui.Shared.Pages.Admin.Catalog
+@attribute [Authorize]
+@using OnlineConsulting.Maui.Shared.Infrastructure.Forms
+@using OnlineConsulting.Maui.Shared.Infrastructure.Icons
+@using OnlineConsulting.Maui.Shared.Pages.Admin.Catalog.CategoryModels
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject FormState<CategoryFormModel> Form
+
+<PageTitle>@(Id is null ? "New Category" : "Edit Category")</PageTitle>
+
+<PageHeroBanner Title="@(Id is null ? "New Category" : "Edit Category")" Subtitle="Shown to customers browsing your catalog.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.ArrowBack"
+                   OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/catalog/categories"))">Back to Categories</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+<PageBreadcrumbExtra Text="@(Id is null ? "New Category" : "Edit Category")" />
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+<EditForm EditContext="@Form.EditContext">
+    <MudPaper Class="pa-4">
+        <CategoryFormFields Model="_model" />
+
+        <MudDivider Class="my-4" />
+
+        <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2">
+            <MudButton Variant="Variant.Text" OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/catalog/categories"))">Cancel</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAsync" Disabled="@Form.IsBusy">
+                @(Id is null ? "Create" : "Save")
+            </MudButton>
+        </MudStack>
+    </MudPaper>
+</EditForm>
+
+@code {
+    [Parameter]
+    public Guid? Id { get; set; }
+
+    private readonly CategoryFormModel _model = new();
+    private string? _loadError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Bind before any await - Blazor can render (and touch Form.EditContext) after the first yield point.
+        Form.Bind(_model);
+
+        if (Id is not { } categoryId)
+        {
+            return;
+        }
+
+        var result = await ApiClient.GetAsync<CategoryResponse>(ApiRoutes.Categories.ById(categoryId));
+        if (!result.IsSuccessful || result.ResultData is null)
+        {
+            _loadError = result.DisplayMessage;
+            return;
+        }
+
+        var category = result.ResultData;
+        _model.Title = category.Title;
+        _model.Description = category.Description;
+        _model.Icon = IconCatalog.Resolve(category.Icon);
+        _model.IconColor = category.IconColor;
+    }
+
+    private Task SaveAsync() => Form.SubmitAsync(async () =>
+    {
+        var body = new { title = _model.Title, description = _model.Description, icon = _model.Icon, iconColor = _model.IconColor };
+
+        var result = Id is { } categoryId
+            ? await ApiClient.PutAsync(ApiRoutes.Categories.ById(categoryId), body)
+            : await ApiClient.PostAsync(ApiRoutes.Categories.Base, body);
+
+        if (!result.IsSuccessful)
+        {
+            Form.DisplayErrors(result, Snackbar);
+            return;
+        }
+
+        CompleteSave(result.DisplayMessage);
+    });
+
+    private void CompleteSave(string message)
+    {
+        Snackbar.ShowSuccess(message);
+        Navigation.NavigateTo(AppRoutes.AdminHome + "/catalog/categories");
+    }
+}

@@ -1,0 +1,69 @@
+@page "/admin/site-content/social-links"
+@attribute [Authorize]
+@using OnlineConsulting.Maui.Shared.Infrastructure.Icons
+@inject IApiClient ApiClient
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<PageTitle>Social Links</PageTitle>
+
+<PageHeroBanner Title="Social Links" Subtitle="Manage the social media icons shown on the public site.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.Add"
+                   OnClick="CreateAsync">New Link</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+<ServerDataTable TItem="SocialLinkResponse" @ref="_table" ApiBasePath="@ApiRoutes.SiteContent.SocialLink.All"
+                 SearchPlaceholder="Search name" OnLoadError="@(message => _loadError = message)">
+    <HeaderContent>
+        <MudTh>Icon</MudTh>
+        <MudTh><MudTableSortLabel SortLabel="@nameof(SocialLinkResponse.Name)" T="SocialLinkResponse">Name</MudTableSortLabel></MudTh>
+        <MudTh>URL</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate Context="link">
+        <MudTd DataLabel="Icon"><MudIcon Icon="@IconCatalog.Resolve(link.Icon)" Style="@IconCatalog.ColorStyle(link.IconColor)" Size="Size.Small" /></MudTd>
+        <MudTd DataLabel="Name">@link.Name</MudTd>
+        <MudTd DataLabel="URL">@link.Url</MudTd>
+        <MudTd DataLabel="Actions">
+            <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
+                <MudIconButton Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" title="Edit"
+                               OnClick="@(() => EditAsync(link))" />
+
+                <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" title="Delete"
+                               OnClick="@(() => DeleteAsync(link))" />
+            </MudButtonGroup>
+        </MudTd>
+    </RowTemplate>
+</ServerDataTable>
+
+@code {
+    private ServerDataTable<SocialLinkResponse> _table = default!;
+    private string? _loadError;
+
+    private void CreateAsync() => Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/social-links/new");
+
+    private void EditAsync(SocialLinkResponse link) => Navigation.NavigateTo(AppRoutes.AdminHome + $"/site-content/social-links/{link.Id}/edit");
+
+    private async Task DeleteAsync(SocialLinkResponse link)
+    {
+        if (!await DialogService.ConfirmDeleteAsync("social link", link.Name))
+        {
+            return;
+        }
+
+        var result = await ApiClient.DeleteAsync(ApiRoutes.SiteContent.SocialLink.ById(link.Id));
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await _table.ReloadAsync();
+    }
+}

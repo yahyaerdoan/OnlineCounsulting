@@ -1,6 +1,65 @@
 @page "/admin/operations/equipment"
 @attribute [Authorize]
+@using OnlineConsulting.Maui.Shared.Pages.Admin.Operations
+@inject IApiClient ApiClient
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
 
 <PageTitle>Equipment</PageTitle>
 
-<ComingSoon Title="Equipment" Subtitle="Track equipment assignments, maintenance, and availability." />
+<PageHeroBanner Title="Equipment" Subtitle="Customer equipment on file for service history.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.Add"
+                   OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/operations/equipment/new"))">New Equipment</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+<ServerDataTable TItem="EquipmentItemResponse" @ref="_table" ApiBasePath="@ApiRoutes.Operations.Equipment.All"
+                 SearchPlaceholder="Search type, brand, model or serial" OnLoadError="@(message => _loadError = message)">
+    <HeaderContent>
+        <MudTh><MudTableSortLabel SortLabel="@nameof(EquipmentItemResponse.Type)" T="EquipmentItemResponse">Type</MudTableSortLabel></MudTh>
+        <MudTh>Brand / Model</MudTh>
+        <MudTh>Serial</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate Context="item">
+        <MudTd DataLabel="Type">@item.Type</MudTd>
+        <MudTd DataLabel="Brand / Model">@($"{item.Brand} {item.Model}")</MudTd>
+        <MudTd DataLabel="Serial">@item.SerialNumber</MudTd>
+        <MudTd DataLabel="Actions">
+            <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
+                <MudIconButton Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" Size="Size.Small" title="Edit"
+                               OnClick="@(() => Navigation.NavigateTo($"{AppRoutes.AdminHome}/operations/equipment/{item.Id}/edit"))" />
+
+                <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" Size="Size.Small" title="Delete"
+                               OnClick="@(() => DeleteAsync(item))" />
+            </MudButtonGroup>
+        </MudTd>
+    </RowTemplate>
+</ServerDataTable>
+
+@code {
+    private ServerDataTable<EquipmentItemResponse> _table = default!;
+    private string? _loadError;
+
+    private async Task DeleteAsync(EquipmentItemResponse item)
+    {
+        if (!await DialogService.ConfirmDeleteAsync("equipment item", item.SerialNumber ?? item.Type))
+        {
+            return;
+        }
+
+        var result = await ApiClient.DeleteAsync(ApiRoutes.Operations.Equipment.ById(item.Id));
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await _table.ReloadAsync();
+    }
+}

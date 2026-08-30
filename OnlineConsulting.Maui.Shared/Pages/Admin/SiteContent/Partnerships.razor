@@ -1,0 +1,70 @@
+@page "/admin/site-content/partnerships"
+@attribute [Authorize]
+@inject IApiClient ApiClient
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<PageTitle>Partnerships</PageTitle>
+
+<PageHeroBanner Title="Partnerships" Subtitle="Manage the partnership showcase entries shown on the public site.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.Add"
+                   OnClick="CreateAsync">New Partnership</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+<ServerDataTable TItem="PartnershipResponse" @ref="_table" ApiBasePath="@ApiRoutes.SiteContent.Partnership.All"
+                 SearchPlaceholder="Search name or company" OnLoadError="@(message => _loadError = message)">
+    <HeaderContent>
+        <MudTh><MudTableSortLabel SortLabel="@nameof(PartnershipResponse.FirstName)" T="PartnershipResponse">Name</MudTableSortLabel></MudTh>
+        <MudTh>Company</MudTh>
+        <MudTh>Email</MudTh>
+        <MudTh>Social links</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate Context="partnership">
+        <MudTd DataLabel="Name">@partnership.FirstName @partnership.LastName</MudTd>
+        <MudTd DataLabel="Company">@partnership.CompanyName</MudTd>
+        <MudTd DataLabel="Email">@partnership.Email</MudTd>
+        <MudTd DataLabel="Social links">@partnership.SocialLinks.Count</MudTd>
+        <MudTd DataLabel="Actions">
+            <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
+                <MudIconButton Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" title="Edit"
+                               OnClick="@(() => EditAsync(partnership))" />
+
+                <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" title="Delete"
+                               OnClick="@(() => DeleteAsync(partnership))" />
+            </MudButtonGroup>
+        </MudTd>
+    </RowTemplate>
+</ServerDataTable>
+
+@code {
+    private ServerDataTable<PartnershipResponse> _table = default!;
+    private string? _loadError;
+
+    private void CreateAsync() => Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/partnerships/new");
+
+    private void EditAsync(PartnershipResponse partnership) => Navigation.NavigateTo(AppRoutes.AdminHome + $"/site-content/partnerships/{partnership.Id}/edit");
+
+    private async Task DeleteAsync(PartnershipResponse partnership)
+    {
+        if (!await DialogService.ConfirmDeleteAsync("partnership", $"{partnership.FirstName} {partnership.LastName}"))
+        {
+            return;
+        }
+
+        var result = await ApiClient.DeleteAsync(ApiRoutes.SiteContent.Partnership.ById(partnership.Id));
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await _table.ReloadAsync();
+    }
+}
