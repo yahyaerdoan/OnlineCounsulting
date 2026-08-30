@@ -45,9 +45,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // Legacy AssignTechnicianViewModel (OnlineConsulting.UserInterface's AppointmentDispatchService.GetAssignTechnicianFormAsync)
-        // offers every tenant user as a technician candidate too - there is no separate "Technician" role/claim
-        // to filter on in this codebase, so this mirrors that exact behavior rather than inventing a filter.
+        // Every tenant user is a candidate - no separate "Technician" role/claim exists to filter on.
         var usersResult = await ApiClient.QueryAsync<PaginatedResponse<UserResponse>>(ApiRoutes.Paged(ApiRoutes.Users.All, 0, int.MaxValue), null);
         _technicians = usersResult.IsSuccessful && usersResult.ResultData is not null ? usersResult.ResultData.Items : [];
         if (_technicians.Count > 0)

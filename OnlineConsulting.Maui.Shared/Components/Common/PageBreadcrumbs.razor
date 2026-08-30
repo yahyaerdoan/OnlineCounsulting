@@ -35,9 +35,7 @@
         InvokeAsync(StateHasChanged);
     }
 
-    /// <summary>Derives "Home / Section / Page[ / Sub-page]" from the same NavSection data as the
-    /// drawer, matched by longest href prefix so routed sub-pages (create/edit forms, drill-downs)
-    /// inherit their parent NavItem's trail; PageBreadcrumbExtra supplies the trailing segment.</summary>
+    /// <summary>Builds "Home / Section / Page" from NavSections, matched by longest href prefix.</summary>
     private void BuildTrail()
     {
         var currentHref = "/" + Navigation.ToBaseRelativePath(Navigation.Uri).Split('?')[0].TrimEnd('/');

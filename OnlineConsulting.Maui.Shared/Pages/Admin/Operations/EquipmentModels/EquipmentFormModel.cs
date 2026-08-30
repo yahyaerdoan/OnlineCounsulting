@@ -2,8 +2,7 @@ namespace OnlineConsulting.Maui.Shared.Pages.Admin.Operations.EquipmentModels;
 
 public class EquipmentFormModel
 {
-    /// <summary>Create only - ownership is fixed at creation, never changes on edit. Nullable so the
-    /// customer picker starts unselected instead of defaulting to a misleading first customer.</summary>
+    /// <summary>Create only - nullable so the picker starts unselected, not a misleading default.</summary>
     public Guid? UserId { get; set; }
 
     public string Type { get; set; } = string.Empty;

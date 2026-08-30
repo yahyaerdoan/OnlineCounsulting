@@ -1,7 +1,6 @@
 namespace OnlineConsulting.Maui.Shared.Infrastructure.Navigation;
 
-/// <summary>Lets a routed sub-page (e.g. a create/edit form) publish the trailing breadcrumb
-/// segment its own route can't derive from NavSections - mirrors Blazor's PageTitle pattern.</summary>
+/// <summary>Lets a sub-page publish its trailing breadcrumb segment - mirrors Blazor's PageTitle.</summary>
 public class BreadcrumbState
 {
     public string? ExtraSegment { get; private set; }

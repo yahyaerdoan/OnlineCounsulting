@@ -25,12 +25,11 @@
     [Parameter, EditorRequired]
     public EventCallback<InputFileChangeEventArgs> OnFileSelected { get; set; }
 
-    /// <summary>Media Library browsing is disabled for now - kept so callers don't need to change; not wired to any UI.</summary>
+    /// <summary>Unused for now - Media Library browsing was removed but callers still pass this.</summary>
     [Parameter]
     public EventCallback<MediaAssetResponse> OnAssetSelected { get; set; }
 
-    /// <summary>Fires when the file upload's own delete (x) icon clears the selected file - the single
-    /// place this picker signals "remove the image", replacing a separate Remove button.</summary>
+    /// <summary>Fires when the upload's own delete (x) icon clears the file - the "remove" signal.</summary>
     [Parameter]
     public EventCallback OnRemove { get; set; }
 

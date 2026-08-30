@@ -1,7 +1,6 @@
 @typeparam TItem
 
-@* Same toolbar/search UX as ServerDataTable, for small bounded lists already fetched flat - no
-   server round trip needed, so this filters the in-memory list instead of paginating. *@
+@* Same toolbar/search UX as ServerDataTable, but filters an already-fetched flat list in-memory. *@
 <MudTable Items="@_filteredItems" Hover="true" Dense="true" Class="@Class">
     <ToolBarContent>
         <MudSpacer />

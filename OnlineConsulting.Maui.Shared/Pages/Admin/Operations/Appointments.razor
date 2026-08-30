@@ -67,8 +67,7 @@
             return;
         }
 
-        // CancelAppointmentCommand.UserId is filled server-side from the caller's own identity (see
-        // CancelAppointment.cs), not from any request body - it's a self-service-only endpoint, unchanged here.
+        // Self-service-only endpoint - UserId comes from the caller's own identity server-side.
         var result = await ApiClient.PostAsync(ApiRoutes.Operations.Appointments.Cancel(appointment.Id), new { });
         if (!result.IsSuccessful)
         {

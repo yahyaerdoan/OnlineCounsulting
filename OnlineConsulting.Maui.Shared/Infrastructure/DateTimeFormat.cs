@@ -2,8 +2,7 @@ using System.Globalization;
 
 namespace OnlineConsulting.Maui.Shared.Infrastructure;
 
-/// <summary>Formats dates/times as "M/d/yyyy h:mm tt" / "h:mm tt" - explicit en-US pattern (always
-/// 12-hour with AM/PM), not the runtime's current culture, matching CurrencyFormat's approach.</summary>
+/// <summary>Formats dates/times as fixed en-US, 12-hour with AM/PM - not the runtime's culture.</summary>
 public static class DateTimeFormat
 {
     private static readonly CultureInfo UsCulture = CultureInfo.GetCultureInfo("en-US");

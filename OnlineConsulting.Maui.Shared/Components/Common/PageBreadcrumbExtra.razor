@@ -8,5 +8,12 @@
 
     protected override void OnParametersSet() => Breadcrumb.Set(Text);
 
-    public void Dispose() => Breadcrumb.Set(null);
+    // Only clear if we still own the value - avoids wiping a newer page's segment.
+    public void Dispose()
+    {
+        if (Breadcrumb.ExtraSegment == Text)
+        {
+            Breadcrumb.Set(null);
+        }
+    }
 }
