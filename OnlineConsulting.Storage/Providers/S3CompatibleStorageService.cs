@@ -30,38 +30,60 @@ public class S3CompatibleStorageService : IStorageService
 
     public string ProviderName => StorageProviderNames.S3;
 
-    public async Task<UploadResult> UploadAsync(Stream fileStream, string fileName, string contentType, CancellationToken cancellationToken = default)
+    public async Task<UploadResult> UploadAsync(Stream fileStream, string fileName, string contentType, string folder, CancellationToken cancellationToken = default)
     {
         using var buffer = new MemoryStream();
+
         await fileStream.CopyToAsync(buffer, cancellationToken);
+
         buffer.Position = 0;
 
         var (width, height) = await ImageDimensionReader.TryReadAsync(buffer, contentType, cancellationToken);
 
-        var storedFileName = SafeFileNaming.GenerateStoredFileName(fileName);
+        var storageKey = await SafeFileNaming.ResolveUniqueKeyAsync(folder, fileName, key => ExistsAsync(key, cancellationToken));
 
         _ = await _client.PutObjectAsync(new PutObjectRequest
         {
             BucketName = _options.BucketName,
-            Key = storedFileName,
+            Key = storageKey,
             InputStream = buffer,
             ContentType = contentType,
             AutoCloseStream = false,
         }, cancellationToken);
 
-        var url = $"{_options.PublicBaseUrl.TrimEnd('/')}/{storedFileName}";
+        var url = $"{_options.PublicBaseUrl.TrimEnd('/')}/{storageKey}";
 
         return new UploadResult(url, buffer.Length, width, height);
     }
 
     public async Task DeleteAsync(string url, CancellationToken cancellationToken = default)
     {
-        var key = Path.GetFileName(url);
+        var key = ToRelativeKey(url);
 
         _ = await _client.DeleteObjectAsync(new DeleteObjectRequest
         {
             BucketName = _options.BucketName,
             Key = key,
         }, cancellationToken);
+    }
+
+    // Falls back to the bare file name for assets uploaded before folders existed.
+    private string ToRelativeKey(string url)
+    {
+        var prefix = _options.PublicBaseUrl.TrimEnd('/') + "/";
+        return url.StartsWith(prefix, StringComparison.Ordinal) ? url[prefix.Length..] : Path.GetFileName(url);
+    }
+
+    private async Task<bool> ExistsAsync(string key, CancellationToken cancellationToken)
+    {
+        try
+        {
+            _ = await _client.GetObjectMetadataAsync(_options.BucketName, key, cancellationToken);
+            return true;
+        }
+        catch (AmazonS3Exception ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            return false;
+        }
     }
 }

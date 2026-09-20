@@ -10,35 +10,38 @@ public class LocalFileSystemStorageService(IOptions<StorageOptions> options) : I
 
     public string ProviderName => StorageProviderNames.Local;
 
-    public async Task<UploadResult> UploadAsync(Stream fileStream, string fileName, string contentType, CancellationToken cancellationToken = default)
+    public async Task<UploadResult> UploadAsync(Stream fileStream, string fileName, string contentType, string folder, CancellationToken cancellationToken = default)
     {
         // Buffered once so the same bytes can both be inspected for image dimensions and written to
         // disk, regardless of whether the caller's stream supports seeking.
         using var buffer = new MemoryStream();
+
         await fileStream.CopyToAsync(buffer, cancellationToken);
+
         buffer.Position = 0;
 
         var (width, height) = await ImageDimensionReader.TryReadAsync(buffer, contentType, cancellationToken);
 
-        var storedFileName = SafeFileNaming.GenerateStoredFileName(fileName);
+        var storageKey = await SafeFileNaming.ResolveUniqueKeyAsync(folder, fileName, key => Task.FromResult(File.Exists(Path.Combine(_options.RootPath, key.Replace('/', Path.DirectorySeparatorChar)))));
 
-        _ = Directory.CreateDirectory(_options.RootPath);
-        var fullPath = Path.Combine(_options.RootPath, storedFileName);
+        var fullPath = Path.Combine(_options.RootPath, storageKey.Replace('/', Path.DirectorySeparatorChar));
+
+        _ = Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
 
         await using (var fileOnDisk = File.Create(fullPath))
         {
             await buffer.CopyToAsync(fileOnDisk, cancellationToken);
         }
 
-        var url = $"{_options.PublicPathPrefix.TrimEnd('/')}/{storedFileName}";
+        var url = $"{_options.PublicPathPrefix.TrimEnd('/')}/{storageKey}";
 
         return new UploadResult(url, buffer.Length, width, height);
     }
 
     public Task DeleteAsync(string url, CancellationToken cancellationToken = default)
     {
-        var fileName = Path.GetFileName(url);
-        var fullPath = Path.Combine(_options.RootPath, fileName);
+        var relativeKey = ToRelativeKey(url);
+        var fullPath = Path.Combine(_options.RootPath, relativeKey.Replace('/', Path.DirectorySeparatorChar));
 
         if (File.Exists(fullPath))
         {
@@ -46,5 +49,12 @@ public class LocalFileSystemStorageService(IOptions<StorageOptions> options) : I
         }
 
         return Task.CompletedTask;
+    }
+
+    // Falls back to the bare file name for assets uploaded before folders existed.
+    private string ToRelativeKey(string url)
+    {
+        var prefix = _options.PublicPathPrefix.TrimEnd('/') + "/";
+        return url.StartsWith(prefix, StringComparison.Ordinal) ? url[prefix.Length..] : Path.GetFileName(url);
     }
 }

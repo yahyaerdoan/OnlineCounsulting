@@ -21,29 +21,53 @@ public class GoogleCloudStorageService : IStorageService
 
     public string ProviderName => StorageProviderNames.GoogleCloud;
 
-    public async Task<UploadResult> UploadAsync(Stream fileStream, string fileName, string contentType, CancellationToken cancellationToken = default)
+    public async Task<UploadResult> UploadAsync(Stream fileStream, string fileName, string contentType, string folder, CancellationToken cancellationToken = default)
     {
         using var buffer = new MemoryStream();
+
         await fileStream.CopyToAsync(buffer, cancellationToken);
+
         buffer.Position = 0;
 
         var (width, height) = await ImageDimensionReader.TryReadAsync(buffer, contentType, cancellationToken);
 
-        var storedFileName = SafeFileNaming.GenerateStoredFileName(fileName);
+        var storageKey = await SafeFileNaming.ResolveUniqueKeyAsync(folder, fileName, key => ExistsAsync(key, cancellationToken));
 
-        _ = await _client.UploadObjectAsync(_options.BucketName, storedFileName, contentType, buffer, cancellationToken: cancellationToken);
+        _ = await _client.UploadObjectAsync(_options.BucketName, storageKey, contentType, buffer, cancellationToken: cancellationToken);
 
-        var baseUrl = string.IsNullOrEmpty(_options.PublicBaseUrl)
-            ? $"https://storage.googleapis.com/{_options.BucketName}"
-            : _options.PublicBaseUrl.TrimEnd('/');
-        var url = $"{baseUrl}/{storedFileName}";
+        var url = $"{BaseUrl}/{storageKey}";
 
         return new UploadResult(url, buffer.Length, width, height);
     }
 
     public async Task DeleteAsync(string url, CancellationToken cancellationToken = default)
     {
-        var objectName = Path.GetFileName(url);
+        var objectName = ToRelativeKey(url);
+
         await _client.DeleteObjectAsync(_options.BucketName, objectName, cancellationToken: cancellationToken);
+    }
+
+    private string BaseUrl => string.IsNullOrEmpty(_options.PublicBaseUrl)
+        ? $"https://storage.googleapis.com/{_options.BucketName}"
+        : _options.PublicBaseUrl.TrimEnd('/');
+
+    // Falls back to the bare file name for assets uploaded before folders existed.
+    private string ToRelativeKey(string url)
+    {
+        var prefix = BaseUrl + "/";
+        return url.StartsWith(prefix, StringComparison.Ordinal) ? url[prefix.Length..] : Path.GetFileName(url);
+    }
+
+    private async Task<bool> ExistsAsync(string key, CancellationToken cancellationToken)
+    {
+        try
+        {
+            _ = await _client.GetObjectAsync(_options.BucketName, key, cancellationToken: cancellationToken);
+            return true;
+        }
+        catch (Google.GoogleApiException ex) when (ex.HttpStatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            return false;
+        }
     }
 }

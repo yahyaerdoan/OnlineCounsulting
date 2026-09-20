@@ -17,16 +17,19 @@ public class AzureBlobStorageService : IStorageService
 
     public string ProviderName => StorageProviderNames.AzureBlob;
 
-    public async Task<UploadResult> UploadAsync(Stream fileStream, string fileName, string contentType, CancellationToken cancellationToken = default)
+    public async Task<UploadResult> UploadAsync(Stream fileStream, string fileName, string contentType, string folder, CancellationToken cancellationToken = default)
     {
         using var buffer = new MemoryStream();
+
         await fileStream.CopyToAsync(buffer, cancellationToken);
+
         buffer.Position = 0;
 
         var (width, height) = await ImageDimensionReader.TryReadAsync(buffer, contentType, cancellationToken);
 
-        var storedFileName = SafeFileNaming.GenerateStoredFileName(fileName);
-        var blobClient = _container.GetBlobClient(storedFileName);
+        var storageKey = await SafeFileNaming.ResolveUniqueKeyAsync(folder, fileName, async key => (await _container.GetBlobClient(key).ExistsAsync(cancellationToken)).Value);
+
+        var blobClient = _container.GetBlobClient(storageKey);
 
         _ = await blobClient.UploadAsync(buffer, new Azure.Storage.Blobs.Models.BlobHttpHeaders { ContentType = contentType }, cancellationToken: cancellationToken);
 
@@ -35,7 +38,15 @@ public class AzureBlobStorageService : IStorageService
 
     public async Task DeleteAsync(string url, CancellationToken cancellationToken = default)
     {
-        var blobName = Path.GetFileName(url);
+        var blobName = ToRelativeKey(url);
+
         _ = await _container.DeleteBlobIfExistsAsync(blobName, cancellationToken: cancellationToken);
+    }
+
+    // Falls back to the bare file name for assets uploaded before folders existed.
+    private string ToRelativeKey(string url)
+    {
+        var prefix = _container.Uri.ToString().TrimEnd('/') + "/";
+        return url.StartsWith(prefix, StringComparison.Ordinal) ? url[prefix.Length..] : Path.GetFileName(url);
     }
 }
