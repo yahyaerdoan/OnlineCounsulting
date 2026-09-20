@@ -13,10 +13,10 @@
     <PackageReference Include="FluentValidation" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" />
     <PackageReference Include="MediatR" />
-    <PackageReference Include="ResponseResultHandler" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
+    <PackageReference Include="ResponseResultHandler" />
   </ItemGroup>
 
 </Project>

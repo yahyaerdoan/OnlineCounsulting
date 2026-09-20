@@ -6,15 +6,19 @@ namespace OnlineConsulting.SharedKernel.Validation;
 /// <summary>Overrides FluentValidation's default quoted messages with plain phrasing, solution-wide.</summary>
 public static class FriendlyValidationMessages
 {
+    /// <summary>Call once at startup, before the host is built.</summary>
     public static void Apply()
     {
-        var english = (LanguageManager)ValidatorOptions.Global.LanguageManager;
+        var english = ValidatorOptions.Global.LanguageManager as LanguageManager
+            ?? throw new InvalidOperationException("Expected FluentValidation's default LanguageManager to still be configured.");
 
         // Force "en" - LanguageManager won't fall back from CurrentUICulture (e.g. "en-US") to it.
         english.Culture = new System.Globalization.CultureInfo("en");
 
         english.AddTranslation("en", "NotEmptyValidator", "{PropertyName} is required.");
         english.AddTranslation("en", "NotNullValidator", "{PropertyName} is required.");
+        english.AddTranslation("en", "EmptyValidator", "{PropertyName} must be empty.");
+        english.AddTranslation("en", "NullValidator", "{PropertyName} must be empty.");
         english.AddTranslation("en", "MaximumLengthValidator", "{PropertyName} must be {MaxLength} characters or fewer.");
         english.AddTranslation("en", "MinimumLengthValidator", "{PropertyName} must be at least {MinLength} characters.");
         english.AddTranslation("en", "LengthValidator", "{PropertyName} must be between {MinLength} and {MaxLength} characters.");
@@ -31,5 +35,8 @@ public static class FriendlyValidationMessages
         english.AddTranslation("en", "RegularExpressionValidator", "{PropertyName} is not in the correct format.");
         english.AddTranslation("en", "PredicateValidator", "{PropertyName} is not valid.");
         english.AddTranslation("en", "AsyncPredicateValidator", "{PropertyName} is not valid.");
+        english.AddTranslation("en", "CreditCardValidator", "{PropertyName} must be a valid credit card number.");
+        english.AddTranslation("en", "ScalePrecisionValidator", "{PropertyName} must not have more than {ExpectedPrecision} digits in total, with allowance for {ExpectedScale} decimals.");
+        english.AddTranslation("en", "EnumValidator", "{PropertyName} has a range of values which does not include {PropertyValue}.");
     }
 }

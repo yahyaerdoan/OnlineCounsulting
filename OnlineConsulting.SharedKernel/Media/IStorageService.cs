@@ -6,7 +6,7 @@ public interface IStorageService
     /// <summary>Matches one of StorageProviderNames - also the keyed-DI service key this implementation is registered under.</summary>
     string ProviderName { get; }
 
-    Task<UploadResult> UploadAsync(Stream fileStream, string fileName, string contentType, CancellationToken cancellationToken = default);
+    Task<UploadResult> UploadAsync(Stream fileStream, string fileName, string contentType, string folder, CancellationToken cancellationToken = default);
 
     Task DeleteAsync(string url, CancellationToken cancellationToken = default);
 }

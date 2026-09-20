@@ -18,8 +18,24 @@ public interface ISubscriptionGateway
     /// <summary>Attaches the given payment method to the customer as default, then starts a recurring subscription against the given price. idempotencyKey - see EnsureCustomerAsync.</summary>
     Task<SubscriptionResult> CreateSubscriptionAsync(CreateSubscriptionRequest request, string? idempotencyKey = null, CancellationToken cancellationToken = default);
 
-    /// <summary>Cancels immediately (no cancel-at-period-end support in this phase).</summary>
-    Task<SubscriptionResult> CancelSubscriptionAsync(string providerSubscriptionId, CancellationToken cancellationToken = default);
+    /// <summary>Cancels the subscription. atPeriodEnd=true leaves it running (still billing) until the
+    /// current period ends, at which point the provider's own webhook fires the normal cancellation
+    /// notification - not every provider supports this (see PayPalSubscriptionGateway, which always
+    /// cancels immediately regardless of the flag).</summary>
+    Task<SubscriptionResult> CancelSubscriptionAsync(string providerSubscriptionId, bool atPeriodEnd = false, CancellationToken cancellationToken = default);
+
+    /// <summary>Swaps the subscription's single price for a different one (plan upgrade/downgrade),
+    /// prorating the difference for the remainder of the current period. Not supported by every
+    /// provider - see PayPalSubscriptionGateway.</summary>
+    Task<SubscriptionResult> UpdateSubscriptionPriceAsync(string providerSubscriptionId, string newProviderPriceId, CancellationToken cancellationToken = default);
+
+    /// <summary>Stops billing indefinitely without cancelling - the subscription keeps its place, no
+    /// invoices are created until ResumeSubscriptionAsync. Unlike most other capability-gated methods
+    /// here, PayPal supports this for real (native suspend/activate endpoints).</summary>
+    Task<SubscriptionResult> PauseSubscriptionAsync(string providerSubscriptionId, CancellationToken cancellationToken = default);
+
+    /// <summary>Reverses PauseSubscriptionAsync - billing resumes normally.</summary>
+    Task<SubscriptionResult> ResumeSubscriptionAsync(string providerSubscriptionId, CancellationToken cancellationToken = default);
 
     /// <summary>Adds one more line item (its own price) to an already-created subscription - billed immediately, prorated for the remainder of the current period. Returns the new provider-side subscription item id, which callers must persist to later remove that specific line. Not supported by every provider - see PayPalSubscriptionGateway. idempotencyKey - see EnsureCustomerAsync.</summary>
     Task<string> AddSubscriptionItemAsync(string providerSubscriptionId, string providerPriceId, string? idempotencyKey = null, CancellationToken cancellationToken = default);
@@ -39,8 +55,8 @@ public record EnsurePriceRequest(string ReferenceId, string Name, decimal Amount
 
 public record SubscriptionPriceResult(string ProviderProductId, string ProviderPriceId);
 
-/// <summary>DiscountAmount is a one-time, first-invoice-only discount (e.g. account credit applied at subscribe time) - not a recurring price change. Ignored by providers with no such concept in this phase (PayPal - see PayPalSubscriptionGateway).</summary>
-public record CreateSubscriptionRequest(string ProviderCustomerId, string ProviderPriceId, string PaymentMethodId, string ReferenceId, decimal? DiscountAmount = null);
+/// <summary>DiscountAmount is a one-time, first-invoice-only discount (e.g. account credit applied at subscribe time) - not a recurring price change. TrialDays delays the first real charge. Both ignored by providers with no such concept in this phase (PayPal - see PayPalSubscriptionGateway).</summary>
+public record CreateSubscriptionRequest(string ProviderCustomerId, string ProviderPriceId, string PaymentMethodId, string ReferenceId, decimal? DiscountAmount = null, int? TrialDays = null);
 
 /// <summary>ClientSecret mirrors PaymentIntentResult.ClientSecret's reuse across providers: null for Stripe (the payment method is already attached server-side, nothing left for the client to confirm), the subscriber's PayPal approval URL for PayPal (the payer must be redirected there before the subscription activates - PayPal has no server-side "attach card with a secret key alone" flow). FirstItemProviderId is the provider-side subscription item id for the single line item CreateSubscriptionAsync creates - null for providers with no such concept (PayPal), lets multi-item callers (Tenancy) capture it without a redundant follow-up call.</summary>
 public record SubscriptionResult(string ProviderSubscriptionId, string Status, DateTimeOffset CurrentPeriodEnd, string? ClientSecret = null, string? FirstItemProviderId = null);
