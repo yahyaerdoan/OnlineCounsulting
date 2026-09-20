@@ -10,10 +10,9 @@ public class LocalFileSystemStorageService(IOptions<StorageOptions> options) : I
 
     public string ProviderName => StorageProviderNames.Local;
 
+    /// <summary>Buffers the stream once so the same bytes can be inspected for image dimensions and written to disk, regardless of whether the caller's stream supports seeking.</summary>
     public async Task<UploadResult> UploadAsync(Stream fileStream, string fileName, string contentType, string folder, CancellationToken cancellationToken = default)
     {
-        // Buffered once so the same bytes can both be inspected for image dimensions and written to
-        // disk, regardless of whether the caller's stream supports seeking.
         using var buffer = new MemoryStream();
 
         await fileStream.CopyToAsync(buffer, cancellationToken);
@@ -51,10 +50,11 @@ public class LocalFileSystemStorageService(IOptions<StorageOptions> options) : I
         return Task.CompletedTask;
     }
 
-    // Falls back to the bare file name for assets uploaded before folders existed.
+    /// <summary>Strips the public path prefix to recover the storage key; falls back to the bare file name for assets uploaded before folders existed.</summary>
     private string ToRelativeKey(string url)
     {
         var prefix = _options.PublicPathPrefix.TrimEnd('/') + "/";
+
         return url.StartsWith(prefix, StringComparison.Ordinal) ? url[prefix.Length..] : Path.GetFileName(url);
     }
 }

@@ -19,7 +19,7 @@ public class LocalStorageOptions
     public string PublicPathPrefix { get; set; } = "/media";
 }
 
-/// <summary>Covers any S3-compatible backend - real AWS S3, Cloudflare R2, or Backblaze B2 - through one implementation, since they all speak the same API. ServiceUrl is what actually picks the backend (blank/AWS's own endpoint for real S3, the account-specific endpoint for R2/B2).</summary>
+/// <summary>Covers any S3-compatible backend (AWS S3, Cloudflare R2, Backblaze B2) - ServiceUrl is what actually picks the backend.</summary>
 public class S3StorageOptions
 {
     public string ServiceUrl { get; set; } = string.Empty;

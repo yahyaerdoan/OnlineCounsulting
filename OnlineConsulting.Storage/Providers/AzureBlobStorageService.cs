@@ -12,6 +12,7 @@ public class AzureBlobStorageService : IStorageService
     public AzureBlobStorageService(IOptions<StorageOptions> options)
     {
         var azureOptions = options.Value.AzureBlob;
+
         _container = new BlobContainerClient(azureOptions.ConnectionString, azureOptions.ContainerName);
     }
 
@@ -43,10 +44,11 @@ public class AzureBlobStorageService : IStorageService
         _ = await _container.DeleteBlobIfExistsAsync(blobName, cancellationToken: cancellationToken);
     }
 
-    // Falls back to the bare file name for assets uploaded before folders existed.
+    /// <summary>Strips the container prefix to recover the storage key; falls back to the bare file name for assets uploaded before folders existed.</summary>
     private string ToRelativeKey(string url)
     {
         var prefix = _container.Uri.ToString().TrimEnd('/') + "/";
+
         return url.StartsWith(prefix, StringComparison.Ordinal) ? url[prefix.Length..] : Path.GetFileName(url);
     }
 }

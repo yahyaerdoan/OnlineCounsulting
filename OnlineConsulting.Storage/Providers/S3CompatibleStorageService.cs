@@ -7,12 +7,13 @@ using OnlineConsulting.Storage.Common;
 
 namespace OnlineConsulting.Storage.Providers;
 
-/// <summary>Talks to any S3-compatible backend (real AWS S3, Cloudflare R2, Backblaze B2) through the same AWS SDK client - they all implement the S3 API, so one implementation covers all three instead of one per vendor. ServiceUrl is what actually picks the backend.</summary>
+/// <summary>Talks to any S3-compatible backend (AWS S3, Cloudflare R2, Backblaze B2) via the AWS SDK - ServiceUrl picks the actual backend.</summary>
 public class S3CompatibleStorageService : IStorageService
 {
     private readonly S3StorageOptions _options;
     private readonly AmazonS3Client _client;
 
+    /// <summary>Uses path-style bucket addressing (host.com/bucket) rather than AWS's virtual-hosted style, since R2/B2 don't support the latter and path-style works uniformly across all three backends.</summary>
     public S3CompatibleStorageService(IOptions<StorageOptions> options)
     {
         _options = options.Value.S3;
@@ -21,10 +22,9 @@ public class S3CompatibleStorageService : IStorageService
         {
             ServiceURL = _options.ServiceUrl,
             AuthenticationRegion = _options.Region,
-            // R2/B2 don't support AWS's virtual-hosted-style bucket addressing (bucket.host.com) -
-            // path-style (host.com/bucket) works uniformly across all three backends.
             ForcePathStyle = true,
         };
+
         _client = new AmazonS3Client(new BasicAWSCredentials(_options.AccessKey, _options.SecretKey), config);
     }
 
@@ -67,10 +67,11 @@ public class S3CompatibleStorageService : IStorageService
         }, cancellationToken);
     }
 
-    // Falls back to the bare file name for assets uploaded before folders existed.
+    /// <summary>Strips the public base URL prefix to recover the storage key; falls back to the bare file name for assets uploaded before folders existed.</summary>
     private string ToRelativeKey(string url)
     {
         var prefix = _options.PublicBaseUrl.TrimEnd('/') + "/";
+
         return url.StartsWith(prefix, StringComparison.Ordinal) ? url[prefix.Length..] : Path.GetFileName(url);
     }
 
@@ -79,6 +80,7 @@ public class S3CompatibleStorageService : IStorageService
         try
         {
             _ = await _client.GetObjectMetadataAsync(_options.BucketName, key, cancellationToken);
+
             return true;
         }
         catch (AmazonS3Exception ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)

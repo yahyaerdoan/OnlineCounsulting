@@ -6,7 +6,7 @@ using OnlineConsulting.Storage.Common;
 
 namespace OnlineConsulting.Storage.Providers;
 
-/// <summary>Google Cloud Storage (a real object-storage service with a free tier) - not to be confused with Google Drive, which was considered and rejected: Drive isn't built for public hotlinking and rate-limits/blocks exactly this usage pattern.</summary>
+/// <summary>Google Cloud Storage - not Google Drive, which was rejected: it isn't built for public hotlinking and rate-limits that pattern.</summary>
 public class GoogleCloudStorageService : IStorageService
 {
     private readonly GoogleCloudStorageOptions _options;
@@ -15,7 +15,9 @@ public class GoogleCloudStorageService : IStorageService
     public GoogleCloudStorageService(IOptions<StorageOptions> options)
     {
         _options = options.Value.GoogleCloud;
+
         var credential = CredentialFactory.FromJson<ServiceAccountCredential>(_options.CredentialsJson).ToGoogleCredential();
+
         _client = StorageClient.Create(credential);
     }
 
@@ -47,14 +49,13 @@ public class GoogleCloudStorageService : IStorageService
         await _client.DeleteObjectAsync(_options.BucketName, objectName, cancellationToken: cancellationToken);
     }
 
-    private string BaseUrl => string.IsNullOrEmpty(_options.PublicBaseUrl)
-        ? $"https://storage.googleapis.com/{_options.BucketName}"
-        : _options.PublicBaseUrl.TrimEnd('/');
+    private string BaseUrl => string.IsNullOrEmpty(_options.PublicBaseUrl) ? $"https://storage.googleapis.com/{_options.BucketName}" : _options.PublicBaseUrl.TrimEnd('/');
 
-    // Falls back to the bare file name for assets uploaded before folders existed.
+    /// <summary>Strips the base URL prefix to recover the storage key; falls back to the bare file name for assets uploaded before folders existed.</summary>
     private string ToRelativeKey(string url)
     {
         var prefix = BaseUrl + "/";
+
         return url.StartsWith(prefix, StringComparison.Ordinal) ? url[prefix.Length..] : Path.GetFileName(url);
     }
 
@@ -63,6 +64,7 @@ public class GoogleCloudStorageService : IStorageService
         try
         {
             _ = await _client.GetObjectAsync(_options.BucketName, key, cancellationToken: cancellationToken);
+
             return true;
         }
         catch (Google.GoogleApiException ex) when (ex.HttpStatusCode == System.Net.HttpStatusCode.NotFound)
