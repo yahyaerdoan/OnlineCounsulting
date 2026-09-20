@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="SharpCompress" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\OnlineConsulting.Maui.Shared\OnlineConsulting.Maui.Shared.csproj" />
     <ProjectReference Include="..\OnlineConsulting.ServiceDefaults\OnlineConsulting.ServiceDefaults.csproj" />
   </ItemGroup>

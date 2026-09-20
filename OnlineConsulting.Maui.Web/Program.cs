@@ -38,18 +38,39 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
     {
         options.LoginPath = AppRoutes.Login;
-        options.AccessDeniedPath = AppRoutes.Login;
         options.ExpireTimeSpan = TimeSpan.FromDays(14);
         options.SlidingExpiration = true;
+
+        // AccessDeniedPath defaulted to the login page - a signed-in user with the wrong role
+        // (e.g. an admin opening the Customer-only dashboard) landed back on the login form
+        // instead of just being sent home. This only fires for a fresh top-level request (the
+        // page component's own [Authorize] is also endpoint metadata, enforced here before Blazor
+        // even renders); an in-circuit SPA navigation never hits this and goes through
+        // RedirectToLogin.razor instead, which already does the right thing.
+        options.Events.OnRedirectToAccessDenied = context =>
+        {
+            context.Response.Redirect("/");
+            return Task.CompletedTask;
+        };
+
+        // Runs on a real top-level request, before Blazor's circuit takes over - the one point
+        // where a cookie rewrite is possible. Keeps role/IsSuperAdmin claims fresh via the same
+        // refresh-token flow that already renews the Api access token, instead of leaving them
+        // frozen at login-time until the user manually signs out and back in.
+        options.Events.OnValidatePrincipal = context =>
+            context.HttpContext.RequestServices.GetRequiredService<CookiePrincipalRefresher>().ValidateAsync(context);
     });
 builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<IAccessTokenProvider, ServerAccessTokenProvider>();
 builder.Services.AddScoped<IAuthSession, WebAuthSession>();
+builder.Services.AddScoped<CookiePrincipalRefresher>();
 
 var apiBaseUrl = builder.Configuration["Api:BaseUrl"] ?? "https+http://api";
 builder.Services.AddHttpClient(ApiHttpClientNames.Anonymous, client => client.BaseAddress = new Uri(apiBaseUrl));
-builder.Services.AddHttpClient<IApiClient, ApiClient>(client => client.BaseAddress = new Uri(apiBaseUrl));
+builder.Services.AddTransient<GuestIdHandler>();
+builder.Services.AddHttpClient<IApiClient, ApiClient>(client => client.BaseAddress = new Uri(apiBaseUrl))
+    .AddHttpMessageHandler<GuestIdHandler>();
 
 var app = builder.Build();
 
@@ -75,9 +96,7 @@ app.MapGet(AppRoutes.Logout, async context =>
     context.Response.Redirect($"{AppRoutes.Login}?goodbye={Guid.NewGuid():N}");
 });
 
-// MapRazorComponents<App> already covers App's own assembly (Maui.Web) - moduleRegistry.AdditionalAssemblies
-// includes that same assembly (for Routes.razor's in-circuit Router, which has no such default), so it's
-// excluded here or AddAdditionalAssemblies throws "Assembly already defined".
+// App's own assembly is excluded here - already covered by MapRazorComponents<App>, else AddAdditionalAssemblies throws.
 var moduleRegistry = app.Services.GetRequiredService<UiModuleRegistry>();
 var additionalAssemblies = new[] { typeof(OnlineConsulting.Maui.Shared._Imports).Assembly }
     .Concat(moduleRegistry.AdditionalAssemblies)

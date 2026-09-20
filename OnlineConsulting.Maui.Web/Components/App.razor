@@ -1,5 +1,4 @@
-﻿@using Microsoft.AspNetCore.Components.Endpoints
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -8,9 +7,12 @@
     <base href="/" />
     <ResourcePreloader />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="_content/MudBlazor/MudBlazor.min.css" />
     <link rel="stylesheet" href="_content/OnlineConsulting.Maui.Shared/app.css" />
     <link rel="stylesheet" href="OnlineConsulting.Maui.Web.styles.css" />
+    <script src="https://js.stripe.com/v3/"></script>
     <ImportMap />
     <HeadOutlet @rendermode="PageRenderMode" />
 </head>
@@ -20,6 +22,7 @@
     <ReconnectModal />
     <script src="@Assets["_framework/blazor.web.js"]"></script>
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+    <script src="_content/OnlineConsulting.Maui.Shared/marketing.js"></script>
 </body>
 
 </html>
@@ -28,13 +31,7 @@
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
 
-    /// <summary>Pages tagged [ExcludeFromInteractiveRouting] (e.g. Login, which needs a raw HTTP
-    /// response to set the auth cookie) must render fully static - an ambient interactive mode here
-    /// would still wrap them in a circuit boundary and crash trying to serialize their parameters.
-    /// Prerender is off: MainLayout's &lt;AuthorizeView&gt; renders a structurally different subtree
-    /// for Authorized vs NotAuthorized, and if that resolves differently between the prerender pass
-    /// and the live circuit's first render, the client can't reconcile the mismatched DOM - it was
-    /// producing "attribute b-xxxxx used two or more times" errors instead of a clean re-render.</summary>
+    /// <summary>Prerender off - AuthorizeView's subtree can differ between prerender and live circuit, causing DOM mismatch errors.</summary>
     private IComponentRenderMode? PageRenderMode =>
         HttpContext.AcceptsInteractiveRouting() ? new InteractiveServerRenderMode(prerender: false) : null;
 }

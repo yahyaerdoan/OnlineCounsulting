@@ -15,14 +15,14 @@
 
 <PageTitle>Sign in</PageTitle>
 
-<AuthCard Subtitle="Sign in to your ComfortPro admin workspace">
+<AuthCard Subtitle="Sign in to your ComfortPro account">
     <LoginErrorSnackbar ErrorMessage="@_errorMessage" GoodbyeToken="@Goodbye" Notice="@Notice" />
 
-    <EditForm EditContext="@Form.EditContext" method="post" OnValidSubmit="SubmitAsync" FormName="login">
-        <AuthTextField Label="Username or email" Icon="@Icons.Material.Outlined.Person" Placeholder="yourname"
+    <EditForm EditContext="@Form.EditContext" method="post" OnValidSubmit="SubmitAsync" FormName="login" autocomplete="off">
+        <AuthTextField Label="Username or email" Icon="@Icons.Material.Outlined.Person"
                        @bind-Value="_model.UserNameOrEmail" AutoFocus="true" />
 
-        <AuthTextField Label="Password" Icon="@Icons.Material.Outlined.Lock" Placeholder="********" Type="password"
+        <AuthTextField Label="Password" Icon="@Icons.Material.Outlined.Lock" Type="password"
                        @bind-Value="_model.Password" />
 
         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-5">
@@ -37,6 +37,14 @@
 
         <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Class="auth-submit">Sign in</MudButton>
     </EditForm>
+
+    <MudText Typo="Typo.body2" Class="mt-4" Align="Align.Center">
+        New here? <MudLink Href="/register">Create an account</MudLink>
+    </MudText>
+
+    <MudText Typo="Typo.body2" Class="mt-2" Align="Align.Center">
+        <MudLink Href="/forgot-password">Forgot your password?</MudLink>
+    </MudText>
 </AuthCard>
 
 @code {
@@ -112,7 +120,10 @@
         await httpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity),
             new AuthenticationProperties { IsPersistent = _model.RememberMe });
 
-        var target = string.IsNullOrEmpty(ReturnUrl) ? AppRoutes.AdminHome : ReturnUrl;
+        var isUserOnly = userResult.ResultData.Roles.Count == 1
+            && userResult.ResultData.Roles[0].Equals(AppRoles.User, StringComparison.OrdinalIgnoreCase);
+        var homeRoute = isUserOnly ? "/user/dashboard" : AppRoutes.AdminHome;
+        var target = string.IsNullOrEmpty(ReturnUrl) ? homeRoute : ReturnUrl;
         Navigation.NavigateTo(target.Contains('?') ? $"{target}&welcome=true" : $"{target}?welcome=true", forceLoad: true);
     });
 }

@@ -1,0 +1,99 @@
+@page "/register"
+@attribute [ExcludeFromInteractiveRouting]
+@layout MainLayout
+@using OnlineConsulting.Maui.Shared.Infrastructure.Api
+@using OnlineConsulting.Maui.Shared.Infrastructure.Forms
+@inject IHttpClientFactory HttpClientFactory
+@inject NavigationManager Navigation
+@inject FormState<RegisterModel> Form
+
+<PageTitle>Create account</PageTitle>
+
+<AuthCard Title="Create your account" Subtitle="Sign up to book services, track orders and manage your membership.">
+    @if (_successMessage is not null)
+    {
+        <MudAlert Severity="Severity.Success" Class="mb-4">@_successMessage</MudAlert>
+    }
+    else
+    {
+        <EditForm EditContext="@Form.EditContext" method="post" OnValidSubmit="SubmitAsync" FormName="register" autocomplete="off">
+            <AuthTextField Label="First name" Icon="@Icons.Material.Outlined.Person"
+                           @bind-Value="_model.FirstName" AutoFocus="true" />
+
+            <AuthTextField Label="Last name" Icon="@Icons.Material.Outlined.Person"
+                           @bind-Value="_model.LastName" />
+
+            <AuthTextField Label="Username" Icon="@Icons.Material.Outlined.AlternateEmail"
+                           @bind-Value="_model.UserName" />
+
+            <AuthTextField Label="Email" Icon="@Icons.Material.Outlined.Mail" Type="email"
+                           @bind-Value="_model.Email" />
+
+            <AuthTextField Label="Password" Icon="@Icons.Material.Outlined.Lock" Type="password"
+                           @bind-Value="_model.Password" />
+
+            @if (_errorMessage is not null)
+            {
+                <MudAlert Severity="Severity.Error" Class="mb-4">@_errorMessage</MudAlert>
+            }
+
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Class="auth-submit">Create account</MudButton>
+        </EditForm>
+
+        <MudText Typo="Typo.body2" Class="mt-4" Align="Align.Center">
+            Already have an account? <MudLink Href="/login">Sign in</MudLink>
+        </MudText>
+
+        <MudText Typo="Typo.body2" Class="mt-2" Align="Align.Center">
+            Own a business? <MudLink Href="/signup">Sign up your company</MudLink>
+        </MudText>
+    }
+</AuthCard>
+
+@code {
+    [SupplyParameterFromForm]
+    private RegisterModel _model
+    {
+        get => field ??= new RegisterModel();
+        set;
+    }
+
+    private string? _errorMessage;
+    private string? _successMessage;
+
+    protected override void OnInitialized() => Form.Bind(_model);
+
+    private Task SubmitAsync() => Form.SubmitAsync(async () =>
+    {
+        _errorMessage = null;
+
+        var anonymousClient = HttpClientFactory.CreateClient(ApiHttpClientNames.Anonymous);
+        var api = new ApiClient(anonymousClient);
+
+        var result = await api.PostAsync(ApiRoutes.Auth.Register, new
+        {
+            firstName = _model.FirstName,
+            lastName = _model.LastName,
+            userName = _model.UserName,
+            email = _model.Email,
+            password = _model.Password,
+        });
+
+        if (!result.IsSuccessful)
+        {
+            _errorMessage = Form.DisplayErrors(result);
+            return;
+        }
+
+        _successMessage = result.DisplayMessage;
+    });
+
+    private sealed class RegisterModel
+    {
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        public string UserName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+}

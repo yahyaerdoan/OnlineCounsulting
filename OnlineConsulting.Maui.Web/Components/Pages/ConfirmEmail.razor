@@ -1,0 +1,52 @@
+@page "/confirm-email"
+@attribute [ExcludeFromInteractiveRouting]
+@layout MainLayout
+@using OnlineConsulting.Maui.Shared.Infrastructure.Api
+@inject IHttpClientFactory HttpClientFactory
+
+<PageTitle>Confirm email</PageTitle>
+
+<AuthCard Icon="@Icons.Material.Outlined.MarkEmailRead" Title="Confirm your email" Subtitle="@_subtitle">
+    @if (_isSuccess)
+    {
+        <MudAlert Severity="Severity.Success" Class="mb-4">@_message</MudAlert>
+        <MudButton Href="/login" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true">Sign in</MudButton>
+    }
+    else
+    {
+        <MudAlert Severity="Severity.Error" Class="mb-4">@_message</MudAlert>
+        <MudButton Href="/login" Variant="Variant.Outlined" Color="Color.Primary" FullWidth="true">Back to sign in</MudButton>
+    }
+</AuthCard>
+
+@code {
+    [SupplyParameterFromQuery]
+    private Guid UserId { get; set; }
+
+    [SupplyParameterFromQuery]
+    private string? Token { get; set; }
+
+    private string _subtitle = "Confirming...";
+    private string _message = string.Empty;
+    private bool _isSuccess;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (UserId == Guid.Empty || string.IsNullOrWhiteSpace(Token))
+        {
+            _isSuccess = false;
+            _message = "This confirmation link is invalid.";
+            _subtitle = "Something went wrong";
+            return;
+        }
+
+        var anonymousClient = HttpClientFactory.CreateClient(ApiHttpClientNames.Anonymous);
+        var api = new ApiClient(anonymousClient);
+
+        var result = await api.PostAsync(ApiRoutes.Auth.ConfirmEmail, new { userId = UserId, token = Token });
+
+        _isSuccess = result.IsSuccessful;
+        _message = result.DisplayMessage;
+        _subtitle = _isSuccess ? "You're all set" : "Something went wrong";
+    }
+}
