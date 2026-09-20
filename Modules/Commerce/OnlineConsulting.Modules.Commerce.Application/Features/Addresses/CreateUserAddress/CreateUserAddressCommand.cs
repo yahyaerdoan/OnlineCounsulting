@@ -1,6 +1,7 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
 using MediatR;
+using OnlineConsulting.Modules.Commerce.Application.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.Abstractions;
 using OnlineConsulting.Modules.Commerce.Domain;
 using ResultHandler.Core.Base;
@@ -20,30 +21,8 @@ public class CreateUserAddressHandler(IUserAddressRepository repository) : IRequ
 {
     public async Task<OperationDataResult<Guid>> Handle(CreateUserAddressCommand request, CancellationToken cancellationToken)
     {
-        // A user has at most one shipping and one billing address, so setting this one unsets the old holder of that flag.
-        if (request.IsShippingAddress)
-        {
-            var oldShipping = await repository.GetAsync(a => a.UserId == request.UserId && a.IsShippingAddress, cancellationToken: cancellationToken);
-            if (oldShipping is not null)
-            {
-                oldShipping.IsShippingAddress = false;
-                _ = await repository.UpdateAsync(oldShipping);
-            }
-        }
-
-        if (request.IsBillingAddress)
-        {
-            var oldBilling = await repository.GetAsync(a => a.UserId == request.UserId && a.IsBillingAddress, cancellationToken: cancellationToken);
-            if (oldBilling is not null)
-            {
-                oldBilling.IsBillingAddress = false;
-                _ = await repository.UpdateAsync(oldBilling);
-            }
-        }
-
         var address = new UserAddress
         {
-            Id = Guid.NewGuid(),
             UserId = request.UserId,
             AddressName = request.AddressName,
             CompanyName = request.CompanyName,
@@ -57,6 +36,18 @@ public class CreateUserAddressHandler(IUserAddressRepository repository) : IRequ
             IsBillingAddress = request.IsBillingAddress,
         };
         _ = await repository.AddAsync(address);
+
+        // A user has at most one shipping and one billing address, so claiming either here unsets its old holder.
+        // Uses the id the insert above just assigned, not a pre-generated one - see UserAddressDefaultFlag.
+        if (request.IsShippingAddress)
+        {
+            await UserAddressDefaultFlag.ClearPreviousShippingHolderAsync(repository, request.UserId, address.Id, cancellationToken);
+        }
+
+        if (request.IsBillingAddress)
+        {
+            await UserAddressDefaultFlag.ClearPreviousBillingHolderAsync(repository, request.UserId, address.Id, cancellationToken);
+        }
 
         return Result.Created(address.Id, "Address created successfully.");
     }

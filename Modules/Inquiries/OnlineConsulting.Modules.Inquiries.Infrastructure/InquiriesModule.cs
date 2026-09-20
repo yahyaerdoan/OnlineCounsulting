@@ -6,14 +6,18 @@ using Microsoft.Extensions.DependencyInjection;
 using OnlineConsulting.Modules.Inquiries.Application;
 using OnlineConsulting.Modules.Inquiries.Application.Common.Templates;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Contact.Abstractions;
+using OnlineConsulting.Modules.Inquiries.Application.Features.Contact.Constants;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Messages;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Messages.Abstractions;
+using OnlineConsulting.Modules.Inquiries.Application.Features.Messages.Constants;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.Abstractions;
+using OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.Constants;
 using OnlineConsulting.Modules.Inquiries.Infrastructure.Notifications;
 using OnlineConsulting.Modules.Inquiries.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Inquiries.Infrastructure.Pipelines;
 using OnlineConsulting.Modules.Inquiries.Infrastructure.Repositories;
 using OnlineConsulting.SharedKernel.Auditing;
+using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
 using OnlineConsulting.SharedKernel.Tenancy;
@@ -47,6 +51,10 @@ public static class InquiriesModule
         _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
         _ = services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
         _ = services.AddTransient(typeof(IPipelineBehavior<,>), typeof(InquiriesTransactionAddingBehavior<,>));
+
+        _ = services.AddSingleton<IDefaultAdminPermissions>(new DefaultAdminPermissions(ContactOperationClaims.All));
+        _ = services.AddSingleton<IDefaultAdminPermissions>(new DefaultAdminPermissions(MessagesOperationClaims.All));
+        _ = services.AddSingleton<IDefaultAdminPermissions>(new DefaultAdminPermissions(NewsletterOperationClaims.All));
 
         return services;
     }

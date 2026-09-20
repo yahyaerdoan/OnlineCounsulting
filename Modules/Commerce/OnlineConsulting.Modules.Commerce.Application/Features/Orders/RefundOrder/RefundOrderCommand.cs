@@ -1,6 +1,7 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
+using OnlineConsulting.Modules.Commerce.Application.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Abstractions;
 using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.Payments;
@@ -15,7 +16,7 @@ namespace OnlineConsulting.Modules.Commerce.Application.Features.Orders.RefundOr
 public record RefundOrderCommand(Guid OrderId, decimal? Amount = null) : IRequest<OperationResult>, ISecureAddRequest
 {
     [JsonIgnore]
-    public string[] Roles => [GlobalOperationClaims.SuperAdmin];
+    public string[] Roles => [CommerceOperationClaims.Admin, CommerceOperationClaims.Write, GlobalOperationClaims.SuperAdmin];
 }
 
 public class RefundOrderHandler(IOrderRepository orderRepository, IServiceProvider serviceProvider) : IRequestHandler<RefundOrderCommand, OperationResult>
@@ -44,7 +45,12 @@ public class RefundOrderHandler(IOrderRepository orderRepository, IServiceProvid
             return Result.BadRequest($"Unknown payment provider '{order.PaymentProvider}' - cannot route the refund.");
         }
 
-        _ = await gateway.RefundAsync(order.ProviderPaymentId, request.Amount, cancellationToken);
+        var failure = await PaymentGatewayCall.RunAsync(() => gateway.RefundAsync(order.ProviderPaymentId, request.Amount, cancellationToken),
+            $"Refund failed for order {request.OrderId}. Please try again or contact support.");
+        if (failure is not null)
+        {
+            return failure;
+        }
 
         order.PaymentStatus = OrderPaymentStatuses.Refunded;
         _ = await orderRepository.UpdateAsync(order);

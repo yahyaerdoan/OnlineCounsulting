@@ -2,7 +2,7 @@ using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.SiteContent.Domain.Service;
 
-public class ServiceArea : TenantEntity<Guid>
+public class ServiceArea : SequentialGuidTenantEntity
 {
     public required string Name { get; set; }
     public required string State { get; set; }

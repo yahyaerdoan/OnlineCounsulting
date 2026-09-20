@@ -23,7 +23,7 @@ public class SubscribeNewsletterHandler(INewsletterSubscriberRepository reposito
             return Result.Success("Already subscribed.");
         }
 
-        var subscriber = new NewsletterSubscriber { Id = Guid.NewGuid(), Email = request.Email };
+        var subscriber = new NewsletterSubscriber { Email = request.Email };
 
         _ = await repository.AddAsync(subscriber);
 

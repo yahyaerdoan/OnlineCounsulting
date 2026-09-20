@@ -12,6 +12,8 @@ using OnlineConsulting.Modules.FeatureFlags.Infrastructure.Pipelines;
 using OnlineConsulting.Modules.FeatureFlags.Infrastructure.Repositories;
 using OnlineConsulting.Modules.FeatureFlags.Infrastructure.Writing;
 using OnlineConsulting.SharedKernel.Auditing;
+using OnlineConsulting.SharedKernel.Authorization;
+using OnlineConsulting.Modules.FeatureFlags.Application.Features.Constants;
 using OnlineConsulting.SharedKernel.FeatureFlags;
 using OnlineConsulting.SharedKernel.Tenancy;
 
@@ -42,6 +44,7 @@ public static class FeatureFlagsModule
         _ = services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
         _ = services.AddTransient(typeof(IPipelineBehavior<,>), typeof(FeatureFlagsTransactionAddingBehavior<,>));
 
+        _ = services.AddSingleton<IDefaultAdminPermissions>(new DefaultAdminPermissions(FeatureFlagsOperationClaims.All));
         return services;
     }
 }

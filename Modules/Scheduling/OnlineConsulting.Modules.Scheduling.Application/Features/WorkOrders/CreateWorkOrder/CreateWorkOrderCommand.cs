@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Scheduling.Application.Common;
@@ -24,18 +24,19 @@ public record CreateWorkOrderCommand(Guid AppointmentId, Guid TechnicianUserId, 
     public string[] Roles => [SchedulingOperationClaims.Admin, SchedulingOperationClaims.Write, SchedulingOperationClaims.Add];
 }
 
-public class CreateWorkOrderHandler(IWorkOrderRepository workOrderRepository, IAppointmentRepository appointmentRepository, IPushNotificationSender pushNotificationSender)
-    : IRequestHandler<CreateWorkOrderCommand, OperationDataResult<Guid>>
+public class CreateWorkOrderHandler(IWorkOrderRepository workOrderRepository, IAppointmentRepository appointmentRepository, IPushNotificationSender pushNotificationSender) : IRequestHandler<CreateWorkOrderCommand, OperationDataResult<Guid>>
 {
     public async Task<OperationDataResult<Guid>> Handle(CreateWorkOrderCommand request, CancellationToken cancellationToken)
     {
         var appointment = await appointmentRepository.GetAsync(a => a.Id == request.AppointmentId, cancellationToken: cancellationToken);
+
         if (appointment is null)
         {
             return AppointmentBusinessRules.AppointmentNotFound(request.AppointmentId).ToErrorDataResult<Guid>();
         }
 
         var alreadyExists = await workOrderRepository.AnyAsync(w => w.AppointmentId == request.AppointmentId, cancellationToken: cancellationToken);
+
         if (alreadyExists)
         {
             return WorkOrderBusinessRules.WorkOrderAlreadyExistsForAppointment().ToErrorDataResult<Guid>();
@@ -43,7 +44,6 @@ public class CreateWorkOrderHandler(IWorkOrderRepository workOrderRepository, IA
 
         var workOrder = new WorkOrder
         {
-            Id = Guid.NewGuid(),
             AppointmentId = request.AppointmentId,
             TechnicianUserId = request.TechnicianUserId,
             PartsUsed = request.PartsUsed,
@@ -55,14 +55,12 @@ public class CreateWorkOrderHandler(IWorkOrderRepository workOrderRepository, IA
         _ = await workOrderRepository.AddAsync(workOrder);
 
         appointment.Status = AppointmentStatuses.Completed;
+
         _ = await appointmentRepository.UpdateAsync(appointment);
 
-        await pushNotificationSender.SendToUserAsync(
-            appointment.UserId,
-            "Service complete",
-            "Your appointment has been completed. Thanks for choosing us!",
-            new Dictionary<string, string> { ["appointmentId"] = appointment.Id.ToString() },
-            cancellationToken);
+        await pushNotificationSender.SendToUserAsync(appointment.UserId,
+            "Service complete", "Your appointment has been completed. Thanks for choosing us!",
+            new Dictionary<string, string> { ["appointmentId"] = appointment.Id.ToString() }, cancellationToken);
 
         return Result.Created(workOrder.Id, "Work order recorded successfully.");
     }

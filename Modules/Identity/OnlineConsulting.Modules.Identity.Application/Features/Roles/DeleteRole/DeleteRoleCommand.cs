@@ -15,6 +15,10 @@ public record DeleteRoleCommand(Guid RoleId) : IRequest<OperationResult>, ISecur
     // Role isn't tenant-scoped (no TenantId) - only SuperAdmin may delete a role shared across tenants.
     [JsonIgnore]
     public string[] Roles => [GlobalOperationClaims.SuperAdmin];
+
+    // Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.
+    [JsonIgnore]
+    public bool AllowTenantBypass => false;
 }
 
 public class DeleteRoleHandler(RoleManager<Role> roleManager) : IRequestHandler<DeleteRoleCommand, OperationResult>

@@ -22,6 +22,7 @@ public class SpendAccountCreditHandler(IAccountCreditRepository creditRepository
     public async Task<OperationDataResult<Guid>> Handle(SpendAccountCreditCommand request, CancellationToken cancellationToken)
     {
         var entries = await creditRepository.GetListAsync(c => c.UserId == request.UserId, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+
         var balance = entries.Items.Sum(c => c.Amount);
 
         if (request.Amount > balance)
@@ -31,7 +32,6 @@ public class SpendAccountCreditHandler(IAccountCreditRepository creditRepository
 
         var entry = new AccountCredit
         {
-            Id = Guid.NewGuid(),
             UserId = request.UserId,
             Amount = -request.Amount,
             Reason = request.Reason,

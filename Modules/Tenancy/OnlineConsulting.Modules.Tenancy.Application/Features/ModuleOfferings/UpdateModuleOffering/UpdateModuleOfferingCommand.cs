@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Tenancy.Application.Features.ModuleOfferings.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.ModuleOfferings.Constants;
@@ -14,6 +14,10 @@ public record UpdateModuleOfferingCommand(Guid Id, string Name, bool IsPubliclyV
 {
     [JsonIgnore]
     public string[] Roles => [GlobalOperationClaims.SuperAdmin];
+
+    // Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.
+    [JsonIgnore]
+    public bool AllowTenantBypass => false;
 }
 
 public class UpdateModuleOfferingHandler(IModuleOfferingRepository repository) : IRequestHandler<UpdateModuleOfferingCommand, OperationResult>
@@ -21,6 +25,7 @@ public class UpdateModuleOfferingHandler(IModuleOfferingRepository repository) :
     public async Task<OperationResult> Handle(UpdateModuleOfferingCommand request, CancellationToken cancellationToken)
     {
         var offering = await repository.GetAsync(m => m.Id == request.Id, cancellationToken: cancellationToken);
+
         if (offering is null)
         {
             return Result.NotFound(string.Format(ModuleOfferingMessages.ModuleOfferingNotFoundFormat, request.Id));

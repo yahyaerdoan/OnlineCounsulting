@@ -19,7 +19,7 @@ public class CreateGalleryCategoryHandler(IGalleryCategoryRepository repository)
 {
     public async Task<OperationDataResult<Guid>> Handle(CreateGalleryCategoryCommand request, CancellationToken cancellationToken)
     {
-        var entity = new GalleryCategory { Id = Guid.NewGuid(), Name = request.Name, Description = request.Description };
+        var entity = new GalleryCategory { Name = request.Name, Description = request.Description };
 
         _ = await repository.AddAsync(entity);
 

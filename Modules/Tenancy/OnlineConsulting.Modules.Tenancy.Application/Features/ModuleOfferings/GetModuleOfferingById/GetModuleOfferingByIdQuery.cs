@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Tenancy.Application.Features.ModuleOfferings.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.ModuleOfferings.Constants;
@@ -14,10 +14,13 @@ public record GetModuleOfferingByIdQuery(Guid Id) : IRequest<OperationDataResult
 {
     [JsonIgnore]
     public string[] Roles => [GlobalOperationClaims.SuperAdmin];
+
+    // Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.
+    [JsonIgnore]
+    public bool AllowTenantBypass => false;
 }
 
-public class GetModuleOfferingByIdHandler(IModuleOfferingRepository repository)
-    : IRequestHandler<GetModuleOfferingByIdQuery, OperationDataResult<ModuleOfferingAdminResponse>>
+public class GetModuleOfferingByIdHandler(IModuleOfferingRepository repository) : IRequestHandler<GetModuleOfferingByIdQuery, OperationDataResult<ModuleOfferingAdminResponse>>
 {
     public async Task<OperationDataResult<ModuleOfferingAdminResponse>> Handle(GetModuleOfferingByIdQuery request, CancellationToken cancellationToken)
     {

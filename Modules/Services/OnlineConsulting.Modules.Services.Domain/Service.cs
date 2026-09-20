@@ -2,7 +2,7 @@ using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Services.Domain;
 
-public class Service : TenantEntity<Guid>
+public class Service : SequentialGuidTenantEntity
 {
     /// <summary>Plain id, no navigation, since modules never reference each other's entities directly, only by id.</summary>
     public required Guid CategoryId { get; set; }

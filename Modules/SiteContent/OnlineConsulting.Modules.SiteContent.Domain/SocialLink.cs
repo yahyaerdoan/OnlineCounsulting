@@ -2,7 +2,7 @@ using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.SiteContent.Domain;
 
-public class SocialLink : TenantEntity<Guid>
+public class SocialLink : SequentialGuidTenantEntity
 {
     public required string Name { get; set; }
     public required string Url { get; set; }

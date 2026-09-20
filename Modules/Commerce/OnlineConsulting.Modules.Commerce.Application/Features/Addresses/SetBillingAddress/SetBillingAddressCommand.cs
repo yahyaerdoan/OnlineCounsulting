@@ -1,6 +1,7 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
 using MediatR;
+using OnlineConsulting.Modules.Commerce.Application.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.Abstractions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -24,12 +25,7 @@ public class SetBillingAddressHandler(IUserAddressRepository repository) : IRequ
             return Result.NotFound($"Address {request.AddressId} was not found.");
         }
 
-        var oldAddress = await repository.GetAsync(a => a.UserId == request.UserId && a.IsBillingAddress, cancellationToken: cancellationToken);
-        if (oldAddress is not null && oldAddress.Id != newAddress.Id)
-        {
-            oldAddress.IsBillingAddress = false;
-            _ = await repository.UpdateAsync(oldAddress);
-        }
+        await UserAddressDefaultFlag.ClearPreviousBillingHolderAsync(repository, request.UserId, newAddress.Id, cancellationToken);
 
         newAddress.IsBillingAddress = true;
         _ = await repository.UpdateAsync(newAddress);

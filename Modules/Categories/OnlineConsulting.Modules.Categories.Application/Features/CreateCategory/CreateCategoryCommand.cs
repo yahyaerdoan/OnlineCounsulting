@@ -22,7 +22,6 @@ public class CreateCategoryHandler(ICategoryRepository repository) : IRequestHan
     {
         var category = new Category
         {
-            Id = Guid.NewGuid(),
             Title = request.Title,
             Description = request.Description,
             Icon = request.Icon,

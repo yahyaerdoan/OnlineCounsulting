@@ -20,7 +20,6 @@ public class DeviceTokenRepository(AppIdentityDbContext context) : IDeviceTokenR
         {
             _ = context.DeviceTokens.Add(new DeviceToken
             {
-                Id = Guid.NewGuid(),
                 UserId = userId,
                 Token = token,
                 Platform = platform,

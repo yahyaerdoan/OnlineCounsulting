@@ -22,13 +22,7 @@ public record RemoveModuleCommand(Guid TenantId, string ModuleKey) : IRequest<Op
     public string[] Roles => [];
 }
 
-public class RemoveModuleHandler(
-    ITenantSubscriptionRepository tenantSubscriptionRepository,
-    ITenantSubscriptionItemRepository tenantSubscriptionItemRepository,
-    ISubscriptionGateway subscriptionGateway,
-    IFeatureFlagWriter featureFlagWriter,
-    ITenantProvider tenantProvider,
-    IHttpContextAccessor httpContextAccessor)
+public class RemoveModuleHandler(ITenantSubscriptionRepository tenantSubscriptionRepository, ITenantSubscriptionItemRepository tenantSubscriptionItemRepository, ISubscriptionGateway subscriptionGateway, IFeatureFlagWriter featureFlagWriter, ITenantProvider tenantProvider, IHttpContextAccessor httpContextAccessor)
     : IRequestHandler<RemoveModuleCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(RemoveModuleCommand request, CancellationToken cancellationToken)
@@ -38,31 +32,36 @@ public class RemoveModuleHandler(
             return TenantSubscriptionItemBusinessRules.NotAuthorizedForTenant();
         }
 
-        var tenantSubscription = await tenantSubscriptionRepository.GetAsync(
-            s => s.TenantId == request.TenantId && s.Status != TenantSubscriptionStatuses.Cancelled, cancellationToken: cancellationToken);
+        var tenantSubscription = await tenantSubscriptionRepository.GetAsync(s => s.TenantId == request.TenantId && s.Status != TenantSubscriptionStatuses.Cancelled, cancellationToken: cancellationToken);
+
         if (tenantSubscription is null)
         {
             return TenantSubscriptionItemBusinessRules.NoActiveSubscription();
         }
 
-        var item = await tenantSubscriptionItemRepository.GetAsync(
-            i => i.TenantSubscriptionId == tenantSubscription.Id && i.ModuleKey == request.ModuleKey && i.Status == TenantSubscriptionItemStatuses.Active,
-            cancellationToken: cancellationToken);
+        var item = await tenantSubscriptionItemRepository
+            .GetAsync(i => i.TenantSubscriptionId == tenantSubscription.Id && i.ModuleKey == request.ModuleKey && i.Status == TenantSubscriptionItemStatuses.Active, cancellationToken: cancellationToken);
+
         if (item is null)
         {
             return TenantSubscriptionItemBusinessRules.ModuleNotActive();
         }
 
+        var hasAnotherActiveItem = await tenantSubscriptionItemRepository.AnyAsync(i => i.TenantSubscriptionId == tenantSubscription.Id && i.Status == TenantSubscriptionItemStatuses.Active && i.Id != item.Id, cancellationToken: cancellationToken);
+
+        if (!hasAnotherActiveItem)
+        {
+            return TenantSubscriptionItemBusinessRules.CannotRemoveLastModule();
+        }
+
         var providerSubscriptionItemId = item.ProviderSubscriptionItemId
             ?? throw new InvalidOperationException($"TenantSubscriptionItem {item.Id} has no ProviderSubscriptionItemId.");
 
-        try
+        var failure = await PaymentGatewayCall.RunAsync(() => subscriptionGateway.RemoveSubscriptionItemAsync(providerSubscriptionItemId, cancellationToken), TenantSubscriptionItemMessages.ModuleRemovalFailed);
+
+        if (failure is not null)
         {
-            await subscriptionGateway.RemoveSubscriptionItemAsync(providerSubscriptionItemId, cancellationToken);
-        }
-        catch (Exception)
-        {
-            return Result.BadRequest(TenantSubscriptionItemMessages.ModuleRemovalFailed);
+            return failure;
         }
 
         _ = await tenantSubscriptionItemRepository.DeleteAsync(item);

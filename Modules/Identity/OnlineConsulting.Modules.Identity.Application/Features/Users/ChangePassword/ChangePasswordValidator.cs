@@ -8,6 +8,10 @@ public class ChangePasswordValidator : AbstractValidator<ChangePasswordCommand>
     {
         _ = RuleFor(x => x.UserId).NotEmpty();
         _ = RuleFor(x => x.CurrentPassword).NotEmpty();
-        _ = RuleFor(x => x.NewPassword).NotEmpty();
+        _ = RuleFor(x => x.NewPassword)
+            .NotEmpty()
+            .MinimumLength(8)
+            .Matches(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).+$")
+            .WithMessage("Password must contain an uppercase letter, a lowercase letter, a digit and a symbol.");
     }
 }

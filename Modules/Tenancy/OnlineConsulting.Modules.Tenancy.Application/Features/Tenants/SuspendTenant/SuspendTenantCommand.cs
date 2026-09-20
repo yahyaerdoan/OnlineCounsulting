@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.Rules;
@@ -15,6 +15,10 @@ public record SuspendTenantCommand(Guid TenantId) : IRequest<OperationResult>, I
 {
     [JsonIgnore]
     public string[] Roles => [GlobalOperationClaims.SuperAdmin];
+
+    // Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.
+    [JsonIgnore]
+    public bool AllowTenantBypass => false;
 }
 
 public class SuspendTenantHandler(ITenantRepository tenantRepository) : IRequestHandler<SuspendTenantCommand, OperationResult>
@@ -22,6 +26,7 @@ public class SuspendTenantHandler(ITenantRepository tenantRepository) : IRequest
     public async Task<OperationResult> Handle(SuspendTenantCommand request, CancellationToken cancellationToken)
     {
         var tenant = await tenantRepository.GetAsync(t => t.Id == request.TenantId, cancellationToken: cancellationToken);
+
         if (tenant is null)
         {
             return TenantBusinessRules.TenantNotFound();
@@ -33,6 +38,7 @@ public class SuspendTenantHandler(ITenantRepository tenantRepository) : IRequest
         }
 
         tenant.Status = TenantStatuses.Suspended;
+
         _ = await tenantRepository.UpdateAsync(tenant);
 
         return Result.Success("Tenant suspended.");

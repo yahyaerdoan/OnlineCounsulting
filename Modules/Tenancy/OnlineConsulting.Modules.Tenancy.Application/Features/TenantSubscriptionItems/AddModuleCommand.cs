@@ -24,15 +24,7 @@ public record AddModuleCommand(Guid TenantId, string ModuleKey) : IRequest<Opera
     public string[] Roles => [];
 }
 
-public class AddModuleHandler(
-    ITenantRepository tenantRepository,
-    ITenantSubscriptionRepository tenantSubscriptionRepository,
-    ITenantSubscriptionItemRepository tenantSubscriptionItemRepository,
-    IModuleOfferingRepository moduleOfferingRepository,
-    ISubscriptionGateway subscriptionGateway,
-    IFeatureFlagWriter featureFlagWriter,
-    ITenantProvider tenantProvider,
-    IHttpContextAccessor httpContextAccessor)
+public class AddModuleHandler(ITenantRepository tenantRepository, ITenantSubscriptionRepository tenantSubscriptionRepository, ITenantSubscriptionItemRepository tenantSubscriptionItemRepository, IModuleOfferingRepository moduleOfferingRepository, ISubscriptionGateway subscriptionGateway, IFeatureFlagWriter featureFlagWriter, ITenantProvider tenantProvider, IHttpContextAccessor httpContextAccessor)
     : IRequestHandler<AddModuleCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(AddModuleCommand request, CancellationToken cancellationToken)
@@ -43,13 +35,14 @@ public class AddModuleHandler(
         }
 
         var tenant = await tenantRepository.GetAsync(t => t.Id == request.TenantId, cancellationToken: cancellationToken);
+
         if (tenant is null)
         {
             return TenantSubscriptionItemBusinessRules.TenantNotFound();
         }
 
-        var moduleOffering = await moduleOfferingRepository.GetAsync(
-            m => m.Key == request.ModuleKey && m.IsPubliclyVisible, cancellationToken: cancellationToken);
+        var moduleOffering = await moduleOfferingRepository.GetAsync(m => m.Key == request.ModuleKey && m.IsPubliclyVisible, cancellationToken: cancellationToken);
+
         if (moduleOffering is null)
         {
             return TenantSubscriptionItemBusinessRules.ModuleNotFound();
@@ -58,8 +51,8 @@ public class AddModuleHandler(
         var moduleOfferingPriceId = moduleOffering.ProviderPriceId
             ?? throw new InvalidOperationException($"ModuleOffering {moduleOffering.Key} has no ProviderPriceId.");
 
-        var tenantSubscription = await tenantSubscriptionRepository.GetAsync(
-            s => s.TenantId == request.TenantId && s.Status != TenantSubscriptionStatuses.Cancelled, cancellationToken: cancellationToken);
+        var tenantSubscription = await tenantSubscriptionRepository.GetAsync(s => s.TenantId == request.TenantId && s.Status != TenantSubscriptionStatuses.Cancelled, cancellationToken: cancellationToken);
+
         if (tenantSubscription is null)
         {
             return TenantSubscriptionItemBusinessRules.NoActiveSubscription();
@@ -70,31 +63,28 @@ public class AddModuleHandler(
 
         if (!subscriptionGateway.SupportsMultipleItems)
         {
-            var hasAnyActiveItem = await tenantSubscriptionItemRepository.AnyAsync(
-                i => i.TenantSubscriptionId == tenantSubscription.Id && i.Status == TenantSubscriptionItemStatuses.Active,
-                cancellationToken: cancellationToken);
+            var hasAnyActiveItem = await tenantSubscriptionItemRepository.AnyAsync(i => i.TenantSubscriptionId == tenantSubscription.Id && i.Status == TenantSubscriptionItemStatuses.Active, cancellationToken: cancellationToken);
+
             if (hasAnyActiveItem)
             {
                 return TenantSubscriptionItemBusinessRules.MultipleModulesNotSupportedByProvider();
             }
         }
 
-        var alreadyActive = await tenantSubscriptionItemRepository.AnyAsync(
-            i => i.TenantSubscriptionId == tenantSubscription.Id && i.ModuleKey == request.ModuleKey && i.Status == TenantSubscriptionItemStatuses.Active,
-            cancellationToken: cancellationToken);
+        var alreadyActive = await tenantSubscriptionItemRepository
+            .AnyAsync(i => i.TenantSubscriptionId == tenantSubscription.Id && i.ModuleKey == request.ModuleKey && i.Status == TenantSubscriptionItemStatuses.Active, cancellationToken: cancellationToken);
+
         if (alreadyActive)
         {
             return TenantSubscriptionItemBusinessRules.ModuleAlreadyAdded();
         }
 
-        var existingItem = await tenantSubscriptionItemRepository.GetAsync(
-            i => i.TenantSubscriptionId == tenantSubscription.Id && i.ModuleKey == request.ModuleKey &&
-                 (i.Status == TenantSubscriptionItemStatuses.Pending || i.Status == TenantSubscriptionItemStatuses.Failed),
-            cancellationToken: cancellationToken);
+        var existingItem = await tenantSubscriptionItemRepository
+            .GetAsync(i => i.TenantSubscriptionId == tenantSubscription.Id && i.ModuleKey == request.ModuleKey &&
+            (i.Status == TenantSubscriptionItemStatuses.Pending || i.Status == TenantSubscriptionItemStatuses.Failed), cancellationToken: cancellationToken);
 
         var item = existingItem ?? new TenantSubscriptionItem
         {
-            Id = Guid.NewGuid(),
             TenantSubscriptionId = tenantSubscription.Id,
             ModuleKey = moduleOffering.Key,
             Status = TenantSubscriptionItemStatuses.Pending,
@@ -102,35 +92,38 @@ public class AddModuleHandler(
             PriceAtAddition = moduleOffering.Price,
             AddedAt = DateTime.UtcNow,
         };
+
         if (existingItem is null)
         {
             _ = await tenantSubscriptionItemRepository.AddAsync(item);
         }
 
         string providerSubscriptionItemId;
+
         if (item.ProviderSubscriptionItemId is not null)
         {
             providerSubscriptionItemId = item.ProviderSubscriptionItemId;
         }
         else
         {
-            try
-            {
-                providerSubscriptionItemId = await subscriptionGateway.AddSubscriptionItemAsync(
-                    providerSubscriptionId, moduleOfferingPriceId,
-                    idempotencyKey: $"tenant-add-module:{item.Id}",
-                    cancellationToken: cancellationToken);
-            }
-            catch (Exception)
+            var (failure, value) = await PaymentGatewayCall.RunWithResultAsync(() => subscriptionGateway
+            .AddSubscriptionItemAsync(providerSubscriptionId, moduleOfferingPriceId, idempotencyKey: $"tenant-add-module:{item.Id}", cancellationToken: cancellationToken), TenantSubscriptionItemMessages.ModuleBillingFailed);
+
+            if (failure is not null)
             {
                 item.Status = TenantSubscriptionItemStatuses.Failed;
+
                 _ = await tenantSubscriptionItemRepository.UpdateAsync(item);
-                return Result.BadRequest(TenantSubscriptionItemMessages.ModuleBillingFailed);
+
+                return failure;
             }
+
+            providerSubscriptionItemId = value!;
         }
 
         item.ProviderSubscriptionItemId = providerSubscriptionItemId;
         item.Status = TenantSubscriptionItemStatuses.Active;
+
         _ = await tenantSubscriptionItemRepository.UpdateAsync(item);
 
         try

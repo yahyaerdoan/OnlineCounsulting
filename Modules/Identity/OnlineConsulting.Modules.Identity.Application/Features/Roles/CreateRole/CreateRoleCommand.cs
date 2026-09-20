@@ -14,6 +14,10 @@ public record CreateRoleCommand(string Name, string? Description) : IRequest<Ope
     // Role isn't tenant-scoped (no TenantId) - only SuperAdmin may create a role shared across tenants.
     [JsonIgnore]
     public string[] Roles => [GlobalOperationClaims.SuperAdmin];
+
+    // Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.
+    [JsonIgnore]
+    public bool AllowTenantBypass => false;
 }
 
 public class CreateRoleHandler(RoleManager<Role> roleManager) : IRequestHandler<CreateRoleCommand, OperationResult>

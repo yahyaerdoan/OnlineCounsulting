@@ -2,7 +2,7 @@ using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.SiteContent.Domain;
 
-public class Testimonial : TenantEntity<Guid>
+public class Testimonial : SequentialGuidTenantEntity
 {
     public required string FirstName { get; set; }
     public required string LastName { get; set; }

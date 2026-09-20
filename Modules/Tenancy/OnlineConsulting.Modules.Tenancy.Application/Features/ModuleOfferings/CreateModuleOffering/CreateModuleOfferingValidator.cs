@@ -10,6 +10,6 @@ public class CreateModuleOfferingValidator : AbstractValidator<CreateModuleOffer
         _ = RuleFor(x => x.Key).NotEmpty().MaximumLength(100);
         _ = RuleFor(x => x.Name).NotEmpty().MaximumLength(200);
         _ = RuleFor(x => x.Price).GreaterThan(0);
-        _ = RuleFor(x => x.BillingCycle).Must(c => c is BillingCycles.Monthly or BillingCycles.Annual);
+        _ = RuleFor(x => x.BillingCycle).Must(c => c is BillingCycles.Monthly or BillingCycles.Annual).WithMessage("Billing cycle must be Monthly or Annual.");
     }
 }

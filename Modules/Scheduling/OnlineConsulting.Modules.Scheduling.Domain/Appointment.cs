@@ -2,7 +2,7 @@ using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Scheduling.Domain;
 
-public class Appointment : TenantEntity<Guid>
+public class Appointment : SequentialGuidTenantEntity
 {
     /// <summary>Plain id, no navigation - User lives in the Identity module's own DbContext.</summary>
     public required Guid UserId { get; set; }

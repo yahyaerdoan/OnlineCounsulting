@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using Core.ApplicationLayer.Requests.Page;
 using Core.PersistenceLayer.Pagings.Paging;
 using MediatR;
@@ -16,10 +16,13 @@ public record GetAllModuleOfferingsQuery(PageRequest PageRequest) : IRequest<Ope
 {
     [JsonIgnore]
     public string[] Roles => [GlobalOperationClaims.SuperAdmin];
+
+    // Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.
+    [JsonIgnore]
+    public bool AllowTenantBypass => false;
 }
 
-public class GetAllModuleOfferingsHandler(IModuleOfferingRepository repository)
-    : IRequestHandler<GetAllModuleOfferingsQuery, OperationDataResult<Paginate<ModuleOfferingAdminResponse>>>
+public class GetAllModuleOfferingsHandler(IModuleOfferingRepository repository) : IRequestHandler<GetAllModuleOfferingsQuery, OperationDataResult<Paginate<ModuleOfferingAdminResponse>>>
 {
     public async Task<OperationDataResult<Paginate<ModuleOfferingAdminResponse>>> Handle(GetAllModuleOfferingsQuery request, CancellationToken cancellationToken)
     {

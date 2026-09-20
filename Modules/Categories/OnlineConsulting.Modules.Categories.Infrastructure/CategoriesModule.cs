@@ -9,6 +9,8 @@ using OnlineConsulting.Modules.Categories.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Categories.Infrastructure.Pipelines;
 using OnlineConsulting.Modules.Categories.Infrastructure.Repositories;
 using OnlineConsulting.SharedKernel.Auditing;
+using OnlineConsulting.SharedKernel.Authorization;
+using OnlineConsulting.Modules.Categories.Application.Features.Constants;
 using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Categories.Infrastructure;
@@ -31,6 +33,7 @@ public static class CategoriesModule
         _ = services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
         _ = services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CategoriesTransactionAddingBehavior<,>));
 
+        _ = services.AddSingleton<IDefaultAdminPermissions>(new DefaultAdminPermissions(CategoriesOperationClaims.All));
         return services;
     }
 }

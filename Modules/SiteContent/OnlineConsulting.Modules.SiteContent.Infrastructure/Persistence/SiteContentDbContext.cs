@@ -12,6 +12,7 @@ public class SiteContentDbContext(DbContextOptions<SiteContentDbContext> options
     public DbSet<AboutUs> AboutUss => Set<AboutUs>();
     public DbSet<FooterInfo> FooterInfos => Set<FooterInfo>();
     public DbSet<FeatureHighlight> FeatureHighlights => Set<FeatureHighlight>();
+    public DbSet<FeatureHighlightsIntro> FeatureHighlightsIntros => Set<FeatureHighlightsIntro>();
     public DbSet<PageBanner> PageBanners => Set<PageBanner>();
     public DbSet<HeroSlide> HeroSlides => Set<HeroSlide>();
     public DbSet<Testimonial> Testimonials => Set<Testimonial>();
@@ -34,7 +35,9 @@ public class SiteContentDbContext(DbContextOptions<SiteContentDbContext> options
         _ = modelBuilder.Entity<AboutUs>(builder =>
         {
             _ = builder.Property(x => x.Title).HasMaxLength(200).IsRequired();
-            _ = builder.Property(x => x.Description).HasMaxLength(4000).IsRequired();
+            // Holds rich-text HTML from MudExRichTextEdit, not plain text - markup overhead needs
+            // far more room than the other Description columns in this file.
+            _ = builder.Property(x => x.Description).HasMaxLength(20000).IsRequired();
             _ = builder.Property(x => x.CoverImage).HasMaxLength(500);
             _ = builder.Property(x => x.VideoUrl).HasMaxLength(500);
             _ = builder.Property(x => x.RowVersion).IsRowVersion();
@@ -54,6 +57,13 @@ public class SiteContentDbContext(DbContextOptions<SiteContentDbContext> options
             _ = builder.Property(x => x.Title).HasMaxLength(200).IsRequired();
             _ = builder.Property(x => x.Description).HasMaxLength(2000).IsRequired();
             _ = builder.Property(x => x.ImageUrl).HasMaxLength(500).IsRequired();
+            _ = builder.Property(x => x.RowVersion).IsRowVersion();
+            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+        });
+
+        _ = modelBuilder.Entity<FeatureHighlightsIntro>(builder =>
+        {
+            _ = builder.Property(x => x.Description).HasMaxLength(1000).IsRequired();
             _ = builder.Property(x => x.RowVersion).IsRowVersion();
             _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });

@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.Constants;
@@ -18,32 +18,29 @@ public record GetTenantByIdQuery(Guid TenantId) : IRequest<OperationDataResult<T
 {
     [JsonIgnore]
     public string[] Roles => [GlobalOperationClaims.SuperAdmin];
+
+    // Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.
+    [JsonIgnore]
+    public bool AllowTenantBypass => false;
 }
 
-public class GetTenantByIdHandler(
-    ITenantRepository tenantRepository,
-    ITenantSubscriptionRepository tenantSubscriptionRepository,
-    ITenantSubscriptionItemRepository tenantSubscriptionItemRepository)
+public class GetTenantByIdHandler(ITenantRepository tenantRepository, ITenantSubscriptionRepository tenantSubscriptionRepository, ITenantSubscriptionItemRepository tenantSubscriptionItemRepository)
     : IRequestHandler<GetTenantByIdQuery, OperationDataResult<TenantDetailResponse>>
 {
     public async Task<OperationDataResult<TenantDetailResponse>> Handle(GetTenantByIdQuery request, CancellationToken cancellationToken)
     {
         var tenant = await tenantRepository.GetAsync(t => t.Id == request.TenantId, cancellationToken: cancellationToken);
+
         if (tenant is null)
         {
             return Result.NotFound<TenantDetailResponse>(TenantMessages.TenantNotFound);
         }
 
-        var subscription = await tenantSubscriptionRepository.GetAsync(
-            s => s.TenantId == request.TenantId && s.Status != Domain.TenantSubscriptionStatuses.Cancelled,
-            cancellationToken: cancellationToken);
+        var subscription = await tenantSubscriptionRepository.GetAsync(s => s.TenantId == request.TenantId && s.Status != Domain.TenantSubscriptionStatuses.Cancelled, cancellationToken: cancellationToken);
 
         var items = subscription is null
             ? []
-            : (await tenantSubscriptionItemRepository.GetListAsync(
-                i => i.TenantSubscriptionId == subscription.Id,
-                size: RepositoryQuerySize.Unbounded,
-                cancellationToken: cancellationToken)).Items.ToList();
+            : (await tenantSubscriptionItemRepository.GetListAsync(i => i.TenantSubscriptionId == subscription.Id, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken)).Items.ToList();
 
         return Result.Success(TenantDetailResponse.FromDomain(tenant, subscription, items), "Tenant retrieved successfully.");
     }

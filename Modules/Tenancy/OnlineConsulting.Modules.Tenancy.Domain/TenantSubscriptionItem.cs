@@ -3,7 +3,7 @@ using Core.PersistenceLayer.Repositories.Entities;
 namespace OnlineConsulting.Modules.Tenancy.Domain;
 
 /// <summary>One purchased module line within a tenant's subscription. Not tenant-scoped itself - lives alongside Tenant/TenantSubscription in the platform-owner's own schema.</summary>
-public class TenantSubscriptionItem : Entity<Guid>
+public class TenantSubscriptionItem : SequentialGuidEntity
 {
     /// <summary>Plain id, no navigation.</summary>
     public required Guid TenantSubscriptionId { get; set; }

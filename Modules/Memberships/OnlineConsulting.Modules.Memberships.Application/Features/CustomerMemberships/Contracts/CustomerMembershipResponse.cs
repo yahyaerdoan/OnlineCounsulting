@@ -12,6 +12,9 @@ public class CustomerMembershipResponse : LinkedResponse
     public required string Status { get; init; }
     public required DateTimeOffset StartDate { get; init; }
     public DateTimeOffset? RenewalDate { get; init; }
+    public required bool CancelAtPeriodEnd { get; init; }
+    public DateTimeOffset? TrialEndDate { get; init; }
+    public Guid? PromoCodeId { get; init; }
 
     public static CustomerMembershipResponse FromDomain(CustomerMembership membership) => new()
     {
@@ -21,5 +24,8 @@ public class CustomerMembershipResponse : LinkedResponse
         Status = membership.Status,
         StartDate = membership.StartDate,
         RenewalDate = membership.RenewalDate,
+        CancelAtPeriodEnd = membership.CancelAtPeriodEnd,
+        TrialEndDate = membership.TrialEndDate,
+        PromoCodeId = membership.PromoCodeId,
     };
 }

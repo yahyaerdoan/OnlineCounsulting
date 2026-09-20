@@ -29,8 +29,7 @@ public class ClearBasketHandler(IBasketRepository basketRepository, IBasketItemR
             _ = await basketItemRepository.DeleteAsync(item);
         }
 
-        (basket.Quantity, basket.SubTotalPrice, basket.TotalPrice) = BasketTotalsCalculator.Calculate([]);
-        _ = await basketRepository.UpdateAsync(basket);
+        await BasketTotalsCalculator.RecalculateAndSaveAsync(basket, basketItemRepository, basketRepository, cancellationToken);
 
         return Result.Success("Basket cleared successfully.");
     }

@@ -2,7 +2,7 @@ using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Referrals.Domain;
 
-public class Referral : TenantEntity<Guid>
+public class Referral : SequentialGuidTenantEntity
 {
     public required Guid ReferrerUserId { get; set; }
     public required Guid ReferredUserId { get; set; }

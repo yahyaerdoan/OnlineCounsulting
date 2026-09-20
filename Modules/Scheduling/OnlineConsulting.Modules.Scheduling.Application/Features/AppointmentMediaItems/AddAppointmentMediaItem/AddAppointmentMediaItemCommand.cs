@@ -12,19 +12,18 @@ using System.Text.Json.Serialization;
 namespace OnlineConsulting.Modules.Scheduling.Application.Features.AppointmentMediaItems.AddAppointmentMediaItem;
 
 /// <summary>UserId is always resolved server-side from the authenticated caller, never trusted from the client (see CreateAppointmentCommand). Scoped to the caller's own appointment - filtering by UserId instead of a separate authorization check keeps a stranger's appointment id indistinguishable from a nonexistent one, same convention as GetMyAppointmentsQuery.</summary>
-public record AddAppointmentMediaItemCommand(Guid UserId, Guid AppointmentId, Guid MediaAssetId, int DisplayOrder = 0)
-    : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
+public record AddAppointmentMediaItemCommand(Guid UserId, Guid AppointmentId, Guid MediaAssetId, int DisplayOrder = 0) : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
     [JsonIgnore]
     public string[] Roles => [];
 }
 
-public class AddAppointmentMediaItemHandler(IAppointmentMediaItemRepository mediaItemRepository, IAppointmentRepository appointmentRepository)
-    : IRequestHandler<AddAppointmentMediaItemCommand, OperationDataResult<Guid>>
+public class AddAppointmentMediaItemHandler(IAppointmentMediaItemRepository mediaItemRepository, IAppointmentRepository appointmentRepository) : IRequestHandler<AddAppointmentMediaItemCommand, OperationDataResult<Guid>>
 {
     public async Task<OperationDataResult<Guid>> Handle(AddAppointmentMediaItemCommand request, CancellationToken cancellationToken)
     {
         var appointmentExists = await appointmentRepository.AnyAsync(a => a.Id == request.AppointmentId && a.UserId == request.UserId, cancellationToken: cancellationToken);
+
         if (!appointmentExists)
         {
             return AppointmentBusinessRules.AppointmentNotFound(request.AppointmentId).ToErrorDataResult<Guid>();
@@ -32,7 +31,6 @@ public class AddAppointmentMediaItemHandler(IAppointmentMediaItemRepository medi
 
         var entity = new AppointmentMediaItem
         {
-            Id = Guid.NewGuid(),
             AppointmentId = request.AppointmentId,
             MediaAssetId = request.MediaAssetId,
             DisplayOrder = request.DisplayOrder,

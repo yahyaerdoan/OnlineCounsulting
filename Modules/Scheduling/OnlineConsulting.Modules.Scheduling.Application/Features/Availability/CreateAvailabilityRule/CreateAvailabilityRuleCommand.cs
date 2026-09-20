@@ -22,7 +22,6 @@ public class CreateAvailabilityRuleHandler(IAvailabilityRuleRepository repositor
     {
         var rule = new AvailabilityRule
         {
-            Id = Guid.NewGuid(),
             DayOfWeek = request.DayOfWeek,
             StartTime = request.StartTime,
             EndTime = request.EndTime,

@@ -7,6 +7,7 @@ public static class TenantSubscriptionItemMessages
     public const string NoActiveSubscription = "This tenant has no active subscription to add or remove modules on.";
     public const string ModuleAlreadyAdded = "This module is already active on the tenant's subscription.";
     public const string ModuleNotActive = "This module is not currently active on the tenant's subscription.";
+    public const string CannotRemoveLastModule = "Cannot remove the tenant's only active module - a subscription needs at least one. Suspend the tenant instead if they should lose access entirely.";
     public const string NotAuthorizedForTenant = "You are not authorized to manage this tenant's modules.";
     public const string ModuleBillingFailed = "We couldn't bill this module. Please try again in a few minutes.";
     public const string ModuleRemovalFailed = "We couldn't remove this module with the payment provider. Please try again in a few minutes.";

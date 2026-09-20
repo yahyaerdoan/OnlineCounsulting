@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.ServiceAreas.Abstractions;
@@ -10,8 +10,7 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.SiteContent.Application.Features.ServiceAreas.CreateServiceArea;
 
-public record CreateServiceAreaCommand(string Name, string State, string? IntroText, int DisplayOrder = 0)
-    : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
+public record CreateServiceAreaCommand(string Name, string State, string? IntroText, int DisplayOrder = 0) : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
     [JsonIgnore]
     public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Add];
@@ -25,7 +24,6 @@ public class CreateServiceAreaHandler(IServiceAreaRepository repository) : IRequ
 
         var entity = new ServiceArea
         {
-            Id = Guid.NewGuid(),
             Name = request.Name,
             State = request.State,
             Slug = slug,

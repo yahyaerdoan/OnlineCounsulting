@@ -11,6 +11,8 @@ using OnlineConsulting.Modules.Referrals.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Referrals.Infrastructure.Pipelines;
 using OnlineConsulting.Modules.Referrals.Infrastructure.Repositories;
 using OnlineConsulting.SharedKernel.Auditing;
+using OnlineConsulting.SharedKernel.Authorization;
+using OnlineConsulting.Modules.Referrals.Application.Common;
 using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Referrals.Infrastructure;
@@ -35,6 +37,7 @@ public static class ReferralsModule
         _ = services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
         _ = services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ReferralsTransactionAddingBehavior<,>));
 
+        _ = services.AddSingleton<IDefaultAdminPermissions>(new DefaultAdminPermissions(ReferralsOperationClaims.All));
         return services;
     }
 }

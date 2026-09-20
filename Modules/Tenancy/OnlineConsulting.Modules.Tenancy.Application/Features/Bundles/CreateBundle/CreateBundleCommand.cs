@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Bundles.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Bundles.Constants;
@@ -16,20 +16,24 @@ public record CreateBundleCommand(string Name, List<string> ModuleKeys, bool IsP
 {
     [JsonIgnore]
     public string[] Roles => [GlobalOperationClaims.SuperAdmin];
+
+    // Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.
+    [JsonIgnore]
+    public bool AllowTenantBypass => false;
 }
 
-public class CreateBundleHandler(IBundleRepository repository, IModuleOfferingRepository moduleOfferingRepository)
-    : IRequestHandler<CreateBundleCommand, OperationDataResult<Guid>>
+public class CreateBundleHandler(IBundleRepository repository, IModuleOfferingRepository moduleOfferingRepository) : IRequestHandler<CreateBundleCommand, OperationDataResult<Guid>>
 {
     public async Task<OperationDataResult<Guid>> Handle(CreateBundleCommand request, CancellationToken cancellationToken)
     {
         var moduleKeys = request.ModuleKeys.Distinct().ToList();
 
-        var existingKeys = (await moduleOfferingRepository.GetListAsync(
-            m => moduleKeys.Contains(m.Key), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken))
+        var existingKeys = (await moduleOfferingRepository
+            .GetListAsync(m => moduleKeys.Contains(m.Key), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken))
             .Items.Select(m => m.Key).ToHashSet();
 
         var unknownKeys = moduleKeys.Where(k => !existingKeys.Contains(k)).ToList();
+
         if (unknownKeys.Count > 0)
         {
             return Result.BadRequest<Guid>(string.Format(BundleMessages.UnknownModuleKeysFormat, string.Join(", ", unknownKeys)));
@@ -37,7 +41,6 @@ public class CreateBundleHandler(IBundleRepository repository, IModuleOfferingRe
 
         var bundle = new Bundle
         {
-            Id = Guid.NewGuid(),
             Name = request.Name,
             ModuleKeys = moduleKeys,
             IsPubliclyVisible = request.IsPubliclyVisible,

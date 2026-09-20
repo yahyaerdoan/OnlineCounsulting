@@ -7,6 +7,8 @@ using OnlineConsulting.Modules.Equipment.Application.Features.EquipmentItems.Abs
 using OnlineConsulting.Modules.Equipment.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Equipment.Infrastructure.Repositories;
 using OnlineConsulting.SharedKernel.Auditing;
+using OnlineConsulting.SharedKernel.Authorization;
+using OnlineConsulting.Modules.Equipment.Application.Common;
 using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Equipment.Infrastructure;
@@ -28,6 +30,7 @@ public static class EquipmentModule
         _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
         _ = services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
 
+        _ = services.AddSingleton<IDefaultAdminPermissions>(new DefaultAdminPermissions(EquipmentOperationClaims.All));
         return services;
     }
 }

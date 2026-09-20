@@ -14,6 +14,8 @@ public class MembershipPlanResponse : LinkedResponse
     public required decimal DiscountPercent { get; init; }
     public required decimal CreditAmount { get; init; }
     public string? Benefits { get; init; }
+    public required bool IsActive { get; init; }
+    public int? TrialDays { get; init; }
 
     public static MembershipPlanResponse FromDomain(MembershipPlan plan) => new()
     {
@@ -25,5 +27,7 @@ public class MembershipPlanResponse : LinkedResponse
         DiscountPercent = plan.DiscountPercent,
         CreditAmount = plan.CreditAmount,
         Benefits = plan.Benefits,
+        IsActive = plan.IsActive,
+        TrialDays = plan.TrialDays,
     };
 }

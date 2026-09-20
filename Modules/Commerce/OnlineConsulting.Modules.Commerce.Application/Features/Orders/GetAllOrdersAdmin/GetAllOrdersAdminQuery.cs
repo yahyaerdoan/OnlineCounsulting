@@ -1,5 +1,6 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
+using OnlineConsulting.Modules.Commerce.Application.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Abstractions;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Contracts;
 using OnlineConsulting.SharedKernel.Authorization;
@@ -14,7 +15,7 @@ namespace OnlineConsulting.Modules.Commerce.Application.Features.Orders.GetAllOr
 public record GetAllOrdersAdminQuery : IRequest<OperationDataResult<List<AdminOrderResponse>>>, ISecureAddRequest
 {
     [JsonIgnore]
-    public string[] Roles => [GlobalOperationClaims.SuperAdmin];
+    public string[] Roles => [CommerceOperationClaims.Admin, CommerceOperationClaims.Read, GlobalOperationClaims.SuperAdmin];
 }
 
 public class GetAllOrdersAdminHandler(IOrderRepository orderRepository, IOrderItemRepository orderItemRepository)

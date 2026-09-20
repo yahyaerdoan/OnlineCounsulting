@@ -17,4 +17,10 @@ public static class TenantBusinessRules
 
     public static OperationResult NotReactivatable() =>
         Result.BadRequest(TenantMessages.NotReactivatable);
+
+    public static OperationResult NotCancellable() =>
+        Result.Conflict(TenantMessages.NotCancellable);
+
+    public static OperationResult CancellationFailed() =>
+        Result.BadRequest(TenantMessages.CancellationFailed);
 }

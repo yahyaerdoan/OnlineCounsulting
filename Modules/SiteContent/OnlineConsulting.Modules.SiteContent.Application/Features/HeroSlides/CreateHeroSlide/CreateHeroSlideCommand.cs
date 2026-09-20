@@ -19,7 +19,7 @@ public class CreateHeroSlideHandler(IHeroSlideRepository repository) : IRequestH
 {
     public async Task<OperationDataResult<Guid>> Handle(CreateHeroSlideCommand request, CancellationToken cancellationToken)
     {
-        var entity = new HeroSlide { Id = Guid.NewGuid(), Title = request.Title, Description = request.Description, ImageUrl = request.ImageUrl, DisplayOrder = request.DisplayOrder, Metadata = MetadataSerializer.Serialize(request.Metadata) };
+        var entity = new HeroSlide { Title = request.Title, Description = request.Description, ImageUrl = request.ImageUrl, DisplayOrder = request.DisplayOrder, Metadata = MetadataSerializer.Serialize(request.Metadata) };
 
         _ = await repository.AddAsync(entity);
 

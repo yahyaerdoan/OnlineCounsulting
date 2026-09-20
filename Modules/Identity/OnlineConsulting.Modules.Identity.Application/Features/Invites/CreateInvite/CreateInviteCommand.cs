@@ -31,7 +31,7 @@ public record CreateInviteCommand(string Email, string? RoleName = null) : IRequ
 public class CreateInviteHandler(IInviteRepository inviteRepository, RoleManager<Role> roleManager, UserManager<User> userManager, ITenantProvider tenantProvider, ICurrentUserAccessor currentUserAccessor, IEmailOutboxWriter<IIdentityOutboxModule> outboxWriter, IEmailTemplate<InviteEmailModel> inviteTemplate, IOptions<AuthEmailOptions> emailOptions)
     : IRequestHandler<CreateInviteCommand, OperationResult>
 {
-    private const int InviteValidityDays = 7;
+    private const int _inviteValidityDays = 7;
 
     public async Task<OperationResult> Handle(CreateInviteCommand request, CancellationToken cancellationToken)
     {
@@ -56,9 +56,7 @@ public class CreateInviteHandler(IInviteRepository inviteRepository, RoleManager
             return Result.Conflict(InviteMessages.EmailAlreadyRegistered);
         }
 
-        var hasPendingInvite = await inviteRepository.AnyAsync(
-            i => i.TenantId == tenantId && i.Email == request.Email && i.Status == InviteStatuses.Pending && i.ExpiresAt > DateTime.UtcNow,
-            cancellationToken: cancellationToken);
+        var hasPendingInvite = await inviteRepository.AnyAsync(i => i.TenantId == tenantId && i.Email == request.Email && i.Status == InviteStatuses.Pending && i.ExpiresAt > DateTime.UtcNow, cancellationToken: cancellationToken);
         if (hasPendingInvite)
         {
             return Result.Conflict(InviteMessages.InviteAlreadyPending);
@@ -70,12 +68,11 @@ public class CreateInviteHandler(IInviteRepository inviteRepository, RoleManager
 
         var invite = new Invite
         {
-            Id = Guid.NewGuid(),
             TenantId = tenantId,
             Email = request.Email,
             Token = SecureTokenGenerator.GenerateUrlSafeToken(),
             RoleName = role.Name ?? requestedRoleName,
-            ExpiresAt = DateTime.UtcNow.AddDays(InviteValidityDays),
+            ExpiresAt = DateTime.UtcNow.AddDays(_inviteValidityDays),
             InvitedByUserId = invitedByUserId,
         };
 

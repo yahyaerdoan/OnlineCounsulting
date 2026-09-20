@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using Core.ApplicationLayer.Requests.Page;
 using Core.PersistenceLayer.Dynamics.Dynamic;
 using Core.PersistenceLayer.Pagings.Paging;
@@ -22,18 +22,18 @@ public record GetAllTenantsPagedQuery(PageRequest PageRequest, DynamicQuery? Dyn
 {
     [JsonIgnore]
     public string[] Roles => [GlobalOperationClaims.SuperAdmin];
+
+    // Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.
+    [JsonIgnore]
+    public bool AllowTenantBypass => false;
 }
 
-public class GetAllTenantsPagedHandler(
-    ITenantRepository tenantRepository,
-    ITenantSubscriptionRepository tenantSubscriptionRepository,
-    ITenantSubscriptionItemRepository tenantSubscriptionItemRepository)
+public class GetAllTenantsPagedHandler(ITenantRepository tenantRepository, ITenantSubscriptionRepository tenantSubscriptionRepository, ITenantSubscriptionItemRepository tenantSubscriptionItemRepository)
     : IRequestHandler<GetAllTenantsPagedQuery, OperationDataResult<Paginate<TenantSummaryResponse>>>
 {
     public async Task<OperationDataResult<Paginate<TenantSummaryResponse>>> Handle(GetAllTenantsPagedQuery request, CancellationToken cancellationToken)
     {
-        var tenants = await tenantRepository.Query().ToDynamicPaginateAsync(
-            request.PageRequest, request.DynamicQuery, defaultOrderBy: t => t.Name, tieBreaker: t => t.Id, cancellationToken);
+        var tenants = await tenantRepository.Query().ToDynamicPaginateAsync(request.PageRequest, request.DynamicQuery, defaultOrderBy: t => t.Name, tieBreaker: t => t.Id, cancellationToken);
 
         if (tenants.Items.Count == 0)
         {
@@ -49,32 +49,23 @@ public class GetAllTenantsPagedHandler(
 
         var tenantIds = tenants.Items.Select(t => t.Id).ToList();
 
-        var subscriptions = await tenantSubscriptionRepository.GetListAsync(
-            s => tenantIds.Contains(s.TenantId) && s.Status != TenantSubscriptionStatuses.Cancelled,
-            size: RepositoryQuerySize.Unbounded,
-            cancellationToken: cancellationToken);
+        var subscriptions = await tenantSubscriptionRepository
+            .GetListAsync(s => tenantIds.Contains(s.TenantId) && s.Status != TenantSubscriptionStatuses.Cancelled, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
 
         var subscriptionIdsByTenantId = subscriptions.Items.ToDictionary(s => s.Id, s => s.TenantId);
         var subscriptionIds = subscriptionIdsByTenantId.Keys.ToList();
 
-        var items = await tenantSubscriptionItemRepository.GetListAsync(
-            i => subscriptionIds.Contains(i.TenantSubscriptionId) && i.Status == TenantSubscriptionItemStatuses.Active,
-            size: RepositoryQuerySize.Unbounded,
-            cancellationToken: cancellationToken);
+        var items = await tenantSubscriptionItemRepository
+            .GetListAsync(i => subscriptionIds.Contains(i.TenantSubscriptionId) && i.Status == TenantSubscriptionItemStatuses.Active, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
 
-        var itemsByTenantId = items.Items
-            .GroupBy(i => subscriptionIdsByTenantId[i.TenantSubscriptionId])
-            .ToDictionary(g => g.Key, g => g.ToList());
+        var itemsByTenantId = items.Items.GroupBy(i => subscriptionIdsByTenantId[i.TenantSubscriptionId]).ToDictionary(g => g.Key, g => g.ToList());
 
         var response = new Paginate<TenantSummaryResponse>
         {
             Items = [.. tenants.Items.Select(t =>
             {
                 var tenantItems = itemsByTenantId.GetValueOrDefault(t.Id, []);
-                return TenantSummaryResponse.FromDomain(
-                    t,
-                    [.. tenantItems.Select(i => i.ModuleKey)],
-                    tenantItems.Sum(i => i.PriceAtAddition));
+                return TenantSummaryResponse.FromDomain(t,[.. tenantItems.Select(i => i.ModuleKey)],tenantItems.Sum(i => i.PriceAtAddition));
             })],
             Index = tenants.Index,
             Size = tenants.Size,

@@ -2,7 +2,7 @@ using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Inquiries.Domain;
 
-public class CompanyContact : TenantEntity<Guid>
+public class CompanyContact : SequentialGuidTenantEntity
 {
     public required string Email { get; set; }
     public required string Phone { get; set; }

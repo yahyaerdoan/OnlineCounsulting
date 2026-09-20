@@ -3,7 +3,7 @@ using Core.PersistenceLayer.Repositories.Entities;
 namespace OnlineConsulting.Modules.Tenancy.Domain;
 
 /// <summary>A paying customer organization on the platform. Not tenant-scoped itself - a tenant cannot belong to a tenant.</summary>
-public class Tenant : Entity<Guid>
+public class Tenant : SequentialGuidEntity
 {
     public required string Name { get; set; }
     public required string Slug { get; set; }

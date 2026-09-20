@@ -23,7 +23,6 @@ public class RefreshTokenService(IRefreshTokenRepository repository, IJwtTokenHe
         {
             _ = await repository.AddAsync(new RefreshToken
             {
-                Id = Guid.NewGuid(),
                 UserId = user.Id,
                 TokenHash = refreshToken.HashedToken,
                 ExpiresAt = refreshToken.Expires,

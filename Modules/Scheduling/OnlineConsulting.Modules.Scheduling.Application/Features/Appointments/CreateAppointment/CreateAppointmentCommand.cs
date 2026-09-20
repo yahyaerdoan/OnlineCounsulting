@@ -32,11 +32,7 @@ public class CreateAppointmentHandler(IAppointmentRepository repository, IEmailO
             return Result.BadRequest<Guid>(SchedulingMessages.InvalidTimeRange);
         }
 
-        var overlaps = await repository.AnyAsync(a =>
-            a.Status != AppointmentStatuses.Cancelled &&
-            a.ScheduledStart < request.ScheduledEnd &&
-            a.ScheduledEnd > request.ScheduledStart,
-            cancellationToken: cancellationToken);
+        var overlaps = await repository.AnyAsync(a => a.Status != AppointmentStatuses.Cancelled && a.ScheduledStart < request.ScheduledEnd && a.ScheduledEnd > request.ScheduledStart, cancellationToken: cancellationToken);
 
         if (overlaps)
         {
@@ -45,7 +41,6 @@ public class CreateAppointmentHandler(IAppointmentRepository repository, IEmailO
 
         var appointment = new Appointment
         {
-            Id = Guid.NewGuid(),
             UserId = request.UserId,
             ServiceId = request.ServiceId,
             ScheduledStart = request.ScheduledStart,
@@ -60,6 +55,7 @@ public class CreateAppointmentHandler(IAppointmentRepository repository, IEmailO
         _ = await repository.AddAsync(appointment);
 
         var confirmationModel = new AppointmentConfirmationEmailModel(appointment.ScheduledStart, appointment.ScheduledEnd, appointment.ServiceId is not null);
+
         await outboxWriter.EnqueueAsync(request.Email, confirmationTemplate.Subject(confirmationModel), confirmationTemplate.Build(confirmationModel), sourceReference: $"Appointment:{appointment.Id}", cancellationToken: cancellationToken);
 
         return Result.Created(appointment.Id, "Appointment requested successfully.");

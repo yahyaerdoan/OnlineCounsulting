@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using Core.ApplicationLayer.Requests.Page;
 using Core.PersistenceLayer.Pagings.Paging;
 using MediatR;
@@ -16,10 +16,13 @@ public record GetAllBundlesQuery(PageRequest PageRequest) : IRequest<OperationDa
 {
     [JsonIgnore]
     public string[] Roles => [GlobalOperationClaims.SuperAdmin];
+
+    // Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.
+    [JsonIgnore]
+    public bool AllowTenantBypass => false;
 }
 
-public class GetAllBundlesHandler(IBundleRepository repository)
-    : IRequestHandler<GetAllBundlesQuery, OperationDataResult<Paginate<BundleAdminResponse>>>
+public class GetAllBundlesHandler(IBundleRepository repository) : IRequestHandler<GetAllBundlesQuery, OperationDataResult<Paginate<BundleAdminResponse>>>
 {
     public async Task<OperationDataResult<Paginate<BundleAdminResponse>>> Handle(GetAllBundlesQuery request, CancellationToken cancellationToken)
     {

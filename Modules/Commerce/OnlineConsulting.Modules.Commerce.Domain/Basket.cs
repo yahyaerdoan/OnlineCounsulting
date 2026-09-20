@@ -2,7 +2,7 @@ using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Commerce.Domain;
 
-public class Basket : TenantEntity<Guid>
+public class Basket : SequentialGuidTenantEntity
 {
     /// <summary>Exactly one of UserId/GuestId is set - a basket belongs either to a logged-in user or to an anonymous guest, never both.</summary>
     public Guid? UserId { get; set; }

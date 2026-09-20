@@ -7,6 +7,7 @@ using OnlineConsulting.Modules.SiteContent.Application;
 using OnlineConsulting.Modules.SiteContent.Application.Features.AboutUss.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Application.Features.FaqItems.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Application.Features.FeatureHighlights.Abstractions;
+using OnlineConsulting.Modules.SiteContent.Application.Features.FeatureHighlightsIntros.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Application.Features.FooterInfos.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryCategories.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryItems.Abstractions;
@@ -27,6 +28,8 @@ using OnlineConsulting.Modules.SiteContent.Infrastructure.Repositories.Gallery;
 using OnlineConsulting.Modules.SiteContent.Infrastructure.Repositories.Partnerships;
 using OnlineConsulting.Modules.SiteContent.Infrastructure.Repositories.Service;
 using OnlineConsulting.SharedKernel.Auditing;
+using OnlineConsulting.SharedKernel.Authorization;
+using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.SiteContent.Infrastructure;
@@ -46,6 +49,7 @@ public static class SiteContentModule
         _ = services.AddScoped<IAboutUsRepository, AboutUsRepository>();
         _ = services.AddScoped<IFooterInfoRepository, FooterInfoRepository>();
         _ = services.AddScoped<IFeatureHighlightRepository, FeatureHighlightRepository>();
+        _ = services.AddScoped<IFeatureHighlightsIntroRepository, FeatureHighlightsIntroRepository>();
         _ = services.AddScoped<IPageBannerRepository, PageBannerRepository>();
         _ = services.AddScoped<IHeroSlideRepository, HeroSlideRepository>();
         _ = services.AddScoped<ITestimonialRepository, TestimonialRepository>();
@@ -65,6 +69,7 @@ public static class SiteContentModule
         _ = services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
         _ = services.AddTransient(typeof(IPipelineBehavior<,>), typeof(SiteContentTransactionAddingBehavior<,>));
 
+        _ = services.AddSingleton<IDefaultAdminPermissions>(new DefaultAdminPermissions(SiteContentOperationClaims.All));
         return services;
     }
 }

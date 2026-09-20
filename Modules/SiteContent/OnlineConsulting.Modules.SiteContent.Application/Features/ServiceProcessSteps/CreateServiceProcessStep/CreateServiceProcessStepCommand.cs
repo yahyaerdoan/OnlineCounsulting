@@ -22,7 +22,6 @@ public class CreateServiceProcessStepHandler(IServiceProcessStepRepository repos
     {
         var entity = new ServiceProcessStep
         {
-            Id = Guid.NewGuid(),
             Title = request.Title,
             Description = request.Description,
             Icon = request.Icon,

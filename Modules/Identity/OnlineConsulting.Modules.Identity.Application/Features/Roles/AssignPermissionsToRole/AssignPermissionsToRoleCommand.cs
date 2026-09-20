@@ -21,28 +21,28 @@ public record AssignPermissionsToRoleCommand(Guid RoleId, List<string> Permissio
     // Role isn't tenant-scoped (no TenantId) - only SuperAdmin may edit a role shared across tenants.
     [JsonIgnore]
     public string[] Roles => [GlobalOperationClaims.SuperAdmin];
+
+    // Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.
+    [JsonIgnore]
+    public bool AllowTenantBypass => false;
 }
 
 public class AssignPermissionsToRoleHandler(RoleManager<Role> roleManager, IHttpContextAccessor httpContextAccessor, IPermissionCatalog permissionCatalog) : IRequestHandler<AssignPermissionsToRoleCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(AssignPermissionsToRoleCommand request, CancellationToken cancellationToken)
     {
-        if (request.Permissions.Contains(PermissionClaimTypes.FullAccess)
-            && !(httpContextAccessor.HttpContext?.User.ClaimPermissions()?.Contains(PermissionClaimTypes.FullAccess) ?? false))
+        if (request.Permissions.Contains(PermissionClaimTypes.FullAccess) && !(httpContextAccessor.HttpContext?.User.ClaimPermissions()?.Contains(PermissionClaimTypes.FullAccess) ?? false))
         {
             return Result.Forbidden("Only an existing full-access role holder can grant full access to another role.");
         }
 
-        if (request.Permissions.Contains(GlobalOperationClaims.SuperAdmin)
-            && !(httpContextAccessor.HttpContext?.User.ClaimRoles()?.Contains(GlobalOperationClaims.SuperAdmin) ?? false))
+        if (request.Permissions.Contains(GlobalOperationClaims.SuperAdmin) && !(httpContextAccessor.HttpContext?.User.ClaimRoles()?.Contains(GlobalOperationClaims.SuperAdmin) ?? false))
         {
             return Result.Forbidden("Only Super Admin can grant Super Admin access to another role.");
         }
 
         // SuperAdmin is a bypass sentinel (see RoleSeeder), not a catalog permission - same treatment as FullAccess.
-        var unknownPermissions = request.Permissions
-            .Where(p => p != PermissionClaimTypes.FullAccess && p != GlobalOperationClaims.SuperAdmin && !permissionCatalog.AllPermissions.Contains(p))
-            .ToList();
+        var unknownPermissions = request.Permissions.Where(p => p != PermissionClaimTypes.FullAccess && p != GlobalOperationClaims.SuperAdmin && !permissionCatalog.AllPermissions.Contains(p)).ToList();
         if (unknownPermissions.Count > 0)
         {
             return Result.BadRequest($"Unknown permission(s): {string.Join(", ", unknownPermissions)}.");
@@ -54,9 +54,7 @@ public class AssignPermissionsToRoleHandler(RoleManager<Role> roleManager, IHttp
             return Result.NotFound(RoleMessages.NoRoleDataFound);
         }
 
-        var existingPermissionClaims = (await roleManager.GetClaimsAsync(role))
-            .Where(c => c.Type == PermissionClaimTypes.Type)
-            .ToList();
+        var existingPermissionClaims = (await roleManager.GetClaimsAsync(role)).Where(c => c.Type == PermissionClaimTypes.Type).ToList();
 
         foreach (var claim in existingPermissionClaims.Where(c => !request.Permissions.Contains(c.Value)))
         {

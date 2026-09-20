@@ -15,8 +15,11 @@ public class UpdateServiceValidator : AbstractValidator<UpdateServiceCommand>
         _ = RuleFor(x => x.Price).GreaterThan(0);
         _ = RuleFor(x => x.DiscountRate).InclusiveBetween(0, 100);
         _ = RuleFor(x => x.TaxRate).InclusiveBetween(0, 100);
-        _ = RuleFor(x => x.PriceType).Must(t => ServicePriceTypes.All.Contains(t));
-        _ = RuleFor(x => x.PriceMax).NotNull().GreaterThan(x => x.Price).When(x => x.PriceType == ServicePriceTypes.Range);
-        _ = RuleFor(x => x.PriceMax).Null().When(x => x.PriceType != ServicePriceTypes.Range);
+        _ = RuleFor(x => x.PriceType).Must(t => ServicePriceTypes.All.Contains(t)).WithMessage("Price type is not valid.");
+        _ = RuleFor(x => x.PriceMax)
+            .NotNull().WithMessage("Maximum price is required when price type is Range.")
+            .GreaterThan(x => x.Price).WithMessage("Maximum price must be greater than the price.")
+            .When(x => x.PriceType == ServicePriceTypes.Range);
+        _ = RuleFor(x => x.PriceMax).Null().WithMessage("Maximum price must not be set unless price type is Range.").When(x => x.PriceType != ServicePriceTypes.Range);
     }
 }

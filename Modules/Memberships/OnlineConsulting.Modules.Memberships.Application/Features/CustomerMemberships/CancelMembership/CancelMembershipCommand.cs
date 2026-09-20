@@ -9,21 +9,22 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.CancelMembership;
 
-/// <summary>Cancels immediately (no cancel-at-period-end in this phase) - UserId is always resolved server-side, never trusted from the client.</summary>
+/// <summary>Cancels at period end - the member keeps Active access/benefits through RenewalDate, the
+/// subscription stops renewing after that. Status only flips to Cancelled once the provider's webhook
+/// fires at the real period end (see OnSubscriptionCancelledHandler). UserId is always resolved
+/// server-side, never trusted from the client. AdminCancelMembershipCommand is the immediate-cancel
+/// admin override.</summary>
 public record CancelMembershipCommand(Guid UserId) : IRequest<OperationResult>, ISecureAddRequest
 {
     [JsonIgnore]
     public string[] Roles => [];
 }
 
-public class CancelMembershipHandler(ICustomerMembershipRepository repository, ISubscriptionGateway subscriptionGateway)
-    : IRequestHandler<CancelMembershipCommand, OperationResult>
+public class CancelMembershipHandler(ICustomerMembershipRepository repository, ISubscriptionGateway subscriptionGateway) : IRequestHandler<CancelMembershipCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(CancelMembershipCommand request, CancellationToken cancellationToken)
     {
-        var membership = await repository.GetAsync(m =>
-            m.UserId == request.UserId && m.Status != CustomerMembershipStatuses.Cancelled,
-            cancellationToken: cancellationToken);
+        var membership = await repository.GetAsync(m => m.UserId == request.UserId && m.Status != CustomerMembershipStatuses.Cancelled, cancellationToken: cancellationToken);
 
         if (membership is null)
         {
@@ -32,12 +33,15 @@ public class CancelMembershipHandler(ICustomerMembershipRepository repository, I
 
         if (membership.ProviderSubscriptionId is not null)
         {
-            _ = await subscriptionGateway.CancelSubscriptionAsync(membership.ProviderSubscriptionId, cancellationToken);
+            _ = await subscriptionGateway.CancelSubscriptionAsync(membership.ProviderSubscriptionId, atPeriodEnd: true, cancellationToken: cancellationToken);
         }
 
-        membership.Status = CustomerMembershipStatuses.Cancelled;
+        membership.CancelAtPeriodEnd = true;
+
         _ = await repository.UpdateAsync(membership);
 
-        return Result.Success("Membership cancelled successfully.");
+        var renewalDate = membership.RenewalDate?.ToString("MMMM d, yyyy") ?? "the end of the current period";
+
+        return Result.Success($"Your membership will remain active until {renewalDate} and won't renew after that.");
     }
 }

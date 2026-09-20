@@ -7,6 +7,6 @@ public class CreateAboutUsValidator : AbstractValidator<CreateAboutUsCommand>
     public CreateAboutUsValidator()
     {
         _ = RuleFor(x => x.Title).NotEmpty().MaximumLength(200);
-        _ = RuleFor(x => x.Description).NotEmpty().MaximumLength(4000);
+        _ = RuleFor(x => x.Description).NotEmpty().MaximumLength(20000);
     }
 }

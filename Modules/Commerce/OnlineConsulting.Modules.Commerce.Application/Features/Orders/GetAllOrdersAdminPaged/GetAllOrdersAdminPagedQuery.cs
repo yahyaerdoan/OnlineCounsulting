@@ -3,6 +3,7 @@ using Core.ApplicationLayer.Requests.Page;
 using Core.PersistenceLayer.Dynamics.Dynamic;
 using Core.PersistenceLayer.Pagings.Paging;
 using MediatR;
+using OnlineConsulting.Modules.Commerce.Application.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Abstractions;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Contracts;
 using OnlineConsulting.SharedKernel.Authorization;
@@ -18,7 +19,7 @@ public record GetAllOrdersAdminPagedQuery(PageRequest PageRequest, DynamicQuery?
     : IRequest<OperationDataResult<Paginate<AdminOrderResponse>>>, ISecureAddRequest
 {
     [JsonIgnore]
-    public string[] Roles => [GlobalOperationClaims.SuperAdmin];
+    public string[] Roles => [CommerceOperationClaims.Admin, CommerceOperationClaims.Read, GlobalOperationClaims.SuperAdmin];
 }
 
 public class GetAllOrdersAdminPagedHandler(IOrderRepository orderRepository, IOrderItemRepository orderItemRepository)

@@ -1,6 +1,7 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
 using MediatR;
+using OnlineConsulting.Modules.Commerce.Application.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.Abstractions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -28,22 +29,12 @@ public class UpdateUserAddressHandler(IUserAddressRepository repository) : IRequ
         // See CreateUserAddressCommand for why claiming shipping/billing here unsets whichever other address holds that flag.
         if (request.IsShippingAddress && !address.IsShippingAddress)
         {
-            var oldShipping = await repository.GetAsync(a => a.UserId == request.UserId && a.IsShippingAddress, cancellationToken: cancellationToken);
-            if (oldShipping is not null)
-            {
-                oldShipping.IsShippingAddress = false;
-                _ = await repository.UpdateAsync(oldShipping);
-            }
+            await UserAddressDefaultFlag.ClearPreviousShippingHolderAsync(repository, request.UserId, address.Id, cancellationToken);
         }
 
         if (request.IsBillingAddress && !address.IsBillingAddress)
         {
-            var oldBilling = await repository.GetAsync(a => a.UserId == request.UserId && a.IsBillingAddress, cancellationToken: cancellationToken);
-            if (oldBilling is not null)
-            {
-                oldBilling.IsBillingAddress = false;
-                _ = await repository.UpdateAsync(oldBilling);
-            }
+            await UserAddressDefaultFlag.ClearPreviousBillingHolderAsync(repository, request.UserId, address.Id, cancellationToken);
         }
 
         address.AddressName = request.AddressName;

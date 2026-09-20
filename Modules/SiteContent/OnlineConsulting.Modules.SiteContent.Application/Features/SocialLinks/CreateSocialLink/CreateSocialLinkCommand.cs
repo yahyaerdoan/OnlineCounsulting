@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.SocialLinks.Abstractions;
@@ -9,8 +9,7 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.SiteContent.Application.Features.SocialLinks.CreateSocialLink;
 
-public record CreateSocialLinkCommand(string Name, string Url, string Icon, string? IconColor = null, int DisplayOrder = 0)
-    : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
+public record CreateSocialLinkCommand(string Name, string Url, string Icon, string? IconColor = null, int DisplayOrder = 0) : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
     [JsonIgnore]
     public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Add];
@@ -22,7 +21,6 @@ public class CreateSocialLinkHandler(ISocialLinkRepository repository) : IReques
     {
         var entity = new SocialLink
         {
-            Id = Guid.NewGuid(),
             Name = request.Name,
             Url = request.Url,
             Icon = request.Icon,

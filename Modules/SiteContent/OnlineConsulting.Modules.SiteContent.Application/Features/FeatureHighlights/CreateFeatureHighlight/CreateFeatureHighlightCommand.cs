@@ -19,7 +19,7 @@ public class CreateFeatureHighlightHandler(IFeatureHighlightRepository repositor
 {
     public async Task<OperationDataResult<Guid>> Handle(CreateFeatureHighlightCommand request, CancellationToken cancellationToken)
     {
-        var entity = new FeatureHighlight { Id = Guid.NewGuid(), Title = request.Title, Description = request.Description, ImageUrl = request.ImageUrl, DisplayOrder = request.DisplayOrder, Metadata = MetadataSerializer.Serialize(request.Metadata) };
+        var entity = new FeatureHighlight { Title = request.Title, Description = request.Description, ImageUrl = request.ImageUrl, DisplayOrder = request.DisplayOrder, Metadata = MetadataSerializer.Serialize(request.Metadata) };
 
         _ = await repository.AddAsync(entity);
 

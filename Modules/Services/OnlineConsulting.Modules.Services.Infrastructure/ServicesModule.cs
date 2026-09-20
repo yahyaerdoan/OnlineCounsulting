@@ -10,6 +10,8 @@ using OnlineConsulting.Modules.Services.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Services.Infrastructure.Pipelines;
 using OnlineConsulting.Modules.Services.Infrastructure.Repositories;
 using OnlineConsulting.SharedKernel.Auditing;
+using OnlineConsulting.SharedKernel.Authorization;
+using OnlineConsulting.Modules.Services.Application.Features.Constants;
 using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Services.Infrastructure;
@@ -33,6 +35,7 @@ public static class ServicesModule
         _ = services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
         _ = services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ServicesTransactionAddingBehavior<,>));
 
+        _ = services.AddSingleton<IDefaultAdminPermissions>(new DefaultAdminPermissions(ServicesOperationClaims.All));
         return services;
     }
 }

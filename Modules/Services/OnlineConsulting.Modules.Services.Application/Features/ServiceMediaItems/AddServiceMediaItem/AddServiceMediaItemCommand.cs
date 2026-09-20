@@ -20,18 +20,18 @@ public record AddServiceMediaItemCommand(Guid ServiceId, Guid MediaAssetId, int 
     public string[] Roles => [ServicesOperationClaims.Admin, ServicesOperationClaims.Write, ServicesOperationClaims.Update, GlobalOperationClaims.SuperAdmin];
 }
 
-public class AddServiceMediaItemHandler(IServiceMediaItemRepository repository, IServiceRepository serviceRepository)
-    : IRequestHandler<AddServiceMediaItemCommand, OperationDataResult<Guid>>
+public class AddServiceMediaItemHandler(IServiceMediaItemRepository repository, IServiceRepository serviceRepository) : IRequestHandler<AddServiceMediaItemCommand, OperationDataResult<Guid>>
 {
     public async Task<OperationDataResult<Guid>> Handle(AddServiceMediaItemCommand request, CancellationToken cancellationToken)
     {
         var serviceExists = await serviceRepository.AnyAsync(s => s.Id == request.ServiceId, cancellationToken: cancellationToken);
+
         if (!serviceExists)
         {
             return ServiceBusinessRules.ServiceNotFound(request.ServiceId).ToErrorDataResult<Guid>();
         }
 
-        var entity = new ServiceMediaItem { Id = Guid.NewGuid(), ServiceId = request.ServiceId, MediaAssetId = request.MediaAssetId, DisplayOrder = request.DisplayOrder };
+        var entity = new ServiceMediaItem { ServiceId = request.ServiceId, MediaAssetId = request.MediaAssetId, DisplayOrder = request.DisplayOrder };
 
         _ = await repository.AddAsync(entity);
 

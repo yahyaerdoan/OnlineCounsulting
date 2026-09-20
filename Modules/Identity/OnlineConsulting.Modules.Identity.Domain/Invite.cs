@@ -7,7 +7,7 @@ namespace OnlineConsulting.Modules.Identity.Domain;
 /// acceptance, so they never see or enter a tenant id themselves. Not tenant-scoped by an EF query filter
 /// (see AppIdentityDbContext) because AcceptInvite is anonymous and must be able to look a row up by Token
 /// alone, before any tenant is known.</summary>
-public class Invite : TenantEntity<Guid>
+public class Invite : SequentialGuidTenantEntity
 {
     public required string Email { get; set; }
     public required string Token { get; set; }

@@ -22,8 +22,20 @@ public class ChangePasswordHandler(UserManager<User> userManager) : IRequestHand
 
         var result = await userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
 
-        return result.Succeeded
-            ? Result.Success("Password changed successfully.")
-            : Result.BadRequest($"Failed to change password: {string.Join("; ", result.Errors.Select(e => e.Description))}");
+        if (result.Succeeded)
+        {
+            return Result.Success("Password changed successfully.");
+        }
+
+        // NewPassword's own complexity is already caught earlier by ChangePasswordValidator, so the
+        // only failure UserManager can realistically still report here is the current password being
+        // wrong - attribute it to that field instead of NewPassword.
+        var isCurrentPasswordWrong = result.Errors.Any(e => e.Code == nameof(IdentityErrorDescriber.PasswordMismatch));
+        var field = isCurrentPasswordWrong ? nameof(request.CurrentPassword) : nameof(request.NewPassword);
+
+        return OperationResult.Failure(new Dictionary<string, IReadOnlyList<string>>
+        {
+            [field] = [.. result.Errors.Select(e => e.Description)],
+        });
     }
 }

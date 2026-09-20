@@ -2,7 +2,7 @@ using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.SiteContent.Domain.Gallery;
 
-public class GalleryItem : TenantEntity<Guid>
+public class GalleryItem : SequentialGuidTenantEntity
 {
     public required string Description { get; set; }
 

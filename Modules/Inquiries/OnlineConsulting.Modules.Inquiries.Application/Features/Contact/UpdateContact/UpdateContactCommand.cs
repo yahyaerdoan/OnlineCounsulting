@@ -30,7 +30,6 @@ public class UpdateContactHandler(ICompanyContactRepository repository) : IReque
         {
             contact = new CompanyContact
             {
-                Id = Guid.NewGuid(),
                 Email = request.Email,
                 Phone = request.Phone,
                 Address = request.Address,

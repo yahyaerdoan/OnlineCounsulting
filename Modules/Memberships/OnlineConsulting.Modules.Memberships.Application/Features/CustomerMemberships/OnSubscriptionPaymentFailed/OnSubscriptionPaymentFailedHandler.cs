@@ -16,19 +16,19 @@ public class OnSubscriptionPaymentFailedHandler(ICustomerMembershipRepository re
         }
 
         var membership = await repository.GetAsync(m => m.Id == membershipId, cancellationToken: cancellationToken);
+
         if (membership is null || membership.Status == CustomerMembershipStatuses.Cancelled)
         {
             return;
         }
 
         membership.Status = CustomerMembershipStatuses.PastDue;
+        membership.PastDueSince ??= DateTimeOffset.UtcNow;
+
         _ = await repository.UpdateAsync(membership);
 
-        await pushNotificationSender.SendToUserAsync(
-            membership.UserId,
-            "Membership payment failed",
-            "We couldn't process your latest membership payment. Please update your payment method to avoid losing your benefits.",
-            new Dictionary<string, string> { ["customerMembershipId"] = membership.Id.ToString() },
-            cancellationToken);
+        await pushNotificationSender.SendToUserAsync(membership.UserId,
+            "Membership payment failed", "We couldn't process your latest membership payment. Please update your payment method to avoid losing your benefits.",
+            new Dictionary<string, string> { ["customerMembershipId"] = membership.Id.ToString() }, cancellationToken);
     }
 }

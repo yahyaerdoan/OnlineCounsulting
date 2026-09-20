@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.Promotions.Abstractions;
@@ -9,8 +9,7 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.SiteContent.Application.Features.Promotions.CreatePromotion;
 
-public record CreatePromotionCommand(string Title, string Description, string? CtaText, string? CtaUrl, DateTimeOffset? ExpiresAt, int DisplayOrder = 0)
-    : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
+public record CreatePromotionCommand(string Title, string Description, string? CtaText, string? CtaUrl, DateTimeOffset? ExpiresAt, int DisplayOrder = 0) : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
     [JsonIgnore]
     public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Add];
@@ -22,7 +21,6 @@ public class CreatePromotionHandler(IPromotionRepository repository) : IRequestH
     {
         var entity = new Promotion
         {
-            Id = Guid.NewGuid(),
             Title = request.Title,
             Description = request.Description,
             CtaText = request.CtaText,

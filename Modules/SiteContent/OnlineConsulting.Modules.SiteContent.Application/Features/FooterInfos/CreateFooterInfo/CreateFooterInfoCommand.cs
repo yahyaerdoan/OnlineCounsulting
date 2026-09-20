@@ -19,7 +19,7 @@ public class CreateFooterInfoHandler(IFooterInfoRepository repository) : IReques
 {
     public async Task<OperationDataResult<Guid>> Handle(CreateFooterInfoCommand request, CancellationToken cancellationToken)
     {
-        var entity = new FooterInfo { Id = Guid.NewGuid(), ImageUrl = request.ImageUrl, Description = request.Description, DisplayOrder = request.DisplayOrder, Metadata = MetadataSerializer.Serialize(request.Metadata) };
+        var entity = new FooterInfo { ImageUrl = request.ImageUrl, Description = request.Description, DisplayOrder = request.DisplayOrder, Metadata = MetadataSerializer.Serialize(request.Metadata) };
 
         _ = await repository.AddAsync(entity);
 

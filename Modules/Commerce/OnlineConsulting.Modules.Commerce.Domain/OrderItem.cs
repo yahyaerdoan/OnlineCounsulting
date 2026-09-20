@@ -2,7 +2,7 @@ using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Commerce.Domain;
 
-public class OrderItem : TenantEntity<Guid>
+public class OrderItem : SequentialGuidTenantEntity
 {
     public required Guid OrderId { get; set; }
 

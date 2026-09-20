@@ -14,6 +14,10 @@ public record GetBundleByIdQuery(Guid Id) : IRequest<OperationDataResult<BundleA
 {
     [JsonIgnore]
     public string[] Roles => [GlobalOperationClaims.SuperAdmin];
+
+    // Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.
+    [JsonIgnore]
+    public bool AllowTenantBypass => false;
 }
 
 public class GetBundleByIdHandler(IBundleRepository repository) : IRequestHandler<GetBundleByIdQuery, OperationDataResult<BundleAdminResponse>>

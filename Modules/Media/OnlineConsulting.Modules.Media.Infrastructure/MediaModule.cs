@@ -9,6 +9,8 @@ using OnlineConsulting.Modules.Media.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Media.Infrastructure.Pipelines;
 using OnlineConsulting.Modules.Media.Infrastructure.Repositories;
 using OnlineConsulting.SharedKernel.Auditing;
+using OnlineConsulting.SharedKernel.Authorization;
+using OnlineConsulting.Modules.Media.Application.Features.Constants;
 using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Media.Infrastructure;
@@ -31,6 +33,7 @@ public static class MediaModule
         _ = services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
         _ = services.AddTransient(typeof(IPipelineBehavior<,>), typeof(MediaTransactionAddingBehavior<,>));
 
+        _ = services.AddSingleton<IDefaultAdminPermissions>(new DefaultAdminPermissions(MediaOperationClaims.All));
         return services;
     }
 }

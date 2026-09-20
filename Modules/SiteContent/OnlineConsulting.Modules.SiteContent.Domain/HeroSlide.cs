@@ -3,7 +3,7 @@ using OnlineConsulting.SharedKernel.Tenancy;
 namespace OnlineConsulting.Modules.SiteContent.Domain;
 
 /// <summary>Renamed from the legacy SliderItem - "hero slide" is the standard term for a homepage carousel/hero-section slide.</summary>
-public class HeroSlide : TenantEntity<Guid>
+public class HeroSlide : SequentialGuidTenantEntity
 {
     public required string Title { get; set; }
     public required string Description { get; set; }

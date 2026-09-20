@@ -3,7 +3,7 @@ using OnlineConsulting.SharedKernel.Tenancy;
 namespace OnlineConsulting.Modules.Scheduling.Domain;
 
 /// <summary>1-1 with Appointment - plain id, no navigation, same cross-module/intra-module convention as Appointment.ServiceId. Recording a WorkOrder is what actually completes the Appointment (see CreateWorkOrderHandler).</summary>
-public class WorkOrder : TenantEntity<Guid>
+public class WorkOrder : SequentialGuidTenantEntity
 {
     public required Guid AppointmentId { get; set; }
 

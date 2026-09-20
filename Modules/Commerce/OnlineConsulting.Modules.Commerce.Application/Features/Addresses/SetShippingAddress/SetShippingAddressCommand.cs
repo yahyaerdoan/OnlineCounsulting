@@ -1,6 +1,7 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
 using MediatR;
+using OnlineConsulting.Modules.Commerce.Application.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.Abstractions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -24,12 +25,7 @@ public class SetShippingAddressHandler(IUserAddressRepository repository) : IReq
             return Result.NotFound($"Address {request.AddressId} was not found.");
         }
 
-        var oldAddress = await repository.GetAsync(a => a.UserId == request.UserId && a.IsShippingAddress, cancellationToken: cancellationToken);
-        if (oldAddress is not null && oldAddress.Id != newAddress.Id)
-        {
-            oldAddress.IsShippingAddress = false;
-            _ = await repository.UpdateAsync(oldAddress);
-        }
+        await UserAddressDefaultFlag.ClearPreviousShippingHolderAsync(repository, request.UserId, newAddress.Id, cancellationToken);
 
         newAddress.IsShippingAddress = true;
         _ = await repository.UpdateAsync(newAddress);

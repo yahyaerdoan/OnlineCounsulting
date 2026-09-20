@@ -2,7 +2,7 @@ using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Commerce.Domain;
 
-public class UserAddress : TenantEntity<Guid>
+public class UserAddress : SequentialGuidTenantEntity
 {
     /// <summary>Plain id, no navigation - User lives in the Identity module's own DbContext, modules only reference each other by id.</summary>
     public required Guid UserId { get; set; }

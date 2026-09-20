@@ -24,6 +24,9 @@ public static class TenantSubscriptionItemBusinessRules
     public static OperationResult ModuleNotActive() =>
         Result.NotFound(TenantSubscriptionItemMessages.ModuleNotActive);
 
+    public static OperationResult CannotRemoveLastModule() =>
+        Result.BadRequest(TenantSubscriptionItemMessages.CannotRemoveLastModule);
+
     public static OperationResult MultipleModulesNotSupportedByProvider() =>
         Result.BadRequest(TenantSubscriptionItemMessages.MultipleModulesNotSupportedByProvider);
 }

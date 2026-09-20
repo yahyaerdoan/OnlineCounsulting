@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.Rules;
@@ -15,6 +15,10 @@ public record ReactivateTenantCommand(Guid TenantId) : IRequest<OperationResult>
 {
     [JsonIgnore]
     public string[] Roles => [GlobalOperationClaims.SuperAdmin];
+
+    // Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.
+    [JsonIgnore]
+    public bool AllowTenantBypass => false;
 }
 
 public class ReactivateTenantHandler(ITenantRepository tenantRepository) : IRequestHandler<ReactivateTenantCommand, OperationResult>
@@ -22,6 +26,7 @@ public class ReactivateTenantHandler(ITenantRepository tenantRepository) : IRequ
     public async Task<OperationResult> Handle(ReactivateTenantCommand request, CancellationToken cancellationToken)
     {
         var tenant = await tenantRepository.GetAsync(t => t.Id == request.TenantId, cancellationToken: cancellationToken);
+
         if (tenant is null)
         {
             return TenantBusinessRules.TenantNotFound();
@@ -33,6 +38,7 @@ public class ReactivateTenantHandler(ITenantRepository tenantRepository) : IRequ
         }
 
         tenant.Status = TenantStatuses.Active;
+
         _ = await tenantRepository.UpdateAsync(tenant);
 
         return Result.Success("Tenant reactivated.");

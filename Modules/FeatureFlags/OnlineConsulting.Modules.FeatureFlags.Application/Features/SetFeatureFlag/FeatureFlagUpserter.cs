@@ -21,7 +21,7 @@ public class FeatureFlagUpserter(IFeatureFlagRepository repository, IFeatureFlag
 
         if (existing is null)
         {
-            _ = await repository.AddAsync(new FeatureFlag { Id = Guid.NewGuid(), Key = key, IsEnabled = isEnabled });
+            _ = await repository.AddAsync(new FeatureFlag { Key = key, IsEnabled = isEnabled });
         }
         else
         {

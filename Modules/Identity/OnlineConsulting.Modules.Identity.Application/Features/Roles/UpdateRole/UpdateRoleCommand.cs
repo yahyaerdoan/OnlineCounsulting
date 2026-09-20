@@ -14,6 +14,10 @@ public record UpdateRoleCommand(Guid Id, string Name, string? Description) : IRe
     // Role isn't tenant-scoped (no TenantId) - only SuperAdmin may edit a role shared across tenants.
     [JsonIgnore]
     public string[] Roles => [GlobalOperationClaims.SuperAdmin];
+
+    // Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.
+    [JsonIgnore]
+    public bool AllowTenantBypass => false;
 }
 
 public class UpdateRoleHandler(RoleManager<Role> roleManager) : IRequestHandler<UpdateRoleCommand, OperationResult>

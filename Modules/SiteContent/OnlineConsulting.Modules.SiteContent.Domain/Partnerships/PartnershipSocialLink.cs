@@ -2,7 +2,7 @@ using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.SiteContent.Domain.Partnerships;
 
-public class PartnershipSocialLink : TenantEntity<Guid>
+public class PartnershipSocialLink : SequentialGuidTenantEntity
 {
     public required Guid PartnershipId { get; set; }
     public required string Name { get; set; }

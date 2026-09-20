@@ -18,12 +18,12 @@ public record RedeemReferralCodeCommand(Guid ReferredUserId, string Code) : IReq
     public string[] Roles => [];
 }
 
-public class RedeemReferralCodeHandler(IReferralRepository referralRepository, IReferralCodeRepository referralCodeRepository)
-    : IRequestHandler<RedeemReferralCodeCommand, OperationDataResult<Guid>>
+public class RedeemReferralCodeHandler(IReferralRepository referralRepository, IReferralCodeRepository referralCodeRepository) : IRequestHandler<RedeemReferralCodeCommand, OperationDataResult<Guid>>
 {
     public async Task<OperationDataResult<Guid>> Handle(RedeemReferralCodeCommand request, CancellationToken cancellationToken)
     {
         var referralCode = await referralCodeRepository.GetAsync(c => c.Code == request.Code, cancellationToken: cancellationToken);
+
         if (referralCode is null)
         {
             return Result.NotFound<Guid>(ReferralsMessages.InvalidCode);
@@ -35,6 +35,7 @@ public class RedeemReferralCodeHandler(IReferralRepository referralRepository, I
         }
 
         var alreadyReferred = await referralRepository.AnyAsync(r => r.ReferredUserId == request.ReferredUserId, cancellationToken: cancellationToken);
+
         if (alreadyReferred)
         {
             return Result.BadRequest<Guid>(ReferralsMessages.AlreadyReferred);
@@ -42,7 +43,6 @@ public class RedeemReferralCodeHandler(IReferralRepository referralRepository, I
 
         var referral = new Referral
         {
-            Id = Guid.NewGuid(),
             ReferrerUserId = referralCode.UserId,
             ReferredUserId = request.ReferredUserId,
             Code = request.Code,

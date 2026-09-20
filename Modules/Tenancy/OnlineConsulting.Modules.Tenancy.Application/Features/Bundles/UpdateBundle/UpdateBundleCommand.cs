@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Bundles.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Bundles.Constants;
@@ -16,14 +16,18 @@ public record UpdateBundleCommand(Guid Id, string Name, List<string> ModuleKeys,
 {
     [JsonIgnore]
     public string[] Roles => [GlobalOperationClaims.SuperAdmin];
+
+    // Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.
+    [JsonIgnore]
+    public bool AllowTenantBypass => false;
 }
 
-public class UpdateBundleHandler(IBundleRepository repository, IModuleOfferingRepository moduleOfferingRepository)
-    : IRequestHandler<UpdateBundleCommand, OperationResult>
+public class UpdateBundleHandler(IBundleRepository repository, IModuleOfferingRepository moduleOfferingRepository) : IRequestHandler<UpdateBundleCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(UpdateBundleCommand request, CancellationToken cancellationToken)
     {
         var bundle = await repository.GetAsync(b => b.Id == request.Id, cancellationToken: cancellationToken);
+
         if (bundle is null)
         {
             return Result.NotFound(string.Format(BundleMessages.BundleNotFoundFormat, request.Id));
@@ -31,11 +35,12 @@ public class UpdateBundleHandler(IBundleRepository repository, IModuleOfferingRe
 
         var moduleKeys = request.ModuleKeys.Distinct().ToList();
 
-        var existingKeys = (await moduleOfferingRepository.GetListAsync(
-            m => moduleKeys.Contains(m.Key), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken))
+        var existingKeys = (await moduleOfferingRepository
+            .GetListAsync(m => moduleKeys.Contains(m.Key), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken))
             .Items.Select(m => m.Key).ToHashSet();
 
         var unknownKeys = moduleKeys.Where(k => !existingKeys.Contains(k)).ToList();
+
         if (unknownKeys.Count > 0)
         {
             return Result.BadRequest(string.Format(BundleMessages.UnknownModuleKeysFormat, string.Join(", ", unknownKeys)));

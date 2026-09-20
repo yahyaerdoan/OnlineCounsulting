@@ -25,12 +25,7 @@ public class MergeGuestBasketHandler(IBasketRepository basketRepository, IBasket
 
         var guestItems = await basketItemRepository.GetListAsync(i => i.BasketId == guestBasket.Id, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
 
-        var userBasket = await basketRepository.GetAsync(b => b.UserId == request.UserId, cancellationToken: cancellationToken);
-        if (userBasket is null)
-        {
-            userBasket = new Basket { Id = Guid.NewGuid(), UserId = request.UserId };
-            _ = await basketRepository.AddAsync(userBasket);
-        }
+        var userBasket = await BasketOwnerLookup.GetOrCreateAsync(basketRepository, request.UserId, null, cancellationToken);
 
         var userItems = await basketItemRepository.GetListAsync(i => i.BasketId == userBasket.Id, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
         var userItemsByService = userItems.Items.ToDictionary(i => i.ServiceId);
@@ -41,25 +36,21 @@ public class MergeGuestBasketHandler(IBasketRepository basketRepository, IBasket
             if (userItemsByService.TryGetValue(guestItem.ServiceId, out var existingItem))
             {
                 existingItem.Quantity += guestItem.Quantity;
-                (existingItem.SubTotalPrice, existingItem.TaxAmount, existingItem.TotalPrice) =
-                    TaxCalculator.Calculate(existingItem.Price, existingItem.Quantity, existingItem.TaxRate);
+                TaxCalculator.Apply(existingItem);
                 _ = await basketItemRepository.UpdateAsync(existingItem);
             }
             else
             {
-                var (subTotalPrice, taxAmount, totalPrice) = TaxCalculator.Calculate(guestItem.Price, guestItem.Quantity, guestItem.TaxRate);
-                _ = await basketItemRepository.AddAsync(new BasketItem
+                var newItem = new BasketItem
                 {
-                    Id = Guid.NewGuid(),
                     BasketId = userBasket.Id,
                     ServiceId = guestItem.ServiceId,
                     Quantity = guestItem.Quantity,
                     Price = guestItem.Price,
                     TaxRate = guestItem.TaxRate,
-                    SubTotalPrice = subTotalPrice,
-                    TaxAmount = taxAmount,
-                    TotalPrice = totalPrice,
-                });
+                };
+                TaxCalculator.Apply(newItem);
+                _ = await basketItemRepository.AddAsync(newItem);
             }
 
             _ = await basketItemRepository.DeleteAsync(guestItem);
@@ -67,9 +58,7 @@ public class MergeGuestBasketHandler(IBasketRepository basketRepository, IBasket
 
         _ = await basketRepository.DeleteAsync(guestBasket);
 
-        var mergedItems = await basketItemRepository.GetListAsync(i => i.BasketId == userBasket.Id, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
-        (userBasket.Quantity, userBasket.SubTotalPrice, userBasket.TotalPrice) = BasketTotalsCalculator.Calculate(mergedItems.Items);
-        _ = await basketRepository.UpdateAsync(userBasket);
+        await BasketTotalsCalculator.RecalculateAndSaveAsync(userBasket, basketItemRepository, basketRepository, cancellationToken);
 
         return Result.Success("Guest basket merged successfully.");
     }

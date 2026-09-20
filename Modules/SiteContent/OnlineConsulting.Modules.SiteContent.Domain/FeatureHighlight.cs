@@ -3,7 +3,7 @@ using OnlineConsulting.SharedKernel.Tenancy;
 namespace OnlineConsulting.Modules.SiteContent.Domain;
 
 /// <summary>Renamed from the legacy WhatWeProvide - "feature highlight" is the standard term for this marketing-site content block (image + title + description callout).</summary>
-public class FeatureHighlight : TenantEntity<Guid>
+public class FeatureHighlight : SequentialGuidTenantEntity
 {
     public required string Title { get; set; }
     public required string Description { get; set; }

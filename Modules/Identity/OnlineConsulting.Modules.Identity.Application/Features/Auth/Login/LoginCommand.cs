@@ -37,8 +37,14 @@ public class LoginHandler(UserManager<User> userManager, RoleManager<Role> roleM
             return Result.BadRequest<AuthTokensResponse>(AuthMessages.InvalidCredentials);
         }
 
+        if (!await userManager.IsEmailConfirmedAsync(user))
+        {
+            return Result.BadRequest<AuthTokensResponse>(AuthMessages.EmailNotConfirmed);
+        }
+
         var roles = await userManager.GetRolesAsync(user);
-        var permissions = await RolePermissionResolver.ResolvePermissionsAsync(roleManager, roles);
+        var rolePermissions = await RolePermissionResolver.ResolvePermissionsAsync(roleManager, roles);
+        var permissions = await RolePermissionResolver.ApplyUserOverridesAsync(userManager, user, rolePermissions);
 
         var (accessToken, accessTokenExpiresAt) = tokenService.CreateAccessToken(user, [.. roles], permissions);
 

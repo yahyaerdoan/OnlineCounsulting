@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.FaqItems.Abstractions;
@@ -9,8 +9,7 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.SiteContent.Application.Features.FaqItems.CreateFaqItem;
 
-public record CreateFaqItemCommand(Guid ServiceId, string Question, string Answer, int DisplayOrder = 0)
-    : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
+public record CreateFaqItemCommand(Guid ServiceId, string Question, string Answer, int DisplayOrder = 0) : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
     [JsonIgnore]
     public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Add];
@@ -22,7 +21,6 @@ public class CreateFaqItemHandler(IFaqItemRepository repository) : IRequestHandl
     {
         var entity = new FaqItem
         {
-            Id = Guid.NewGuid(),
             ServiceId = request.ServiceId,
             Question = request.Question,
             Answer = request.Answer,

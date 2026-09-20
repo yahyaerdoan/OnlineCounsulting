@@ -2,7 +2,7 @@ using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Commerce.Domain;
 
-public class BasketItem : TenantEntity<Guid>
+public class BasketItem : SequentialGuidTenantEntity
 {
     public required Guid BasketId { get; set; }
 

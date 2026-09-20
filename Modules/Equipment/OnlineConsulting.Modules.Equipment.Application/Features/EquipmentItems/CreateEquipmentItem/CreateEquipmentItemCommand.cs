@@ -23,7 +23,6 @@ public class CreateEquipmentItemHandler(IEquipmentItemRepository repository) : I
     {
         var entity = new EquipmentItem
         {
-            Id = Guid.NewGuid(),
             UserId = request.UserId,
             Type = request.Type,
             Brand = request.Brand,

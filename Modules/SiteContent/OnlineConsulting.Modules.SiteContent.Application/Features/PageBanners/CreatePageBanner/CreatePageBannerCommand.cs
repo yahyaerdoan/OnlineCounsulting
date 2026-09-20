@@ -19,7 +19,7 @@ public class CreatePageBannerHandler(IPageBannerRepository repository) : IReques
 {
     public async Task<OperationDataResult<Guid>> Handle(CreatePageBannerCommand request, CancellationToken cancellationToken)
     {
-        var entity = new PageBanner { Id = Guid.NewGuid(), Title = request.Title, Description = request.Description, ImageUrl = request.ImageUrl, DisplayOrder = request.DisplayOrder, Metadata = MetadataSerializer.Serialize(request.Metadata) };
+        var entity = new PageBanner { Title = request.Title, Description = request.Description, ImageUrl = request.ImageUrl, DisplayOrder = request.DisplayOrder, Metadata = MetadataSerializer.Serialize(request.Metadata) };
 
         _ = await repository.AddAsync(entity);
 

@@ -21,12 +21,12 @@ public record CompleteReferralCommand(Guid Id, decimal RewardAmount) : IRequest<
     public string[] Roles => [ReferralsOperationClaims.Admin, ReferralsOperationClaims.Write];
 }
 
-public class CompleteReferralHandler(IReferralRepository referralRepository, IAccountCreditRepository creditRepository, IPushNotificationSender pushNotificationSender)
-    : IRequestHandler<CompleteReferralCommand, OperationResult>
+public class CompleteReferralHandler(IReferralRepository referralRepository, IAccountCreditRepository creditRepository, IPushNotificationSender pushNotificationSender) : IRequestHandler<CompleteReferralCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(CompleteReferralCommand request, CancellationToken cancellationToken)
     {
         var referral = await referralRepository.GetAsync(r => r.Id == request.Id, cancellationToken: cancellationToken);
+
         if (referral is null)
         {
             return Result.NotFound(string.Format(ReferralsMessages.ReferralNotFoundFormat, request.Id));
@@ -45,7 +45,6 @@ public class CompleteReferralHandler(IReferralRepository referralRepository, IAc
 
         _ = await creditRepository.AddAsync(new AccountCredit
         {
-            Id = Guid.NewGuid(),
             UserId = referral.ReferrerUserId,
             Amount = request.RewardAmount,
             Reason = "Referral reward",
@@ -53,12 +52,9 @@ public class CompleteReferralHandler(IReferralRepository referralRepository, IAc
             SourceId = referral.Id,
         });
 
-        await pushNotificationSender.SendToUserAsync(
-            referral.ReferrerUserId,
-            "Referral reward earned",
-            $"You've earned ${request.RewardAmount:0.##} in account credit for your referral!",
-            new Dictionary<string, string> { ["referralId"] = referral.Id.ToString() },
-            cancellationToken);
+        await pushNotificationSender.SendToUserAsync(referral.ReferrerUserId,
+            "Referral reward earned", $"You've earned ${request.RewardAmount:0.##} in account credit for your referral!",
+            new Dictionary<string, string> { ["referralId"] = referral.Id.ToString() }, cancellationToken);
 
         return Result.Success("Referral rewarded successfully.");
     }

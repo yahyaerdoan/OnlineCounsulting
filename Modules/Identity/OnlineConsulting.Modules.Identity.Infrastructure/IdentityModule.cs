@@ -13,7 +13,9 @@ using OnlineConsulting.Modules.Identity.Application.Common.Templates;
 using OnlineConsulting.Modules.Identity.Application.Features.Auth;
 using OnlineConsulting.Modules.Identity.Application.Features.Auth.Abstractions;
 using OnlineConsulting.Modules.Identity.Application.Features.Invites.Abstractions;
+using OnlineConsulting.Modules.Identity.Application.Features.Invites.Constants;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Abstractions;
+using OnlineConsulting.Modules.Identity.Application.Features.Users.Constants;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.Modules.Identity.Infrastructure.Notifications;
 using OnlineConsulting.Modules.Identity.Infrastructure.Persistence;
@@ -24,6 +26,7 @@ using OnlineConsulting.Modules.Identity.Infrastructure.Seeding;
 using OnlineConsulting.Modules.Identity.Infrastructure.Status;
 using OnlineConsulting.Modules.Identity.Infrastructure.Storage;
 using OnlineConsulting.SharedKernel.Auditing;
+using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.Identity;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
@@ -57,18 +60,25 @@ public static class IdentityModule
         _ = services.AddScoped<IDeviceTokenRepository, DeviceTokenRepository>();
         _ = services.AddScoped<IInviteRepository, InviteRepository>();
         _ = services.AddScoped<IUserExistenceReader, UserExistenceReader>();
+        _ = services.AddScoped<IUserContactReader, UserContactReader>();
 
         _ = services.AddScoped<IEmailOutboxWriter<IIdentityOutboxModule>, EmailOutboxWriter>();
         _ = services.AddScoped<IEmailTemplate<ConfirmEmailEmailModel>, ConfirmEmailTemplate>();
         _ = services.AddScoped<IEmailTemplate<WelcomeEmailModel>, WelcomeTemplate>();
         _ = services.AddScoped<IEmailTemplate<PolicyNoticeEmailModel>, PolicyNoticeTemplate>();
         _ = services.AddScoped<IEmailTemplate<InviteEmailModel>, InviteTemplate>();
+        _ = services.AddScoped<IEmailTemplate<ForgotPasswordEmailModel>, ForgotPasswordTemplate>();
         _ = services.Configure<AuthEmailOptions>(configuration.GetSection("Auth"));
         _ = services.Configure<SuperAdminSeedOptions>(configuration.GetSection("Seed:SuperAdmin"));
 
         _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
         _ = services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
         _ = services.AddTransient(typeof(IPipelineBehavior<,>), typeof(IdentityTransactionAddingBehavior<,>));
+
+        // Users/Invites are tenant-scoped, safe for a tenant Admin to self-manage. Roles is deliberately
+        // excluded - Role isn't tenant-scoped, so its definition/permissions stay Super Admin-only.
+        _ = services.AddSingleton<IDefaultAdminPermissions>(new DefaultAdminPermissions(UsersOperationClaims.All));
+        _ = services.AddSingleton<IDefaultAdminPermissions>(new DefaultAdminPermissions(InvitesOperationClaims.All));
 
         return services;
     }

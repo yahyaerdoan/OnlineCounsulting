@@ -16,6 +16,7 @@ public class OnSubscriptionRenewedHandler(ICustomerMembershipRepository reposito
         }
 
         var membership = await repository.GetAsync(m => m.Id == membershipId, cancellationToken: cancellationToken);
+
         if (membership is null)
         {
             return;
@@ -23,6 +24,8 @@ public class OnSubscriptionRenewedHandler(ICustomerMembershipRepository reposito
 
         membership.RenewalDate = notification.CurrentPeriodEnd;
         membership.Status = CustomerMembershipStatuses.Active;
+        membership.PastDueSince = null;
+
         _ = await repository.UpdateAsync(membership);
     }
 }

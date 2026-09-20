@@ -30,7 +30,8 @@ public class RefreshTokenHandler(UserManager<User> userManager, RoleManager<Role
         }
 
         var roles = await userManager.GetRolesAsync(user);
-        var permissions = await RolePermissionResolver.ResolvePermissionsAsync(roleManager, roles);
+        var rolePermissions = await RolePermissionResolver.ResolvePermissionsAsync(roleManager, roles);
+        var permissions = await RolePermissionResolver.ApplyUserOverridesAsync(userManager, user, rolePermissions);
 
         var (accessToken, accessTokenExpiresAt) = tokenService.CreateAccessToken(user, [.. roles], permissions);
         var (newRefreshToken, _) = await refreshTokenService.IssueAsync(user, cancellationToken);

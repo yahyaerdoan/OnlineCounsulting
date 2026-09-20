@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using OnlineConsulting.Modules.Identity.Application.Common.Templates;
 using OnlineConsulting.Modules.Identity.Domain;
+using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
 using OnlineConsulting.SharedKernel.Tenancy;
@@ -12,8 +13,7 @@ using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Identity.Application.Features.Auth.Register;
 
-public record RegisterCommand(string FirstName, string LastName, string UserName, string Email, string Password)
-    : IRequest<OperationResult>, ITransactionAddRequest;
+public record RegisterCommand(string FirstName, string LastName, string UserName, string Email, string Password) : IRequest<OperationResult>, ITransactionAddRequest;
 
 public class RegisterHandler(UserManager<User> userManager, IEmailOutboxWriter<IIdentityOutboxModule> outboxWriter, IEmailTemplate<ConfirmEmailEmailModel> confirmEmailTemplate, IOptions<AuthEmailOptions> emailOptions)
     : IRequestHandler<RegisterCommand, OperationResult>
@@ -34,6 +34,12 @@ public class RegisterHandler(UserManager<User> userManager, IEmailOutboxWriter<I
         if (!createResult.Succeeded)
         {
             return Result.Invalid([.. createResult.Errors.Select(e => e.Description)]);
+        }
+
+        var roleResult = await userManager.AddToRoleAsync(user, GlobalOperationClaims.User);
+        if (!roleResult.Succeeded)
+        {
+            return Result.Invalid([.. roleResult.Errors.Select(e => e.Description)]);
         }
 
         var token = await userManager.GenerateEmailConfirmationTokenAsync(user);

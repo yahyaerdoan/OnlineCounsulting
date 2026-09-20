@@ -8,6 +8,7 @@ public class MembershipsDbContext(DbContextOptions<MembershipsDbContext> options
 {
     public DbSet<MembershipPlan> MembershipPlans => Set<MembershipPlan>();
     public DbSet<CustomerMembership> CustomerMemberships => Set<CustomerMembership>();
+    public DbSet<PromoCode> PromoCodes => Set<PromoCode>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -31,6 +32,16 @@ public class MembershipsDbContext(DbContextOptions<MembershipsDbContext> options
             _ = builder.Property(m => m.RowVersion).IsRowVersion();
             _ = builder.HasIndex(m => m.UserId);
             _ = builder.HasIndex(m => m.MembershipPlanId);
+            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+        });
+
+        _ = modelBuilder.Entity<PromoCode>(builder =>
+        {
+            _ = builder.Property(p => p.Code).HasMaxLength(40).IsRequired();
+            _ = builder.Property(p => p.DiscountType).HasMaxLength(20).IsRequired();
+            _ = builder.Property(p => p.DiscountValue).HasColumnType("decimal(18,2)");
+            _ = builder.Property(p => p.RowVersion).IsRowVersion();
+            _ = builder.HasIndex(p => new { p.TenantId, p.Code }).IsUnique();
             _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 

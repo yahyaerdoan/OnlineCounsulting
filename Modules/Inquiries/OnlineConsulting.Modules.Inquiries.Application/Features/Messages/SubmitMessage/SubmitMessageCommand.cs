@@ -20,7 +20,6 @@ public class SubmitMessageHandler(IMessageRepository repository, IEmailOutboxWri
     {
         var message = new Message
         {
-            Id = Guid.NewGuid(),
             FirstName = request.FirstName,
             LastName = request.LastName,
             Email = request.Email,

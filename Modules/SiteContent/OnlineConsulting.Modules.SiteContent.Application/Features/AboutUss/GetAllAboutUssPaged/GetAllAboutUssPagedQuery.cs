@@ -1,8 +1,7 @@
-using Core.ApplicationLayer.Requests.Page;
+﻿using Core.ApplicationLayer.Requests.Page;
 using Core.PersistenceLayer.Dynamics.Dynamic;
 using Core.PersistenceLayer.Pagings.Paging;
 using MediatR;
-using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.AboutUss.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Application.Features.AboutUss.Contracts;
 using OnlineConsulting.SharedKernel.Persistence;
@@ -13,8 +12,7 @@ namespace OnlineConsulting.Modules.SiteContent.Application.Features.AboutUss.Get
 
 public record GetAllAboutUssPagedQuery(PageRequest PageRequest, DynamicQuery? DynamicQuery = null) : IRequest<OperationDataResult<Paginate<AboutUsResponse>>>;
 
-public class GetAllAboutUssPagedHandler(IAboutUsRepository repository)
-    : IRequestHandler<GetAllAboutUssPagedQuery, OperationDataResult<Paginate<AboutUsResponse>>>
+public class GetAllAboutUssPagedHandler(IAboutUsRepository repository) : IRequestHandler<GetAllAboutUssPagedQuery, OperationDataResult<Paginate<AboutUsResponse>>>
 {
     public async Task<OperationDataResult<Paginate<AboutUsResponse>>> Handle(GetAllAboutUssPagedQuery request, CancellationToken cancellationToken)
     {

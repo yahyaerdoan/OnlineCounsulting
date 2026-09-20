@@ -3,7 +3,7 @@ using Core.PersistenceLayer.Repositories.Entities;
 namespace OnlineConsulting.Modules.Tenancy.Domain;
 
 /// <summary>An à la carte module tenants can buy individually. Not tenant-scoped - shared catalog data offered to every tenant.</summary>
-public class ModuleOffering : Entity<Guid>
+public class ModuleOffering : SequentialGuidEntity
 {
     /// <summary>Matches a FeatureFlagKeys value.</summary>
     public required string Key { get; set; }

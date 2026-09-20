@@ -22,7 +22,6 @@ public class CreateTestimonialHandler(ITestimonialRepository repository) : IRequ
     {
         var entity = new Testimonial
         {
-            Id = Guid.NewGuid(),
             FirstName = request.FirstName,
             LastName = request.LastName,
             Title = request.Title,

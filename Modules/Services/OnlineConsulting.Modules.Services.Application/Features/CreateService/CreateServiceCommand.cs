@@ -27,7 +27,6 @@ public class CreateServiceHandler(IServiceRepository repository) : IRequestHandl
 
         var service = new Service
         {
-            Id = Guid.NewGuid(),
             CategoryId = request.CategoryId,
             Title = request.Title,
             Slug = slug,
