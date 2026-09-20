@@ -89,7 +89,10 @@ public class PayPalSubscriptionGateway(IHttpClientFactory httpClientFactory, IOp
         return new SubscriptionResult(subscription.Id, MapStatus(subscription.Status), DateTimeOffset.UtcNow, approveLink);
     }
 
-    public async Task<SubscriptionResult> CancelSubscriptionAsync(string providerSubscriptionId, CancellationToken cancellationToken = default)
+    /// <summary>atPeriodEnd is ignored - PayPal's Subscriptions API has no deferred-cancellation concept,
+    /// so this always cancels immediately regardless of the flag (same graceful-degradation convention
+    /// as CreateSubscriptionRequest.DiscountAmount on this gateway).</summary>
+    public async Task<SubscriptionResult> CancelSubscriptionAsync(string providerSubscriptionId, bool atPeriodEnd = false, CancellationToken cancellationToken = default)
     {
         var accessToken = await GetAccessTokenAsync(cancellationToken);
 
@@ -103,6 +106,45 @@ public class PayPalSubscriptionGateway(IHttpClientFactory httpClientFactory, IOp
 
         return new SubscriptionResult(providerSubscriptionId, PaymentStatuses.Refunded, DateTimeOffset.UtcNow);
     }
+
+    /// <summary>Unlike most other capability-gated methods on this gateway, PayPal has a real native
+    /// endpoint for this - implemented for real, not a NotSupportedException stub.</summary>
+    public async Task<SubscriptionResult> PauseSubscriptionAsync(string providerSubscriptionId, CancellationToken cancellationToken = default)
+    {
+        var accessToken = await GetAccessTokenAsync(cancellationToken);
+
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"/v1/billing/subscriptions/{providerSubscriptionId}/suspend");
+        httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        httpRequest.Content = JsonContent.Create(new { reason = "Paused by customer" });
+
+        using var client = CreateClient();
+        using var response = await client.SendAsync(httpRequest, cancellationToken);
+        _ = response.EnsureSuccessStatusCode();
+
+        return new SubscriptionResult(providerSubscriptionId, PaymentStatuses.Pending, DateTimeOffset.UtcNow);
+    }
+
+    /// <summary>See PauseSubscriptionAsync - PayPal's real "activate" endpoint reverses a suspend.</summary>
+    public async Task<SubscriptionResult> ResumeSubscriptionAsync(string providerSubscriptionId, CancellationToken cancellationToken = default)
+    {
+        var accessToken = await GetAccessTokenAsync(cancellationToken);
+
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"/v1/billing/subscriptions/{providerSubscriptionId}/activate");
+        httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        httpRequest.Content = JsonContent.Create(new { reason = "Resumed by customer" });
+
+        using var client = CreateClient();
+        using var response = await client.SendAsync(httpRequest, cancellationToken);
+        _ = response.EnsureSuccessStatusCode();
+
+        return new SubscriptionResult(providerSubscriptionId, PaymentStatuses.Succeeded, DateTimeOffset.UtcNow);
+    }
+
+    /// <summary>PayPal's REST Subscriptions API has no in-place plan-change endpoint - changing plans
+    /// would require cancelling and creating a new subscription, out of scope. Known, accepted
+    /// limitation: PayPal isn't the active provider.</summary>
+    public Task<SubscriptionResult> UpdateSubscriptionPriceAsync(string providerSubscriptionId, string newProviderPriceId, CancellationToken cancellationToken = default) =>
+        throw new NotSupportedException("PayPal subscriptions do not support in-place plan changes.");
 
     /// <summary>PayPal's Subscriptions API models a subscription as a single plan_id - there is no concept of independently-priced additional line items, so à la carte multi-module tenants aren't representable on this provider. Known, accepted limitation: PayPal isn't the active provider.</summary>
     public Task<string> AddSubscriptionItemAsync(string providerSubscriptionId, string providerPriceId, string? idempotencyKey = null, CancellationToken cancellationToken = default) =>

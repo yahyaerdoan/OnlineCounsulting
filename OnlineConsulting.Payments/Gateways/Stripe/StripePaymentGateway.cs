@@ -4,16 +4,10 @@ using Stripe;
 
 namespace OnlineConsulting.Payments.Gateways.Stripe;
 
-public class StripePaymentGateway : IPaymentGateway
+public class StripePaymentGateway(IOptions<PaymentOptions> options) : IPaymentGateway
 {
-    private readonly StripeClient _client;
-    private readonly string _webhookSecret;
-
-    public StripePaymentGateway(IOptions<PaymentOptions> options)
-    {
-        _client = new StripeClient(options.Value.Stripe.SecretKey);
-        _webhookSecret = options.Value.Stripe.WebhookSecret;
-    }
+    private readonly StripeClient _client = new(options.Value.Stripe.SecretKey);
+    private readonly string _webhookSecret = options.Value.Stripe.WebhookSecret;
 
     public string ProviderName => PaymentProviderNames.Stripe;
 
@@ -36,7 +30,7 @@ public class StripePaymentGateway : IPaymentGateway
     {
         var service = new PaymentIntentService(_client);
         var intent = await service.GetAsync(providerPaymentId, cancellationToken: cancellationToken);
-        return new PaymentStatusResult(intent.Id, MapStatus(intent.Status));
+        return new PaymentStatusResult(intent.Id, MapStatus(intent.Status), intent.ClientSecret);
     }
 
     public async Task<PaymentStatusResult> RefundAsync(string providerPaymentId, decimal? amount = null, CancellationToken cancellationToken = default)
@@ -53,20 +47,13 @@ public class StripePaymentGateway : IPaymentGateway
 
     public Task<PaymentWebhookEvent?> VerifyAndParseWebhookAsync(string rawBody, string? signatureHeader, CancellationToken cancellationToken = default)
     {
-        // A missing signature header (e.g. someone probing the endpoint directly, like via Swagger's
-        // "Try it out") isn't a forged event - it's not a Stripe call at all - so reject it before ever
-        // calling into EventUtility, which assumes a non-null header and throws NullReferenceException
-        // rather than StripeException when it isn't.
+        // Reject before EventUtility - it assumes a non-null header and throws NullReferenceException, not StripeException, otherwise.
         if (string.IsNullOrEmpty(signatureHeader) || string.IsNullOrEmpty(rawBody))
         {
             return Task.FromResult<PaymentWebhookEvent?>(null);
         }
 
-        // EventUtility.ConstructEvent throws StripeException on a bad/malformed signature - that's the whole
-        // point of verification (rejects forged webhook calls). It can also throw NullReferenceException
-        // from inside the SDK itself for a structurally-off payload (e.g. a missing "api_version" field) -
-        // caught broadly here on purpose: this endpoint receives untrusted external input, so any failure to
-        // construct/validate the event must mean "not a valid webhook call", never a 500.
+        // Caught broadly on purpose - untrusted external input, any construction failure means "not a valid webhook call", never a 500.
         Event stripeEvent;
         try
         {

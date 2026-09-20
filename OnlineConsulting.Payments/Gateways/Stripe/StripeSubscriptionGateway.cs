@@ -4,16 +4,10 @@ using Stripe;
 
 namespace OnlineConsulting.Payments.Gateways.Stripe;
 
-public class StripeSubscriptionGateway : ISubscriptionGateway
+public class StripeSubscriptionGateway(IOptions<PaymentOptions> options) : ISubscriptionGateway
 {
-    private readonly StripeClient _client;
-    private readonly string _webhookSecret;
-
-    public StripeSubscriptionGateway(IOptions<PaymentOptions> options)
-    {
-        _client = new StripeClient(options.Value.Stripe.SecretKey);
-        _webhookSecret = options.Value.Stripe.WebhookSecret;
-    }
+    private readonly StripeClient _client = new(options.Value.Stripe.SecretKey);
+    private readonly string _webhookSecret = options.Value.Stripe.WebhookSecret;
 
     public string ProviderName => PaymentProviderNames.Stripe;
 
@@ -87,17 +81,63 @@ public class StripeSubscriptionGateway : ISubscriptionGateway
             Customer = request.ProviderCustomerId,
             Items = [new SubscriptionItemOptions { Price = request.ProviderPriceId }],
             Discounts = discounts,
+            TrialPeriodDays = request.TrialDays,
             Metadata = new Dictionary<string, string> { ["ReferenceId"] = request.ReferenceId },
         }, ToRequestOptions(idempotencyKey), cancellationToken);
 
         return ToSubscriptionResult(subscription);
     }
 
-    public async Task<SubscriptionResult> CancelSubscriptionAsync(string providerSubscriptionId, CancellationToken cancellationToken = default)
+    public async Task<SubscriptionResult> CancelSubscriptionAsync(string providerSubscriptionId, bool atPeriodEnd = false, CancellationToken cancellationToken = default)
     {
         var service = new SubscriptionService(_client);
+        if (atPeriodEnd)
+        {
+            var updated = await service.UpdateAsync(providerSubscriptionId, new SubscriptionUpdateOptions { CancelAtPeriodEnd = true }, cancellationToken: cancellationToken);
+            return ToSubscriptionResult(updated);
+        }
+
         var subscription = await service.CancelAsync(providerSubscriptionId, cancellationToken: cancellationToken);
         return ToSubscriptionResult(subscription);
+    }
+
+    public async Task<SubscriptionResult> UpdateSubscriptionPriceAsync(string providerSubscriptionId, string newProviderPriceId, CancellationToken cancellationToken = default)
+    {
+        var service = new SubscriptionService(_client);
+        var subscription = await service.GetAsync(providerSubscriptionId, cancellationToken: cancellationToken);
+        var itemId = subscription.Items.Data[0].Id;
+
+        var updated = await service.UpdateAsync(providerSubscriptionId, new SubscriptionUpdateOptions
+        {
+            Items = [new SubscriptionItemOptions { Id = itemId, Price = newProviderPriceId }],
+            ProrationBehavior = "create_prorations",
+        }, cancellationToken: cancellationToken);
+
+        return ToSubscriptionResult(updated);
+    }
+
+    public async Task<SubscriptionResult> PauseSubscriptionAsync(string providerSubscriptionId, CancellationToken cancellationToken = default)
+    {
+        var service = new SubscriptionService(_client);
+        var updated = await service.UpdateAsync(providerSubscriptionId, new SubscriptionUpdateOptions
+        {
+            PauseCollection = new SubscriptionPauseCollectionOptions { Behavior = "void" },
+        }, cancellationToken: cancellationToken);
+
+        return ToSubscriptionResult(updated);
+    }
+
+    /// <summary>Stripe.net has no property to explicitly clear pause_collection - omitting it leaves the
+    /// existing value untouched, and the API only unsets it when the field is sent as an empty object.
+    /// ExtraParams is the documented way to send that literal empty value.</summary>
+    public async Task<SubscriptionResult> ResumeSubscriptionAsync(string providerSubscriptionId, CancellationToken cancellationToken = default)
+    {
+        var service = new SubscriptionService(_client);
+        var options = new SubscriptionUpdateOptions();
+        options.AddExtraParam("pause_collection", "");
+        var updated = await service.UpdateAsync(providerSubscriptionId, options, cancellationToken: cancellationToken);
+
+        return ToSubscriptionResult(updated);
     }
 
     public async Task<string> AddSubscriptionItemAsync(string providerSubscriptionId, string providerPriceId, string? idempotencyKey = null, CancellationToken cancellationToken = default)
