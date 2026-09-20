@@ -16,9 +16,9 @@
 
 <MudContainer MaxWidth="MaxWidth.Small" Class="d-flex justify-center align-center auth-page-container">
     <AuthCard Subtitle="Sign in to your ComfortPro admin workspace" Elevation="4">
-        <EditForm EditContext="@Form.EditContext" OnValidSubmit="SubmitAsync">
-            <MudTextField @bind-Value="_model.UserNameOrEmail" For="@(() => _model.UserNameOrEmail)" Label="Username or email" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" />
-            <MudTextField @bind-Value="_model.Password" For="@(() => _model.Password)" Label="Password" InputType="InputType.Password" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" />
+        <EditForm EditContext="@Form.EditContext" OnValidSubmit="SubmitAsync" autocomplete="off">
+            <MudTextField @bind-Value="_model.UserNameOrEmail" For="@(() => _model.UserNameOrEmail)" Label="Username or email" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" autocomplete="off" />
+            <MudTextField @bind-Value="_model.Password" For="@(() => _model.Password)" Label="Password" InputType="InputType.Password" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" autocomplete="new-password" />
 
             <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Class="auth-submit" Disabled="Form.IsBusy">
                 @(Form.IsBusy ? "Signing in..." : "Sign in")
