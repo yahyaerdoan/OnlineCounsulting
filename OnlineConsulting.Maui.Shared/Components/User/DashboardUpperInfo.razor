@@ -1,0 +1,66 @@
+@* Dashboard top info bar - greeting, support contact, support link, cart/continue-shopping CTA.
+   Mirrors MarketingLayout's own contact/cart-count calls. *@
+@namespace OnlineConsulting.Maui.Shared.Components.User
+@inject IApiClient ApiClient
+
+<MudPaper Class="pa-2 mb-4 dashboard-upper-info" Outlined="true">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Wrap="Wrap.Wrap" Spacing="3">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+            <MudIconButton Icon="@Icons.Material.Outlined.Menu" Size="Size.Small" OnClick="OnToggleSidebar" title="Toggle menu" />
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                <MudText Typo="Typo.body2" Class="text-strong">@(_user is not null ? $"{_user.FirstName} {_user.LastName}" : "")</MudText>
+                <MudLink Href="/user/membership" Underline="Underline.None">
+                    <MudChip T="string" Size="Size.Small" Color="@(_membership is not null ? Color.Success : Color.Default)" Class="ma-0">
+                        @(_membership is not null ? "Active Member" : "No Membership")
+                    </MudChip>
+                </MudLink>
+            </MudStack>
+        </MudStack>
+
+        @if (_contact is not null)
+        {
+            <MudLink Href="@($"mailto:{_contact.Email}")" Underline="Underline.None" Typo="Typo.body2">@_contact.Email</MudLink>
+        }
+
+        <MudLink Href="/contact" Underline="Underline.None" Typo="Typo.body2">Contact Support</MudLink>
+
+        @if (_cartItemCount > 0)
+        {
+            <MudButton Href="/user/cart" Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Outlined.ShoppingCart">
+                Basket (@_cartItemCount)
+            </MudButton>
+        }
+        else
+        {
+            <MudButton Href="/services" Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Outlined.ArrowBack">
+                Continue Shopping
+            </MudButton>
+        }
+    </MudStack>
+</MudPaper>
+
+@code {
+    [Parameter]
+    public EventCallback OnToggleSidebar { get; set; }
+
+    private CurrentUserResponse? _user;
+    private CompanyContactResponse? _contact;
+    private int _cartItemCount;
+    private CustomerMembershipResponse? _membership;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userResult = await ApiClient.GetAsync<CurrentUserResponse>(ApiRoutes.Users.Me);
+        _user = userResult.IsSuccessful ? userResult.ResultData : null;
+
+        var contactResult = await ApiClient.GetAsync<CompanyContactResponse>(ApiRoutes.Inquiries.Contact.Get);
+        _contact = contactResult.IsSuccessful ? contactResult.ResultData : null;
+
+        var countResult = await ApiClient.GetAsync<int>(ApiRoutes.Commerce.Baskets.Count);
+        _cartItemCount = countResult.IsSuccessful ? countResult.ResultData : 0;
+
+        // 404 means "not currently a member", not an error - same as MembershipStatus.razor.
+        var membershipResult = await ApiClient.GetAsync<CustomerMembershipResponse>(ApiRoutes.Growth.CustomerMemberships.Mine);
+        _membership = membershipResult.IsSuccessful ? membershipResult.ResultData : null;
+    }
+}

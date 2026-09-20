@@ -1,0 +1,8 @@
+@page "/user/membership"
+@attribute [Authorize(Roles = AppRoles.User)]
+@layout OnlineConsulting.Maui.Shared.Layout.DashboardLayout
+
+<PageTitle>My Membership</PageTitle>
+
+<DashboardPageHeading Text="My Membership" />
+<MembershipStatus />

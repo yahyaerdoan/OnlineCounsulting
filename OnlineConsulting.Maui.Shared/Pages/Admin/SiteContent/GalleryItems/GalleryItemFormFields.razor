@@ -8,7 +8,7 @@
     <MudTextField @bind-Value="Model.Description" For="@(() => Model.Description)" Label="Description" Variant="Variant.Outlined" Margin="Margin.Dense"
                   Lines="1" MaxLines="5" Sizing="InputSizing.Auto" />
 
-    <MudSelect T="Guid" MultiSelection="true" Label="Categories" Variant="Variant.Outlined" Margin="Margin.Dense"
+    <MudSelect T="Guid" MultiSelection="true" Label="Categories" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true"
                SelectedValues="Model.CategoryIds" SelectedValuesChanged="OnCategoriesChanged">
         @foreach (var category in Categories)
         {
@@ -50,7 +50,7 @@
     private async Task OnPhotoSelectedAsync(InputFileChangeEventArgs e)
     {
         _isUploadingPhoto = true;
-        var result = await MediaUploadHelper.UploadAsync(ApiClient, e.File);
+        var result = await MediaUploadHelper.UploadAsync(ApiClient, e.File, MediaFolders.Gallery);
         _isUploadingPhoto = false;
 
         if (!result.IsSuccessful || result.ResultData is null)

@@ -1,0 +1,118 @@
+@* Contact form, posts to SubmitMessage. Interactive island (see AddToCartForm) so the Snackbar
+   toast actually renders and submit doesn't reload the page. *@
+@rendermode InteractiveServer
+@using OnlineConsulting.Maui.Shared.Infrastructure.Api
+@using OnlineConsulting.Maui.Shared.Infrastructure.Forms
+@inject IApiClient ApiClient
+@inject FormState<MessageModel> Form
+@inject ISnackbar Snackbar
+
+<div class="contact-form">
+    <MudText Typo="Typo.h5" Class="marketing-display mb-1">@Heading</MudText>
+    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">We usually reply within one business day.</MudText>
+
+    <EditForm EditContext="@Form.EditContext" OnValidSubmit="SubmitAsync">
+        <MudGrid Spacing="3">
+            <MudItem xs="12" sm="6">
+                <div class="marketing-field">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="marketing-field-label">First Name</MudText>
+                    <InputText @bind-Value="_model.FirstName" class="marketing-field-input" placeholder="Jane" />
+                    <ValidationMessage For="@(() => _model.FirstName)" class="marketing-field-error" />
+                </div>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <div class="marketing-field">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="marketing-field-label">Last Name</MudText>
+                    <InputText @bind-Value="_model.LastName" class="marketing-field-input" placeholder="Doe" />
+                    <ValidationMessage For="@(() => _model.LastName)" class="marketing-field-error" />
+                </div>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <div class="marketing-field">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="marketing-field-label">Email</MudText>
+                    <InputText @bind-Value="_model.Email" class="marketing-field-input" placeholder="jane@example.com" />
+                    <ValidationMessage For="@(() => _model.Email)" class="marketing-field-error" />
+                </div>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <div class="marketing-field">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="marketing-field-label">Subject</MudText>
+                    <InputText @bind-Value="_model.Subject" class="marketing-field-input" placeholder="How can we help?" />
+                    <ValidationMessage For="@(() => _model.Subject)" class="marketing-field-error" />
+                </div>
+            </MudItem>
+            <MudItem xs="12">
+                <div class="marketing-field">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="marketing-field-label">Message</MudText>
+                    <InputTextArea @bind-Value="_model.Description" class="marketing-field-textarea" rows="5" placeholder="Tell us a bit more..." />
+                    <ValidationMessage For="@(() => _model.Description)" class="marketing-field-error" />
+                </div>
+            </MudItem>
+
+            <MudItem xs="12" Class="d-flex justify-end">
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="@Form.IsBusy">
+                    @(Form.IsBusy ? "Sending..." : "Send Email")
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+    </EditForm>
+</div>
+
+@code {
+    [Parameter]
+    public string Heading { get; set; } = "Tell Us Something";
+
+    /// <summary>Pre-fills Subject on first render only - never overwrites a value the visitor
+    /// already typed.</summary>
+    [Parameter]
+    public string? InitialSubject { get; set; }
+
+    private MessageModel _model = new();
+
+    protected override void OnInitialized()
+    {
+        Form.Bind(_model);
+        ApplyInitialSubject();
+    }
+
+    private void ApplyInitialSubject()
+    {
+        if (string.IsNullOrWhiteSpace(_model.Subject) && !string.IsNullOrWhiteSpace(InitialSubject))
+        {
+            _model.Subject = InitialSubject;
+        }
+    }
+
+    private Task SubmitAsync() => Form.SubmitAsync(async () =>
+    {
+        var result = await ApiClient.PostAsync(ApiRoutes.Inquiries.Messages.Submit, new
+        {
+            firstName = _model.FirstName,
+            lastName = _model.LastName,
+            email = _model.Email,
+            subject = _model.Subject,
+            description = _model.Description,
+        });
+
+        if (!result.IsSuccessful)
+        {
+            Form.DisplayErrors(result, Snackbar);
+            return;
+        }
+
+        Snackbar.Add(result.DisplayMessage, Severity.Success);
+
+        _model = new();
+        Form.Bind(_model);
+        ApplyInitialSubject();
+    });
+
+    private sealed class MessageModel
+    {
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Subject { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+    }
+}

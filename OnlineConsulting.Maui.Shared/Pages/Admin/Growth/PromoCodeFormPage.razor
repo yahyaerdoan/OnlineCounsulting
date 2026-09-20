@@ -1,0 +1,104 @@
+@page "/admin/growth/promo-codes/new"
+@attribute [Authorize(Roles = "Admin,Super Admin,Member")]
+@using OnlineConsulting.Maui.Shared.Infrastructure.Forms
+@using OnlineConsulting.Maui.Shared.Pages.Admin.Growth.PromoCodeModels
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject FormState<PromoCodeFormModel> Form
+
+<PageTitle>New Promo Code</PageTitle>
+
+<PageHeroBanner Title="New Promo Code" Subtitle="A discount code customers can redeem when subscribing.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.ArrowBack"
+                   OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/growth/promo-codes"))">Back to Promo Codes</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+<PageBreadcrumbExtra Text="New Promo Code" />
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+<EditForm EditContext="@Form.EditContext">
+    <MudPaper Class="pa-4">
+        <MudGrid>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="_model.Code" For="@(() => _model.Code)" Label="Code" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudSelect T="string" @bind-Value="_model.DiscountType" Label="Discount type" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true">
+                    <MudSelectItem T="string" Value="@("Percent")">Percent</MudSelectItem>
+                    <MudSelectItem T="string" Value="@("Fixed")">Fixed amount</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudNumericField @bind-Value="_model.DiscountValue" For="@(() => _model.DiscountValue)" Label="Discount value" Variant="Variant.Outlined" Margin="Margin.Dense" Min="0" Format="F2"
+                                 Adornment="@(_model.DiscountType == "Percent" ? Adornment.End : Adornment.Start)" AdornmentText="@(_model.DiscountType == "Percent" ? "%" : "$")" HideSpinButtons="true" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudNumericField @bind-Value="_model.MaxRedemptions" For="@(() => _model.MaxRedemptions)" Label="Max redemptions (optional)" Variant="Variant.Outlined" Margin="Margin.Dense" Min="1" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudDatePicker @bind-Date="_model.ExpiresAt" Label="Expires (optional)" Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudSelect T="Guid?" @bind-Value="_model.MembershipPlanId" Label="Limit to plan (optional)" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true" Clearable="true">
+                    @foreach (var plan in _plans)
+                    {
+                        <MudSelectItem T="Guid?" Value="@plan.Id">@plan.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+        </MudGrid>
+
+        <MudDivider Class="my-4" />
+
+        <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2">
+            <MudButton Variant="Variant.Text" OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/growth/promo-codes"))">Cancel</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAsync" Disabled="@Form.IsBusy">Create</MudButton>
+        </MudStack>
+    </MudPaper>
+</EditForm>
+
+@code {
+    private readonly PromoCodeFormModel _model = new();
+    private List<MembershipPlanResponse> _plans = [];
+    private string? _loadError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Bind before any await - Blazor can render (and touch Form.EditContext) after the first yield point.
+        Form.Bind(_model);
+
+        var result = await ApiClient.GetAsync<PaginatedResponse<MembershipPlanResponse>>(ApiRoutes.Paged(ApiRoutes.Growth.MembershipPlans.All, 0, 100));
+        if (!result.IsSuccessful || result.ResultData is null)
+        {
+            _loadError = result.DisplayMessage;
+            return;
+        }
+
+        _plans = result.ResultData.Items;
+    }
+
+    private Task SaveAsync() => Form.SubmitAsync(async () =>
+    {
+        var result = await ApiClient.PostAsync(ApiRoutes.Growth.PromoCodes.Base, new
+        {
+            code = _model.Code,
+            discountType = _model.DiscountType,
+            discountValue = _model.DiscountValue,
+            maxRedemptions = _model.MaxRedemptions,
+            expiresAt = (DateTimeOffset?)_model.ExpiresAt,
+            membershipPlanId = _model.MembershipPlanId,
+        });
+
+        if (!result.IsSuccessful)
+        {
+            Form.DisplayErrors(result, Snackbar);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        Navigation.NavigateTo(AppRoutes.AdminHome + "/growth/promo-codes");
+    });
+}

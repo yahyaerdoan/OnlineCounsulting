@@ -1,0 +1,58 @@
+@namespace OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent
+@using OnlineConsulting.Maui.Shared.Pages.Admin.Catalog
+@using OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent.FeatureHighlightsIntroModels
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+
+<MudStack Spacing="3">
+    <MudTextField @bind-Value="Model.Description" For="@(() => Model.Description)" Label="Description" Variant="Variant.Outlined" Margin="Margin.Dense"
+                  Lines="4" />
+
+    <MudNumericField @bind-Value="Model.DisplayOrder" For="@(() => Model.DisplayOrder)" Label="Display order" Variant="Variant.Outlined" Margin="Margin.Dense" />
+
+    <CoverImagePicker ImageUrl="@_coverUrl" IsUploading="_isUploading" OnFileSelected="OnFileSelectedAsync" OnAssetSelected="OnAssetSelected"
+                      OnRemove="@(() => { Model.CoverMediaAssetId = null; _coverUrl = null; })" />
+</MudStack>
+
+@code {
+    [Parameter, EditorRequired]
+    public FeatureHighlightsIntroFormModel Model { get; set; } = default!;
+
+    [Parameter]
+    public string? InitialCoverUrl { get; set; }
+
+    private string? _coverUrl;
+    private bool _isUploading;
+    private bool _coverUrlInitialized;
+
+    protected override void OnParametersSet()
+    {
+        if (!_coverUrlInitialized)
+        {
+            _coverUrl = InitialCoverUrl;
+            _coverUrlInitialized = true;
+        }
+    }
+
+    private async Task OnFileSelectedAsync(InputFileChangeEventArgs e)
+    {
+        _isUploading = true;
+        var result = await MediaUploadHelper.UploadAsync(ApiClient, e.File, MediaFolders.FeatureHighlightsIntro);
+        _isUploading = false;
+
+        if (!result.IsSuccessful || result.ResultData is null)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Model.CoverMediaAssetId = result.ResultData.Id;
+        _coverUrl = result.ResultData.Url;
+    }
+
+    private void OnAssetSelected(MediaAssetResponse asset)
+    {
+        Model.CoverMediaAssetId = asset.Id;
+        _coverUrl = asset.Url;
+    }
+}

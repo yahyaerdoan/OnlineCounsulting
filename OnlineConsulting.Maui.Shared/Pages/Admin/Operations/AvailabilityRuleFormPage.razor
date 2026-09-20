@@ -1,6 +1,6 @@
 @page "/admin/operations/availability-rules/new"
 @namespace OnlineConsulting.Maui.Shared.Pages.Admin.Operations
-@attribute [Authorize]
+@attribute [Authorize(Roles = "Admin,Super Admin,Member")]
 @using OnlineConsulting.Maui.Shared.Infrastructure.Forms
 @using OnlineConsulting.Maui.Shared.Pages.Admin.Operations.AvailabilityRuleModels
 @inject IApiClient ApiClient
@@ -24,7 +24,7 @@
     <MudPaper Class="pa-4">
         <MudGrid>
             <MudItem xs="12">
-                <MudSelect T="DayOfWeek" @bind-Value="_model.DayOfWeek" Label="Day of week" Variant="Variant.Outlined" Margin="Margin.Dense">
+                <MudSelect T="DayOfWeek" @bind-Value="_model.DayOfWeek" Label="Day of week" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true">
                     @foreach (var day in Enum.GetValues<DayOfWeek>())
                     {
                         <MudSelectItem T="DayOfWeek" Value="@day">@day</MudSelectItem>

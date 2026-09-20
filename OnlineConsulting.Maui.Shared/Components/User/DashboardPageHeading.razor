@@ -1,0 +1,9 @@
+@* Consistent h6 heading for /user/* pages whose header is a plain title with no adjacent button. *@
+@namespace OnlineConsulting.Maui.Shared.Components.User
+
+<MudText Typo="Typo.h6" Class="mb-4">@Text</MudText>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Text { get; set; } = "";
+}

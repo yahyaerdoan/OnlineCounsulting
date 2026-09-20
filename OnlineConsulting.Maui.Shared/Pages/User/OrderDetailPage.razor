@@ -1,0 +1,92 @@
+@* Read-only order detail/invoice view - no separate Invoice entity exists in this stack.
+   Full page (not a dialog) - the dialog-to-page threshold applies once content grows past a
+   couple of fields, and this shows a header block plus a full line-item table. *@
+@page "/user/orders/{OrderId:guid}"
+@attribute [Authorize(Roles = AppRoles.User)]
+@layout OnlineConsulting.Maui.Shared.Layout.DashboardLayout
+@using OnlineConsulting.Maui.Shared.Components.User
+@inject IApiClient ApiClient
+
+<PageTitle>Order Detail</PageTitle>
+
+<DashboardPageHeading Text="@(_detail is not null ? $"Order {_detail.Order.OrderNumber}" : "Order Detail")" />
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+}
+else if (_detail is not null)
+{
+    <MudStack Spacing="1" Class="mb-4">
+        <MudText Typo="Typo.body2">Order #: @_detail.Order.OrderNumber</MudText>
+        <MudText Typo="Typo.body2">Placed: @DateTimeFormat.FormatDateTime(_detail.Order.CreatedDate)</MudText>
+        <MudText Typo="Typo.body2">Status: @_detail.Order.OrderStatus</MudText>
+        <MudText Typo="Typo.body2">Payment: @_detail.Order.PaymentStatus</MudText>
+    </MudStack>
+
+    <MudSimpleTable Dense="true">
+        <thead>
+            <tr>
+                <th>Service</th>
+                <th>Qty</th>
+                <th class="text-right">Unit Price</th>
+                <th class="text-right">Tax</th>
+                <th class="text-right">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in _detail.Items)
+            {
+                <tr>
+                    <td>@(_serviceNames.GetValueOrDefault(item.ServiceId) ?? item.ServiceId.ToString())</td>
+                    <td>@item.Quantity</td>
+                    <td class="text-right">@CurrencyFormat.Format(item.UnitPrice)</td>
+                    <td class="text-right">@CurrencyFormat.Format(item.TaxAmount)</td>
+                    <td class="text-right">@CurrencyFormat.Format(item.TotalPrice)</td>
+                </tr>
+            }
+        </tbody>
+    </MudSimpleTable>
+
+    <MudStack Row="true" Justify="Justify.FlexEnd" Class="mt-3">
+        <MudText Typo="Typo.subtitle1">Total: @CurrencyFormat.Format(_detail.Order.TotalPrice)</MudText>
+    </MudStack>
+
+    <MudButton Href="/user/orders" Variant="Variant.Outlined" Color="Color.Primary" Class="mt-4">Back to Orders</MudButton>
+}
+
+@code {
+    [Parameter]
+    public Guid OrderId { get; set; }
+
+    private OrderDetailResponse? _detail;
+    private readonly Dictionary<Guid, string> _serviceNames = [];
+    private bool _loading = true;
+    private string? _loadError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await ApiClient.GetAsync<OrderDetailResponse>(ApiRoutes.Commerce.Orders.ById(OrderId));
+        if (!result.IsSuccessful || result.ResultData is null)
+        {
+            _loadError = result.DisplayMessage;
+            _loading = false;
+            return;
+        }
+
+        _detail = result.ResultData;
+
+        foreach (var serviceId in _detail.Items.Select(i => i.ServiceId).Distinct())
+        {
+            var serviceResult = await ApiClient.GetAsync<ServiceDetailResponse>(ApiRoutes.Services.ById(serviceId));
+            if (serviceResult.IsSuccessful && serviceResult.ResultData is not null)
+            {
+                _serviceNames[serviceId] = serviceResult.ResultData.Title;
+            }
+        }
+
+        _loading = false;
+    }
+}

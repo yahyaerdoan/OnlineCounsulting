@@ -1,0 +1,16 @@
+@* Matches the site's real AboutUs/Index.cshtml section order (reuses the same Home section
+   components - the legacy source does exactly the same thing). Only entity-backed sections -
+   the static stats band is excluded. *@
+@page "/about"
+@attribute [ExcludeFromInteractiveRouting]
+@layout OnlineConsulting.Maui.Shared.Layout.MarketingLayout
+@using OnlineConsulting.Maui.Shared.Components.Marketing
+
+<PageTitle>About Us - ComfortPro</PageTitle>
+
+<MarketingPageBanner Title="About Us" SubPage="About" />
+<AboutUsSection />
+<HomeFeaturedServicesSection />
+<HomePartnershipSection />
+<HomeProcessSection />
+<HomeTestimonialsSection />

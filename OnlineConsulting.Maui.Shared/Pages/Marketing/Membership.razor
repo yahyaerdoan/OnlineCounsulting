@@ -1,0 +1,140 @@
+@* Membership landing page - hero, plans, testimonials, FAQ, CTA repeated top and bottom. Static SSR, same shape as Services.razor. *@
+@page "/membership"
+@attribute [ExcludeFromInteractiveRouting]
+@layout OnlineConsulting.Maui.Shared.Layout.MarketingLayout
+@using OnlineConsulting.Maui.Shared.Components.Marketing
+@inject IApiClient ApiClient
+
+<PageTitle>Membership</PageTitle>
+
+<MarketingPageBanner Title="Membership Plans" SubPage="Membership" />
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="marketing-section-tight">
+    <MudText Typo="Typo.subtitle1" Color="Color.Primary" Align="Align.Center" Class="text-strong">Join the family</MudText>
+    <MudText Typo="Typo.h4" Align="Align.Center" Class="marketing-display text-strong mb-2">Priority service, every time - for less</MudText>
+    <MudText Typo="Typo.body1" Color="Color.Secondary" Align="Align.Center" Class="marketing-section-intro-text mb-4">
+        Members get included visits, discounted rates on every job, and front-of-line scheduling - no surprises, cancel anytime.
+    </MudText>
+    <div class="d-flex justify-center">
+        <MudButton Href="#plans" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large">View Plans</MudButton>
+    </div>
+</MudContainer>
+
+<MudContainer id="plans" MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
+    <ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+    @if (_plans.Count == 0 && _loadError is null)
+    {
+        <MudAlert Severity="Severity.Info">No membership plans are available right now.</MudAlert>
+    }
+    else
+    {
+        <MudGrid Justify="Justify.Center">
+            @foreach (var plan in _plans)
+            {
+                var featured = IsFeaturedPlan(plan);
+                <MudItem xs="12" sm="6" md="4">
+                    <div class="position-relative" style="height:100%;">
+                        @if (featured)
+                        {
+                            <span class="marketing-pricing-badge">Most Popular</span>
+                        }
+                        <MudCard Outlined="true" Class="@($"d-flex flex-column marketing-pricing-card {(featured ? "marketing-pricing-card-featured" : "")}")" Style="height:100%;">
+                            <MudCardContent Class="d-flex flex-column flex-grow-1">
+                                <MudText Typo="Typo.h6">@plan.Name</MudText>
+                                <MudStack Row="true" AlignItems="AlignItems.Baseline" Spacing="1" Class="my-3">
+                                    <MudText Typo="Typo.h4">@plan.Price.ToString("C")</MudText>
+                                    <MudText Typo="Typo.body2" Color="Color.Secondary">/ @(plan.BillingCycle == "Annual" ? "year" : "month")</MudText>
+                                </MudStack>
+                                @if (plan.TrialDays is > 0)
+                                {
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Success" Class="mb-3">@plan.TrialDays-day free trial</MudChip>
+                                }
+                                <MudList T="string" Dense="true" Class="flex-grow-1">
+                                    <MudListItem T="string" Icon="@Icons.Material.Outlined.Check" IconColor="Color.Primary">
+                                        @plan.IncludedVisitsPerYear included visits per year
+                                    </MudListItem>
+                                    @if (plan.DiscountPercent > 0)
+                                    {
+                                        <MudListItem T="string" Icon="@Icons.Material.Outlined.Check" IconColor="Color.Primary">
+                                            @plan.DiscountPercent% off additional services
+                                        </MudListItem>
+                                    }
+                                    @foreach (var benefit in BenefitLines(plan.Benefits))
+                                    {
+                                        <MudListItem T="string" Icon="@Icons.Material.Outlined.Check" IconColor="Color.Primary">@benefit</MudListItem>
+                                    }
+                                </MudList>
+                            </MudCardContent>
+                            <MudCardActions Class="pa-4 pt-0">
+                                <MudButton Href="@($"/user/membership/subscribe/{plan.Id}")" Variant="Variant.Filled"
+                                           Color="@(featured ? Color.Primary : Color.Default)" FullWidth="true">Subscribe</MudButton>
+                            </MudCardActions>
+                        </MudCard>
+                    </div>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+</MudContainer>
+
+<HomeTestimonialsSection />
+
+@if (_faqItems.Count > 0)
+{
+    <MudContainer MaxWidth="MaxWidth.Medium" Class="marketing-section-tight">
+        <MudText Typo="Typo.h5" Align="Align.Center" Class="marketing-display text-strong mb-4">Membership FAQs</MudText>
+
+        <MudStack Spacing="2">
+            @foreach (var item in _faqItems)
+            {
+                <details class="marketing-promo-card">
+                    <summary><span class="marketing-promo-title text-strong">@item.Question</span></summary>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">@item.Answer</MudText>
+                </details>
+            }
+        </MudStack>
+    </MudContainer>
+}
+
+@if (_plans.Count > 0)
+{
+    <MudContainer MaxWidth="MaxWidth.Medium" Class="marketing-section-tight">
+        <MudPaper Outlined="true" Class="rounded-lg pa-8 d-flex flex-column align-center text-center">
+            <MudText Typo="Typo.h5" Class="marketing-display text-strong">Ready to become a member?</MudText>
+            <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mt-2 mb-4">Pick a plan above and start enjoying member pricing today.</MudText>
+            <MudButton Href="#plans" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large">View Plans</MudButton>
+        </MudPaper>
+    </MudContainer>
+}
+
+@code {
+    private List<MembershipPlanResponse> _plans = [];
+    private List<FaqItemResponse> _faqItems = [];
+    private string? _loadError;
+
+    private const int PageSize = 24;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await ApiClient.GetAsync<PaginatedResponse<MembershipPlanResponse>>(
+            ApiRoutes.Paged(ApiRoutes.Growth.MembershipPlans.Base, 0, PageSize));
+        if (!result.IsSuccessful)
+        {
+            _loadError = result.DisplayMessage;
+            return;
+        }
+
+        _plans = result.ResultData?.Items ?? [];
+
+        var faqResult = await ApiClient.GetAsync<List<FaqItemResponse>>(ApiRoutes.SiteContent.FaqItems.Base);
+        _faqItems = faqResult.IsSuccessful ? faqResult.ResultData?.OrderBy(f => f.DisplayOrder).ToList() ?? [] : [];
+    }
+
+    private static IEnumerable<string> BenefitLines(string? benefits) =>
+        benefits?.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [];
+
+    /// <summary>No "featured" flag on MembershipPlan - just spotlights the middle-priced one.</summary>
+    private bool IsFeaturedPlan(MembershipPlanResponse plan) =>
+        _plans.Count >= 3 && plan.Id == _plans.OrderBy(p => p.Price).ElementAt(_plans.Count / 2).Id;
+}

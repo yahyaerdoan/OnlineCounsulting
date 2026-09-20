@@ -1,5 +1,5 @@
 @page "/admin/platform/module-offerings"
-@attribute [Authorize]
+@attribute [Authorize(Roles = "Admin,Super Admin,Member")]
 @inject IApiClient ApiClient
 @inject NavigationManager Navigation
 

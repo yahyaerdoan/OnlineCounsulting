@@ -1,0 +1,99 @@
+@* Extracted from the former AccountProfileTab (split into Addresses.razor + Profile.razor -
+   addresses are now their own top-level dashboard section). *@
+@page "/user/addresses"
+@attribute [Authorize(Roles = AppRoles.User)]
+@layout OnlineConsulting.Maui.Shared.Layout.DashboardLayout
+@inject IApiClient ApiClient
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<PageTitle>Addresses</PageTitle>
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+    }
+    else
+    {
+        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-2">
+            <MudText Typo="Typo.h6">Saved Addresses</MudText>
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Outlined.Add"
+                       OnClick="@(() => Navigation.NavigateTo("/user/addresses/new"))">Add Address</MudButton>
+        </MudStack>
+
+        <SearchableTable TItem="UserAddressResponse" Items="_addresses" Filter="@((address, text) => address.AddressName.Contains(text, StringComparison.OrdinalIgnoreCase))"
+                          SearchPlaceholder="Search address">
+            <HeaderContent>
+                <MudTh>Name</MudTh>
+                <MudTh>Address</MudTh>
+                <MudTh>City</MudTh>
+                <MudTh>Shipping</MudTh>
+                <MudTh>Billing</MudTh>
+                <MudTh>Actions</MudTh>
+            </HeaderContent>
+            <RowTemplate Context="address">
+                <MudTd DataLabel="Name">@address.AddressName</MudTd>
+                <MudTd DataLabel="Address">@address.AddressLine</MudTd>
+                <MudTd DataLabel="City">@address.City, @address.State @address.Zipcode</MudTd>
+                <MudTd DataLabel="Shipping">@(address.IsShippingAddress ? "Yes" : "-")</MudTd>
+                <MudTd DataLabel="Billing">@(address.IsBillingAddress ? "Yes" : "-")</MudTd>
+                <MudTd DataLabel="Actions">
+                    <MudIconButton Icon="@Icons.Material.Outlined.Edit" Size="Size.Small" title="Edit"
+                                   OnClick="@(() => Navigation.NavigateTo($"/user/addresses/{address.Id}"))" />
+                    <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" Size="Size.Small" title="Delete"
+                                   OnClick="@(() => DeleteAsync(address))" />
+                </MudTd>
+            </RowTemplate>
+            <NoRecordsContent>
+                <MudText>No saved addresses yet.</MudText>
+            </NoRecordsContent>
+        </SearchableTable>
+    }
+
+@code {
+    private List<UserAddressResponse> _addresses = [];
+    private bool _loading = true;
+    private string? _loadError;
+
+    protected override Task OnInitializedAsync() => ReloadAsync();
+
+    private async Task ReloadAsync()
+    {
+        _loading = true;
+        _loadError = null;
+
+        var addressesResult = await ApiClient.GetAsync<List<UserAddressResponse>>(ApiRoutes.Addresses.Base);
+        if (!addressesResult.IsSuccessful || addressesResult.ResultData is null)
+        {
+            _loadError = addressesResult.DisplayMessage;
+            _addresses = [];
+        }
+        else
+        {
+            _addresses = addressesResult.ResultData;
+        }
+
+        _loading = false;
+    }
+
+    private async Task DeleteAsync(UserAddressResponse address)
+    {
+        if (!await DialogService.ConfirmDeleteAsync("address", address.AddressName))
+        {
+            return;
+        }
+
+        var result = await ApiClient.DeleteAsync(ApiRoutes.Addresses.ById(address.Id));
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await ReloadAsync();
+    }
+}

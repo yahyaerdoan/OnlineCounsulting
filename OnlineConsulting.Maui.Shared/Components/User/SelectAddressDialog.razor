@@ -1,0 +1,48 @@
+@* Pick a saved address for the Shipping/Billing card on Checkout - a radio list instead of a
+   dropdown so the full address is visible while choosing. *@
+@namespace OnlineConsulting.Maui.Shared.Components.User
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">Select @Title</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudRadioGroup T="Guid" @bind-Value="_selectedId">
+            @foreach (var address in Addresses)
+            {
+                <MudPaper Outlined="true" Class="pa-3 mb-2 rounded-lg">
+                    <MudRadio T="Guid" Value="@address.Id" Color="Color.Primary">
+                        <MudStack Spacing="0">
+                            <MudText Typo="Typo.body1">@address.AddressName</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">@AddressFormat.FullLine(address)</MudText>
+                        </MudStack>
+                    </MudRadio>
+                </MudPaper>
+            }
+        </MudRadioGroup>
+        <MudLink Href="/user/addresses/new" Class="d-inline-block mt-2">+ Add Another Address</MudLink>
+    </DialogContent>
+    <DialogActions>
+        <DialogActionButtons OnOk="Select" OkText="Select" />
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public string Title { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public List<UserAddressResponse> Addresses { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public Guid SelectedId { get; set; }
+
+    private Guid _selectedId;
+
+    protected override void OnInitialized() => _selectedId = SelectedId;
+
+    private void Select() => MudDialog.Close(DialogResult.Ok(_selectedId));
+}

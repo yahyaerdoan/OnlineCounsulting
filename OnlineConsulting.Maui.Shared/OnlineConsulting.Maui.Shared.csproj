@@ -13,8 +13,13 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" />
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Http" />
     <PackageReference Include="MudBlazor" />
+    <PackageReference Include="MudExRichTextEditor" />
+    <PackageReference Include="OpenMcdf" />
+    <PackageReference Include="Polly" />
+    <PackageReference Include="SharpCompress" />
   </ItemGroup>
 
 </Project>

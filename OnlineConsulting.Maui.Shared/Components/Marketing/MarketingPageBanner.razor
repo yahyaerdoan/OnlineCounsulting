@@ -1,0 +1,47 @@
+@* Page header on every marketing page except Home. Background image is the first PageBanner by
+   DisplayOrder (one shared image across pages); falls back to a flat gray band if none configured. *@
+@using OnlineConsulting.Maui.Shared.Infrastructure.Api
+@inject IApiClient ApiClient
+
+<div class="marketing-page-banner @(_imageUrl is not null ? "marketing-page-banner-image" : "")"
+     style="@(_imageUrl is not null ? $"background-image:url('{_imageUrl}')" : "")">
+    <div class="marketing-page-banner-overlay">
+        <MudContainer MaxWidth="MaxWidth.Large">
+            <MudText Typo="Typo.subtitle1" Class="marketing-display text-strong">@Title</MudText>
+            <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center" Class="mt-1">
+                <MudLink Href="/" Color="Color.Secondary" Underline="Underline.None" Typo="Typo.caption" Class="marketing-breadcrumb-link">Home</MudLink>
+                @if (ParentLabel is not null)
+                {
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">/</MudText>
+                    <MudLink Href="@ParentHref" Color="Color.Secondary" Underline="Underline.None" Typo="Typo.caption" Class="marketing-breadcrumb-link">@ParentLabel</MudLink>
+                }
+                <MudText Typo="Typo.caption" Color="Color.Secondary">/</MudText>
+                <MudText Typo="Typo.caption" Color="Color.Primary" Class="text-strong">@SubPage</MudText>
+            </MudStack>
+        </MudContainer>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Title { get; set; } = string.Empty;
+
+    [Parameter, EditorRequired]
+    public string SubPage { get; set; } = string.Empty;
+
+    /// <summary>Optional middle crumb between Home and SubPage, e.g. "Cart" for Checkout - most pages leave this unset.</summary>
+    [Parameter]
+    public string? ParentLabel { get; set; }
+
+    [Parameter]
+    public string? ParentHref { get; set; }
+
+    private string? _imageUrl;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await ApiClient.GetAsync<List<PageBannerResponse>>(ApiRoutes.SiteContent.PageBanners.Base);
+        var banner = result.IsSuccessful ? result.ResultData?.OrderBy(b => b.DisplayOrder).FirstOrDefault() : null;
+        _imageUrl = string.IsNullOrWhiteSpace(banner?.ImageUrl) ? null : banner.ImageUrl;
+    }
+}

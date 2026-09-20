@@ -1,0 +1,35 @@
+@* Self-contained FAQ accordion - fetches/filters by ServiceId itself. Native details/summary, zero JS. *@
+@using OnlineConsulting.Maui.Shared.Infrastructure.Api
+@inject IApiClient ApiClient
+
+@if (_items.Count > 0)
+{
+    <div class="mt-8">
+        <MudText Typo="Typo.h6" Class="mb-2">Frequently Asked Questions</MudText>
+        <MudStack Spacing="2">
+            @foreach (var item in _items)
+            {
+                <details class="marketing-promo-card">
+                    <summary>
+                        <span class="marketing-promo-title text-strong">@item.Question</span>
+                    </summary>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">@item.Answer</MudText>
+                </details>
+            }
+        </MudStack>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public Guid ServiceId { get; set; }
+
+    private List<FaqItemResponse> _items = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await ApiClient.GetAsync<List<FaqItemResponse>>(ApiRoutes.SiteContent.FaqItems.Base);
+        var all = result.IsSuccessful ? result.ResultData ?? [] : [];
+        _items = [.. all.Where(f => f.ServiceId == ServiceId).OrderBy(f => f.DisplayOrder)];
+    }
+}

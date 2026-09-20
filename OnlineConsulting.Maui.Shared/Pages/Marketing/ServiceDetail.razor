@@ -1,0 +1,204 @@
+@* Public service detail - eduhas's shop/product-details rows folded together: gallery, description,
+   price, add-to-cart, plus a related-services grid pulled from the same category. Static SSR. *@
+@page "/services/{Slug}"
+@attribute [ExcludeFromInteractiveRouting]
+@layout OnlineConsulting.Maui.Shared.Layout.MarketingLayout
+@using Microsoft.AspNetCore.Http
+@using OnlineConsulting.Maui.Shared.Components.Marketing
+@inject IApiClient ApiClient
+
+<PageTitle>@(_service?.Title ?? "Service")</PageTitle>
+
+<MarketingPageBanner Title="@(_service?.Title ?? "Service")" SubPage="Services" />
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
+    @if (_notFound)
+    {
+        <MudAlert Severity="Severity.Warning">Service not found.</MudAlert>
+    }
+    else
+    {
+        <ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+        @if (_service is not null)
+        {
+            <MudGrid>
+                <MudItem xs="12" md="6">
+                    @if (_galleryUrls.Count > 0)
+                    {
+                        <MudImage id="service-gallery-main" Src="@_galleryUrls[0]" ObjectFit="ObjectFit.Cover" Height="360" Class="rounded mb-2 service-detail-image" />
+                        @if (_galleryUrls.Count > 1)
+                        {
+                            <MudGrid Spacing="1">
+                                @foreach (var url in _galleryUrls.Skip(1))
+                                {
+                                    <MudItem xs="4">
+                                        <MudImage Src="@url" ObjectFit="ObjectFit.Cover" Height="100" Class="rounded service-detail-image service-gallery-thumb" />
+                                    </MudItem>
+                                }
+                            </MudGrid>
+                        }
+                    }
+                    else if (_coverUrl is not null)
+                    {
+                        <MudImage Src="@_coverUrl" ObjectFit="ObjectFit.Cover" Height="360" Class="rounded service-detail-image" />
+                    }
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    @if (_categoryTitle is not null)
+                    {
+                        <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Text">@_categoryTitle</MudChip>
+                    }
+
+                    <MudText Typo="Typo.h4" Class="mb-2">@_service.Title</MudText>
+                    <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-4">@_service.Description</MudText>
+
+                    @if (_service.DiscountRate > 0)
+                    {
+                        <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Baseline" Class="mb-4">
+                            <MudText Typo="Typo.body1" Style="text-decoration: line-through;" Color="Color.Secondary">@CurrencyFormat.Format(_service.Price)</MudText>
+                            <MudText Typo="Typo.h5" Color="Color.Primary">@CurrencyFormat.Format(_service.DiscountedPrice)</MudText>
+                        </MudStack>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.h5" Color="Color.Primary" Class="mb-4">@FormattedPrice(_service)</MudText>
+                    }
+
+                    @if (_service.PriceType == ServicePriceTypes.Fixed)
+                    {
+                        <AddToCartForm ServiceId="@_service.Id" Price="@_service.DiscountedPrice" TaxRate="@_service.TaxRate" />
+                    }
+                    else
+                    {
+                        @* Label, not <a href="#...">, so enhanced nav doesn't hijack the fragment. *@
+                        <label for="service-tab-ask" class="header-book-now-btn service-quote-cta">Get a Quote</label>
+                    }
+                </MudItem>
+            </MudGrid>
+
+            <ServiceFaqSection ServiceId="@_service.Id" />
+
+            <div class="marketing-tabs mt-8">
+                <input type="radio" name="service-tabs" id="service-tab-details" class="marketing-tabs-radio" checked="checked" />
+                <input type="radio" name="service-tabs" id="service-tab-ask" class="marketing-tabs-radio" />
+
+                <div class="marketing-tabs-nav d-flex gap-2 mb-5">
+                    <label for="service-tab-details" class="marketing-tabs-btn">Detailed Descriptions</label>
+                    <label for="service-tab-ask" class="marketing-tabs-btn">Ask Your Questions</label>
+                </div>
+
+                <div class="marketing-tabs-panel" id="service-panel-details">
+                    @if (!string.IsNullOrWhiteSpace(_service.DetailedDescription))
+                    {
+                        <MudText Typo="Typo.body1">@_service.DetailedDescription</MudText>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.body1" Color="Color.Secondary">No additional details provided yet.</MudText>
+                    }
+                </div>
+
+                <div class="marketing-tabs-panel" id="service-panel-ask">
+                    <ContactMessageForm Heading="Ask your questions about the service" InitialSubject="@($"Question about {_service.Title}")" />
+                </div>
+            </div>
+
+            @if (_relatedServices.Count > 0)
+            {
+                <MudText Typo="Typo.h5" Class="mt-10 mb-4">Related Services</MudText>
+                <MudGrid>
+                    @foreach (var related in _relatedServices)
+                    {
+                        <MudItem xs="12" sm="6" md="4">
+                            <ServiceListCard Service="@related" ImageUrl="@_relatedImageUrls.GetValueOrDefault(related.Id)"
+                                              CategoryTitle="@_categoryTitle" CategoryUrl="@($"/services?category={related.CategoryId}")"
+                                              DetailUrl="@($"/services/{related.Slug}")" />
+                        </MudItem>
+                    }
+                </MudGrid>
+            }
+        }
+    }
+</MudContainer>
+
+@code {
+    [Parameter]
+    public string Slug { get; set; } = string.Empty;
+
+    private ServiceDetailResponse? _service;
+    private List<ServiceResponse> _relatedServices = [];
+    private Dictionary<Guid, string?> _relatedImageUrls = [];
+    private List<string> _galleryUrls = [];
+    private string? _coverUrl;
+    private string? _categoryTitle;
+    private string? _loadError;
+    private bool _notFound;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await ApiClient.GetAsync<ServiceDetailResponse>(ApiRoutes.Services.BySlug(Slug));
+        if (!result.IsSuccessful || result.ResultData is null)
+        {
+            if (result.StatusCode == StatusCodes.Status404NotFound)
+            {
+                _notFound = true;
+            }
+            else
+            {
+                _loadError = result.DisplayMessage;
+            }
+
+            return;
+        }
+
+        _service = result.ResultData;
+
+        var categories = await CategoryLookupHelper.GetAllAsync(ApiClient);
+        _categoryTitle = categories.FirstOrDefault(c => c.Id == _service.CategoryId)?.Title;
+
+        if (_service.MediaItems.Count > 0)
+        {
+            var urls = await Task.WhenAll(_service.MediaItems
+                .OrderBy(m => m.DisplayOrder)
+                .Select(m => MediaUploadHelper.GetUrlAsync(ApiClient, m.MediaAssetId)));
+            _galleryUrls = [.. urls.OfType<string>()];
+        }
+        else if (_service.CoverMediaAssetId is Guid coverId)
+        {
+            _coverUrl = await MediaUploadHelper.GetUrlAsync(ApiClient, coverId);
+        }
+
+        await LoadRelatedServicesAsync();
+    }
+
+    private async Task LoadRelatedServicesAsync()
+    {
+        if (_service is null)
+        {
+            return;
+        }
+
+        var pagedResult = await ApiClient.GetAsync<PaginatedResponse<ServiceResponse>>(
+            ApiRoutes.Paged(ApiRoutes.Services.ByCategory(_service.CategoryId), 0, 4));
+        if (!pagedResult.IsSuccessful)
+        {
+            _loadError = pagedResult.DisplayMessage;
+            return;
+        }
+
+        _relatedServices = [.. (pagedResult.ResultData?.Items ?? []).Where(s => s.Id != _service.Id).Take(3)];
+
+        var lookups = await Task.WhenAll(_relatedServices.Select(async service =>
+            (service.Id, Url: service.CoverMediaAssetId is Guid mediaId ? await MediaUploadHelper.GetUrlAsync(ApiClient, mediaId) : null)));
+
+        _relatedImageUrls = lookups.ToDictionary(l => l.Id, l => l.Url);
+    }
+
+    private static string FormattedPrice(ServiceDetailResponse service) => service.PriceType switch
+    {
+        ServicePriceTypes.StartingAt => $"From {CurrencyFormat.Format(service.Price)}",
+        ServicePriceTypes.Range when service.PriceMax is not null => $"{CurrencyFormat.Format(service.Price)} - {CurrencyFormat.Format(service.PriceMax.Value)}",
+        _ => CurrencyFormat.Format(service.Price),
+    };
+}

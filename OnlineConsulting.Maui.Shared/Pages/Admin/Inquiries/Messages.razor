@@ -1,5 +1,5 @@
 @page "/admin/inquiries/messages"
-@attribute [Authorize]
+@attribute [Authorize(Roles = "Admin,Super Admin,Member")]
 @using OnlineConsulting.Maui.Shared.Pages.Admin.Inquiries
 @inject IApiClient ApiClient
 @inject IDialogService DialogService

@@ -1,0 +1,103 @@
+@page "/admin/growth/promo-codes"
+@attribute [Authorize(Roles = "Admin,Super Admin,Member")]
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject IDialogService DialogService
+
+<PageTitle>Promo Codes</PageTitle>
+
+<PageHeroBanner Title="Promo Codes" Subtitle="Discount codes customers can redeem when subscribing.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.Add"
+                   OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/growth/promo-codes/new"))">New Code</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mt-4" />
+}
+else
+{
+    <SearchableTable TItem="PromoCodeResponse" Items="_promoCodes" Filter="@((promo, text) => promo.Code.Contains(text, StringComparison.OrdinalIgnoreCase))"
+                      SearchPlaceholder="Search code">
+        <HeaderContent>
+            <MudTh>Code</MudTh>
+            <MudTh>Discount</MudTh>
+            <MudTh Class="mud-table-cell-align-right">Redemptions</MudTh>
+            <MudTh>Expires</MudTh>
+            <MudTh>Status</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate Context="promo">
+            <MudTd DataLabel="Code">@promo.Code</MudTd>
+            <MudTd DataLabel="Discount">@(promo.DiscountType == "Percent" ? $"{promo.DiscountValue}%" : CurrencyFormat.Format(promo.DiscountValue))</MudTd>
+            <MudTd DataLabel="Redemptions" Class="mud-table-cell-align-right">@promo.RedemptionCount@(promo.MaxRedemptions is { } max ? $" / {max}" : "")</MudTd>
+            <MudTd DataLabel="Expires">@(promo.ExpiresAt is { } expires ? DateTimeFormat.FormatDateTime(expires) : "Never")</MudTd>
+            <MudTd DataLabel="Status">
+                <MudChip T="string" Size="Size.Small" Color="@(promo.IsActive ? Color.Success : Color.Default)">
+                    @(promo.IsActive ? "Active" : "Inactive")
+                </MudChip>
+            </MudTd>
+            <MudTd DataLabel="Actions">
+                @if (promo.IsActive)
+                {
+                    <MudIconButton Icon="@Icons.Material.Outlined.Block" Color="Color.Default" Size="Size.Small" title="Deactivate"
+                                   OnClick="@(() => SetActiveAsync(promo, false))" />
+                }
+                else
+                {
+                    <MudIconButton Icon="@Icons.Material.Outlined.CheckCircleOutline" Color="Color.Default" Size="Size.Small" title="Activate"
+                                   OnClick="@(() => SetActiveAsync(promo, true))" />
+                }
+            </MudTd>
+        </RowTemplate>
+    </SearchableTable>
+}
+
+@code {
+    private List<PromoCodeResponse> _promoCodes = [];
+    private bool _loading = true;
+    private string? _loadError;
+
+    protected override Task OnInitializedAsync() => ReloadAsync();
+
+    private async Task ReloadAsync()
+    {
+        _loading = true;
+        var result = await ApiClient.GetAsync<PaginatedResponse<PromoCodeResponse>>(ApiRoutes.Paged(ApiRoutes.Growth.PromoCodes.All, 0, 100));
+        if (!result.IsSuccessful || result.ResultData is null)
+        {
+            _loadError = result.DisplayMessage;
+            _promoCodes = [];
+        }
+        else
+        {
+            _promoCodes = result.ResultData.Items;
+        }
+
+        _loading = false;
+    }
+
+    private async Task SetActiveAsync(PromoCodeResponse promo, bool isActive)
+    {
+        var action = isActive ? "Activate" : "Deactivate";
+        if (!await DialogService.ConfirmAsync($"{action} Code", $"{action} \"{promo.Code}\"?"))
+        {
+            return;
+        }
+
+        var result = await ApiClient.PutAsync(ApiRoutes.Growth.PromoCodes.SetActive(promo.Id, isActive), null);
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await ReloadAsync();
+    }
+}

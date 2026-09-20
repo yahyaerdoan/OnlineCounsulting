@@ -1,7 +1,7 @@
 @page "/admin/site-content/about-us/new"
 @page "/admin/site-content/about-us/{Id:guid}/edit"
 @namespace OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent
-@attribute [Authorize]
+@attribute [Authorize(Roles = "Admin,Super Admin,Member")]
 @using OnlineConsulting.Maui.Shared.Infrastructure.Forms
 @using OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent.AboutUsModels
 @inject IApiClient ApiClient
@@ -21,20 +21,27 @@
 
 <ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
 
-<EditForm EditContext="@Form.EditContext">
-    <MudPaper Class="pa-4">
-        <AboutUsFormFields Model="_model" />
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+}
+else
+{
+    <EditForm EditContext="@Form.EditContext">
+        <MudPaper Class="pa-4">
+            <AboutUsFormFields Model="_model" />
 
-        <MudDivider Class="my-4" />
+            <MudDivider Class="my-4" />
 
-        <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2">
-            <MudButton Variant="Variant.Text" OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/about-us"))">Cancel</MudButton>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAsync" Disabled="@Form.IsBusy">
-                @(Id is null ? "Create" : "Save")
-            </MudButton>
-        </MudStack>
-    </MudPaper>
-</EditForm>
+            <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2">
+                <MudButton Variant="Variant.Text" OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/about-us"))">Cancel</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAsync" Disabled="@Form.IsBusy">
+                    @(Id is null ? "Create" : "Save")
+                </MudButton>
+            </MudStack>
+        </MudPaper>
+    </EditForm>
+}
 
 @code {
     [Parameter]
@@ -43,6 +50,9 @@
     private readonly AboutUsFormModel _model = new();
     private string? _loadError;
 
+    /// <summary>Keeps the rich-text editor unmounted until Description is loaded - it only reads Value once, on mount.</summary>
+    private bool _loading = true;
+
     protected override async Task OnInitializedAsync()
     {
         // Bind before any await - Blazor can render (and touch Form.EditContext) after the first yield point.
@@ -50,6 +60,7 @@
 
         if (Id is not { } entryId)
         {
+            _loading = false;
             return;
         }
 
@@ -59,6 +70,7 @@
         if (entry is null)
         {
             _loadError = listResult.DisplayMessage;
+            _loading = false;
             return;
         }
 
@@ -67,6 +79,7 @@
         _model.CoverImage = entry.CoverImage;
         _model.VideoUrl = entry.VideoUrl;
         _model.DisplayOrder = entry.DisplayOrder;
+        _loading = false;
     }
 
     private Task SaveAsync() => Form.SubmitAsync(async () =>

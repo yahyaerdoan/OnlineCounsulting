@@ -1,0 +1,39 @@
+@* "What Our Customers Say" - a dedicated quote-card layout (large watermark quote mark, the
+   review text up front, reviewer identity pinned to the card footer) instead of reusing the
+   service-tile card class. *@
+@using OnlineConsulting.Maui.Shared.Infrastructure.Api
+@inject IApiClient ApiClient
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
+    <MudText Typo="Typo.subtitle1" Color="Color.Primary" Align="Align.Center" Class="text-strong">Testimonials</MudText>
+    <MudText Typo="Typo.h5" Align="Align.Center" Class="marketing-display text-strong mb-4">What Our Customers Say</MudText>
+
+    <MudGrid Spacing="2">
+        @foreach (var testimonial in _testimonials)
+        {
+            <MudItem xs="12" sm="6" md="4">
+                <div class="marketing-testimonial-card">
+                    <MudIcon Icon="@Icons.Material.Filled.FormatQuote" Class="marketing-testimonial-quote-icon" />
+                    <MudText Typo="Typo.body1" Class="marketing-testimonial-desc">@testimonial.Description</MudText>
+                    <div class="marketing-testimonial-footer">
+                        <MudImage Src="@testimonial.ImageUrl" ObjectFit="ObjectFit.Cover" Width="48" Height="48" Class="marketing-avatar" />
+                        <div>
+                            <MudText Typo="Typo.subtitle2" Class="text-strong">@testimonial.FirstName @testimonial.LastName</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">@testimonial.Title</MudText>
+                        </div>
+                    </div>
+                </div>
+            </MudItem>
+        }
+    </MudGrid>
+</MudContainer>
+
+@code {
+    private List<TestimonialResponse> _testimonials = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await ApiClient.GetAsync<List<TestimonialResponse>>(ApiRoutes.SiteContent.Testimonial.Base);
+        _testimonials = result.IsSuccessful ? result.ResultData?.OrderBy(t => t.DisplayOrder).ToList() ?? [] : [];
+    }
+}

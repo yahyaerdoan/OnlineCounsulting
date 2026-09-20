@@ -1,0 +1,32 @@
+@* Persistent sidebar chrome for /user/* pages, nested inside MarketingLayout via layout-chaining -
+   stays mounted across navigation instead of rebuilding per page. No MudLayout/MudDrawer here:
+   those assume they're the app's root layout and would fight the outer one for space. *@
+@inherits LayoutComponentBase
+@layout OnlineConsulting.Maui.Shared.Layout.MarketingLayout
+@using OnlineConsulting.Maui.Shared.Components.User
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
+    <DashboardUpperInfo OnToggleSidebar="ToggleSidebar" />
+
+    <MudGrid>
+        @if (_sidebarOpen)
+        {
+            <MudItem xs="12" md="3">
+                <MudPaper Class="pa-3" Outlined="true">
+                    <DashboardSidebar />
+                </MudPaper>
+            </MudItem>
+        }
+        <MudItem xs="12" md="@(_sidebarOpen ? 9 : 12)">
+            <MudPaper Class="pa-4" Outlined="true">
+                @Body
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+    private bool _sidebarOpen = true;
+
+    private void ToggleSidebar() => _sidebarOpen = !_sidebarOpen;
+}

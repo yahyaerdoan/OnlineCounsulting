@@ -1,0 +1,74 @@
+@* Matches the legacy "single-popular-courses" card. Raw HTML/CSS - MudCard can't map its hover-zoom/layout. *@
+
+<div class="single-popular-courses">
+    <div class="popular-courses-image">
+        <a href="@DetailUrl">
+            <img src="@ImageUrl" alt="Service Images" />
+        </a>
+    </div>
+    <div class="popular-courses-contnet">
+        <h5 class="popular-courses-title"><a href="@DetailUrl">@Service.Title</a></h5>
+        <div class="post_meta">
+            <ul>
+                @if (!string.IsNullOrWhiteSpace(CategoryTitle))
+                {
+                    <li><a href="@CategoryUrl">@CategoryTitle</a></li>
+                }
+                @if (Service.DiscountRate > 0)
+                {
+                    <li><p class="price-strike">@CurrencyFormat.Format(Service.Price)</p></li>
+                    <li><p class="price-discounted">@CurrencyFormat.Format(Service.DiscountedPrice)</p></li>
+                    <li><p class="price-off">@Service.DiscountRate% Off</p></li>
+                }
+                else
+                {
+                    <li><p class="price-plain">@FormattedPrice</p></li>
+                }
+            </ul>
+        </div>
+        <p class="popular-courses-desc">@TruncatedDescription</p>
+        <div class="button-block">
+            @if (Service.PriceType == ServicePriceTypes.Fixed)
+            {
+                <AddToCartForm ServiceId="@Service.Id" Price="@Service.DiscountedPrice" TaxRate="@Service.TaxRate"
+                                ButtonText="Book This Service" ShowIcon="false" FullWidth="true" />
+            }
+            else
+            {
+                <MudButton Href="@DetailUrl" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true">Get a Quote</MudButton>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public ServiceResponse Service { get; set; } = default!;
+
+    /// <summary>Resolved cover image URL - callers pre-resolve via MediaUploadHelper, this component doesn't fetch.</summary>
+    [Parameter]
+    public string? ImageUrl { get; set; }
+
+    /// <summary>Resolved category title - ServiceResponse only carries CategoryId, callers pass the looked-up title.</summary>
+    [Parameter]
+    public string? CategoryTitle { get; set; }
+
+    /// <summary>Category-filter route for the category chip - distinct from DetailUrl, which the card's image/title use.</summary>
+    [Parameter]
+    public string? CategoryUrl { get; set; }
+
+    [Parameter, EditorRequired]
+    public string DetailUrl { get; set; } = default!;
+
+    private string FormattedPrice => Service.PriceType switch
+    {
+        ServicePriceTypes.StartingAt => $"From {CurrencyFormat.Format(Service.Price)}",
+        ServicePriceTypes.Range when Service.PriceMax is not null => $"{CurrencyFormat.Format(Service.Price)} - {CurrencyFormat.Format(Service.PriceMax.Value)}",
+        _ => CurrencyFormat.Format(Service.Price),
+    };
+
+    /// <summary>Mirrors the legacy card's exact truncation (80 chars + "...").</summary>
+    private string TruncatedDescription => Service.Description.Length > 80
+        ? Service.Description[..80] + "..."
+        : Service.Description;
+}

@@ -1,5 +1,5 @@
 @page "/admin/site-content/faq-items"
-@attribute [Authorize]
+@attribute [Authorize(Roles = "Admin,Super Admin,Member")]
 @using OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent
 @inject IApiClient ApiClient
 @inject IDialogService DialogService

@@ -24,6 +24,7 @@ public class CoreUiModule : IUiModule
         new NavSection("Growth", Icons.Material.Outlined.TrendingUp, Color.Success,
         [
             new NavItem("Memberships", $"{AdminPrefix}/growth/memberships", Icons.Material.Outlined.CardMembership),
+            new NavItem("Promo Codes", $"{AdminPrefix}/growth/promo-codes", Icons.Material.Outlined.Sell),
             new NavItem("Membership Subscribers", $"{AdminPrefix}/growth/membership-subscribers", Icons.Material.Outlined.Groups),
             new NavItem("Referrals", $"{AdminPrefix}/growth/referrals", Icons.Material.Outlined.Diversity3),
             new NavItem("Promotions", $"{AdminPrefix}/growth/promotions", Icons.Material.Outlined.LocalOffer),
@@ -43,6 +44,7 @@ public class CoreUiModule : IUiModule
             new NavItem("Roles", $"{AdminPrefix}/settings/roles", Icons.Material.Outlined.AdminPanelSettings, SuperAdminOnly: true),
             new NavItem("Permissions", $"{AdminPrefix}/settings/permissions", Icons.Material.Outlined.Security, SuperAdminOnly: true),
             new NavItem("Feature Flags", $"{AdminPrefix}/settings/feature-flags", Icons.Material.Outlined.Flag),
+            new NavItem("My Subscription", $"{AdminPrefix}/settings/my-subscription", Icons.Material.Outlined.CreditCard),
         ]),
     ];
 }

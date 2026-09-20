@@ -1,0 +1,97 @@
+@* Caller's own referral code, referred-people list and account-credit balance. ReferredUserId is a
+   raw guid with no name/email on this DTO - displayed by code/date/status/reward, not by name. *@
+@namespace OnlineConsulting.Maui.Shared.Components.User
+@inject IApiClient ApiClient
+@inject IJSRuntime JsRuntime
+@inject ISnackbar Snackbar
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+}
+else
+{
+    <MudGrid Class="mb-4">
+        <MudItem xs="12" sm="6">
+            <MudPaper Class="pa-4" Outlined="true">
+                <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Your Referral Code</MudText>
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mt-1">
+                    <MudText Typo="Typo.h5">@_referralCode</MudText>
+                    <MudIconButton Icon="@(_copied ? Icons.Material.Outlined.Check : Icons.Material.Outlined.ContentCopy)" Size="Size.Small" title="Copy" OnClick="CopyCodeAsync" />
+                </MudStack>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="6">
+            <MudPaper Class="pa-4" Outlined="true">
+                <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Account Credit Balance</MudText>
+                <MudText Typo="Typo.h5" Class="mt-1">@CurrencyFormat.Format(_creditBalance)</MudText>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+
+    <SearchableTable TItem="ReferralResponse" Items="_referrals" Filter="@((referral, text) => referral.Code.Contains(text, StringComparison.OrdinalIgnoreCase))"
+                      SearchPlaceholder="Search code">
+        <HeaderContent>
+            <MudTh>Code</MudTh>
+            <MudTh>Status</MudTh>
+            <MudTh Class="mud-table-cell-align-right">Reward</MudTh>
+            <MudTh>Rewarded</MudTh>
+        </HeaderContent>
+        <RowTemplate Context="referral">
+            <MudTd DataLabel="Code">@referral.Code</MudTd>
+            <MudTd DataLabel="Status">@referral.Status</MudTd>
+            <MudTd DataLabel="Reward" Class="mud-table-cell-align-right">@(referral.RewardAmount is { } amount ? CurrencyFormat.Format(amount) : "-")</MudTd>
+            <MudTd DataLabel="Rewarded">@(referral.RewardedAt is { } rewardedAt ? DateTimeFormat.FormatDateTime(rewardedAt) : "-")</MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudText>No referrals yet - share your code to start earning rewards.</MudText>
+        </NoRecordsContent>
+    </SearchableTable>
+}
+
+@code {
+    private string _referralCode = "-";
+    private decimal _creditBalance;
+    private List<ReferralResponse> _referrals = [];
+    private bool _loading = true;
+    private bool _copied;
+    private string? _loadError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var codeResult = await ApiClient.PostAsync<string>(ApiRoutes.Growth.Referrals.MyCode, new { });
+        if (!codeResult.IsSuccessful || codeResult.ResultData is null)
+        {
+            _loadError = codeResult.DisplayMessage;
+            _loading = false;
+            return;
+        }
+
+        _referralCode = codeResult.ResultData;
+
+        var referralsResult = await ApiClient.GetAsync<List<ReferralResponse>>(ApiRoutes.Growth.Referrals.Mine);
+        _referrals = referralsResult.IsSuccessful && referralsResult.ResultData is not null ? referralsResult.ResultData : [];
+
+        var creditResult = await ApiClient.GetAsync<AccountCreditSummaryResponse>(ApiRoutes.Growth.Referrals.MyCredit);
+        _creditBalance = creditResult.IsSuccessful && creditResult.ResultData is not null ? creditResult.ResultData.Balance : 0m;
+
+        _loading = false;
+    }
+
+    private async Task CopyCodeAsync()
+    {
+        var copied = await JsRuntime.InvokeAsync<bool>("copyToClipboard", _referralCode);
+        if (!copied)
+        {
+            Snackbar.Add("Clipboard is not available in this browser.", Severity.Error);
+            return;
+        }
+
+        _copied = true;
+        StateHasChanged();
+        await Task.Delay(1500);
+        _copied = false;
+    }
+}

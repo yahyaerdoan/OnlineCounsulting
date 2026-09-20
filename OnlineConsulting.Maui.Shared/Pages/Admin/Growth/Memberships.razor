@@ -1,8 +1,9 @@
 @page "/admin/growth/memberships"
-@attribute [Authorize]
+@attribute [Authorize(Roles = "Admin,Super Admin,Member")]
 @inject IApiClient ApiClient
 @inject ISnackbar Snackbar
 @inject NavigationManager Navigation
+@inject IDialogService DialogService
 
 <PageTitle>Memberships</PageTitle>
 
@@ -28,6 +29,7 @@ else
             <MudTh>Billing</MudTh>
             <MudTh Class="mud-table-cell-align-right">Price</MudTh>
             <MudTh Class="mud-table-cell-align-right">Visits/yr</MudTh>
+            <MudTh>Status</MudTh>
             <MudTh>Actions</MudTh>
         </HeaderContent>
         <RowTemplate Context="plan">
@@ -35,9 +37,24 @@ else
             <MudTd DataLabel="Billing">@plan.BillingCycle</MudTd>
             <MudTd DataLabel="Price" Class="mud-table-cell-align-right">@CurrencyFormat.Format(plan.Price)</MudTd>
             <MudTd DataLabel="Visits/yr" Class="mud-table-cell-align-right">@plan.IncludedVisitsPerYear</MudTd>
+            <MudTd DataLabel="Status">
+                <MudChip T="string" Size="Size.Small" Color="@(plan.IsActive ? Color.Success : Color.Default)">
+                    @(plan.IsActive ? "Active" : "Archived")
+                </MudChip>
+            </MudTd>
             <MudTd DataLabel="Actions">
                 <MudIconButton Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" Size="Size.Small" title="Edit"
                                OnClick="@(() => Navigation.NavigateTo($"{AppRoutes.AdminHome}/growth/memberships/{plan.Id}/edit"))" />
+                @if (plan.IsActive)
+                {
+                    <MudIconButton Icon="@Icons.Material.Outlined.Archive" Color="Color.Default" Size="Size.Small" title="Archive"
+                                   OnClick="@(() => SetActiveAsync(plan, false))" />
+                }
+                else
+                {
+                    <MudIconButton Icon="@Icons.Material.Outlined.Unarchive" Color="Color.Default" Size="Size.Small" title="Restore"
+                                   OnClick="@(() => SetActiveAsync(plan, true))" />
+                }
             </MudTd>
         </RowTemplate>
     </SearchableTable>
@@ -53,7 +70,8 @@ else
     private async Task ReloadPlansAsync()
     {
         _plansLoading = true;
-        var result = await ApiClient.GetAsync<PaginatedResponse<MembershipPlanResponse>>(ApiRoutes.Paged(ApiRoutes.Growth.MembershipPlans.All, 0, 100));
+        var result = await ApiClient.GetAsync<PaginatedResponse<MembershipPlanResponse>>(
+            $"{ApiRoutes.Paged(ApiRoutes.Growth.MembershipPlans.All, 0, 100)}&includeArchived=true");
         if (!result.IsSuccessful || result.ResultData is null)
         {
             _planLoadError = result.DisplayMessage;
@@ -65,5 +83,24 @@ else
         }
 
         _plansLoading = false;
+    }
+
+    private async Task SetActiveAsync(MembershipPlanResponse plan, bool isActive)
+    {
+        var action = isActive ? "Restore" : "Archive";
+        if (!await DialogService.ConfirmAsync($"{action} Plan", $"{action} \"{plan.Name}\"? {(isActive ? "It will be visible in the public catalog again." : "It will be hidden from the public catalog and blocked for new subscriptions. Existing subscribers are unaffected.")}"))
+        {
+            return;
+        }
+
+        var result = await ApiClient.PutAsync(ApiRoutes.Growth.MembershipPlans.SetActive(plan.Id, isActive), null);
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await ReloadPlansAsync();
     }
 }

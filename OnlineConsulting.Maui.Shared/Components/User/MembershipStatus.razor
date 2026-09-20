@@ -1,0 +1,186 @@
+@* Caller's own membership status - GetMyMembership returns 404 for "not currently a member", not an error. *@
+@namespace OnlineConsulting.Maui.Shared.Components.User
+@inject IApiClient ApiClient
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+}
+else if (_membership is null)
+{
+    <MudText Typo="Typo.body1" Color="Color.Secondary">No active membership.</MudText>
+    <MudButton Href="/membership" Variant="Variant.Filled" Color="Color.Primary" Class="mt-4">View Membership Plans</MudButton>
+}
+else
+{
+    <MudSimpleTable Dense="true">
+        <tbody>
+            <tr><td>Plan</td><td>@(_planName ?? _membership.MembershipPlanId.ToString())</td></tr>
+            <tr><td>Status</td><td>@_membership.Status</td></tr>
+            <tr><td>Started</td><td>@DateTimeFormat.FormatDateTime(_membership.StartDate)</td></tr>
+            <tr><td>Renews</td><td>@(_membership.RenewalDate is { } renewal ? DateTimeFormat.FormatDateTime(renewal) : "-")</td></tr>
+        </tbody>
+    </MudSimpleTable>
+
+    @if (_membership.CancelAtPeriodEnd && _membership.Status != "Cancelled")
+    {
+        <MudAlert Severity="Severity.Info" Class="mt-3" Dense="true">
+            Your membership won't renew and will end on @(_membership.RenewalDate is { } end ? DateTimeFormat.FormatDateTime(end) : "your next renewal date").
+        </MudAlert>
+    }
+
+    @if (_membership.TrialEndDate is { } trialEnd && trialEnd > DateTimeOffset.UtcNow)
+    {
+        <MudAlert Severity="Severity.Info" Class="mt-3" Dense="true">
+            Free trial until @DateTimeFormat.FormatDateTime(trialEnd).
+        </MudAlert>
+    }
+
+    <MudStack Row="true" Spacing="2" Class="mt-4" Wrap="Wrap.Wrap">
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Disabled="@(_membership.Status != "Active" || _membership.CancelAtPeriodEnd)"
+                   OnClick="ChangePlanAsync">Change Plan</MudButton>
+        <MudButton Variant="Variant.Outlined" Color="Color.Error" Disabled="@(_membership.Status == "Cancelled" || _membership.CancelAtPeriodEnd)"
+                   OnClick="CancelAsync">Cancel Membership</MudButton>
+        @if (_membership.Status == "Active")
+        {
+            <MudButton Variant="Variant.Outlined" Color="Color.Warning" Disabled="@_membership.CancelAtPeriodEnd"
+                       OnClick="PauseAsync">Pause Membership</MudButton>
+        }
+        else if (_membership.Status == "Paused")
+        {
+            <MudButton Variant="Variant.Outlined" Color="Color.Success" OnClick="ResumeAsync">Resume Membership</MudButton>
+        }
+    </MudStack>
+}
+
+@code {
+    private CustomerMembershipResponse? _membership;
+    private string? _planName;
+    private bool _loading = true;
+    private string? _loadError;
+
+    protected override Task OnInitializedAsync() => ReloadAsync();
+
+    private async Task ReloadAsync()
+    {
+        _loading = true;
+        _loadError = null;
+        var result = await ApiClient.GetAsync<CustomerMembershipResponse>(ApiRoutes.Growth.CustomerMemberships.Mine);
+
+        if (!result.IsSuccessful)
+        {
+            // Not currently a member is expected, not an error - only surface unexpected failures.
+            if (result.StatusCode != 404)
+            {
+                _loadError = result.DisplayMessage;
+            }
+
+            _membership = null;
+            _loading = false;
+            return;
+        }
+
+        _membership = result.ResultData;
+
+        if (_membership is not null)
+        {
+            var planResult = await ApiClient.GetAsync<MembershipPlanResponse>(ApiRoutes.Growth.MembershipPlans.ById(_membership.MembershipPlanId));
+            _planName = planResult.IsSuccessful ? planResult.ResultData?.Name : null;
+        }
+
+        _loading = false;
+    }
+
+    private async Task CancelAsync()
+    {
+        if (!await DialogService.ConfirmAsync("Cancel Membership", "Cancel your membership? You'll keep your benefits until the end of the current billing period, then it won't renew."))
+        {
+            return;
+        }
+
+        var result = await ApiClient.PostAsync(ApiRoutes.Growth.CustomerMemberships.Cancel, new { });
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await ReloadAsync();
+    }
+
+    private async Task ChangePlanAsync()
+    {
+        var plansResult = await ApiClient.GetAsync<PaginatedResponse<MembershipPlanResponse>>(ApiRoutes.Paged(ApiRoutes.Growth.MembershipPlans.Base, 0, 100));
+        if (!plansResult.IsSuccessful || plansResult.ResultData is null)
+        {
+            Snackbar.ShowError(plansResult.DisplayMessage);
+            return;
+        }
+
+        var otherPlans = plansResult.ResultData.Items.Where(p => p.Id != _membership!.MembershipPlanId).ToList();
+        if (otherPlans.Count == 0)
+        {
+            Snackbar.ShowError("There are no other plans available to switch to right now.");
+            return;
+        }
+
+        var parameters = new DialogParameters<SelectMembershipPlanDialog> { { x => x.Plans, otherPlans } };
+        var dialog = await DialogService.ShowAsync<SelectMembershipPlanDialog>("Change Plan", parameters, DialogServiceExtensions.SmallDialogOptions);
+        var dialogResult = await dialog.Result;
+        if (dialogResult is not { Canceled: false, Data: Guid newPlanId })
+        {
+            return;
+        }
+
+        var result = await ApiClient.PostAsync(ApiRoutes.Growth.CustomerMemberships.ChangePlan(newPlanId), new { });
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await ReloadAsync();
+    }
+
+    private async Task PauseAsync()
+    {
+        if (!await DialogService.ConfirmAsync("Pause Membership", "Pause your membership? Billing stops until you resume."))
+        {
+            return;
+        }
+
+        var result = await ApiClient.PostAsync(ApiRoutes.Growth.CustomerMemberships.Pause, new { });
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await ReloadAsync();
+    }
+
+    private async Task ResumeAsync()
+    {
+        if (!await DialogService.ConfirmAsync("Resume Membership", "Resume your membership? Billing will continue normally."))
+        {
+            return;
+        }
+
+        var result = await ApiClient.PostAsync(ApiRoutes.Growth.CustomerMemberships.Resume, new { });
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await ReloadAsync();
+    }
+}

@@ -1,0 +1,64 @@
+@* Matches the eduhas reference template's "Why Choose Us" / "What We Provide" section - intro paragraph + cover
+   image (FeatureHighlightsIntro, singleton-in-practice) above a 2-column layout: left = the FeatureHighlight card
+   grid, right = the section's cover image. Falls back to the original full-width grid when no intro row exists yet. *@
+@using OnlineConsulting.Maui.Shared.Infrastructure.Api
+@inject IApiClient ApiClient
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
+    <div class="marketing-section-header-left">
+        <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center" Class="mb-1">
+            <MudIcon Icon="@Icons.Material.Filled.Verified" Color="Color.Primary" Size="Size.Small" />
+            <MudText Typo="Typo.subtitle1" Color="Color.Primary" Class="text-strong">Why Choose Us</MudText>
+        </MudStack>
+        <MudText Typo="Typo.h5" Class="marketing-display text-strong">What We Provide</MudText>
+        @if (!string.IsNullOrWhiteSpace(_intro?.Description))
+        {
+            <MudText Typo="Typo.body1" Color="Color.Secondary" Class="marketing-section-intro-text">@_intro.Description</MudText>
+        }
+    </div>
+
+    <MudGrid Spacing="2" Class="marketing-feature-columns">
+        <MudItem xs="12" md="@(_coverImageUrl is null ? 12 : 6)">
+            <MudStack Spacing="0">
+                @for (var i = 0; i < _items.Count; i++)
+                {
+                    var item = _items[i];
+                    <div class="marketing-feature-row" data-feature-image="@item.ImageUrl">
+                        <span class="marketing-feature-number">@((i + 1).ToString("00"))</span>
+                        <MudImage Src="@item.ImageUrl" ObjectFit="ObjectFit.Cover" Width="40" Height="40" Class="marketing-feature-icon" />
+                        <div>
+                            <MudText Typo="Typo.subtitle1" Class="text-strong marketing-feature-title">@item.Title</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">@item.Description</MudText>
+                        </div>
+                    </div>
+                }
+            </MudStack>
+        </MudItem>
+        @if (_coverImageUrl is not null)
+        {
+            <MudItem xs="12" md="6">
+                <MudImage id="marketing-feature-intro-image" Src="@_coverImageUrl" ObjectFit="ObjectFit.Cover" Class="marketing-feature-intro-image" data-default-src="@_coverImageUrl" />
+            </MudItem>
+        }
+    </MudGrid>
+</MudContainer>
+
+@code {
+    private List<FeatureHighlightResponse> _items = [];
+    private FeatureHighlightsIntroResponse? _intro;
+    private string? _coverImageUrl;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await ApiClient.GetAsync<List<FeatureHighlightResponse>>(ApiRoutes.SiteContent.FeatureHighlight.Base);
+        _items = result.IsSuccessful ? result.ResultData?.OrderBy(i => i.DisplayOrder).ToList() ?? [] : [];
+
+        var introResult = await ApiClient.GetAsync<List<FeatureHighlightsIntroResponse>>(ApiRoutes.SiteContent.FeatureHighlightsIntro.Base);
+        _intro = introResult.IsSuccessful ? introResult.ResultData?.OrderBy(i => i.DisplayOrder).FirstOrDefault() : null;
+
+        if (_intro?.CoverMediaAssetId is { } coverId)
+        {
+            _coverImageUrl = await MediaUploadHelper.GetUrlAsync(ApiClient, coverId);
+        }
+    }
+}

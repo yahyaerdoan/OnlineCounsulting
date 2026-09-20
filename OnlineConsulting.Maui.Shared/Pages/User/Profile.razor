@@ -1,0 +1,50 @@
+@* Name/email are read-only - PUT /api/users/{id} is admin-gated (Update claim), not a customer
+   self-edit endpoint. Split from the former AccountProfileTab - addresses moved to Addresses.razor. *@
+@page "/user/profile"
+@attribute [Authorize(Roles = AppRoles.User)]
+@layout OnlineConsulting.Maui.Shared.Layout.DashboardLayout
+@inject IApiClient ApiClient
+
+<PageTitle>Profile</PageTitle>
+
+<DashboardPageHeading Text="Profile" />
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+    }
+    else if (_user is not null)
+    {
+        <MudSimpleTable Dense="true">
+            <tbody>
+                <tr><td>Name</td><td>@_user.FirstName @_user.LastName</td></tr>
+                <tr><td>Email</td><td>@_user.Email</td></tr>
+                <tr><td>Username</td><td>@_user.UserName</td></tr>
+            </tbody>
+        </MudSimpleTable>
+        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-2">Editing your name or email isn't available yet.</MudText>
+    }
+
+@code {
+    private CurrentUserResponse? _user;
+    private bool _loading = true;
+    private string? _loadError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userResult = await ApiClient.GetAsync<CurrentUserResponse>(ApiRoutes.Users.Me);
+        if (!userResult.IsSuccessful || userResult.ResultData is null)
+        {
+            _loadError = userResult.DisplayMessage;
+            _user = null;
+        }
+        else
+        {
+            _user = userResult.ResultData;
+        }
+
+        _loading = false;
+    }
+}

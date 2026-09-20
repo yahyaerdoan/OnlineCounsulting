@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using OnlineConsulting.Maui.Shared.Infrastructure.Auth;
+using OnlineConsulting.Maui.Shared.Infrastructure.Commerce;
 using OnlineConsulting.Maui.Shared.Infrastructure.Forms;
 using OnlineConsulting.Maui.Shared.Infrastructure.Navigation;
 using OnlineConsulting.Maui.Shared.Layout;
@@ -9,9 +10,7 @@ namespace OnlineConsulting.Maui.Shared;
 
 public static class ServiceCollectionExtensions
 {
-    /// <summary>Registrations identical across every host - module discovery, auth-session
-    /// plumbing shared by both the MAUI head and the Web host. Each host still registers its own
-    /// IPlatformInfo/IAccessTokenProvider/IAuthSession and HttpClient setup.</summary>
+    /// <summary>Registrations shared by every host - each still registers its own auth/HttpClient setup.</summary>
     public static IServiceCollection AddMauiSharedInfrastructure(this IServiceCollection services, Assembly hostAssembly)
     {
         _ = services.AddSingleton<IUiModule>(new HostUiModule(hostAssembly));
@@ -27,6 +26,7 @@ public static class ServiceCollectionExtensions
         _ = services.AddScoped<AuthenticationExpiredNotifier>();
         _ = services.AddScoped<TokenRefresher>();
         _ = services.AddScoped<BreadcrumbState>();
+        _ = services.AddScoped<CartState>();
 
         _ = services.AddTransient(typeof(FormState<>));
 

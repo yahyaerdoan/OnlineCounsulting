@@ -1,0 +1,81 @@
+@* Subtotal/total panel + checkout CTA - shared between Cart and Checkout. Checkout passes Items so
+   this doubles as the order's line-item list, staying visible while the right-hand column walks
+   through address/payment - no separate "review your order" screen needed. *@
+@inject NavigationManager NavigationManager
+
+<MudPaper Class="@(Bordered ? "pa-4" : "pa-0")" Outlined="@Bordered" Elevation="0">
+    @if (Bordered)
+    {
+        <MudText Typo="Typo.h6" Class="mb-3">Cart Totals</MudText>
+    }
+
+    @if (Items is { Count: > 0 })
+    {
+        <MudStack Spacing="1" Class="mb-3">
+            @foreach (var item in Items)
+            {
+                <MudStack Row="true" Justify="Justify.SpaceBetween">
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">@item.Title &times;@item.Quantity</MudText>
+                    <MudText Typo="Typo.body2">@CurrencyFormat.Format(item.Total)</MudText>
+                </MudStack>
+            }
+        </MudStack>
+        <MudDivider Class="mb-3" />
+    }
+
+    <MudStack Spacing="2">
+        <MudStack Row="true" Justify="Justify.SpaceBetween">
+            <MudText>Subtotal</MudText>
+            <MudText>@CurrencyFormat.Format(SubTotal)</MudText>
+        </MudStack>
+        <MudStack Row="true" Justify="Justify.SpaceBetween">
+            <MudText>Tax Total</MudText>
+            <MudText>@CurrencyFormat.Format(TaxTotal)</MudText>
+        </MudStack>
+        <MudDivider />
+        <MudStack Row="true" Justify="Justify.SpaceBetween">
+            <MudText Typo="Typo.subtitle1">Total</MudText>
+            <MudText Typo="Typo.subtitle1" Color="Color.Primary">@CurrencyFormat.Format(Total)</MudText>
+        </MudStack>
+    </MudStack>
+
+    @if (ShowAction)
+    {
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Class="mt-4"
+                   Disabled="@Disabled" OnClick="@(() => NavigationManager.NavigateTo("/user/checkout"))">
+            Proceed to Checkout
+        </MudButton>
+    }
+</MudPaper>
+
+@code {
+    public sealed record LineItem(string Title, int Quantity, decimal Total);
+
+    [Parameter, EditorRequired]
+    public decimal SubTotal { get; set; }
+
+    [Parameter]
+    public decimal TaxTotal { get; set; }
+
+    [Parameter, EditorRequired]
+    public decimal Total { get; set; }
+
+    /// <summary>Optional line items - Checkout passes these so the summary doubles as the order
+    /// review; Cart leaves this unset since its own table already lists everything.</summary>
+    [Parameter]
+    public IReadOnlyList<LineItem>? Items { get; set; }
+
+    /// <summary>True when the basket is empty or a call is in flight - checkout has nothing to submit.</summary>
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    /// <summary>Hides the "Proceed to Checkout" CTA entirely - it makes no sense mid-checkout,
+    /// where Checkout.razor renders this panel without it.</summary>
+    [Parameter]
+    public bool ShowAction { get; set; } = true;
+
+    /// <summary>False when nested inside another card (e.g. the checkout card) - drops the outline
+    /// and heading so it doesn't look like a card within a card.</summary>
+    [Parameter]
+    public bool Bordered { get; set; } = true;
+}

@@ -1,0 +1,113 @@
+@page "/admin/site-content/feature-highlights-intro/new"
+@page "/admin/site-content/feature-highlights-intro/{Id:guid}/edit"
+@namespace OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent
+@attribute [Authorize(Roles = "Admin,Super Admin,Member")]
+@using OnlineConsulting.Maui.Shared.Infrastructure.Forms
+@using OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent.FeatureHighlightsIntroModels
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject FormState<FeatureHighlightsIntroFormModel> Form
+
+<PageTitle>@(Id is null ? "New Feature Highlights Intro" : "Edit Feature Highlights Intro")</PageTitle>
+
+<PageHeroBanner Title="@(Id is null ? "New Feature Highlights Intro" : "Edit Feature Highlights Intro")" Subtitle="Shown above the feature cards in the public 'what we provide' section.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.ArrowBack"
+                   OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/feature-highlights-intro"))">Back to Feature Highlights Intro</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+<PageBreadcrumbExtra Text="@(Id is null ? "New Feature Highlights Intro" : "Edit Feature Highlights Intro")" />
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+<EditForm EditContext="@Form.EditContext">
+    <MudPaper Class="pa-4">
+        <FeatureHighlightsIntroFormFields Model="_model" InitialCoverUrl="@_coverUrl" />
+
+        <MudDivider Class="my-4" />
+
+        <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2">
+            <MudButton Variant="Variant.Text" OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/feature-highlights-intro"))">Cancel</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAsync" Disabled="@Form.IsBusy">
+                @(Id is null ? "Create" : "Save")
+            </MudButton>
+        </MudStack>
+    </MudPaper>
+</EditForm>
+
+@code {
+    [Parameter]
+    public Guid? Id { get; set; }
+
+    private readonly FeatureHighlightsIntroFormModel _model = new();
+    private string? _coverUrl;
+    private string? _loadError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Bind before any await - Blazor can render (and touch Form.EditContext) after the first yield point.
+        Form.Bind(_model);
+
+        if (Id is not { } introId)
+        {
+            return;
+        }
+
+        // No GetById endpoint exists - fetch the unbounded public list and find the entry.
+        var listResult = await ApiClient.GetAsync<List<FeatureHighlightsIntroResponse>>(ApiRoutes.SiteContent.FeatureHighlightsIntro.Base);
+        var intro = listResult.IsSuccessful ? listResult.ResultData?.Find(i => i.Id == introId) : null;
+        if (intro is null)
+        {
+            _loadError = listResult.DisplayMessage;
+            return;
+        }
+
+        _model.Description = intro.Description;
+        _model.CoverMediaAssetId = intro.CoverMediaAssetId;
+        _model.DisplayOrder = intro.DisplayOrder;
+
+        if (intro.CoverMediaAssetId is { } coverId)
+        {
+            _coverUrl = await MediaUploadHelper.GetUrlAsync(ApiClient, coverId);
+        }
+    }
+
+    private Task SaveAsync() => Form.SubmitAsync(async () =>
+    {
+        var body = new
+        {
+            description = _model.Description,
+            coverMediaAssetId = _model.CoverMediaAssetId,
+            displayOrder = _model.DisplayOrder,
+        };
+
+        if (Id is null)
+        {
+            var createResult = await ApiClient.PostAsync(ApiRoutes.SiteContent.FeatureHighlightsIntro.Base, body);
+            if (!createResult.IsSuccessful)
+            {
+                Form.DisplayErrors(createResult, Snackbar);
+                return;
+            }
+
+            CompleteSave(createResult.DisplayMessage);
+            return;
+        }
+
+        var result = await ApiClient.PutAsync(ApiRoutes.SiteContent.FeatureHighlightsIntro.ById(Id.Value), body);
+        if (!result.IsSuccessful)
+        {
+            Form.DisplayErrors(result, Snackbar);
+            return;
+        }
+
+        CompleteSave(result.DisplayMessage);
+    });
+
+    private void CompleteSave(string message)
+    {
+        Snackbar.ShowSuccess(message);
+        Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/feature-highlights-intro");
+    }
+}

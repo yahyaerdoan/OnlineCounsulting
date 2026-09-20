@@ -1,6 +1,9 @@
 @page "/admin/growth/membership-subscribers"
-@attribute [Authorize]
+@attribute [Authorize(Roles = "Admin,Super Admin,Member")]
 @inject NavigationManager Navigation
+@inject IApiClient ApiClient
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
 
 <PageTitle>Membership Subscribers</PageTitle>
 
@@ -19,15 +22,42 @@
         <MudTh><MudTableSortLabel SortLabel="@nameof(CustomerMembershipResponse.StartDate)" T="CustomerMembershipResponse">Started</MudTableSortLabel></MudTh>
         <MudTh>Status</MudTh>
         <MudTh>Renews</MudTh>
+        <MudTh>Actions</MudTh>
     </HeaderContent>
     <RowTemplate Context="subscription">
         <MudTd DataLabel="Started">@DateTimeFormat.FormatDateTime(subscription.StartDate)</MudTd>
         <MudTd DataLabel="Status">@subscription.Status</MudTd>
         <MudTd DataLabel="Renews">@(subscription.RenewalDate is { } renewal ? DateTimeFormat.FormatDateTime(renewal) : "-")</MudTd>
+        <MudTd DataLabel="Actions">
+            <MudIconButton Icon="@Icons.Material.Outlined.Cancel" Color="Color.Error" Size="Size.Small" title="Cancel"
+                           Disabled="@(subscription.Status == "Cancelled")" OnClick="@(() => CancelAsync(subscription))" />
+        </MudTd>
     </RowTemplate>
 </ServerDataTable>
 
 @code {
     private ServerDataTable<CustomerMembershipResponse> _subscriberTable = default!;
     private string? _subscriberLoadError;
+
+    private async Task CancelAsync(CustomerMembershipResponse subscription)
+    {
+        var confirmed = await DialogService.ConfirmAsync(
+            "Cancel Membership",
+            "Cancel this customer's membership immediately? This cannot be undone.");
+
+        if (!confirmed)
+        {
+            return;
+        }
+
+        var result = await ApiClient.PostAsync(ApiRoutes.Growth.CustomerMemberships.AdminCancel(subscription.Id), new { });
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await _subscriberTable.ReloadAsync();
+    }
 }

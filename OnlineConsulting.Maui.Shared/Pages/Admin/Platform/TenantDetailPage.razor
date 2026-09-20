@@ -1,0 +1,87 @@
+@page "/admin/platform/tenants/{TenantId:guid}"
+@namespace OnlineConsulting.Maui.Shared.Pages.Admin.Platform
+@attribute [Authorize(Roles = "Admin,Super Admin,Member")]
+@inject IApiClient ApiClient
+@inject NavigationManager Navigation
+
+<PageTitle>Tenant Subscription</PageTitle>
+
+<PageHeroBanner Title="Tenant Subscription" Subtitle="Billing lifecycle and every module ever charged on this tenant.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.ArrowBack"
+                   OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/platform/tenants"))">Back to Tenants</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+<PageBreadcrumbExtra Text="Subscription" />
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+}
+else if (_tenant is not null)
+{
+    <MudPaper Class="pa-4">
+        <EntitySummaryHeader Title="@_tenant.Name" Subtitle="@_tenant.PrimaryContactEmail" />
+
+        <MudSimpleTable Dense="true">
+            <tbody>
+                <tr><td>Tenant Status</td><td>@_tenant.Status</td></tr>
+                <tr><td>Subscription Status</td><td>@(_tenant.SubscriptionStatus ?? "-")</td></tr>
+                <tr><td>Started</td><td>@(_tenant.SubscriptionStartDate is { } start ? DateTimeFormat.FormatDateTime(start) : "-")</td></tr>
+                <tr><td>Renews</td><td>@(_tenant.SubscriptionRenewalDate is { } renewal ? DateTimeFormat.FormatDateTime(renewal) : "-")</td></tr>
+            </tbody>
+        </MudSimpleTable>
+
+        <MudDivider Class="my-4" />
+
+        <MudText Typo="Typo.subtitle2" Class="mb-2">Modules Billed</MudText>
+        @if (_tenant.Items.Count == 0)
+        {
+            <MudText Typo="Typo.body2" Color="Color.Secondary">No modules have been added yet.</MudText>
+        }
+        else
+        {
+            <MudSimpleTable Dense="true">
+                <thead>
+                    <tr><th>Module</th><th>Status</th><th class="mud-table-cell-align-right">Price</th><th>Added</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in _tenant.Items.OrderByDescending(i => i.AddedAt))
+                    {
+                        <tr>
+                            <td>@item.ModuleKey</td>
+                            <td>@item.Status</td>
+                            <td class="mud-table-cell-align-right">@CurrencyFormat.Format(item.PriceAtAddition)</td>
+                            <td>@DateTimeFormat.FormatDateTime(item.AddedAt)</td>
+                        </tr>
+                    }
+                </tbody>
+            </MudSimpleTable>
+        }
+    </MudPaper>
+}
+
+@code {
+    [Parameter]
+    public Guid TenantId { get; set; }
+
+    private TenantDetailResponse? _tenant;
+    private bool _loading = true;
+    private string? _loadError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await ApiClient.GetAsync<TenantDetailResponse>(ApiRoutes.Platform.Tenants.ById(TenantId));
+        if (!result.IsSuccessful || result.ResultData is null)
+        {
+            _loadError = result.DisplayMessage;
+            _loading = false;
+            return;
+        }
+
+        _tenant = result.ResultData;
+        _loading = false;
+    }
+}

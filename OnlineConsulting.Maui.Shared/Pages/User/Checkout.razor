@@ -1,0 +1,356 @@
+@* Checkout: pick addresses + review, place order, confirm payment in-page via Stripe Elements
+   (marketing.js). Two steps, not three - address selection and order review share one screen since
+   the order summary sidebar already keeps totals visible, a separate review-only screen just made
+   the customer confirm the same cart twice. *@
+@page "/user/checkout"
+@attribute [Authorize(Roles = AppRoles.User)]
+@using Microsoft.AspNetCore.Http
+@using Microsoft.Extensions.Configuration
+@using OnlineConsulting.Maui.Shared.Components.Marketing
+@using OnlineConsulting.Maui.Shared.Infrastructure.Commerce
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject IConfiguration Configuration
+@inject IJSRuntime JsRuntime
+@inject CartState CartState
+@inject IDialogService DialogService
+
+<PageTitle>Checkout</PageTitle>
+
+<MarketingPageBanner Title="Checkout" SubPage="Checkout" ParentLabel="Cart" ParentHref="/user/cart" />
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
+    <ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+    }
+    else if (_phase == CheckoutPhase.Confirmed)
+    {
+        <MudStack AlignItems="AlignItems.Center" Class="py-10" Spacing="3">
+            <MudIcon Icon="@Icons.Material.Outlined.CheckCircleOutline" Size="Size.Large" Color="Color.Success" />
+            <MudText Typo="Typo.h6">Order placed - thank you!</MudText>
+            <MudText>Order number @_orderNumber</MudText>
+            <MudButton Href="@OrderDetailUrl" Variant="Variant.Filled" Color="Color.Primary">View Order</MudButton>
+        </MudStack>
+    }
+    else if (_phase == CheckoutPhase.Payment || _basket is { Items.Count: > 0 })
+    {
+        <MudGrid Spacing="6">
+            <MudItem xs="12" md="6">
+                @if (_addresses.Count == 0)
+                {
+                    <MudText Typo="Typo.h6" Class="mb-3">Shipping &amp; Billing</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">You have no saved addresses yet.</MudText>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Add"
+                               Href="/user/addresses/new">Add Address</MudButton>
+                }
+                else
+                {
+                    var shipping = _addresses.First(a => a.Id == _shippingAddressId);
+                    var billing = _addresses.First(a => a.Id == _billingAddressId);
+                    var canEdit = _phase == CheckoutPhase.Details;
+
+                    <MudText Typo="Typo.h6" Class="mb-3">Shipping Address</MudText>
+                    <MudPaper Outlined="true" Class="pa-4 rounded-lg mb-4">
+                        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start" Class="mb-2">
+                            <MudText Typo="Typo.subtitle1">@shipping.AddressName</MudText>
+                            @if (canEdit)
+                            {
+                                <MudIconButton Icon="@Icons.Material.Outlined.Edit" Size="Size.Small" OnClick="SelectShippingAddressAsync" />
+                            }
+                        </MudStack>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">@AddressFormat.FullLine(shipping)</MudText>
+                        <MudChip T="string" Size="Size.Small" Color="Color.Success">Shipping Address</MudChip>
+                    </MudPaper>
+
+                    <MudText Typo="Typo.h6" Class="mb-3">Billing Address</MudText>
+                    <MudPaper Outlined="true" Class="pa-4 rounded-lg">
+                        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start" Class="mb-2">
+                            <MudText Typo="Typo.subtitle1">@billing.AddressName</MudText>
+                            @if (canEdit)
+                            {
+                                <MudIconButton Icon="@Icons.Material.Outlined.Edit" Size="Size.Small" OnClick="SelectBillingAddressAsync" />
+                            }
+                        </MudStack>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">@AddressFormat.FullLine(billing)</MudText>
+                        <MudChip T="string" Size="Size.Small" Color="Color.Primary">Billing Address</MudChip>
+                    </MudPaper>
+                }
+            </MudItem>
+
+            <MudItem xs="12" md="6">
+                <MudText Typo="Typo.h6" Class="mb-3">Your Order</MudText>
+                @if (_basket is not null)
+                {
+                    <CartSummary SubTotal="@_basket.SubTotalPrice" TaxTotal="@_taxTotal" Total="@_basket.TotalPrice"
+                                 Items="@LineItems" ShowAction="false" />
+                }
+
+                <MudText Typo="Typo.h6" Class="mt-4 mb-3">Payment</MudText>
+                @if (_phase == CheckoutPhase.Payment)
+                {
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">Order @_orderNumber - enter your card details to complete the payment.</MudText>
+
+                    <div id="payment-element" class="mb-3"></div>
+                    <ApiErrorAlert Message="@_paymentError" Severity="Severity.Error" />
+
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Class="mt-3"
+                               Disabled="@_isBusy" OnClick="ConfirmPaymentAsync">
+                        Place Order
+                    </MudButton>
+                }
+                else if (_addresses.Count > 0)
+                {
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" EndIcon="@Icons.Material.Outlined.ArrowForward"
+                               Disabled="@_isBusy" OnClick="ContinueToPaymentAsync">
+                        Continue to Payment
+                    </MudButton>
+                }
+                else
+                {
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">Add a shipping and billing address to continue.</MudText>
+                }
+            </MudItem>
+        </MudGrid>
+    }
+    else if (OrderId.HasValue)
+    {
+        <ApiErrorAlert Message="@StuckOrderMessage" Severity="Severity.Warning" />
+        <MudButton Href="/user/orders" Variant="Variant.Filled" Color="Color.Primary">Go to My Account</MudButton>
+    }
+    else
+    {
+        <MudStack AlignItems="AlignItems.Center" Class="py-10" Spacing="3">
+            <MudIcon Icon="@Icons.Material.Outlined.ShoppingCart" Size="Size.Large" Color="Color.Secondary" />
+            <MudText Typo="Typo.h6">Your cart is empty.</MudText>
+            <MudButton Href="/services" Variant="Variant.Filled" Color="Color.Primary">Browse Services</MudButton>
+        </MudStack>
+    }
+</MudContainer>
+
+@code {
+    private enum CheckoutPhase { Details, Payment, Confirmed }
+
+    /// <summary>Lets a mid-payment reload resume the same order instead of showing an empty cart.</summary>
+    [SupplyParameterFromQuery(Name = "orderId")]
+    private Guid? OrderId { get; set; }
+
+    private string StuckOrderMessage =>
+        $"Order {_orderNumber ?? OrderId?.ToString()} was created but payment wasn't completed. " +
+        "Check My Account for your order, or contact us to complete payment.";
+
+    private string OrderDetailUrl => _placedOrderId is Guid id ? $"/user/orders/{id}" : "/user/orders";
+
+    private List<CartSummary.LineItem> LineItems => _basket is null
+        ? []
+        : [.. _basket.Items.Select(i => new CartSummary.LineItem(_serviceTitles.GetValueOrDefault(i.ServiceId, "Service"), i.Quantity, i.TotalPrice))];
+
+    private BasketResponse? _basket;
+    private decimal _taxTotal => _basket?.Items.Sum(i => i.TaxAmount) ?? 0m;
+    private Dictionary<Guid, string> _serviceTitles = [];
+    private List<UserAddressResponse> _addresses = [];
+    private Guid _shippingAddressId;
+    private Guid _billingAddressId;
+    private CheckoutPhase _phase = CheckoutPhase.Details;
+    private bool _loading = true;
+    private bool _isBusy;
+    private string? _loadError;
+    private string? _paymentError;
+    private string? _orderNumber;
+    private Guid? _placedOrderId;
+    private string? _clientSecret;
+    private bool _paymentElementMounted;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var basketResult = await ApiClient.GetAsync<BasketResponse>(ApiRoutes.Commerce.Baskets.Base);
+        if (basketResult.IsSuccessful)
+        {
+            _basket = basketResult.ResultData;
+        }
+        else if (basketResult.StatusCode != StatusCodes.Status404NotFound)
+        {
+            _loadError = basketResult.DisplayMessage;
+        }
+
+        // An orderId in the URL takes priority over basket state - the basket now survives checkout
+        // until payment is actually confirmed, so it can still have items while an order is Pending.
+        if (OrderId.HasValue)
+        {
+            await TryResumePaymentAsync();
+        }
+
+        if (_phase == CheckoutPhase.Details && _basket is { Items.Count: > 0 })
+        {
+            await LoadAddressesAsync();
+            await LoadServiceTitlesAsync();
+        }
+
+        _loading = false;
+    }
+
+    /// <summary>Re-fetches a live PaymentClientSecret to remount the Payment Element after a reload. Leaves
+    /// _phase at its default on failure, so StuckOrderMessage renders instead.</summary>
+    private async Task TryResumePaymentAsync()
+    {
+        var result = await ApiClient.GetAsync<CreateOrderResult>(ApiRoutes.Commerce.Orders.ResumePayment(OrderId!.Value));
+        if (!result.IsSuccessful || result.ResultData is null)
+        {
+            return;
+        }
+
+        _orderNumber = result.ResultData.OrderNumber;
+        _placedOrderId = OrderId;
+
+        if (result.ResultData.PaymentClientSecret is null)
+        {
+            _phase = CheckoutPhase.Confirmed;
+            return;
+        }
+
+        _clientSecret = result.ResultData.PaymentClientSecret;
+        _paymentElementMounted = false;
+        _phase = CheckoutPhase.Payment;
+    }
+
+    private async Task LoadServiceTitlesAsync()
+    {
+        var lookups = await Task.WhenAll(_basket!.Items.Select(async item =>
+        {
+            var serviceResult = await ApiClient.GetAsync<ServiceDetailResponse>(ApiRoutes.Services.ById(item.ServiceId));
+            return (item.ServiceId, Title: serviceResult.IsSuccessful ? serviceResult.ResultData?.Title : null);
+        }));
+
+        _serviceTitles = lookups.Where(l => l.Title is not null).ToDictionary(l => l.ServiceId, l => l.Title!);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_phase == CheckoutPhase.Payment && !_paymentElementMounted && _clientSecret is not null)
+        {
+            _paymentElementMounted = true;
+            var publishableKey = Configuration["Stripe:PublishableKey"];
+            await JsRuntime.InvokeVoidAsync("checkoutStripe.init", publishableKey, _clientSecret);
+        }
+    }
+
+    private async Task LoadAddressesAsync()
+    {
+        var addressesResult = await ApiClient.GetAsync<List<UserAddressResponse>>(ApiRoutes.Addresses.Base);
+        if (!addressesResult.IsSuccessful || addressesResult.ResultData is null)
+        {
+            _loadError = addressesResult.DisplayMessage;
+            _addresses = [];
+            return;
+        }
+
+        _addresses = addressesResult.ResultData;
+
+        var currentShipping = _addresses.FirstOrDefault(a => a.IsShippingAddress) ?? _addresses.FirstOrDefault();
+        var currentBilling = _addresses.FirstOrDefault(a => a.IsBillingAddress) ?? _addresses.FirstOrDefault();
+        _shippingAddressId = currentShipping?.Id ?? Guid.Empty;
+        _billingAddressId = currentBilling?.Id ?? Guid.Empty;
+    }
+
+    private Task SelectShippingAddressAsync() => SelectAddressAsync("Shipping Address", id => _shippingAddressId = id, _shippingAddressId);
+
+    private Task SelectBillingAddressAsync() => SelectAddressAsync("Billing Address", id => _billingAddressId = id, _billingAddressId);
+
+    private async Task SelectAddressAsync(string title, Action<Guid> apply, Guid selectedId)
+    {
+        var parameters = new DialogParameters<SelectAddressDialog>
+        {
+            { x => x.Title, title },
+            { x => x.Addresses, _addresses },
+            { x => x.SelectedId, selectedId },
+        };
+
+        var dialog = await DialogService.ShowAsync<SelectAddressDialog>(title, parameters, DialogServiceExtensions.SmallDialogOptions);
+        var result = await dialog.Result;
+        if (result is { Canceled: false, Data: Guid pickedId })
+        {
+            apply(pickedId);
+        }
+    }
+
+    /// <summary>Saves the chosen addresses and places the order in one step - what used to be a
+    /// separate "confirm addresses" screen followed by a "review and place order" screen.</summary>
+    private async Task ContinueToPaymentAsync()
+    {
+        _isBusy = true;
+        StateHasChanged();
+
+        var shippingResult = await ApiClient.PutAsync(ApiRoutes.Addresses.SetShipping(_shippingAddressId), null);
+        if (!shippingResult.IsSuccessful)
+        {
+            Snackbar.ShowError(shippingResult.DisplayMessage);
+            _isBusy = false;
+            return;
+        }
+
+        var billingResult = await ApiClient.PutAsync(ApiRoutes.Addresses.SetBilling(_billingAddressId), null);
+        if (!billingResult.IsSuccessful)
+        {
+            // Shipping already committed server-side by this point - say so, rather than a generic
+            // failure message that would wrongly imply nothing was saved.
+            Snackbar.ShowError($"Shipping address saved. Billing address failed to save: {billingResult.DisplayMessage}");
+            _isBusy = false;
+            return;
+        }
+
+        var result = await ApiClient.PostAsync<CreateOrderResult>(ApiRoutes.Commerce.Orders.Checkout, null);
+        if (!result.IsSuccessful || result.ResultData is null)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            _isBusy = false;
+            return;
+        }
+
+        _orderNumber = result.ResultData.OrderNumber;
+        _placedOrderId = result.ResultData.OrderId;
+
+        // Capture the order id in the URL so a mid-payment reload can still resume it.
+        Navigation.NavigateTo($"/user/checkout?orderId={result.ResultData.OrderId}", forceLoad: false, replace: true);
+
+        if (result.ResultData.PaymentClientSecret is null)
+        {
+            // Gateway already settled the payment synchronously, so the basket was cleared server-side -
+            // zero the header badge now rather than leaving it stale until the next full page load.
+            CartState.SetCount(0);
+            _phase = CheckoutPhase.Confirmed;
+            _isBusy = false;
+            return;
+        }
+
+        _clientSecret = result.ResultData.PaymentClientSecret;
+        _paymentElementMounted = false;
+        _phase = CheckoutPhase.Payment;
+        _isBusy = false;
+    }
+
+    private async Task ConfirmPaymentAsync()
+    {
+        _isBusy = true;
+        _paymentError = null;
+        StateHasChanged();
+
+        var confirmResult = await JsRuntime.InvokeAsync<StripeConfirmResult>("checkoutStripe.confirmPayment");
+        if (confirmResult.Error is not null)
+        {
+            _paymentError = confirmResult.Error;
+            _isBusy = false;
+            return;
+        }
+
+        // The webhook that actually clears the basket server-side arrives asynchronously - zero the
+        // header badge now, optimistically, rather than leaving it stale until the next full page load.
+        CartState.SetCount(0);
+        _phase = CheckoutPhase.Confirmed;
+        _isBusy = false;
+    }
+
+    private sealed record StripeConfirmResult(string? Error);
+}

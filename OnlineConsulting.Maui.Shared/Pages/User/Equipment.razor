@@ -1,0 +1,105 @@
+@* Own equipment + lazily-loaded service history per item (only fetched when a panel first expands). *@
+@page "/user/equipment"
+@attribute [Authorize(Roles = AppRoles.User)]
+@layout OnlineConsulting.Maui.Shared.Layout.DashboardLayout
+@inject IApiClient ApiClient
+
+<PageTitle>My Equipment</PageTitle>
+
+<DashboardPageHeading Text="My Equipment" />
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+    }
+    else if (_equipment.Count == 0)
+    {
+        <MudText>No equipment on file yet. Equipment is added by our technicians during a service visit.</MudText>
+    }
+    else
+    {
+        <MudExpansionPanels>
+            @foreach (var item in _equipment)
+            {
+                <MudExpansionPanel Text="@($"{item.Type} - {item.Brand} {item.Model}")"
+                                    ExpandedChanged="@(expanded => OnPanelExpandedChanged(item.Id, expanded))">
+                    <MudSimpleTable Dense="true">
+                        <tbody>
+                            <tr><td>Serial Number</td><td>@(item.SerialNumber ?? "-")</td></tr>
+                            <tr><td>Installed</td><td>@(item.InstallDate is { } installed ? DateTimeFormat.FormatDateTime(installed) : "-")</td></tr>
+                            <tr><td>Warranty Until</td><td>@(item.WarrantyExpiresAt is { } warranty ? DateTimeFormat.FormatDateTime(warranty) : "-")</td></tr>
+                        </tbody>
+                    </MudSimpleTable>
+
+                    @if (!string.IsNullOrWhiteSpace(item.Notes))
+                    {
+                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">@item.Notes</MudText>
+                    }
+
+                    <MudText Typo="Typo.subtitle2" Class="mt-4 mb-2">Service History</MudText>
+                    @if (!_workOrders.TryGetValue(item.Id, out var history))
+                    {
+                        <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+                    }
+                    else if (history.Count == 0)
+                    {
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">No service visits recorded for this equipment yet.</MudText>
+                    }
+                    else
+                    {
+                        @foreach (var workOrder in history)
+                        {
+                            <MudPaper Class="pa-2 mb-2" Outlined="true">
+                                <MudText Typo="Typo.body2" Class="text-strong">@(workOrder.CompletedAt is { } completed ? DateTimeFormat.FormatDateTime(completed) : "In progress")</MudText>
+                                @if (!string.IsNullOrWhiteSpace(workOrder.TechnicianNotes))
+                                {
+                                    <MudText Typo="Typo.body2" Color="Color.Secondary">@workOrder.TechnicianNotes</MudText>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(workOrder.PartsUsed))
+                                {
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Parts used: @workOrder.PartsUsed</MudText>
+                                }
+                            </MudPaper>
+                        }
+                    }
+                </MudExpansionPanel>
+            }
+        </MudExpansionPanels>
+    }
+
+@code {
+    private List<EquipmentItemResponse> _equipment = [];
+    private readonly Dictionary<Guid, List<WorkOrderResponse>> _workOrders = [];
+    private bool _loading = true;
+    private string? _loadError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await ApiClient.GetAsync<List<EquipmentItemResponse>>(ApiRoutes.Operations.Equipment.Mine);
+        if (!result.IsSuccessful || result.ResultData is null)
+        {
+            _loadError = result.DisplayMessage;
+            _equipment = [];
+        }
+        else
+        {
+            _equipment = result.ResultData;
+        }
+
+        _loading = false;
+    }
+
+    private async Task OnPanelExpandedChanged(Guid equipmentId, bool expanded)
+    {
+        if (!expanded || _workOrders.ContainsKey(equipmentId))
+        {
+            return;
+        }
+
+        var result = await ApiClient.GetAsync<List<WorkOrderResponse>>(ApiRoutes.Operations.WorkOrders.ByEquipmentId(equipmentId));
+        _workOrders[equipmentId] = result.IsSuccessful && result.ResultData is not null ? result.ResultData : [];
+        StateHasChanged();
+    }
+}

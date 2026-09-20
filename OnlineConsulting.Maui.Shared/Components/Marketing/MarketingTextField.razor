@@ -1,0 +1,33 @@
+@using System.Linq.Expressions
+@* InputText, not MudTextField - MudTextField needs JS interop, breaks on static SSR.
+   Renders a real name= attribute so a plain method="get" EditForm submits it as a query param. *@
+<div class="marketing-search-wrap @(ShowIcon ? "" : "no-icon")">
+    @if (ShowIcon)
+    {
+        <MudIcon Icon="@Icons.Material.Outlined.Search" />
+    }
+    <InputText Value="@Value" ValueChanged="@ValueChanged" ValueExpression="@ValueExpression"
+               name="@Name" class="marketing-search-input" placeholder="@Placeholder" />
+</div>
+<ValidationMessage For="@ValueExpression" class="auth-field-error" />
+
+@code {
+    /// <summary>Rendered as the input's name= - what the browser sends as the query key on a plain GET submit.</summary>
+    [Parameter, EditorRequired]
+    public string Name { get; set; } = string.Empty;
+
+    [Parameter]
+    public string Placeholder { get; set; } = string.Empty;
+
+    [Parameter]
+    public string? Value { get; set; }
+
+    [Parameter]
+    public EventCallback<string?> ValueChanged { get; set; }
+
+    [Parameter]
+    public Expression<Func<string?>>? ValueExpression { get; set; }
+
+    [Parameter]
+    public bool ShowIcon { get; set; } = true;
+}

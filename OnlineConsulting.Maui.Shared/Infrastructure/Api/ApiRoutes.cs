@@ -11,6 +11,10 @@ public static class ApiRoutes
         public const string Login = "/api/auth/login";
         public const string Refresh = "/api/auth/refresh";
         public const string AcceptInvite = "/api/auth/invites/accept";
+        public const string Register = "/api/auth/register";
+        public const string ConfirmEmail = "/api/auth/confirm-email";
+        public const string ForgotPassword = "/api/auth/forgot-password";
+        public const string ResetPassword = "/api/auth/reset-password";
     }
 
     /// <summary>Invite-a-teammate route - the invitee sets their own password, not the admin.</summary>
@@ -34,6 +38,7 @@ public static class ApiRoutes
 
         public static string ById(Guid id) => $"/api/users/{id}";
         public static string Roles(Guid id) => $"/api/users/{id}/roles";
+        public static string PermissionOverrides(Guid id) => $"/api/users/{id}/permission-overrides";
     }
 
     public static class Roles
@@ -62,10 +67,16 @@ public static class ApiRoutes
     {
         public const string All = "/api/services/query";
         public const string Base = "/api/services";
+        public const string Featured = "/api/services/featured";
+        public const string Search = "/api/services/search";
         public const string MediaItems = "/api/services/media-items";
 
         public static string ById(Guid id) => $"/api/services/{id}";
+        public static string BySlug(string slug) => $"/api/services/by-slug/{slug}";
         public static string RemoveMediaItem(Guid id) => $"/api/services/media-items/{id}";
+
+        /// <summary>Paginated - a category's services, not the flat list.</summary>
+        public static string ByCategory(Guid categoryId) => $"/api/categories/{categoryId}/services";
     }
 
     public static class Media
@@ -162,6 +173,13 @@ public static class ApiRoutes
             public static string ById(Guid id) => $"/api/site-content/partnerships/{id}";
         }
 
+        public static class FeatureHighlightsIntro
+        {
+            public const string All = "/api/site-content/feature-highlights-intro/query";
+            public const string Base = "/api/site-content/feature-highlights-intro";
+            public static string ById(Guid id) => $"/api/site-content/feature-highlights-intro/{id}";
+        }
+
         public static class PartnershipSocialLink
         {
             public const string Base = "/api/site-content/partnership-social-links";
@@ -195,6 +213,9 @@ public static class ApiRoutes
         {
             public const string All = "/api/inquiries/messages/query";
 
+            /// <summary>POST submits a contact-form message - public, no login required.</summary>
+            public const string Submit = "/api/inquiries/messages";
+
             public static string ById(Guid id) => $"/api/inquiries/messages/{id}";
             public static string Reply(Guid id) => $"/api/inquiries/messages/{id}/reply";
         }
@@ -202,6 +223,9 @@ public static class ApiRoutes
         public static class Newsletter
         {
             public const string All = "/api/inquiries/newsletter/query";
+
+            /// <summary>POST subscribes an email - public, no login required.</summary>
+            public const string Subscribe = "/api/inquiries/newsletter";
 
             public static string ById(Guid id) => $"/api/inquiries/newsletter/{id}";
         }
@@ -216,6 +240,12 @@ public static class ApiRoutes
 
             public static string ById(Guid id) => $"/api/scheduling/availability-rules/{id}";
         }
+
+        public static class Availability
+        {
+            /// <summary>GET free time slots for a date - public, no login required to browse.</summary>
+            public const string Base = "/api/scheduling/availability";
+        }
     }
 
     public static class Commerce
@@ -224,8 +254,63 @@ public static class ApiRoutes
         {
             public const string All = "/api/orders/admin/query";
 
+            /// <summary>GET the caller's own orders (current-user-scoped, not paginated).</summary>
+            public const string Mine = "/api/orders";
+
+            /// <summary>POST creates an Order from the caller's current basket - requires auth, no body,
+            /// requires shipping and billing addresses already set (see Addresses.SetShipping/SetBilling).</summary>
+            public const string Checkout = "/api/orders/checkout";
+
             public static string Refund(Guid id) => $"/api/orders/{id}/refund";
+            public static string ById(Guid id) => $"/api/orders/{id}";
+
+            /// <summary>Re-fetches a fresh PaymentClientSecret for an already-created, still-unpaid order -
+            /// lets Checkout.razor resume the Stripe payment step after a page reload.</summary>
+            public static string ResumePayment(Guid id) => $"/api/orders/{id}/resume-payment";
+
+            /// <summary>POST cancels a still-unpaid order and restores its items to the caller's basket -
+            /// lets Checkout.razor's Payment phase back out to shopping instead of stranding the customer.</summary>
+            public static string CancelPending(Guid id) => $"/api/orders/{id}/cancel";
         }
+
+        public static class Baskets
+        {
+            /// <summary>GET the current basket, DELETE clears it - guest/user resolved server-side.</summary>
+            public const string Base = "/api/basket";
+
+            /// <summary>POST adds a service, increasing its quantity if already in the basket (JSON body, guest/user resolved server-side).</summary>
+            public const string Items = "/api/basket/items";
+
+            /// <summary>GET the row count of basket items - safe to call unconditionally, 0 if no basket yet.</summary>
+            public const string Count = "/api/basket/count";
+
+            /// <summary>DELETE a single line by basket item id (not ServiceId).</summary>
+            public static string RemoveItem(Guid id) => $"/api/basket/items/{id}";
+
+            /// <summary>PUT sets a line's quantity to an absolute value - the cart page's +/- stepper.</summary>
+            public static string SetItemQuantity(Guid id) => $"/api/basket/items/{id}";
+        }
+    }
+
+    public static class Addresses
+    {
+        /// <summary>GET (list), POST (create) - both current-user-scoped.</summary>
+        public const string Base = "/api/addresses";
+
+        /// <summary>GET the current user's billing address - 404 if not set yet.</summary>
+        public const string Billing = "/api/addresses/billing";
+
+        /// <summary>GET the current user's shipping address - 404 if not set yet.</summary>
+        public const string Shipping = "/api/addresses/shipping";
+
+        /// <summary>PUT (update), DELETE.</summary>
+        public static string ById(Guid id) => $"/api/addresses/{id}";
+
+        /// <summary>PUT - marks the given address as the current user's billing address.</summary>
+        public static string SetBilling(Guid id) => $"/api/addresses/{id}/billing";
+
+        /// <summary>PUT - marks the given address as the current user's shipping address.</summary>
+        public static string SetShipping(Guid id) => $"/api/addresses/{id}/shipping";
     }
 
     public static class Settings
@@ -244,6 +329,8 @@ public static class ApiRoutes
         {
             public const string All = "/api/equipment/query";
             public const string Base = "/api/equipment";
+            /// <summary>GET the caller's own equipment - the customer portal's equipment panel.</summary>
+            public const string Mine = "/api/equipment/mine";
 
             public static string ById(Guid id) => $"/api/equipment/{id}";
         }
@@ -251,6 +338,10 @@ public static class ApiRoutes
         public static class Appointments
         {
             public const string All = "/api/appointments/admin/query";
+            /// <summary>POST creates an appointment - pass ServiceId to book a service, omit it for a general meeting request.</summary>
+            public const string Base = "/api/appointments";
+            /// <summary>GET the caller's own appointments, paginated.</summary>
+            public const string Mine = "/api/appointments/mine";
 
             public static string ById(Guid id) => $"/api/appointments/{id}";
             public static string Confirm(Guid id) => $"/api/appointments/{id}/confirm";
@@ -276,11 +367,39 @@ public static class ApiRoutes
             public const string Base = "/api/membership-plans";
 
             public static string ById(Guid id) => $"/api/membership-plans/{id}";
+            public static string SetActive(Guid id, bool isActive) => $"/api/membership-plans/{id}/active?isActive={isActive}";
         }
 
         public static class CustomerMemberships
         {
             public const string All = "/api/memberships/query";
+
+            /// <summary>GET the caller's own membership - 404 means not currently a member.</summary>
+            public const string Mine = "/api/memberships/mine";
+
+            public const string Cancel = "/api/memberships/cancel";
+
+            public const string Subscribe = "/api/memberships/subscribe";
+
+            public static string ChangePlan(Guid newMembershipPlanId) => $"/api/memberships/change-plan?newMembershipPlanId={newMembershipPlanId}";
+
+            public const string Pause = "/api/memberships/pause";
+
+            public const string Resume = "/api/memberships/resume";
+
+            /// <summary>Admin-cancel a specific customer's membership by CustomerMembership.Id.</summary>
+            public static string AdminCancel(Guid id) => $"/api/memberships/{id}/cancel";
+
+            /// <summary>POST previews a promo code's discount for the current user - does not redeem it.</summary>
+            public const string ValidatePromoCode = "/api/memberships/promo-codes/validate";
+        }
+
+        public static class PromoCodes
+        {
+            public const string All = "/api/promo-codes";
+            public const string Base = "/api/promo-codes";
+
+            public static string SetActive(Guid id, bool isActive) => $"/api/promo-codes/{id}/active?isActive={isActive}";
         }
 
         public static class Referrals
@@ -288,6 +407,15 @@ public static class ApiRoutes
             public const string All = "/api/referrals/query";
 
             public static string Complete(Guid id) => $"/api/referrals/{id}/complete";
+
+            /// <summary>POST - gets or creates the caller's own referral code, idempotent after first call.</summary>
+            public const string MyCode = "/api/referrals/my-code";
+
+            /// <summary>GET the caller's own list of people they referred.</summary>
+            public const string Mine = "/api/referrals/mine";
+
+            /// <summary>GET the caller's own account-credit balance and ledger.</summary>
+            public const string MyCredit = "/api/referrals/my-credit";
         }
 
         public static class Promotions
@@ -297,6 +425,20 @@ public static class ApiRoutes
 
             public static string ById(Guid id) => $"/api/site-content/promotions/{id}";
         }
+    }
+
+    /// <summary>Public, unauthenticated - tenant self-service signup.</summary>
+    public static class Tenancy
+    {
+        public const string ModuleOfferings = "/api/tenancy/module-offerings";
+        public const string Bundles = "/api/tenancy/bundles";
+        public const string Signup = "/api/tenancy/signup";
+
+        /// <summary>Authenticated retry when signup succeeded (admin account created) but billing failed.</summary>
+        public static string Activate(Guid tenantId) => $"/api/tenancy/{tenantId}/activate";
+
+        /// <summary>Authenticated - the caller's own tenant (any tenant admin, not just SuperAdmin).</summary>
+        public const string MyTenant = "/api/tenancy/my-tenant";
     }
 
     public static class Platform
@@ -324,6 +466,7 @@ public static class ApiRoutes
             public static string ById(Guid tenantId) => $"/api/tenancy/admin/tenants/{tenantId}";
             public static string Suspend(Guid tenantId) => $"/api/tenancy/admin/tenants/{tenantId}/suspend";
             public static string Reactivate(Guid tenantId) => $"/api/tenancy/admin/tenants/{tenantId}/reactivate";
+            public static string Cancel(Guid tenantId) => $"/api/tenancy/admin/tenants/{tenantId}/cancel";
             public static string AddModule(Guid tenantId, string key) => $"/api/tenancy/{tenantId}/modules/{key}";
             public static string RemoveModule(Guid tenantId, string key) => $"/api/tenancy/{tenantId}/modules/{key}";
         }

@@ -1,0 +1,129 @@
+@* Own appointments list - service name resolved per-item via GetAsync(Services.ById(...)) in
+   parallel, same pattern Cart.razor's LoadServiceInfoAsync already uses. CanCancel mirrors the
+   legacy MVC rule exactly: Status is Pending or Confirmed. *@
+@page "/user/appointments"
+@attribute [Authorize(Roles = AppRoles.User)]
+@layout OnlineConsulting.Maui.Shared.Layout.DashboardLayout
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+
+<PageTitle>My Appointments</PageTitle>
+
+<MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
+        <MudText Typo="Typo.h6">My Appointments</MudText>
+        <MudButton Href="/appointment" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Outlined.Add">Book New</MudButton>
+    </MudStack>
+
+    <ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+    }
+    else if (_appointments.Count == 0)
+    {
+        <MudText>You have no appointments yet.</MudText>
+    }
+    else
+    {
+        <MudSimpleTable Dense="true" Hover="true">
+            <thead>
+                <tr><th>#</th><th>Service</th><th>Scheduled</th><th>Status</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+                @for (var i = 0; i < _appointments.Count; i++)
+                {
+                    var appointment = _appointments[i];
+                    <tr>
+                        <td>@(i + 1)</td>
+                        <td>@ServiceName(appointment)</td>
+                        <td>@DateTimeFormat.FormatDateTime(appointment.ScheduledStart)</td>
+                        <td>
+                            <MudChip T="string" Size="Size.Small" Color="@StatusColor(appointment.Status)">@appointment.Status</MudChip>
+                        </td>
+                        <td>
+                            @if (!string.IsNullOrWhiteSpace(appointment.NavigationUrl))
+                            {
+                                <MudIconButton Icon="@Icons.Material.Outlined.LocationOn" Size="Size.Small" title="Navigate"
+                                               Href="@appointment.NavigationUrl" Target="_blank" />
+                            }
+                            @if (CanCancel(appointment))
+                            {
+                                <MudIconButton Icon="@Icons.Material.Outlined.Cancel" Size="Size.Small" Color="Color.Error" title="Cancel"
+                                               OnClick="@(() => CancelAsync(appointment))" />
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </MudSimpleTable>
+    }
+
+@code {
+    private List<AppointmentResponse> _appointments = [];
+    private Dictionary<Guid, string> _serviceNames = [];
+    private bool _loading = true;
+    private string? _loadError;
+
+    protected override Task OnInitializedAsync() => ReloadAsync();
+
+    private async Task ReloadAsync()
+    {
+        _loading = true;
+        _loadError = null;
+
+        // Capped at 100, no pagination UI yet - revisit if a customer's appointment history grows past this.
+        var result = await ApiClient.GetAsync<PaginatedResponse<AppointmentResponse>>(ApiRoutes.Paged(ApiRoutes.Operations.Appointments.Mine, 0, 100));
+        if (!result.IsSuccessful || result.ResultData is null)
+        {
+            _loadError = result.DisplayMessage;
+            _appointments = [];
+            _loading = false;
+            return;
+        }
+
+        _appointments = [.. result.ResultData.Items.OrderByDescending(a => a.ScheduledStart)];
+        await LoadServiceNamesAsync();
+        _loading = false;
+    }
+
+    private async Task LoadServiceNamesAsync()
+    {
+        var lookups = await Task.WhenAll(_appointments
+            .Where(a => a.ServiceId is not null)
+            .Select(async a =>
+            {
+                var result = await ApiClient.GetAsync<ServiceDetailResponse>(ApiRoutes.Services.ById(a.ServiceId!.Value));
+                return (ServiceId: a.ServiceId!.Value, Title: result.IsSuccessful ? result.ResultData?.Title : null);
+            }));
+
+        _serviceNames = lookups.Where(l => l.Title is not null).ToDictionary(l => l.ServiceId, l => l.Title!);
+    }
+
+    private string ServiceName(AppointmentResponse appointment) =>
+        appointment.ServiceId is Guid serviceId && _serviceNames.TryGetValue(serviceId, out var name) ? name : "General meeting";
+
+    private static bool CanCancel(AppointmentResponse appointment) => appointment.Status is "Pending" or "Confirmed";
+
+    private static Color StatusColor(string status) => status switch
+    {
+        "Pending" => Color.Warning,
+        "Confirmed" => Color.Info,
+        "Completed" => Color.Success,
+        "Cancelled" => Color.Error,
+        _ => Color.Default,
+    };
+
+    private async Task CancelAsync(AppointmentResponse appointment)
+    {
+        var result = await ApiClient.PostAsync(ApiRoutes.Operations.Appointments.Cancel(appointment.Id), new { });
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await ReloadAsync();
+    }
+}

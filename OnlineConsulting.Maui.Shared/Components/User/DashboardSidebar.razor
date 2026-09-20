@@ -1,0 +1,66 @@
+@* Vertical dashboard nav - mirrors the legacy MVC Areas/User sidebar, MudBlazor-native. *@
+@namespace OnlineConsulting.Maui.Shared.Components.User
+
+<MudNavMenu Class="user-dashboard-nav">
+    <MudNavLink Href="/user/dashboard" Match="NavLinkMatch.All">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+            <MudIcon Icon="@Icons.Material.Outlined.Dashboard" Size="Size.Small" />
+            <span>Dashboard</span>
+        </MudStack>
+    </MudNavLink>
+    <MudNavLink Href="/user/orders">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+            <MudIcon Icon="@Icons.Material.Outlined.ShoppingBag" Size="Size.Small" />
+            <span>Orders</span>
+        </MudStack>
+    </MudNavLink>
+    <MudNavLink Href="/user/appointments">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+            <MudIcon Icon="@Icons.Material.Outlined.CalendarMonth" Size="Size.Small" />
+            <span>Appointments</span>
+        </MudStack>
+    </MudNavLink>
+    <MudNavLink Href="/user/equipment">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+            <MudIcon Icon="@Icons.Material.Outlined.Build" Size="Size.Small" />
+            <span>My Equipment</span>
+        </MudStack>
+    </MudNavLink>
+    <MudNavLink Href="/user/membership">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+            <MudIcon Icon="@Icons.Material.Outlined.CardMembership" Size="Size.Small" />
+            <span>My Membership</span>
+        </MudStack>
+    </MudNavLink>
+    <MudNavLink Href="/user/referrals">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+            <MudIcon Icon="@Icons.Material.Outlined.CardGiftcard" Size="Size.Small" />
+            <span>Referrals</span>
+        </MudStack>
+    </MudNavLink>
+    <MudNavLink Href="/user/downloads">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+            <MudIcon Icon="@Icons.Material.Outlined.Download" Size="Size.Small" />
+            <span>Downloads</span>
+        </MudStack>
+    </MudNavLink>
+    <MudNavLink Href="/user/addresses">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+            <MudIcon Icon="@Icons.Material.Outlined.LocationOn" Size="Size.Small" />
+            <span>Addresses</span>
+        </MudStack>
+    </MudNavLink>
+    <MudNavLink Href="/user/profile">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+            <MudIcon Icon="@Icons.Material.Outlined.Person" Size="Size.Small" />
+            <span>Profile</span>
+        </MudStack>
+    </MudNavLink>
+    <MudDivider Class="my-2" />
+    <MudNavLink Href="@AppRoutes.Logout" Style="color:var(--mud-palette-error);">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+            <MudIcon Icon="@Icons.Material.Outlined.Logout" Size="Size.Small" />
+            <span>Sign out</span>
+        </MudStack>
+    </MudNavLink>
+</MudNavMenu>

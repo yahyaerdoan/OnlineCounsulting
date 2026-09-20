@@ -1,0 +1,29 @@
+@* One quick-action card: icon, title, blurb, and a button linking somewhere. *@
+@namespace OnlineConsulting.Maui.Shared.Components.User
+
+<MudPaper Class="pa-4 text-center d-flex flex-column dashboard-action-card" Style="height:100%;" Outlined="true">
+    <MudIcon Icon="@Icon" Color="@Color" />
+    <MudText Typo="Typo.subtitle1" Class="mt-2">@Title</MudText>
+    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3 flex-grow-1">@Description</MudText>
+    <MudButton Href="@Href" Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small">@ButtonText</MudButton>
+</MudPaper>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Icon { get; set; } = "";
+
+    [Parameter]
+    public Color Color { get; set; } = Color.Primary;
+
+    [Parameter, EditorRequired]
+    public string Title { get; set; } = "";
+
+    [Parameter, EditorRequired]
+    public string Description { get; set; } = "";
+
+    [Parameter, EditorRequired]
+    public string Href { get; set; } = "";
+
+    [Parameter, EditorRequired]
+    public string ButtonText { get; set; } = "";
+}

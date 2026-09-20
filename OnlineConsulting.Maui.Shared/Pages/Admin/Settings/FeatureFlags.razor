@@ -1,5 +1,5 @@
 @page "/admin/settings/feature-flags"
-@attribute [Authorize]
+@attribute [Authorize(Roles = "Admin,Super Admin,Member")]
 @inject IApiClient ApiClient
 @inject ISnackbar Snackbar
 

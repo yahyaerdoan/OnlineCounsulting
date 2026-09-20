@@ -1,0 +1,53 @@
+@* Card grid (photo, name, title, socials) - no bio-detail popup on click. *@
+@using OnlineConsulting.Maui.Shared.Infrastructure.Api
+@inject IApiClient ApiClient
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
+    <MudStack Spacing="1" AlignItems="AlignItems.Center" Class="mb-2">
+        <MudIcon Icon="@Icons.Material.Filled.Groups" Color="Color.Primary" Size="Size.Small" />
+        <MudText Typo="Typo.subtitle1" Color="Color.Primary" Class="text-strong">Who We Work With</MudText>
+    </MudStack>
+    <MudText Typo="Typo.h5" Align="Align.Center" Class="marketing-display text-strong mb-4">Trusted Brand Partners</MudText>
+
+    <MudGrid Spacing="2">
+        @foreach (var partner in _partnerships)
+        {
+            <MudItem xs="6" sm="4" md="3">
+                <div class="single-popular-courses">
+                    <div class="popular-courses-image">
+                        <MudImage Src="@_photoUrlsById.GetValueOrDefault(partner.Id)" ObjectFit="ObjectFit.Cover" />
+                    </div>
+                    <div class="popular-courses-contnet text-center">
+                        <MudText Typo="Typo.subtitle1" Class="text-strong">@partner.FirstName @partner.LastName</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-2">@partner.Title</MudText>
+                        @if (partner.SocialLinks.Count > 0)
+                        {
+                            <MudStack Row="true" Spacing="1" Justify="Justify.Center">
+                                @foreach (var link in partner.SocialLinks)
+                                {
+                                    <MudIconButton Href="@link.Url" Target="_blank" Icon="@link.Icon" Size="Size.Small" Color="Color.Primary" />
+                                }
+                            </MudStack>
+                        }
+                    </div>
+                </div>
+            </MudItem>
+        }
+    </MudGrid>
+</MudContainer>
+
+@code {
+    private List<PartnershipResponse> _partnerships = [];
+    private Dictionary<Guid, string?> _photoUrlsById = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await ApiClient.GetAsync<List<PartnershipResponse>>(ApiRoutes.SiteContent.Partnership.Base);
+        _partnerships = result.IsSuccessful ? result.ResultData?.OrderBy(p => p.DisplayOrder).ToList() ?? [] : [];
+
+        var lookups = await Task.WhenAll(_partnerships.Select(async p =>
+            (p.Id, Url: p.PhotoMediaAssetId is Guid mediaId ? await MediaUploadHelper.GetUrlAsync(ApiClient, mediaId) : null)));
+
+        _photoUrlsById = lookups.ToDictionary(l => l.Id, l => l.Url);
+    }
+}

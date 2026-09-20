@@ -1,9 +1,10 @@
 @page "/admin/platform/tenants"
-@attribute [Authorize]
+@attribute [Authorize(Roles = "Admin,Super Admin,Member")]
 @using OnlineConsulting.Maui.Shared.Pages.Admin.Platform
 @inject IApiClient ApiClient
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
+@inject NavigationManager Navigation
 
 <PageTitle>Tenants</PageTitle>
 
@@ -23,6 +24,8 @@
         <MudTd DataLabel="Status">@tenant.Status</MudTd>
         <MudTd DataLabel="Actions">
             <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
+                <MudIconButton Icon="@Icons.Material.Outlined.Receipt" Color="Color.Default" Size="Size.Small" title="View subscription"
+                               OnClick="@(() => Navigation.NavigateTo($"{AppRoutes.AdminHome}/platform/tenants/{tenant.Id}"))" />
                 <MudIconButton Icon="@Icons.Material.Outlined.Extension" Color="Color.Default" Size="Size.Small" title="Manage modules"
                                OnClick="@(() => ManageModulesAsync(tenant))" />
                 @if (tenant.Status == TenantStatusesSuspended)
@@ -30,10 +33,15 @@
                     <MudIconButton Icon="@Icons.Material.Outlined.PlayArrow" Color="Color.Success" Size="Size.Small" title="Reactivate"
                                    OnClick="@(() => ReactivateAsync(tenant))" />
                 }
-                else
+                else if (tenant.Status != TenantStatusesCancelled)
                 {
                     <MudIconButton Icon="@Icons.Material.Outlined.Pause" Color="Color.Warning" Size="Size.Small" title="Suspend"
                                    OnClick="@(() => SuspendAsync(tenant))" />
+                }
+                @if (tenant.Status != TenantStatusesCancelled)
+                {
+                    <MudIconButton Icon="@Icons.Material.Outlined.Cancel" Color="Color.Error" Size="Size.Small" title="Cancel permanently"
+                                   OnClick="@(() => CancelAsync(tenant))" />
                 }
             </MudButtonGroup>
         </MudTd>
@@ -42,6 +50,7 @@
 
 @code {
     private const string TenantStatusesSuspended = "Suspended";
+    private const string TenantStatusesCancelled = "Cancelled";
 
     private ServerDataTable<TenantResponse> _table = default!;
     private string? _loadError;
@@ -70,6 +79,24 @@
     private async Task ReactivateAsync(TenantResponse tenant)
     {
         var result = await ApiClient.PostAsync(ApiRoutes.Platform.Tenants.Reactivate(tenant.Id), new { });
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await _table.ReloadAsync();
+    }
+
+    private async Task CancelAsync(TenantResponse tenant)
+    {
+        if (!await DialogService.ConfirmAsync("Cancel Tenant", $"Permanently cancel {tenant.Name}'s subscription? This stops billing immediately and cannot be undone - unlike Suspend, a cancelled tenant can never be reactivated."))
+        {
+            return;
+        }
+
+        var result = await ApiClient.PostAsync(ApiRoutes.Platform.Tenants.Cancel(tenant.Id), new { });
         if (!result.IsSuccessful)
         {
             Snackbar.ShowError(result.DisplayMessage);

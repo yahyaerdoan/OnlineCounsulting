@@ -1,0 +1,43 @@
+@* Live cart-item badge. An interactive island (like AddToCartForm) so it shares one circuit -
+   and one CartState instance - with every add-to-cart button on the static-SSR marketing page,
+   letting a successful add update the header count without a full page reload. *@
+@rendermode InteractiveServer
+@implements IDisposable
+@using OnlineConsulting.Maui.Shared.Infrastructure.Api
+@using OnlineConsulting.Maui.Shared.Infrastructure.Commerce
+@inject IApiClient ApiClient
+@inject CartState CartState
+
+@if (IconOnly)
+{
+    <MudBadge Content="@CartState.Count" Color="Color.Primary" Overlap="true" Visible="@(CartState.Count > 0)" Class="@Class">
+        <MudIconButton Href="/user/cart" Icon="@Icons.Material.Outlined.ShoppingCart" Color="Color.Inherit" aria-label="Cart" />
+    </MudBadge>
+}
+else
+{
+    <NavLink href="/user/cart" class="@Class">Cart @(CartState.Count > 0 ? $"({CartState.Count})" : "")</NavLink>
+}
+
+@code {
+    [Parameter]
+    public bool IconOnly { get; set; } = true;
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        CartState.Changed += OnCartStateChanged;
+
+        await CartState.EnsureLoadedAsync(async () =>
+        {
+            var result = await ApiClient.GetAsync<int>(ApiRoutes.Commerce.Baskets.Count);
+            return result.IsSuccessful ? result.ResultData : 0;
+        });
+    }
+
+    private void OnCartStateChanged() => InvokeAsync(StateHasChanged);
+
+    public void Dispose() => CartState.Changed -= OnCartStateChanged;
+}

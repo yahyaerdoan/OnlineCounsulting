@@ -1,0 +1,183 @@
+@* Booking flow: pick a date/slot (browsing is public), sign-in prompt replaces submit for anonymous
+   visitors - same browse-then-sign-in pattern as Cart/Checkout. *@
+@page "/appointment"
+@using OnlineConsulting.Maui.Shared.Infrastructure.Forms
+@layout OnlineConsulting.Maui.Shared.Layout.MarketingLayout
+@inject IApiClient ApiClient
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+@inject FormState<AppointmentModel> Form
+
+<PageTitle>Book an Appointment</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="marketing-section">
+    <MudText Typo="Typo.h4" Class="mb-2">Book an Appointment</MudText>
+    <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-6">
+        Pick a date to see open times, or reach out through the <MudLink Href="/contact">Contact page</MudLink> instead.
+    </MudText>
+
+    @if (_confirmed)
+    {
+        <MudAlert Severity="Severity.Success" Class="mb-4">
+            Appointment requested for @DateTimeFormat.FormatDateTime(_selectedSlot!.Start). We've sent a confirmation email.
+        </MudAlert>
+        <MudButton Href="/user/appointments" Variant="Variant.Filled" Color="Color.Primary">View My Appointments</MudButton>
+    }
+    else
+    {
+        <MudGrid>
+            <MudItem xs="12" sm="6">
+                <MudDatePicker Label="Date" Date="_date" DateChanged="OnDateChangedAsync" MinDate="@DateTime.Today.AddDays(1)" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudSelect T="Guid?" Label="Service (optional)" @bind-Value="_serviceId" Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true">
+                    @foreach (var service in _services)
+                    {
+                        <MudSelectItem T="Guid?" Value="@((Guid?)service.Id)">@service.Title</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+        </MudGrid>
+
+        <ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+        @if (_date is not null)
+        {
+            <MudText Typo="Typo.subtitle2" Class="mt-4 mb-2">Available Times</MudText>
+
+            @if (_loadingSlots)
+            {
+                <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+            }
+            else if (_slots.Count == 0)
+            {
+                <MudText Color="Color.Secondary">No open times on this date - try another day.</MudText>
+            }
+            else
+            {
+                <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="2">
+                    @foreach (var slot in _slots)
+                    {
+                        <MudButton Variant="@(_selectedSlot == slot ? Variant.Filled : Variant.Outlined)" Color="Color.Primary" Size="Size.Small"
+                                   OnClick="@(() => _selectedSlot = slot)">
+                            @slot.Start.ToString("h:mm tt")
+                        </MudButton>
+                    }
+                </MudStack>
+            }
+        }
+
+        @if (_selectedSlot is not null)
+        {
+            <EditForm EditContext="@Form.EditContext">
+                <MudTextField @bind-Value="_model.CustomerNote" For="@(() => _model.CustomerNote)" Label="Note (optional)" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="2" Class="mt-4" />
+                <MudTextField @bind-Value="_model.ServiceAddress" For="@(() => _model.ServiceAddress)" Label="Service address (optional)" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mt-2" />
+
+                <AuthorizeView Context="authContext">
+                    <Authorized>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mt-4" Disabled="@_submitting" OnClick="SubmitAsync">
+                            Confirm Booking - @_selectedSlot.Start.ToString("MMM d, h:mm tt")
+                        </MudButton>
+                    </Authorized>
+                    <NotAuthorized>
+                        <MudAlert Severity="Severity.Info" Class="mt-4">
+                            Sign in to confirm this booking.
+                            <div class="mt-2">
+                                <MudButton Href="@($"/login?ReturnUrl=/appointment")" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small">Sign In</MudButton>
+                                <MudButton Href="/register" Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" Class="ml-2">Register</MudButton>
+                            </div>
+                        </MudAlert>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </EditForm>
+        }
+    }
+</MudContainer>
+
+@code {
+    private DateTime? _date;
+    private Guid? _serviceId;
+    private List<ServiceResponse> _services = [];
+    private List<AvailableSlotResponse> _slots = [];
+    private AvailableSlotResponse? _selectedSlot;
+    private readonly AppointmentModel _model = new();
+    private bool _loadingSlots;
+    private bool _submitting;
+    private bool _confirmed;
+    private string? _loadError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Form.Bind(_model);
+
+        var result = await ApiClient.GetAsync<PaginatedResponse<ServiceResponse>>($"{ApiRoutes.Services.Base}?size=100");
+        _services = result.IsSuccessful && result.ResultData is not null ? result.ResultData.Items : [];
+    }
+
+    private async Task OnDateChangedAsync(DateTime? newDate)
+    {
+        _date = newDate;
+
+        if (_date is null)
+        {
+            _slots = [];
+            _selectedSlot = null;
+            return;
+        }
+
+        _loadingSlots = true;
+        _selectedSlot = null;
+        _loadError = null;
+        StateHasChanged();
+
+        var date = DateOnly.FromDateTime(_date.Value);
+        var result = await ApiClient.GetAsync<List<AvailableSlotResponse>>($"{ApiRoutes.Scheduling.Availability.Base}?date={date:yyyy-MM-dd}");
+        if (!result.IsSuccessful || result.ResultData is null)
+        {
+            _loadError = result.DisplayMessage;
+            _slots = [];
+        }
+        else
+        {
+            _slots = result.ResultData;
+        }
+
+        _loadingSlots = false;
+    }
+
+    private async Task SubmitAsync()
+    {
+        if (_selectedSlot is null)
+        {
+            return;
+        }
+
+        _submitting = true;
+
+        var body = new
+        {
+            serviceId = _serviceId,
+            scheduledStart = _selectedSlot.Start,
+            scheduledEnd = _selectedSlot.End,
+            customerNote = _model.CustomerNote,
+            serviceAddress = _model.ServiceAddress,
+        };
+
+        var result = await ApiClient.PostAsync<Guid>(ApiRoutes.Operations.Appointments.Base, body);
+        if (!result.IsSuccessful)
+        {
+            Form.DisplayErrors(result, Snackbar);
+            _submitting = false;
+            return;
+        }
+
+        _confirmed = true;
+        _submitting = false;
+    }
+
+    private sealed class AppointmentModel
+    {
+        public string? CustomerNote { get; set; }
+        public string? ServiceAddress { get; set; }
+    }
+}

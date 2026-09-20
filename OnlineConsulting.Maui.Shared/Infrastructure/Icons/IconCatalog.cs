@@ -68,15 +68,23 @@ public static class IconCatalog
     {
         var result = new List<(string Name, string Value)>();
 
-        foreach (var field in typeof(global::MudBlazor.Icons.Material.Outlined).GetFields(BindingFlags.Public | BindingFlags.Static))
+        AddFieldsFrom(typeof(global::MudBlazor.Icons.Material.Outlined), result);
+        AddFieldsFrom(typeof(global::MudBlazor.Icons.Custom.Brands), result);
+        AddFieldsFrom(typeof(global::MudBlazor.Icons.Custom.FileFormats), result);
+        AddFieldsFrom(typeof(global::MudBlazor.Icons.Custom.Uncategorized), result);
+
+        result.Sort((a, b) => string.CompareOrdinal(a.Name, b.Name));
+        return result;
+    }
+
+    private static void AddFieldsFrom(Type iconSet, List<(string Name, string Value)> result)
+    {
+        foreach (var field in iconSet.GetFields(BindingFlags.Public | BindingFlags.Static))
         {
             if (field.GetValue(null) is string value)
             {
                 result.Add((field.Name, value));
             }
         }
-
-        result.Sort((a, b) => string.CompareOrdinal(a.Name, b.Name));
-        return result;
     }
 }

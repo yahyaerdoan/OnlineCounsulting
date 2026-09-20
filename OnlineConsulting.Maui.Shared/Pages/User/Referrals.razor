@@ -1,0 +1,8 @@
+@page "/user/referrals"
+@attribute [Authorize(Roles = AppRoles.User)]
+@layout OnlineConsulting.Maui.Shared.Layout.DashboardLayout
+
+<PageTitle>Referrals</PageTitle>
+
+<DashboardPageHeading Text="Referrals" />
+<ReferralsSummary />

@@ -1,0 +1,13 @@
+@* Downloads has no backend - the legacy MVC version rendered fake placeholder rows (template
+   PSD names). This is a real "coming soon" stub instead, no fabricated data. *@
+@page "/user/downloads"
+@attribute [Authorize(Roles = AppRoles.User)]
+@layout OnlineConsulting.Maui.Shared.Layout.DashboardLayout
+
+<PageTitle>Downloads</PageTitle>
+
+<MudStack AlignItems="AlignItems.Center" Class="py-10" Spacing="3">
+    <MudIcon Icon="@Icons.Material.Outlined.Download" Size="Size.Large" Color="Color.Secondary" />
+    <MudText Typo="Typo.h6">Downloads</MudText>
+    <MudText Typo="Typo.body2" Color="Color.Secondary">Coming soon.</MudText>
+</MudStack>

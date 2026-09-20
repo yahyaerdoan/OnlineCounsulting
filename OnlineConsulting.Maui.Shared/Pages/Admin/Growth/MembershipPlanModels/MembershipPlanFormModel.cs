@@ -15,4 +15,6 @@ public class MembershipPlanFormModel
     public decimal CreditAmount { get; set; }
 
     public string? Benefits { get; set; }
+
+    public int? TrialDays { get; set; }
 }

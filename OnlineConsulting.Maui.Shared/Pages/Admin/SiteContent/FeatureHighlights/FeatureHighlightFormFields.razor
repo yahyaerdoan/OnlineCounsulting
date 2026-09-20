@@ -25,7 +25,7 @@
     private async Task OnFileSelectedAsync(InputFileChangeEventArgs e)
     {
         _isUploading = true;
-        var result = await MediaUploadHelper.UploadAsync(ApiClient, e.File);
+        var result = await MediaUploadHelper.UploadAsync(ApiClient, e.File, MediaFolders.FeatureHighlights);
         _isUploading = false;
 
         if (!result.IsSuccessful || result.ResultData is null)

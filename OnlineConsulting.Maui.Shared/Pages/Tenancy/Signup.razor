@@ -1,0 +1,349 @@
+@* Tenant self-service signup - public, pay-first: card is tokenized and the whole flow (reserve/charge/
+   create admin/set owner) is submitted as one POST /api/tenancy/signup call. Modeled on
+   Pages/User/Checkout.razor's phased single-page pattern since both need Stripe Elements + a mid-flow
+   client-side transition, unlike the static-SSR Login/Register auth forms. *@
+@page "/signup"
+@using OnlineConsulting.Maui.Shared.Components.Marketing
+@using OnlineConsulting.Maui.Shared.Infrastructure.Forms
+@layout OnlineConsulting.Maui.Shared.Layout.MarketingLayout
+@using Microsoft.Extensions.Configuration
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject IConfiguration Configuration
+@inject IJSRuntime JsRuntime
+@inject FormState<SignupModel> Form
+
+<PageTitle>Sign Up Your Business</PageTitle>
+
+<MarketingPageBanner Title="Start Your Business" SubPage="Sign Up" />
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="marketing-section-tight">
+    <ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+    }
+    else if (_phase == SignupPhase.Confirmed)
+    {
+        <MudStack AlignItems="AlignItems.Center" Class="py-10" Spacing="3">
+            <MudIcon Icon="@Icons.Material.Outlined.CheckCircleOutline" Size="Size.Large" Color="Color.Success" />
+            <MudText Typo="Typo.h5" Align="Align.Center" Class="marketing-display text-strong">Account created - welcome aboard!</MudText>
+            <MudText Typo="Typo.body1" Color="Color.Secondary" Align="Align.Center">Sign in to start setting up your workspace.</MudText>
+            <MudButton Href="/login" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" Class="mt-2">Sign In</MudButton>
+        </MudStack>
+    }
+    else
+    {
+        <MudStack Row="true" Justify="Justify.Center" Spacing="2" AlignItems="AlignItems.Center" Class="mb-6">
+            <MudChip T="string" Size="Size.Small" Variant="@(_phase == SignupPhase.Details ? Variant.Filled : Variant.Text)"
+                     Color="@(_phase == SignupPhase.Details ? Color.Primary : Color.Success)"
+                     Icon="@(_phase == SignupPhase.Payment ? Icons.Material.Filled.Check : null)">1. Company Details</MudChip>
+            <MudIcon Icon="@Icons.Material.Filled.ChevronRight" Color="Color.Secondary" Size="Size.Small" />
+            <MudChip T="string" Size="Size.Small" Variant="@(_phase == SignupPhase.Payment ? Variant.Filled : Variant.Text)"
+                     Color="@(_phase == SignupPhase.Payment ? Color.Primary : Color.Default)">2. Payment</MudChip>
+        </MudStack>
+
+        @if (_phase == SignupPhase.Details)
+        {
+            <MudCard Outlined="true">
+                <MudCardContent Class="pa-6">
+                    <EditForm EditContext="@Form.EditContext" autocomplete="off">
+                        <MudText Typo="Typo.h6" Class="text-strong">Company Details</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">Tell us a bit about your business.</MudText>
+                        <MudTextField T="string" Label="Company name" @bind-Value="_model.CompanyName" For="@(() => _model.CompanyName)" Variant="Variant.Outlined" Margin="Margin.Dense" autocomplete="off" />
+
+                        @if (_bundles.Count > 0)
+                        {
+                            <MudDivider Class="my-5" />
+                            <MudText Typo="Typo.subtitle2" Class="text-strong mb-1">Quick start bundles</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">Pick one to pre-select its modules below, or skip and choose your own.</MudText>
+                            <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="2">
+                                @foreach (var bundle in _bundles)
+                                {
+                                    <MudChip T="string" Size="Size.Medium" Icon="@(IsBundleSelected(bundle) ? Icons.Material.Filled.Check : null)"
+                                             Variant="@(IsBundleSelected(bundle) ? Variant.Filled : Variant.Outlined)"
+                                             Color="@(IsBundleSelected(bundle) ? Color.Primary : Color.Default)"
+                                             OnClick="@(() => SelectBundle(bundle))">@bundle.Name</MudChip>
+                                }
+                            </MudStack>
+                        }
+
+                        <MudDivider Class="my-5" />
+                        <MudText Typo="Typo.subtitle2" Class="text-strong mb-3">Choose your modules</MudText>
+                        <MudPaper Outlined="true" Class="rounded-lg">
+                            @for (var i = 0; i < _offerings.Count; i++)
+                            {
+                                var offering = _offerings[i];
+                                <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="pa-3">
+                                    <MudCheckBox T="bool" Value="@_selectedKeys.Contains(offering.Key)"
+                                                 ValueChanged="@(isChecked => ToggleModule(offering.Key, isChecked))"
+                                                 Label="@offering.Name" Dense="true" />
+                                    <MudText Typo="Typo.body2" Color="Color.Secondary">@offering.Price.ToString("C") / @(offering.BillingCycle == "Annual" ? "yr" : "mo")</MudText>
+                                </MudStack>
+                                @if (i < _offerings.Count - 1)
+                                {
+                                    <MudDivider />
+                                }
+                            }
+                        </MudPaper>
+
+                        <MudDivider Class="my-6" />
+                        <MudText Typo="Typo.h6" Class="text-strong mb-1">Your Account</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">You will use this to sign in as the workspace admin.</MudText>
+                        <MudGrid Spacing="3">
+                            <MudItem xs="12" sm="6"><MudTextField T="string" Label="First name" @bind-Value="_model.FirstName" For="@(() => _model.FirstName)" Variant="Variant.Outlined" Margin="Margin.Dense" autocomplete="off" /></MudItem>
+                            <MudItem xs="12" sm="6"><MudTextField T="string" Label="Last name" @bind-Value="_model.LastName" For="@(() => _model.LastName)" Variant="Variant.Outlined" Margin="Margin.Dense" autocomplete="off" /></MudItem>
+                            <MudItem xs="12" sm="6"><MudTextField T="string" Label="Email" InputType="InputType.Email" @bind-Value="_model.Email" For="@(() => _model.Email)" Variant="Variant.Outlined" Margin="Margin.Dense" autocomplete="off" /></MudItem>
+                            <MudItem xs="12" sm="6"><MudTextField T="string" Label="Phone (optional)" @bind-Value="_model.PhoneNumber" For="@(() => _model.PhoneNumber)" Variant="Variant.Outlined" Margin="Margin.Dense" autocomplete="off" /></MudItem>
+                            <MudItem xs="12"><MudTextField T="string" Label="Password" InputType="InputType.Password" @bind-Value="_model.Password" For="@(() => _model.Password)" Variant="Variant.Outlined" Margin="Margin.Dense" autocomplete="new-password" /></MudItem>
+                        </MudGrid>
+
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Size="Size.Large" Class="mt-6"
+                                   Disabled="@(!CanContinue)" OnClick="@(() => _phase = SignupPhase.Payment)">
+                            Continue to Payment
+                        </MudButton>
+                        @if (!CanContinue)
+                        {
+                            <MudText Typo="Typo.caption" Color="Color.Secondary" Align="Align.Center" Class="d-block mt-2">
+                                Fill in your company and account details and select at least one module to continue.
+                            </MudText>
+                        }
+                    </EditForm>
+                </MudCardContent>
+            </MudCard>
+        }
+        else
+        {
+            <MudCard Outlined="true">
+                <MudCardContent Class="pa-6">
+                    <MudText Typo="Typo.h6" Class="text-strong mb-3">Order Summary</MudText>
+                    <MudPaper Outlined="true" Class="rounded-lg pa-1 mb-5">
+                        @foreach (var offering in SelectedOfferings)
+                        {
+                            <MudStack Row="true" Justify="Justify.SpaceBetween" Class="pa-3">
+                                <MudText Typo="Typo.body2">@offering.Name</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">@offering.Price.ToString("C") / @(offering.BillingCycle == "Annual" ? "yr" : "mo")</MudText>
+                            </MudStack>
+                        }
+                    </MudPaper>
+
+                    <MudText Typo="Typo.subtitle2" Class="text-strong mb-2">Card Details</MudText>
+                    <div id="tenancy-signup-card-element" class="mb-3"></div>
+                    <ApiErrorAlert Message="@_paymentError" Severity="Severity.Error" />
+
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Size="Size.Large" Class="mt-4"
+                               Disabled="@_isBusy" OnClick="SubmitAsync">
+                        Create Account &amp; Subscribe
+                    </MudButton>
+                    <MudButton Variant="Variant.Text" FullWidth="true" Class="mt-2" Disabled="@_isBusy"
+                               OnClick="@(() => _phase = SignupPhase.Details)">
+                        Back
+                    </MudButton>
+                </MudCardContent>
+            </MudCard>
+        }
+    }
+</MudContainer>
+
+@code {
+    private enum SignupPhase { Details, Payment, Confirmed }
+
+    private List<PublicModuleOfferingResponse> _offerings = [];
+    private List<PublicBundleResponse> _bundles = [];
+    private HashSet<string> _selectedKeys = [];
+
+    private readonly SignupModel _model = new();
+
+    private SignupPhase _phase = SignupPhase.Details;
+    private bool _loading = true;
+    private bool _isBusy;
+    private bool _cardElementMounted;
+    private string? _loadError;
+    private string? _paymentError;
+
+    private IEnumerable<PublicModuleOfferingResponse> SelectedOfferings => _offerings.Where(o => _selectedKeys.Contains(o.Key));
+
+    private bool CanContinue =>
+        _selectedKeys.Count > 0 &&
+        !string.IsNullOrWhiteSpace(_model.CompanyName) &&
+        !string.IsNullOrWhiteSpace(_model.FirstName) &&
+        !string.IsNullOrWhiteSpace(_model.LastName) &&
+        !string.IsNullOrWhiteSpace(_model.Email) &&
+        !string.IsNullOrWhiteSpace(_model.Password);
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Bind before any await - Blazor can render (and touch Form.EditContext) after the first yield point.
+        Form.Bind(_model);
+
+        var offeringsResult = await ApiClient.GetAsync<List<PublicModuleOfferingResponse>>(ApiRoutes.Tenancy.ModuleOfferings);
+        if (!offeringsResult.IsSuccessful)
+        {
+            _loadError = offeringsResult.DisplayMessage;
+            _loading = false;
+            return;
+        }
+
+        _offerings = offeringsResult.ResultData ?? [];
+
+        var bundlesResult = await ApiClient.GetAsync<List<PublicBundleResponse>>(ApiRoutes.Tenancy.Bundles);
+        _bundles = bundlesResult.IsSuccessful ? bundlesResult.ResultData ?? [] : [];
+
+        ApplyPreselectedModules();
+
+        _loading = false;
+    }
+
+    /// <summary>Pre-checks modules picked on Pricing.razor's CTAs - still editable, not locked.</summary>
+    [SupplyParameterFromQuery(Name = "modules")]
+    private string? PreselectedModuleKeys { get; set; }
+
+    private void ApplyPreselectedModules()
+    {
+        if (string.IsNullOrWhiteSpace(PreselectedModuleKeys))
+        {
+            return;
+        }
+
+        var validKeys = _offerings.Select(o => o.Key).ToHashSet();
+        foreach (var key in PreselectedModuleKeys.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            if (validKeys.Contains(key))
+            {
+                _ = _selectedKeys.Add(key);
+            }
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_phase == SignupPhase.Payment && !_cardElementMounted)
+        {
+            _cardElementMounted = true;
+            var publishableKey = Configuration["Stripe:PublishableKey"];
+            await JsRuntime.InvokeVoidAsync("subscribeStripe.init", publishableKey, "tenancy-signup-card-element");
+        }
+    }
+
+    private bool IsBundleSelected(PublicBundleResponse bundle) =>
+        bundle.ModuleKeys.Count > 0 && bundle.ModuleKeys.All(_selectedKeys.Contains);
+
+    private void SelectBundle(PublicBundleResponse bundle)
+    {
+        foreach (var key in bundle.ModuleKeys)
+        {
+            _ = _selectedKeys.Add(key);
+        }
+    }
+
+    private void ToggleModule(string key, bool isChecked)
+    {
+        if (isChecked)
+        {
+            _ = _selectedKeys.Add(key);
+        }
+        else
+        {
+            _ = _selectedKeys.Remove(key);
+        }
+    }
+
+    private async Task SubmitAsync()
+    {
+        _isBusy = true;
+        _paymentError = null;
+        StateHasChanged();
+
+        var tokenizeResult = await JsRuntime.InvokeAsync<StripeTokenizeResult>("subscribeStripe.createPaymentMethod");
+        if (tokenizeResult.Error is not null)
+        {
+            _paymentError = tokenizeResult.Error;
+            _isBusy = false;
+            return;
+        }
+
+        var result = await ApiClient.PostAsync(ApiRoutes.Tenancy.Signup, new
+        {
+            companyName = _model.CompanyName,
+            adminFirstName = _model.FirstName,
+            adminLastName = _model.LastName,
+            adminEmail = _model.Email,
+            adminPassword = _model.Password,
+            moduleKeys = _selectedKeys.ToList(),
+            paymentMethodId = tokenizeResult.PaymentMethodId,
+            adminPhoneNumber = _model.PhoneNumber,
+        });
+
+        if (!result.IsSuccessful)
+        {
+            ApplySignupErrors(result);
+            _isBusy = false;
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        _phase = SignupPhase.Confirmed;
+        _isBusy = false;
+    }
+
+    /// <summary>Remaps chained commands' inconsistent field names onto SignupModel's; unmappable ones (no matching input) go to the toast.</summary>
+    private void ApplySignupErrors(ApiEnvelope result)
+    {
+        var fieldErrors = new Dictionary<string, List<string>>();
+        var generalMessages = new List<string>();
+
+        if (result.FieldErrors is { Count: > 0 })
+        {
+            foreach (var (key, messages) in result.FieldErrors)
+            {
+                var mapped = MapSignupFieldKey(key);
+                if (mapped is not null)
+                {
+                    fieldErrors[mapped] = messages;
+                }
+                else
+                {
+                    generalMessages.AddRange(messages);
+                }
+            }
+        }
+
+        if (fieldErrors.Count > 0)
+        {
+            _phase = SignupPhase.Details;
+            Form.DisplayErrors(result with { FieldErrors = fieldErrors });
+        }
+
+        if (generalMessages.Count > 0 || fieldErrors.Count == 0)
+        {
+            Snackbar.ShowError(generalMessages.Count > 0 ? string.Join(" ", generalMessages) : result.DisplayMessage);
+        }
+    }
+
+    private static readonly HashSet<string> DirectSignupFieldKeys =
+    [
+        nameof(SignupModel.CompanyName), nameof(SignupModel.FirstName), nameof(SignupModel.LastName), nameof(SignupModel.Password),
+    ];
+
+    private static string? MapSignupFieldKey(string key) => key switch
+    {
+        _ when DirectSignupFieldKeys.Contains(key) => key,
+        "Email" or "AdminEmail" => nameof(SignupModel.Email),
+        "PhoneNumber" or "AdminPhoneNumber" => nameof(SignupModel.PhoneNumber),
+        _ => null,
+    };
+
+    private sealed record StripeTokenizeResult(string? PaymentMethodId, string? Error);
+
+    private sealed class SignupModel
+    {
+        public string CompanyName { get; set; } = string.Empty;
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string? PhoneNumber { get; set; }
+        public string Password { get; set; } = string.Empty;
+    }
+}

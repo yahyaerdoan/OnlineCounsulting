@@ -1,0 +1,14 @@
+@* Marketing-only brand mark (admin's BrandMark.razor is separate). Colors via CSS's "on-dark" modifier, not params. *@
+<a href="/" class="marketing-brand-mark @(OnDark ? "marketing-brand-mark-on-dark" : "") @Class">
+    <MudIcon Icon="@Icons.Material.Filled.Star" Size="Size.Small" Class="mr-2" />
+    <span class="marketing-brand-word">Comfort</span><span class="marketing-brand-word marketing-brand-word-muted">Pro</span>
+</a>
+
+@code {
+    /// <summary>True on the dark footer - swaps the wordmark/icon to a light-on-dark palette.</summary>
+    [Parameter]
+    public bool OnDark { get; set; }
+
+    [Parameter]
+    public string? Class { get; set; }
+}

@@ -1,0 +1,75 @@
+@* Matches AboutUsAboutComponentPartial 1:1 - title/description + an optional YouTube embed
+   (first AboutUs CMS entry). *@
+@using OnlineConsulting.Maui.Shared.Infrastructure.Api
+@inject IApiClient ApiClient
+
+@if (_aboutUs is not null)
+{
+    <MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
+        <MudGrid Spacing="6">
+            <MudItem xs="12" md="@(string.IsNullOrWhiteSpace(_videoUrl) ? 10 : 6)" Class="@(string.IsNullOrWhiteSpace(_videoUrl) ? "mx-auto text-center" : "")">
+                <MudText Typo="Typo.h5" Class="marketing-display text-strong mb-3">
+                    Welcome to <span style="color:var(--mud-palette-primary);">@_aboutUs.Title</span>
+                </MudText>
+                @* HtmlTag="div", not the Typo.body1 default of <p> - Description is now rich-text
+                   HTML from MudExRichTextEdit and can contain block elements (h1/h2/ul/p); nesting
+                   those inside a <p> is invalid HTML and browsers silently mangle the DOM. *@
+                <MudText HtmlTag="div" Typo="Typo.body1" Color="Color.Secondary" Class="mb-4 marketing-rich-text" Style="text-align:justify;">@((MarkupString)_aboutUs.Description)</MudText>
+                <MudButton Href="/services" Variant="Variant.Filled" Color="Color.Primary">Get Service Now</MudButton>
+            </MudItem>
+            @if (!string.IsNullOrWhiteSpace(_videoUrl))
+            {
+                <MudItem xs="12" md="6">
+                    <div class="marketing-video-embed marketing-video-embed-sticky">
+                        <iframe src="@_videoUrl" title="About Us Video" allowfullscreen frameborder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+                    </div>
+                </MudItem>
+            }
+        </MudGrid>
+    </MudContainer>
+}
+
+@code {
+    private AboutUsResponse? _aboutUs;
+    private string? _videoUrl;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await ApiClient.GetAsync<List<AboutUsResponse>>(ApiRoutes.SiteContent.AboutUs.Base);
+        _aboutUs = result.IsSuccessful ? result.ResultData?.OrderBy(a => a.DisplayOrder).FirstOrDefault() : null;
+        _videoUrl = ConvertToEmbedUrl(_aboutUs?.VideoUrl);
+    }
+
+    /// <summary>Mirrors the legacy site's YouTube-URL-to-embed-URL conversion exactly.</summary>
+    private static string? ConvertToEmbedUrl(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url) || !Uri.TryCreate(url, UriKind.Absolute, out var uri))
+        {
+            return null;
+        }
+
+        var videoId = ExtractQueryValue(uri.Query, "v") ?? uri.Segments.LastOrDefault()?.Trim('/');
+        return string.IsNullOrWhiteSpace(videoId) ? null : $"https://www.youtube.com/embed/{videoId}?autoplay=1&mute=1&loop=1&playlist={videoId}&rel=0&modestbranding=1";
+    }
+
+    /// <summary>Tiny "?a=1&b=2" reader - avoids pulling in a query-string parsing package for one field.</summary>
+    private static string? ExtractQueryValue(string query, string key)
+    {
+        if (string.IsNullOrEmpty(query))
+        {
+            return null;
+        }
+
+        foreach (var pair in query.TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var parts = pair.Split('=', 2);
+            if (parts.Length == 2 && Uri.UnescapeDataString(parts[0]) == key)
+            {
+                return Uri.UnescapeDataString(parts[1]);
+            }
+        }
+
+        return null;
+    }
+}

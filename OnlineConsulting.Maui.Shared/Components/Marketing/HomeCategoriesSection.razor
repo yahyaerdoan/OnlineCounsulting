@@ -1,0 +1,48 @@
+@* Category grid - each tile is a real link into the filtered service list (not just decorative),
+   with a description line and a "View services" affordance so it reads as useful navigation. *@
+@using OnlineConsulting.Maui.Shared.Infrastructure.Api
+@inject IApiClient ApiClient
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
+    <MudText Typo="Typo.subtitle1" Color="Color.Primary" Align="Align.Center" Class="text-strong">Your Comfort, Our Priority</MudText>
+    <MudText Typo="Typo.h5" Align="Align.Center" Class="marketing-display text-strong mb-2">Home Services We Provide</MudText>
+    <MudText Typo="Typo.body1" Color="Color.Secondary" Align="Align.Center" Class="mx-auto mb-4" Style="max-width:640px;">
+        From routine maintenance to emergency repairs and full system installs, ComfortPro's licensed technicians
+        keep your home comfortable year-round. Explore our service categories below:
+    </MudText>
+
+    <MudGrid Spacing="2">
+        @foreach (var (category, colorClass) in _tiles)
+        {
+            <MudItem xs="12" sm="6" md="4">
+                <a href="@($"/services?category={category.Id}")" class="marketing-category-tile @colorClass">
+                    <MudIcon Icon="@category.Icon" Class="marketing-category-icon" Style="@($"color:{category.IconColor ?? "var(--mud-palette-primary)"};")" />
+                    <MudText Typo="Typo.subtitle1" Class="marketing-category-title text-strong">@category.Title</MudText>
+                    @if (!string.IsNullOrWhiteSpace(category.Description))
+                    {
+                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="marketing-category-desc">@category.Description</MudText>
+                    }
+                    <span class="marketing-category-link">
+                        View services <MudIcon Icon="@Icons.Material.Filled.ArrowForward" Size="Size.Small" />
+                    </span>
+                </a>
+            </MudItem>
+        }
+    </MudGrid>
+
+    <MudStack AlignItems="AlignItems.Center" Class="mt-6">
+        <MudButton Href="/services" Variant="Variant.Filled" Color="Color.Primary">View All Services</MudButton>
+    </MudStack>
+</MudContainer>
+
+@code {
+    private static readonly string[] ColorClasses = ["tile-malachite", "tile-sunglow", "tile-mariner", "tile-brilliantrose", "tile-shakespeare", "tile-deyork"];
+
+    private List<(CategoryResponse Category, string ColorClass)> _tiles = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var categories = await CategoryLookupHelper.GetAllAsync(ApiClient);
+        _tiles = categories.Select((category, index) => (category, ColorClasses[index % ColorClasses.Length])).ToList();
+    }
+}

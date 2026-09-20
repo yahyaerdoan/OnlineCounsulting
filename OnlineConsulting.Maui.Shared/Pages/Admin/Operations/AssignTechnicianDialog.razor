@@ -1,6 +1,8 @@
 @namespace OnlineConsulting.Maui.Shared.Pages.Admin.Operations
+@using OnlineConsulting.Maui.Shared.Infrastructure.Forms
 @inject IApiClient ApiClient
 @inject ISnackbar Snackbar
+@inject FormState<AssignTechnicianModel> Form
 
 <MudDialog>
     <TitleContent>
@@ -13,16 +15,14 @@
         }
         else
         {
-            <MudSelect T="Guid" @bind-Value="_technicianUserId" Label="Technician" Variant="Variant.Outlined" Margin="Margin.Dense">
-                @foreach (var technician in _technicians)
-                {
-                    <MudSelectItem T="Guid" Value="@technician.Id">@($"{technician.FirstName} {technician.LastName} ({technician.Email})")</MudSelectItem>
-                }
-            </MudSelect>
-        }
-        @if (_error is not null)
-        {
-            <ApiErrorAlert Message="@_error" Severity="Severity.Error" />
+            <EditForm EditContext="@Form.EditContext">
+                <MudSelect T="Guid" @bind-Value="_model.TechnicianUserId" For="@(() => _model.TechnicianUserId)" Label="Technician" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true">
+                    @foreach (var technician in _technicians)
+                    {
+                        <MudSelectItem T="Guid" Value="@technician.Id">@($"{technician.FirstName} {technician.LastName} ({technician.Email})")</MudSelectItem>
+                    }
+                </MudSelect>
+            </EditForm>
         }
     </DialogContent>
     <DialogActions>
@@ -38,19 +38,20 @@
     public AppointmentResponse Appointment { get; set; } = default!;
 
     private List<UserResponse> _technicians = [];
-    private Guid _technicianUserId;
+    private readonly AssignTechnicianModel _model = new();
     private bool _loading = true;
     private bool _isBusy;
-    private string? _error;
 
     protected override async Task OnInitializedAsync()
     {
+        Form.Bind(_model);
+
         // Every tenant user is a candidate - no separate "Technician" role/claim exists to filter on.
         var usersResult = await ApiClient.QueryAsync<PaginatedResponse<UserResponse>>(ApiRoutes.Paged(ApiRoutes.Users.All, 0, int.MaxValue), null);
         _technicians = usersResult.IsSuccessful && usersResult.ResultData is not null ? usersResult.ResultData.Items : [];
         if (_technicians.Count > 0)
         {
-            _technicianUserId = _technicians[0].Id;
+            _model.TechnicianUserId = _technicians[0].Id;
         }
 
         _loading = false;
@@ -59,19 +60,23 @@
     private async Task AssignAsync()
     {
         _isBusy = true;
-        _error = null;
 
-        var result = await ApiClient.PostAsync(ApiRoutes.Operations.Appointments.AssignTechnician(Appointment.Id), new { technicianUserId = _technicianUserId });
+        var result = await ApiClient.PostAsync(ApiRoutes.Operations.Appointments.AssignTechnician(Appointment.Id), new { technicianUserId = _model.TechnicianUserId });
 
         _isBusy = false;
 
         if (!result.IsSuccessful)
         {
-            _error = result.DisplayMessage;
+            Form.DisplayErrors(result, Snackbar);
             return;
         }
 
         Snackbar.ShowSuccess(result.DisplayMessage);
         MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private sealed class AssignTechnicianModel
+    {
+        public Guid TechnicianUserId { get; set; }
     }
 }

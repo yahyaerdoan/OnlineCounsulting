@@ -1,11 +1,12 @@
 @using System.Linq.Expressions
 @* InputText, not MudTextField - MudTextField needs JS interop, breaks on static SSR.
-   Floating label is a pure-CSS trick (input:placeholder-shown + sibling label), no JS. *@
+   Outlined floating label is a pure-CSS trick (input:placeholder-shown + sibling label), no JS. *@
 <div class="auth-field">
     <div class="auth-input-wrap">
         <MudIcon Icon="@Icon" />
         <InputText id="@_id" Value="@Value" ValueChanged="@ValueChanged" ValueExpression="@ValueExpression"
-                   type="@Type" class="auth-input" placeholder="@Placeholder" required="@Required" autofocus="@AutoFocus" />
+                   type="@Type" class="auth-input" placeholder=" " required="@Required" autofocus="@AutoFocus"
+                   autocomplete="@(Type == "password" ? "new-password" : "off")" />
         <label for="@_id" class="auth-input-label">@Label</label>
     </div>
     <ValidationMessage For="@ValueExpression" class="auth-field-error" />
@@ -19,9 +20,6 @@
 
     [Parameter, EditorRequired]
     public string Icon { get; set; } = string.Empty;
-
-    [Parameter]
-    public string Placeholder { get; set; } = string.Empty;
 
     [Parameter]
     public string Type { get; set; } = "text";

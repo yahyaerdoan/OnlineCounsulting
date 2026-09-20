@@ -1,0 +1,63 @@
+@* Matches ContactInformationComponentPartial 1:1 - description + address/email/phone + working hours. *@
+@using OnlineConsulting.Maui.Shared.Infrastructure.Api
+@inject IApiClient ApiClient
+
+@if (_contact is not null)
+{
+    <div class="contact-form">
+        <MudText Typo="Typo.h5" Class="marketing-display mb-1">Contact Us</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">@_contact.Description</MudText>
+
+        <MudStack Spacing="3">
+            <MudStack Row="true" Spacing="3" AlignItems="AlignItems.Center">
+                <div class="contact-info-icon">
+                    <MudIcon Icon="@Icons.Material.Filled.Home" Color="Color.Primary" Size="Size.Small" />
+                </div>
+                <MudStack Spacing="0">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">Address</MudText>
+                    <MudText Typo="Typo.body2">@_contact.Address</MudText>
+                </MudStack>
+            </MudStack>
+
+            <MudStack Row="true" Spacing="3" AlignItems="AlignItems.Center">
+                <div class="contact-info-icon">
+                    <MudIcon Icon="@Icons.Material.Filled.Email" Color="Color.Primary" Size="Size.Small" />
+                </div>
+                <MudStack Spacing="0">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">Email</MudText>
+                    <MudLink Href="@($"mailto:{_contact.Email}")" Typo="Typo.body2" Class="contact-info-link">@_contact.Email</MudLink>
+                </MudStack>
+            </MudStack>
+
+            <MudStack Row="true" Spacing="3" AlignItems="AlignItems.Center">
+                <div class="contact-info-icon">
+                    <MudIcon Icon="@Icons.Material.Filled.Phone" Color="Color.Primary" Size="Size.Small" />
+                </div>
+                <MudStack Spacing="0">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">Phone</MudText>
+                    <MudLink Href="@($"tel:{_contact.Phone}")" Typo="Typo.body2" Class="contact-info-link">@_contact.Phone</MudLink>
+                </MudStack>
+            </MudStack>
+
+            <MudStack Row="true" Spacing="3" AlignItems="AlignItems.Center">
+                <div class="contact-info-icon">
+                    <MudIcon Icon="@Icons.Material.Filled.AccessTime" Color="Color.Primary" Size="Size.Small" />
+                </div>
+                <MudStack Spacing="0">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">Working Hours</MudText>
+                    <MudText Typo="Typo.body2">@_contact.WorkingHours</MudText>
+                </MudStack>
+            </MudStack>
+        </MudStack>
+    </div>
+}
+
+@code {
+    private CompanyContactResponse? _contact;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await ApiClient.GetAsync<CompanyContactResponse>(ApiRoutes.Inquiries.Contact.Get);
+        _contact = result.IsSuccessful ? result.ResultData : null;
+    }
+}

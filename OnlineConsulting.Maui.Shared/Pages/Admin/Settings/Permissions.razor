@@ -1,56 +1,77 @@
 @page "/admin/settings/permissions"
-@attribute [Authorize]
+@attribute [Authorize(Roles = "Admin,Super Admin,Member")]
+@using OnlineConsulting.Maui.Shared.Infrastructure.Auth
 @inject IApiClient ApiClient
 @inject ISnackbar Snackbar
 
 <PageTitle>Permissions</PageTitle>
 
-<PageHeroBanner Title="Permissions" Subtitle="Control access levels and assign permissions per role." />
+<PageHeroBanner Title="Permissions" Subtitle="Control which permissions each role grants - Super Admin always bypasses these." />
 
 <ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
 
-<MudPaper Elevation="0" Outlined="true" Class="mt-2 pa-4">
-    <MudStack Row="true" Class="mb-2">
-        <MudSpacer />
-        <MudTextField T="string" ValueChanged="@(v => _filter = v)" Immediate="true" DebounceInterval="300" Margin="Margin.Dense"
-                      Placeholder="Search modules" Adornment="Adornment.Start"
-                      AdornmentIcon="@Icons.Material.Outlined.Search" IconSize="Size.Small" />
-    </MudStack>
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mt-4" />
+}
+else
+{
+    <MudAlert Severity="Severity.Info" Class="mt-2 mb-2" Dense="true">
+        Super Admin has a global bypass and always passes every check, regardless of the toggles below - narrow individual team members instead from Users - Narrow permissions.
+    </MudAlert>
 
-    @foreach (var (module, permissions) in _catalog.Where(m => m.Key.Contains(_filter, StringComparison.OrdinalIgnoreCase)))
-    {
-        <MudPaper Elevation="0" Outlined="true" Class="pa-4 mb-2">
-            <MudText Typo="Typo.h6">@module</MudText>
-            <MudTable Items="_roles" Dense="true" Hover="true" Elevation="0">
-                <HeaderContent>
-                    <MudTh>Role</MudTh>
-                    @foreach (var permission in permissions)
-                    {
-                        <MudTh Class="mud-table-cell-align-center">@ActionLabel(permission)</MudTh>
-                    }
-                </HeaderContent>
-                <RowTemplate Context="role">
-                    <MudTd DataLabel="Role">@role.RoleName</MudTd>
-                    @foreach (var permission in permissions)
-                    {
-                        <MudTd DataLabel="@ActionLabel(permission)" Class="mud-table-cell-align-center">
-                            <MudStack Row="true" Justify="Justify.Center">
-                                <MudCheckBox T="bool" Value="@role.Assigned.Contains(permission)"
-                                             ValueChanged="@(v => ToggleAsync(role, permission, v))"
-                                             Dense="true" Color="Color.Primary" Class="ma-0" />
-                            </MudStack>
+    <MudPaper Elevation="0" Outlined="true" Class="pa-4">
+        <MudStack Row="true" Class="mb-2">
+            <MudSpacer />
+            <MudTextField T="string" ValueChanged="@(v => _filter = v)" Immediate="true" DebounceInterval="300" Margin="Margin.Dense"
+                          Placeholder="Search modules" Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Outlined.Search" IconSize="Size.Small" />
+        </MudStack>
+
+        @foreach (var (module, permissions) in _catalog.Where(m => m.Key.Contains(_filter, StringComparison.OrdinalIgnoreCase)))
+        {
+            <MudPaper Elevation="0" Outlined="true" Class="pa-4 mb-2">
+                <MudText Typo="Typo.h6" Class="mb-1">@module</MudText>
+                <MudTable Items="_roles" Dense="true" Hover="true" Elevation="0">
+                    <HeaderContent>
+                        <MudTh>Role</MudTh>
+                        @foreach (var permission in permissions)
+                        {
+                            <MudTh Class="mud-table-cell-align-center">@ActionLabel(permission)</MudTh>
+                        }
+                    </HeaderContent>
+                    <RowTemplate Context="role">
+                        <MudTd DataLabel="Role">
+                            @role.RoleName
+                            @if (role.RoleName == AppRoles.SuperAdmin)
+                            {
+                                <MudTooltip Text="Bypasses every check - toggles here have no practical effect.">
+                                    <MudIcon Icon="@Icons.Material.Outlined.Bolt" Size="Size.Small" Color="Color.Warning" Class="ml-1" />
+                                </MudTooltip>
+                            }
                         </MudTd>
-                    }
-                </RowTemplate>
-            </MudTable>
-        </MudPaper>
-    }
-</MudPaper>
+                        @foreach (var permission in permissions)
+                        {
+                            <MudTd DataLabel="@ActionLabel(permission)" Class="mud-table-cell-align-center">
+                                <MudStack Row="true" Justify="Justify.Center">
+                                    <MudCheckBox T="bool" Value="@role.Assigned.Contains(permission)"
+                                                 ValueChanged="@(v => ToggleAsync(role, permission, v))"
+                                                 Dense="true" Color="Color.Primary" Class="ma-0" />
+                                </MudStack>
+                            </MudTd>
+                        }
+                    </RowTemplate>
+                </MudTable>
+            </MudPaper>
+        }
+    </MudPaper>
+}
 
 @code {
     private Dictionary<string, string[]> _catalog = [];
     private List<RoleRow> _roles = [];
     private string _filter = string.Empty;
+    private bool _loading = true;
     private string? _loadError;
 
     protected override async Task OnInitializedAsync()
@@ -61,11 +82,13 @@
         if (!catalogResult.IsSuccessful || catalogResult.ResultData is null || !rolesResult.IsSuccessful || rolesResult.ResultData is null)
         {
             _loadError = !catalogResult.IsSuccessful ? catalogResult.DisplayMessage : rolesResult.DisplayMessage;
+            _loading = false;
             return;
         }
 
         _catalog = catalogResult.ResultData;
         _roles = [.. rolesResult.ResultData.Select(r => new RoleRow(r.RoleId, r.RoleName, [.. r.Permissions]))];
+        _loading = false;
     }
 
     /// <summary>Permission strings are "module.action" - just the action reads well as a column header.</summary>

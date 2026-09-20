@@ -1,0 +1,186 @@
+@* Sells this platform to prospective tenants (ModuleOffering/Bundle catalog) - not Membership.razor's tenant-customer plans. *@
+@page "/pricing"
+@attribute [ExcludeFromInteractiveRouting]
+@layout OnlineConsulting.Maui.Shared.Layout.MarketingLayout
+@using OnlineConsulting.Maui.Shared.Components.Marketing
+@using OnlineConsulting.Maui.Shared.Infrastructure.Api
+@inject IApiClient ApiClient
+
+<PageTitle>Pricing</PageTitle>
+
+<MarketingPageBanner Title="Pricing" SubPage="Pricing" />
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
+    <ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+    <MudText Typo="Typo.subtitle1" Color="Color.Primary" Align="Align.Center" Class="text-strong">Simple pricing for service businesses</MudText>
+    <MudText Typo="Typo.h4" Align="Align.Center" Class="marketing-display text-strong mb-2">Pick a bundle to get started</MudText>
+    @if (_offerings.Count > 0)
+    {
+        <MudText Typo="Typo.body1" Color="Color.Secondary" Align="Align.Center" Class="marketing-section-intro-text mb-4">
+            Plans start at @MinPrice.ToString("C") / @MinBillingLabel when billed @MinBillingLabelLong.ToLowerInvariant() - or build your own from individual modules below.
+        </MudText>
+    }
+
+    @if (_bundles.Count == 0 && _loadError is null)
+    {
+        <MudAlert Severity="Severity.Info">No bundles are available right now - see the individual modules below.</MudAlert>
+    }
+    else
+    {
+        <MudGrid Justify="Justify.Center" Class="mt-2">
+            @foreach (var bundle in _bundles)
+            {
+                var featured = IsFeaturedBundle(bundle);
+                <MudItem xs="12" sm="6" md="4">
+                    <div class="position-relative" style="height:100%;">
+                        @if (featured)
+                        {
+                            <span class="marketing-pricing-badge">Most Popular</span>
+                        }
+                        <MudCard Outlined="true" Class="@($"d-flex flex-column marketing-pricing-card {(featured ? "marketing-pricing-card-featured" : "")}")" Style="height:100%;">
+                            <MudCardContent Class="d-flex flex-column flex-grow-1">
+                                <MudText Typo="Typo.h6">@bundle.Name</MudText>
+                                <MudStack Row="true" AlignItems="AlignItems.Baseline" Spacing="1" Class="my-3">
+                                    <MudText Typo="Typo.h4">@BundlePrice(bundle).ToString("C")</MudText>
+                                    <MudText Typo="Typo.body2" Color="Color.Secondary">/ @BundleBillingLabel(bundle)</MudText>
+                                </MudStack>
+                                <MudList T="string" Dense="true" Class="flex-grow-1">
+                                    @foreach (var moduleName in BundleModuleNames(bundle))
+                                    {
+                                        <MudListItem T="string" Icon="@Icons.Material.Outlined.Check" IconColor="Color.Primary">@moduleName</MudListItem>
+                                    }
+                                </MudList>
+                            </MudCardContent>
+                            <MudCardActions Class="pa-4 pt-0">
+                                <MudButton Href="@SignupUrl(bundle)" Variant="Variant.Filled" Color="@(featured ? Color.Primary : Color.Default)" FullWidth="true">Get Started</MudButton>
+                            </MudCardActions>
+                        </MudCard>
+                    </div>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+</MudContainer>
+
+@if (_offerings.Count > 0)
+{
+    <MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
+        <MudText Typo="Typo.h5" Align="Align.Center" Class="marketing-display text-strong">Or build your own</MudText>
+        <MudText Typo="Typo.body1" Color="Color.Secondary" Align="Align.Center" Class="marketing-section-intro-text mb-4">
+            Add exactly the modules your business needs, a la carte.
+        </MudText>
+
+        <MudGrid Spacing="2">
+            @foreach (var offering in _offerings)
+            {
+                <MudItem xs="12" sm="6" md="3">
+                    <MudCard Outlined="true" Class="d-flex flex-column marketing-pricing-card" Style="height:100%;">
+                        <MudCardContent Class="flex-grow-1">
+                            <MudText Typo="Typo.subtitle1" Class="text-strong">@offering.Name</MudText>
+                            <MudStack Row="true" AlignItems="AlignItems.Baseline" Spacing="1" Class="mt-2">
+                                <MudText Typo="Typo.h5">@offering.Price.ToString("C")</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">/ @(offering.BillingCycle == "Annual" ? "yr" : "mo")</MudText>
+                            </MudStack>
+                        </MudCardContent>
+                        <MudCardActions Class="pa-4 pt-0">
+                            <MudButton Href="@SignupUrl(offering)" Variant="Variant.Outlined" Color="Color.Primary" FullWidth="true">Select</MudButton>
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+
+        <div class="d-flex justify-center mt-6">
+            <MudButton Href="/signup" Variant="Variant.Outlined" Color="Color.Primary">Start building your plan</MudButton>
+        </div>
+    </MudContainer>
+}
+
+@if (_faqItems.Count > 0)
+{
+    <MudContainer MaxWidth="MaxWidth.Medium" Class="marketing-section-tight">
+        <MudText Typo="Typo.h5" Align="Align.Center" Class="marketing-display text-strong mb-4">Pricing FAQs</MudText>
+
+        <MudStack Spacing="2">
+            @foreach (var item in _faqItems)
+            {
+                <details class="marketing-promo-card">
+                    <summary><span class="marketing-promo-title text-strong">@item.Question</span></summary>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">@item.Answer</MudText>
+                </details>
+            }
+        </MudStack>
+    </MudContainer>
+}
+
+@if (_bundles.Count > 0 || _offerings.Count > 0)
+{
+    <MudContainer MaxWidth="MaxWidth.Medium" Class="marketing-section-tight">
+        <MudPaper Outlined="true" Class="rounded-lg pa-8 d-flex flex-column align-center text-center">
+            <MudText Typo="Typo.h5" Class="marketing-display text-strong">Ready to get started?</MudText>
+            <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mt-2 mb-4">Pick a bundle or build your own plan - no credit card required to see your options.</MudText>
+            <MudButton Href="/signup" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large">Get Started</MudButton>
+        </MudPaper>
+    </MudContainer>
+}
+
+@code {
+    private List<PublicModuleOfferingResponse> _offerings = [];
+    private List<PublicBundleResponse> _bundles = [];
+    private List<FaqItemResponse> _faqItems = [];
+    private string? _loadError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var offeringsResult = await ApiClient.GetAsync<List<PublicModuleOfferingResponse>>(ApiRoutes.Tenancy.ModuleOfferings);
+        if (!offeringsResult.IsSuccessful)
+        {
+            _loadError = offeringsResult.DisplayMessage;
+            return;
+        }
+
+        _offerings = offeringsResult.ResultData ?? [];
+
+        var bundlesResult = await ApiClient.GetAsync<List<PublicBundleResponse>>(ApiRoutes.Tenancy.Bundles);
+        _bundles = bundlesResult.IsSuccessful ? bundlesResult.ResultData ?? [] : [];
+
+        var faqResult = await ApiClient.GetAsync<List<FaqItemResponse>>(ApiRoutes.SiteContent.FaqItems.Base);
+        _faqItems = faqResult.IsSuccessful ? faqResult.ResultData?.OrderBy(f => f.DisplayOrder).ToList() ?? [] : [];
+    }
+
+    private decimal MinPrice => _offerings.Count == 0 ? 0 : _offerings.Min(o => o.Price);
+
+    private PublicModuleOfferingResponse? CheapestOffering =>
+        _offerings.OrderBy(o => o.Price).FirstOrDefault();
+
+    private string MinBillingLabel => CheapestOffering?.BillingCycle == "Annual" ? "yr" : "mo";
+
+    private string MinBillingLabelLong => CheapestOffering?.BillingCycle ?? "Monthly";
+
+    private IEnumerable<PublicModuleOfferingResponse> ModulesFor(PublicBundleResponse bundle) =>
+        _offerings.Where(o => bundle.ModuleKeys.Contains(o.Key));
+
+    private decimal BundlePrice(PublicBundleResponse bundle) => ModulesFor(bundle).Sum(o => o.Price);
+
+    private string BundleBillingLabel(PublicBundleResponse bundle)
+    {
+        var cycles = ModulesFor(bundle).Select(o => o.BillingCycle).Distinct().ToList();
+        return cycles is [var only] && only == "Annual" ? "yr" : "mo";
+    }
+
+    private IEnumerable<string> BundleModuleNames(PublicBundleResponse bundle) =>
+        ModulesFor(bundle).Select(o => o.Name);
+
+    /// <summary>No "featured" flag on Bundle - just spotlights the middle-priced one.</summary>
+    private bool IsFeaturedBundle(PublicBundleResponse bundle) =>
+        _bundles.Count >= 3 && bundle == _bundles.OrderBy(BundlePrice).ElementAt(_bundles.Count / 2);
+
+    /// <summary>Pre-selects these modules on Signup - no re-picking what was just picked here.</summary>
+    private static string SignupUrl(PublicBundleResponse bundle) => SignupUrl(bundle.ModuleKeys);
+
+    private static string SignupUrl(PublicModuleOfferingResponse offering) => SignupUrl([offering.Key]);
+
+    private static string SignupUrl(IEnumerable<string> moduleKeys) =>
+        $"/signup?modules={Uri.EscapeDataString(string.Join(',', moduleKeys))}";
+}

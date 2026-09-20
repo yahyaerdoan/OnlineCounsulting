@@ -1,0 +1,40 @@
+@* Pick a different plan to switch to - mirrors SelectAddressDialog's radio-list pattern. *@
+@namespace OnlineConsulting.Maui.Shared.Components.User
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">Change Plan</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudRadioGroup T="Guid" @bind-Value="_selectedId">
+            @foreach (var plan in Plans)
+            {
+                <MudPaper Outlined="true" Class="pa-3 mb-2 rounded-lg">
+                    <MudRadio T="Guid" Value="@plan.Id" Color="Color.Primary">
+                        <MudStack Spacing="0">
+                            <MudText Typo="Typo.body1">@plan.Name</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">@plan.Price.ToString("C") / @(plan.BillingCycle == "Annual" ? "year" : "month")</MudText>
+                        </MudStack>
+                    </MudRadio>
+                </MudPaper>
+            }
+        </MudRadioGroup>
+    </DialogContent>
+    <DialogActions>
+        <DialogActionButtons OnOk="Select" OkText="Switch Plan" />
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public List<MembershipPlanResponse> Plans { get; set; } = default!;
+
+    private Guid _selectedId;
+
+    protected override void OnInitialized() => _selectedId = Plans.Count > 0 ? Plans[0].Id : Guid.Empty;
+
+    private void Select() => MudDialog.Close(DialogResult.Ok(_selectedId));
+}

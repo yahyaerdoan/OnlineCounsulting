@@ -1,0 +1,21 @@
+@* Matches the site's real Contact/Index.cshtml - page banner, the shared contact-message form,
+   contact information (address/email/phone/hours). *@
+@page "/contact"
+@attribute [ExcludeFromInteractiveRouting]
+@layout OnlineConsulting.Maui.Shared.Layout.MarketingLayout
+@using OnlineConsulting.Maui.Shared.Components.Marketing
+
+<PageTitle>Contact Us - ComfortPro</PageTitle>
+
+<MarketingPageBanner Title="Contact Us" SubPage="Contact" />
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
+    <MudGrid Spacing="6">
+        <MudItem xs="12" md="7">
+            <ContactMessageForm />
+        </MudItem>
+        <MudItem xs="12" md="5">
+            <ContactInformationSection />
+        </MudItem>
+    </MudGrid>
+</MudContainer>

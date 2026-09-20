@@ -1,0 +1,34 @@
+@* Coverage list - entity-backed (ServiceArea). No area detail page exists yet, so these render
+   as plain text, not links (no fabricated navigation). Hidden entirely when there are no areas. *@
+@using OnlineConsulting.Maui.Shared.Infrastructure.Api
+@inject IApiClient ApiClient
+
+@if (_areas.Count > 0)
+{
+    <div class="marketing-dark-section">
+        <MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
+            <MudStack Spacing="1" AlignItems="AlignItems.Center" Class="mb-2">
+                <MudIcon Icon="@Icons.Material.Filled.LocationOn" Color="Color.Primary" Size="Size.Small" />
+                <MudText Typo="Typo.subtitle1" Color="Color.Primary" Class="text-strong">Where We Work</MudText>
+            </MudStack>
+            <MudText Typo="Typo.h5" Align="Align.Center" Class="marketing-display text-strong mb-4">Service Areas</MudText>
+
+            <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="2" Justify="Justify.Center">
+                @foreach (var area in _areas)
+                {
+                    <MudChip T="string" Variant="Variant.Text" Color="Color.Default" Size="Size.Small">@area.Name, @area.State</MudChip>
+                }
+            </MudStack>
+        </MudContainer>
+    </div>
+}
+
+@code {
+    private List<ServiceAreaResponse> _areas = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await ApiClient.GetAsync<List<ServiceAreaResponse>>(ApiRoutes.SiteContent.ServiceArea.Base);
+        _areas = result.IsSuccessful ? result.ResultData?.OrderBy(a => a.DisplayOrder).ToList() ?? [] : [];
+    }
+}

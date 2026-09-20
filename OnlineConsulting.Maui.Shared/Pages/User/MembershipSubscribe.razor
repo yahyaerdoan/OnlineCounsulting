@@ -1,0 +1,216 @@
+@* Subscribe to a membership plan: tokenize the card via Stripe.js first (subscribeStripe.js), then
+   POST /api/memberships/subscribe with the resulting PaymentMethodId. ClientSecret only comes back
+   non-null for PayPal (an approval URL to redirect to) - Stripe/Mock settle synchronously. *@
+@* Anonymous can browse the plan; only promo/subscribe need a signed-in user, so only that part sits behind AuthorizeView (Appointment.razor pattern). *@
+@page "/user/membership/subscribe/{PlanId:guid}"
+@using Microsoft.Extensions.Configuration
+@using OnlineConsulting.Maui.Shared.Components.Marketing
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject IConfiguration Configuration
+@inject IJSRuntime JsRuntime
+@inject AuthenticationStateProvider AuthStateProvider
+
+<PageTitle>Subscribe</PageTitle>
+
+<MarketingPageBanner Title="Subscribe" SubPage="Subscribe" ParentLabel="Membership" ParentHref="/membership" />
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="marketing-section-tight">
+    <ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+    }
+    else if (_subscribed)
+    {
+        <MudStack AlignItems="AlignItems.Center" Class="py-10" Spacing="3">
+            <MudIcon Icon="@Icons.Material.Outlined.CheckCircleOutline" Size="Size.Large" Color="Color.Success" />
+            <MudText Typo="Typo.h5" Align="Align.Center" Class="marketing-display text-strong">Subscribed - welcome aboard!</MudText>
+            <MudText Typo="Typo.body1" Color="Color.Secondary" Align="Align.Center">Your membership is active and ready to use.</MudText>
+            <MudButton Href="/user/membership" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" Class="mt-2">View My Membership</MudButton>
+        </MudStack>
+    }
+    else if (_plan is not null)
+    {
+        <MudCard Outlined="true">
+            <MudCardContent Class="pa-6">
+                <MudText Typo="Typo.h6" Class="text-strong mb-3">Subscribe to @_plan.Name</MudText>
+
+                <MudPaper Outlined="true" Class="rounded-lg pa-1 mb-4">
+                    <MudStack Row="true" Justify="Justify.SpaceBetween" Class="pa-3">
+                        <MudText Typo="Typo.body2">Plan</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">@_plan.Name</MudText>
+                    </MudStack>
+                    <MudDivider />
+                    <MudStack Row="true" Justify="Justify.SpaceBetween" Class="pa-3">
+                        <MudText Typo="Typo.body2">Billing</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">@_plan.Price.ToString("C") / @(_plan.BillingCycle == "Annual" ? "year" : "month")</MudText>
+                    </MudStack>
+                    @if (_appliedPromo is { IsValid: true } applied)
+                    {
+                        <MudDivider />
+                        <MudStack Row="true" Justify="Justify.SpaceBetween" Class="pa-3">
+                            <MudText Typo="Typo.body2" Color="Color.Success">Discount</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Success">-@applied.DiscountAmount.ToString("C")</MudText>
+                        </MudStack>
+                        <MudDivider />
+                        <MudStack Row="true" Justify="Justify.SpaceBetween" Class="pa-3">
+                            <MudText Typo="Typo.subtitle2" Class="text-strong">Total due today</MudText>
+                            <MudText Typo="Typo.subtitle2" Class="text-strong">@applied.FinalPrice.ToString("C")</MudText>
+                        </MudStack>
+                    }
+                </MudPaper>
+
+                <AuthorizeView>
+                    <Authorized>
+                        <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Start" Class="mb-4">
+                            <MudTextField @bind-Value="_promoCode" Label="Promo code (optional)" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(_appliedPromo is { IsValid: true })" />
+                            @if (_appliedPromo is { IsValid: true })
+                            {
+                                <MudButton Variant="Variant.Outlined" OnClick="@(() => { _appliedPromo = null; _promoCode = string.Empty; })">Remove</MudButton>
+                            }
+                            else
+                            {
+                                <MudButton Variant="Variant.Outlined" Disabled="@(string.IsNullOrWhiteSpace(_promoCode) || _validatingPromo)" OnClick="ApplyPromoCodeAsync">Apply</MudButton>
+                            }
+                        </MudStack>
+                        @if (_appliedPromo is { IsValid: false } invalid)
+                        {
+                            <ApiErrorAlert Message="@invalid.Error" Severity="Severity.Error" />
+                        }
+
+                        <MudText Typo="Typo.subtitle2" Class="text-strong mb-2">Card Details</MudText>
+                        <div id="membership-card-element" class="mb-3"></div>
+                        <ApiErrorAlert Message="@_paymentError" Severity="Severity.Error" />
+
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Size="Size.Large" Class="mt-4"
+                                   Disabled="@_isBusy" OnClick="SubscribeAsync">
+                            Subscribe
+                        </MudButton>
+                    </Authorized>
+                    <NotAuthorized>
+                        <MudAlert Severity="Severity.Info" Class="mt-2">
+                            Sign in to apply a promo code and subscribe.
+                            <div class="mt-2">
+                                <MudButton Href="@($"/login?ReturnUrl=/user/membership/subscribe/{PlanId}")" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small">Sign In</MudButton>
+                                <MudButton Href="/register" Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" Class="ml-2">Register</MudButton>
+                            </div>
+                        </MudAlert>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </MudCardContent>
+        </MudCard>
+    }
+</MudContainer>
+
+@code {
+    [Parameter]
+    public Guid PlanId { get; set; }
+
+    private MembershipPlanResponse? _plan;
+    private bool _loading = true;
+    private bool _isBusy;
+    private bool _subscribed;
+    private bool _cardElementMounted;
+    private string? _loadError;
+    private string? _paymentError;
+    private string _promoCode = string.Empty;
+    private bool _validatingPromo;
+    private ValidatePromoCodeResult? _appliedPromo;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await ApiClient.GetAsync<MembershipPlanResponse>(ApiRoutes.Growth.MembershipPlans.ById(PlanId));
+        if (!result.IsSuccessful || result.ResultData is null)
+        {
+            _loadError = result.DisplayMessage;
+        }
+        else
+        {
+            _plan = result.ResultData;
+        }
+
+        _loading = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_plan is null || _subscribed || _cardElementMounted)
+        {
+            return;
+        }
+
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated is not true)
+        {
+            return;
+        }
+
+        _cardElementMounted = true;
+        var publishableKey = Configuration["Stripe:PublishableKey"];
+        await JsRuntime.InvokeVoidAsync("subscribeStripe.init", publishableKey, "membership-card-element");
+    }
+
+    private async Task ApplyPromoCodeAsync()
+    {
+        _validatingPromo = true;
+        _appliedPromo = null;
+        StateHasChanged();
+
+        var result = await ApiClient.PostAsync<ValidatePromoCodeResult>(ApiRoutes.Growth.CustomerMemberships.ValidatePromoCode, new
+        {
+            code = _promoCode,
+            membershipPlanId = PlanId,
+        });
+
+        _appliedPromo = result.IsSuccessful ? result.ResultData : new ValidatePromoCodeResult(false, result.DisplayMessage, 0, _plan!.Price);
+        _validatingPromo = false;
+    }
+
+    private async Task SubscribeAsync()
+    {
+        _isBusy = true;
+        _paymentError = null;
+        StateHasChanged();
+
+        var tokenizeResult = await JsRuntime.InvokeAsync<StripeTokenizeResult>("subscribeStripe.createPaymentMethod");
+        if (tokenizeResult.Error is not null)
+        {
+            _paymentError = tokenizeResult.Error;
+            _isBusy = false;
+            return;
+        }
+
+        var subscribeResult = await ApiClient.PostAsync<SubscribeToMembershipResult>(ApiRoutes.Growth.CustomerMemberships.Subscribe, new
+        {
+            userId = Guid.Empty,
+            email = string.Empty,
+            membershipPlanId = PlanId,
+            paymentMethodId = tokenizeResult.PaymentMethodId,
+            promoCode = _appliedPromo is { IsValid: true } ? _promoCode : null,
+        });
+
+        if (!subscribeResult.IsSuccessful || subscribeResult.ResultData is null)
+        {
+            Snackbar.ShowError(subscribeResult.DisplayMessage);
+            _isBusy = false;
+            return;
+        }
+
+        // A ClientSecret here is a PayPal approval URL to redirect the payer to - Stripe/Mock already
+        // settled the subscription's first invoice synchronously and return null.
+        if (subscribeResult.ResultData.ClientSecret is { } approvalUrl)
+        {
+            Navigation.NavigateTo(approvalUrl, forceLoad: true);
+            return;
+        }
+
+        Snackbar.ShowSuccess("Subscribed to membership plan successfully.");
+        _subscribed = true;
+        _isBusy = false;
+    }
+
+    private sealed record StripeTokenizeResult(string? PaymentMethodId, string? Error);
+}

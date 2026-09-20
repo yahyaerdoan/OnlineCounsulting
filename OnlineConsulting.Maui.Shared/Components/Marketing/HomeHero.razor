@@ -1,0 +1,55 @@
+﻿@* Shows the first slide (by DisplayOrder) as a static banner - no carousel rotation. *@
+@using OnlineConsulting.Maui.Shared.Infrastructure.Api
+@inject IApiClient ApiClient
+
+@if (_slide is not null)
+{
+    <div class="marketing-hero" style="background-image:url('@_slide.ImageUrl')">
+        <div class="marketing-hero-overlay">
+            <MudContainer MaxWidth="MaxWidth.Large">
+                <MudText Typo="Typo.h3" Class="marketing-hero-title">@_slide.Title</MudText>
+                <MudText Typo="Typo.body1" Class="marketing-hero-subtitle">@_summary</MudText>
+                @if (_hasMoreToRead)
+                {
+                    <MudLink Href="/about" Class="marketing-hero-learn-more">Learn more about us &rarr;</MudLink>
+                }
+                <MudStack Row="true" Spacing="3" Class="mt-4" Wrap="Wrap.Wrap">
+                    <MudButton Href="/appointment" Variant="Variant.Filled" Color="Color.Primary">Schedule Service</MudButton>
+                    @if (!string.IsNullOrWhiteSpace(_phone))
+                    {
+                        <MudButton Href="@($"tel:{_phone}")" Variant="Variant.Filled" Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Filled.Phone">Call @_phone</MudButton>
+                    }
+                    else
+                    {
+                        <MudButton Href="/about" Variant="Variant.Filled" Color="Color.Primary">About Us</MudButton>
+                    }
+                </MudStack>
+            </MudContainer>
+        </div>
+    </div>
+}
+
+@code {
+    private HeroSlideResponse? _slide;
+    private string? _phone;
+
+    /// <summary>Just the slide's first paragraph - a hero is for a scannable headline, not a full
+    /// pitch. The rest of a multi-paragraph CMS description surfaces via the "Learn more" link.</summary>
+    private string? _summary;
+    private bool _hasMoreToRead;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var slidesResult = await ApiClient.GetAsync<List<HeroSlideResponse>>(ApiRoutes.SiteContent.HeroSlide.Base);
+        _slide = slidesResult.IsSuccessful ? slidesResult.ResultData?.OrderBy(s => s.DisplayOrder).FirstOrDefault() : null;
+
+        var paragraphs = _slide?.Description
+            .Split("\n\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [];
+        _summary = paragraphs.FirstOrDefault();
+        _hasMoreToRead = paragraphs.Length > 1;
+
+        var contactResult = await ApiClient.GetAsync<CompanyContactResponse>(ApiRoutes.Inquiries.Contact.Get);
+        _phone = contactResult.IsSuccessful ? contactResult.ResultData?.Phone : null;
+    }
+}

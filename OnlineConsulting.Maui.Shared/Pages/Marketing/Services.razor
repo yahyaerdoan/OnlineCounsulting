@@ -1,0 +1,107 @@
+@* Public catalog listing - Static SSR (no live circuit, so no @onclick), same three-branch
+   loading shape as the Api itself: search overrides category overrides the plain paginated list. *@
+@page "/services"
+@attribute [ExcludeFromInteractiveRouting]
+@layout OnlineConsulting.Maui.Shared.Layout.MarketingLayout
+@using OnlineConsulting.Maui.Shared.Components.Marketing
+@inject IApiClient ApiClient
+
+<PageTitle>Services</PageTitle>
+
+<MarketingPageBanner Title="Our Services" SubPage="Services" />
+
+<ServiceSearchSection />
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
+    @if (_categories.Count > 0)
+    {
+        <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="2" Class="mb-6">
+            <MudChip T="string" Href="/services" Size="Size.Small" Variant="Variant.Filled"
+                     Color="@(CategoryId is null ? Color.Primary : Color.Default)">All</MudChip>
+            @foreach (var category in _categories)
+            {
+                <MudChip T="string" Href="@($"/services?category={category.Id}")" Size="Size.Small" Variant="Variant.Filled"
+                         Color="@(CategoryId == category.Id ? Color.Primary : Color.Default)">@category.Title</MudChip>
+            }
+        </MudStack>
+    }
+
+    <ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+    @if (_services.Count == 0 && _loadError is null)
+    {
+        <MudAlert Severity="Severity.Info">No services found.</MudAlert>
+    }
+    else
+    {
+        <MudGrid>
+            @foreach (var service in _services)
+            {
+                <MudItem xs="12" sm="6" md="4">
+                    <ServiceListCard Service="@service" ImageUrl="@_imageUrlsByServiceId.GetValueOrDefault(service.Id)"
+                                      CategoryTitle="@_categoryTitlesById.GetValueOrDefault(service.CategoryId)"
+                                      CategoryUrl="@($"/services?category={service.CategoryId}")"
+                                      DetailUrl="@($"/services/{service.Slug}")" />
+                </MudItem>
+            }
+        </MudGrid>
+    }
+</MudContainer>
+
+@code {
+    private const int PageSize = 24;
+
+    [SupplyParameterFromQuery(Name = "query")]
+    private string? Query { get; set; }
+
+    [SupplyParameterFromQuery(Name = "category")]
+    private string? CategoryIdRaw { get; set; }
+
+    private List<ServiceResponse> _services = [];
+    private List<CategoryResponse> _categories = [];
+    private Dictionary<Guid, string> _categoryTitlesById = [];
+    private Dictionary<Guid, string?> _imageUrlsByServiceId = [];
+    private string? _loadError;
+
+    // Malformed query value falls back to "no category filter" instead of crashing the bind.
+    private Guid? CategoryId => Guid.TryParse(CategoryIdRaw, out var id) ? id : null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _categories = await CategoryLookupHelper.GetAllAsync(ApiClient);
+        _categoryTitlesById = _categories.ToDictionary(c => c.Id, c => c.Title);
+
+        _services = await LoadServicesAsync();
+
+        var lookups = await Task.WhenAll(_services.Select(async service =>
+            (service.Id, Url: service.CoverMediaAssetId is Guid mediaId ? await MediaUploadHelper.GetUrlAsync(ApiClient, mediaId) : null)));
+
+        _imageUrlsByServiceId = lookups.ToDictionary(l => l.Id, l => l.Url);
+    }
+
+    /// <summary>Search wins over category, category wins over the plain list - same precedence the Api enforces.</summary>
+    private async Task<List<ServiceResponse>> LoadServicesAsync()
+    {
+        if (!string.IsNullOrWhiteSpace(Query))
+        {
+            var searchResult = await ApiClient.GetAsync<List<ServiceResponse>>($"{ApiRoutes.Services.Search}?query={Uri.EscapeDataString(Query)}");
+            if (!searchResult.IsSuccessful)
+            {
+                _loadError = searchResult.DisplayMessage;
+                return [];
+            }
+
+            return searchResult.ResultData ?? [];
+        }
+
+        var basePath = CategoryId is Guid categoryId ? ApiRoutes.Services.ByCategory(categoryId) : ApiRoutes.Services.Base;
+        var pagedResult = await ApiClient.GetAsync<PaginatedResponse<ServiceResponse>>(ApiRoutes.Paged(basePath, 0, PageSize));
+        if (!pagedResult.IsSuccessful)
+        {
+            _loadError = pagedResult.DisplayMessage;
+            return [];
+        }
+
+        return pagedResult.ResultData?.Items ?? [];
+    }
+}

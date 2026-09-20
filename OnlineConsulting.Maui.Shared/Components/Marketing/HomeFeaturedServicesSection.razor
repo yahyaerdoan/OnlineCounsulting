@@ -1,0 +1,53 @@
+@* Matches HomeOurServicesComponentPartial 1:1 - featured services, reusing the same
+   ServiceListCard used on the /services listing (identical card markup in the legacy source too). *@
+@using OnlineConsulting.Maui.Shared.Infrastructure.Api
+@inject IApiClient ApiClient
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
+    <div class="marketing-section-header-left">
+        <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center" Class="mb-1">
+            <MudIcon Icon="@Icons.Material.Filled.Build" Color="Color.Primary" Size="Size.Small" />
+            <MudText Typo="Typo.subtitle1" Color="Color.Primary" Class="text-strong">Popular Services</MudText>
+        </MudStack>
+        <MudText Typo="Typo.h5" Class="marketing-display text-strong">Repair, Maintenance &amp; Installation</MudText>
+    </div>
+
+    @if (_services.Count > 0)
+    {
+        <MudGrid Spacing="2">
+            @foreach (var service in _services)
+            {
+                <MudItem xs="12" sm="6" md="4">
+                    <ServiceListCard Service="@service" ImageUrl="@_imageUrlsByServiceId.GetValueOrDefault(service.Id)"
+                                      CategoryTitle="@_categoryTitlesById.GetValueOrDefault(service.CategoryId)"
+                                      CategoryUrl="@($"/services?category={service.CategoryId}")"
+                                      DetailUrl="@($"/services/{service.Slug}")" />
+                </MudItem>
+            }
+        </MudGrid>
+    }
+
+    <MudStack AlignItems="AlignItems.Center" Class="mt-6">
+        <MudButton Href="/services" Variant="Variant.Filled" Color="Color.Primary">View All Services</MudButton>
+    </MudStack>
+</MudContainer>
+
+@code {
+    private List<ServiceResponse> _services = [];
+    private Dictionary<Guid, string> _categoryTitlesById = [];
+    private Dictionary<Guid, string?> _imageUrlsByServiceId = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var categories = await CategoryLookupHelper.GetAllAsync(ApiClient);
+        _categoryTitlesById = categories.ToDictionary(c => c.Id, c => c.Title);
+
+        var result = await ApiClient.GetAsync<List<ServiceResponse>>(ApiRoutes.Services.Featured);
+        _services = result.IsSuccessful ? result.ResultData ?? [] : [];
+
+        var lookups = await Task.WhenAll(_services.Select(async service =>
+            (service.Id, Url: service.CoverMediaAssetId is Guid mediaId ? await MediaUploadHelper.GetUrlAsync(ApiClient, mediaId) : null)));
+
+        _imageUrlsByServiceId = lookups.ToDictionary(l => l.Id, l => l.Url);
+    }
+}

@@ -1,0 +1,74 @@
+@* Quick-add-to-cart action for a service. Interactive island on the static-SSR marketing pages
+   (see MarketingLayout's MudSnackbarProvider) so the success/error Snackbar can auto-dismiss and
+   its close icon works - both need a live circuit that a plain static-SSR form post doesn't have. *@
+@rendermode InteractiveServer
+@using OnlineConsulting.Maui.Shared.Infrastructure.Commerce
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+@inject CartState CartState
+
+<EditForm Model="_model" OnValidSubmit="AddToCartAsync">
+    <MudButton ButtonType="ButtonType.Submit" Variant="@Variant" Color="Color.Primary" Size="Size.Small"
+               StartIcon="@(ShowIcon ? Icons.Material.Outlined.ShoppingCart : null)" Disabled="@_isBusy"
+               FullWidth="@FullWidth" Class="@ButtonClass">
+        @ButtonText
+    </MudButton>
+</EditForm>
+
+@code {
+    [Parameter, EditorRequired]
+    public Guid ServiceId { get; set; }
+
+    /// <summary>Unit price to charge - pass the service's DiscountedPrice, not its list Price.</summary>
+    [Parameter, EditorRequired]
+    public decimal Price { get; set; }
+
+    [Parameter, EditorRequired]
+    public int TaxRate { get; set; }
+
+    [Parameter]
+    public int Quantity { get; set; } = 1;
+
+    [Parameter]
+    public string ButtonText { get; set; } = "Add to cart";
+
+    [Parameter]
+    public bool ShowIcon { get; set; } = true;
+
+    [Parameter]
+    public Variant Variant { get; set; } = Variant.Filled;
+
+    [Parameter]
+    public bool FullWidth { get; set; }
+
+    [Parameter]
+    public string? ButtonClass { get; set; }
+
+    private readonly object _model = new();
+    private bool _isBusy;
+
+    private async Task AddToCartAsync()
+    {
+        _isBusy = true;
+
+        var result = await ApiClient.PostAsync(ApiRoutes.Commerce.Baskets.Items,
+            new { serviceId = ServiceId, quantity = Quantity, price = Price, taxRate = TaxRate });
+
+        _isBusy = false;
+
+        if (result.IsSuccessful)
+        {
+            Snackbar.Add(result.DisplayMessage, Severity.Success);
+
+            var countResult = await ApiClient.GetAsync<int>(ApiRoutes.Commerce.Baskets.Count);
+            if (countResult.IsSuccessful)
+            {
+                CartState.SetCount(countResult.ResultData);
+            }
+        }
+        else
+        {
+            Snackbar.Add(result.DisplayMessage, Severity.Error);
+        }
+    }
+}

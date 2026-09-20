@@ -1,0 +1,198 @@
+﻿@* Storefront cart - basket ownership is implicit (JWT or guest_id cookie), never passed by the
+   client. Interactive (no [ExcludeFromInteractiveRouting]), so quantity/removal updates live. *@
+@page "/user/cart"
+@using Microsoft.AspNetCore.Http
+@using OnlineConsulting.Maui.Shared.Components.Marketing
+@using OnlineConsulting.Maui.Shared.Components.User
+@using OnlineConsulting.Maui.Shared.Infrastructure.Commerce
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+@inject CartState CartState
+
+<PageTitle>Cart</PageTitle>
+
+<MarketingPageBanner Title="Cart" SubPage="Cart" />
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
+    <ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+    }
+    else if (_items.Count == 0 && _loadError is null)
+    {
+        <MudStack AlignItems="AlignItems.Center" Class="py-10" Spacing="3">
+            <MudIcon Icon="@Icons.Material.Outlined.ShoppingCart" Size="Size.Large" Color="Color.Secondary" />
+            <MudText Typo="Typo.h6">Your cart is empty.</MudText>
+            <MudButton Href="/services" Variant="Variant.Filled" Color="Color.Primary">Browse Services</MudButton>
+        </MudStack>
+    }
+    else if (_basket is not null)
+    {
+        <MudPaper Class="mb-4" Outlined="true">
+            <MudTable Items="@_items" Hover="true" Elevation="0" Class="cart-items-table">
+                <HeaderContent>
+                    <MudTh>#</MudTh>
+                    <MudTh>Service</MudTh>
+                    <MudTh Class="mud-table-cell-align-center">Unit Price</MudTh>
+                    <MudTh Class="mud-table-cell-align-center">Quantity</MudTh>
+                    <MudTh Class="mud-table-cell-align-center">Tax Rate</MudTh>
+                    <MudTh Class="mud-table-cell-align-center">Tax Amount</MudTh>
+                    <MudTh Class="mud-table-cell-align-center">Subtotal</MudTh>
+                    <MudTh Class="mud-table-cell-align-center">Total</MudTh>
+                    <MudTh></MudTh>
+                </HeaderContent>
+                <RowTemplate Context="item">
+                    @{
+                        var info = _serviceInfo.GetValueOrDefault(item.ServiceId);
+                    }
+                    <MudTd DataLabel="#">@(_items.IndexOf(item) + 1)</MudTd>
+                    <MudTd DataLabel="Service">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+                            @if (info?.ImageUrl is not null)
+                            {
+                                <MudImage Src="@info.ImageUrl" ObjectFit="ObjectFit.Cover" Height="48" Width="48" Class="rounded" />
+                            }
+                            else
+                            {
+                                <MudIcon Icon="@Icons.Material.Outlined.Image" Color="Color.Secondary" />
+                            }
+                            <MudLink Href="@(info is not null ? $"/services/{info.Slug}" : null)" Typo="Typo.body1">@(info?.Title ?? "Service")</MudLink>
+                        </MudStack>
+                    </MudTd>
+                    <MudTd DataLabel="Unit Price" Class="mud-table-cell-align-center">@CurrencyFormat.Format(item.Price)</MudTd>
+                    <MudTd DataLabel="Quantity" Class="text-center">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1">
+                            <MudIconButton Icon="@Icons.Material.Outlined.Remove" Size="Size.Small"
+                                           Disabled="@(_isBusy || item.Quantity <= 1)" OnClick="@(() => ChangeQuantityAsync(item, item.Quantity - 1))" />
+                            <MudText>@item.Quantity</MudText>
+                            <MudIconButton Icon="@Icons.Material.Outlined.Add" Size="Size.Small"
+                                           Disabled="@_isBusy" OnClick="@(() => ChangeQuantityAsync(item, item.Quantity + 1))" />
+                        </MudStack>
+                    </MudTd>
+                    <MudTd DataLabel="Tax Rate" Class="mud-table-cell-align-center">@(item.TaxRate)%</MudTd>
+                    <MudTd DataLabel="Tax Amount" Class="mud-table-cell-align-center">@CurrencyFormat.Format(item.TaxAmount)</MudTd>
+                    <MudTd DataLabel="Subtotal" Class="mud-table-cell-align-center">@CurrencyFormat.Format(item.SubTotalPrice)</MudTd>
+                    <MudTd DataLabel="Total" Class="mud-table-cell-align-center text-strong">@CurrencyFormat.Format(item.TotalPrice)</MudTd>
+                    <MudTd DataLabel="Remove">
+                        <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" Size="Size.Small"
+                                       Disabled="@_isBusy" OnClick="@(() => RemoveItemAsync(item))" title="Remove" />
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudPaper>
+
+        <MudGrid>
+            <MudItem xs="12" md="8" Class="d-flex align-center">
+                <MudButton Href="/services" Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.ArrowBack">
+                    Continue Shopping
+                </MudButton>
+            </MudItem>
+            <MudItem xs="12" md="4">
+                <CartSummary SubTotal="@_basket.SubTotalPrice" TaxTotal="@_taxTotal" Total="@_basket.TotalPrice" Disabled="@_isBusy" />
+            </MudItem>
+        </MudGrid>
+    }
+</MudContainer>
+
+@code {
+    private sealed record ServiceLineInfo(string Title, string Slug, string? ImageUrl);
+
+    private BasketResponse? _basket;
+    private List<BasketItemResponse> _items = [];
+    private Dictionary<Guid, ServiceLineInfo> _serviceInfo = [];
+    private bool _loading = true;
+    private bool _isBusy;
+    private string? _loadError;
+
+    private decimal _taxTotal => _items.Sum(i => i.TaxAmount);
+
+    protected override Task OnInitializedAsync() => LoadBasketAsync();
+
+    private async Task LoadBasketAsync()
+    {
+        _loading = true;
+        var result = await ApiClient.GetAsync<BasketResponse>(ApiRoutes.Commerce.Baskets.Base);
+        if (!result.IsSuccessful || result.ResultData is null)
+        {
+            // No basket yet is a normal empty-cart state, not a load failure.
+            if (result.StatusCode != StatusCodes.Status404NotFound)
+            {
+                _loadError = result.DisplayMessage;
+            }
+
+            _basket = null;
+            _items = [];
+            CartState.SetCount(0);
+            _loading = false;
+            return;
+        }
+
+        _basket = result.ResultData;
+        _items = [.. _basket.Items];
+        CartState.SetCount(_items.Count);
+        await LoadServiceInfoAsync();
+        _loading = false;
+    }
+
+    private async Task LoadServiceInfoAsync()
+    {
+        var lookups = await Task.WhenAll(_items.Select(async item =>
+        {
+            var serviceResult = await ApiClient.GetAsync<ServiceDetailResponse>(ApiRoutes.Services.ById(item.ServiceId));
+            if (!serviceResult.IsSuccessful || serviceResult.ResultData is null)
+            {
+                return (item.ServiceId, Info: (ServiceLineInfo?)null);
+            }
+
+            var service = serviceResult.ResultData;
+            var imageUrl = service.CoverMediaAssetId is Guid coverId
+                ? await MediaUploadHelper.GetUrlAsync(ApiClient, coverId)
+                : null;
+
+            return (item.ServiceId, Info: (ServiceLineInfo?)new ServiceLineInfo(service.Title, service.Slug, imageUrl));
+        }));
+
+        _serviceInfo = lookups.Where(l => l.Info is not null).ToDictionary(l => l.ServiceId, l => l.Info!);
+    }
+
+    private async Task ChangeQuantityAsync(BasketItemResponse item, int newQuantity)
+    {
+        _isBusy = true;
+        StateHasChanged();
+
+        var result = await ApiClient.PutAsync(ApiRoutes.Commerce.Baskets.SetItemQuantity(item.Id), new { quantity = newQuantity });
+
+        if (result.IsSuccessful)
+        {
+            await LoadBasketAsync();
+        }
+        else
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+        }
+
+        _isBusy = false;
+    }
+
+    private async Task RemoveItemAsync(BasketItemResponse item)
+    {
+        _isBusy = true;
+        StateHasChanged();
+
+        var result = await ApiClient.DeleteAsync(ApiRoutes.Commerce.Baskets.RemoveItem(item.Id));
+
+        if (result.IsSuccessful)
+        {
+            Snackbar.ShowSuccess(result.DisplayMessage);
+            await LoadBasketAsync();
+        }
+        else
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+        }
+
+        _isBusy = false;
+    }
+}

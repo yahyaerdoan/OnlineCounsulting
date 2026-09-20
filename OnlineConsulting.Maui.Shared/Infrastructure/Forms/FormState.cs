@@ -4,10 +4,7 @@ using OnlineConsulting.Maui.Shared.Infrastructure.Api;
 
 namespace OnlineConsulting.Maui.Shared.Infrastructure.Forms;
 
-/// <summary>Shared EditForm state: busy flag + validation store, one line per form.
-/// Usage: inject FormState of your model type as "Form"; call Form.Bind(model) in OnInitialized;
-/// wrap submit in Form.SubmitAsync(...); on failure call Form.DisplayErrors(result[, Snackbar]).
-/// Registered Transient - each component gets its own instance.</summary>
+/// <summary>Shared EditForm state (busy flag + validation store). Inject as "Form", call Bind(model) in OnInitialized.</summary>
 public sealed class FormState<TModel> where TModel : class
 {
     private readonly BusySubmit _busy = new();
@@ -31,14 +28,13 @@ public sealed class FormState<TModel> where TModel : class
     {
         EditContext = new EditContext(model);
         ValidationMessages = new ValidationMessageStore(EditContext);
+
+        // Validate() fails forever on stale field errors otherwise - nothing here revalidates them.
+        EditContext.OnValidationRequested += (_, _) => ValidationMessages.Clear();
     }
 
-    /// <summary>Wraps a submit handler: clears old field errors, tracks IsBusy.</summary>
-    public Task SubmitAsync(Func<Task> submit)
-    {
-        ValidationMessages.Clear();
-        return _busy.RunAsync(submit);
-    }
+    /// <summary>Wraps a submit handler, tracking IsBusy.</summary>
+    public Task SubmitAsync(Func<Task> submit) => _busy.RunAsync(submit);
 
     /// <summary>On a failed API result: writes field errors onto the form, returns the leftover general error (or null).</summary>
     public string? DisplayErrors(IApiResult result) => result.DisplayErrors(EditContext, ValidationMessages);

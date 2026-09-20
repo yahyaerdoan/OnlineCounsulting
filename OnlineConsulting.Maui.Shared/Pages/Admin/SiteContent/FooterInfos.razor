@@ -1,5 +1,5 @@
 @page "/admin/site-content/footer-info"
-@attribute [Authorize]
+@attribute [Authorize(Roles = "Admin,Super Admin,Member")]
 @inject IApiClient ApiClient
 @inject NavigationManager Navigation
 @inject IDialogService DialogService

@@ -8,13 +8,14 @@ public static class MediaUploadHelper
 {
     private const long MaxFileSizeBytes = 10 * 1024 * 1024;
 
-    public static async Task<ApiEnvelope<MediaAssetResponse>> UploadAsync(IApiClient apiClient, IBrowserFile file, CancellationToken cancellationToken = default)
+    public static async Task<ApiEnvelope<MediaAssetResponse>> UploadAsync(IApiClient apiClient, IBrowserFile file, string folder, CancellationToken cancellationToken = default)
     {
         using var content = new MultipartFormDataContent();
         await using var stream = file.OpenReadStream(MaxFileSizeBytes, cancellationToken);
         using var streamContent = new StreamContent(stream);
         streamContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
         content.Add(streamContent, "file", file.Name);
+        content.Add(new StringContent(folder), "folder");
 
         var uploadResult = await apiClient.PostFileAsync<Guid>(ApiRoutes.Media.Upload, content, cancellationToken);
         return !uploadResult.IsSuccessful

@@ -1,0 +1,55 @@
+@* Current offers/coupons - entity-backed (Promotion). Always fully visible, not a collapsed
+   accordion - an offer nobody sees without clicking first isn't doing its job. Hidden entirely
+   when there are no active promotions - not a static filler band. *@
+@using OnlineConsulting.Maui.Shared.Infrastructure.Api
+@inject IApiClient ApiClient
+
+@if (_promotions.Count > 0)
+{
+    <MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
+        <div class="marketing-section-header-right">
+            <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center" Justify="Justify.FlexEnd" Class="mb-1">
+                <MudIcon Icon="@Icons.Material.Filled.LocalOffer" Color="Color.Primary" Size="Size.Small" />
+                <MudText Typo="Typo.subtitle1" Color="Color.Primary" Class="text-strong">Special Offers</MudText>
+            </MudStack>
+            <MudText Typo="Typo.h5" Class="marketing-display text-strong">Current Promotions</MudText>
+        </div>
+
+        <MudGrid Spacing="2">
+            @foreach (var promotion in _promotions)
+            {
+                <MudItem xs="12" sm="6">
+                    <div class="marketing-promo-card">
+                        <div class="d-flex align-center justify-space-between gap-3">
+                            <span class="marketing-promo-title text-strong">@promotion.Title</span>
+                            @if (promotion.ExpiresAt is { } expires)
+                            {
+                                <MudChip T="string" Size="Size.Small" Color="Color.Error" Variant="Variant.Filled" Class="marketing-promo-expiry">
+                                    Expires @expires.ToLocalTime().ToString("MMM d")
+                                </MudChip>
+                            }
+                        </div>
+                        <div class="marketing-promo-divider"></div>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">@promotion.Description</MudText>
+                        @if (!string.IsNullOrWhiteSpace(promotion.CtaText))
+                        {
+                            <MudButton Href="@(promotion.CtaUrl ?? "/appointment")" Variant="Variant.Filled" Color="Color.Primary" Class="mt-3">@promotion.CtaText</MudButton>
+                        }
+                    </div>
+                </MudItem>
+            }
+        </MudGrid>
+    </MudContainer>
+}
+
+@code {
+    private List<PromotionResponse> _promotions = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await ApiClient.GetAsync<List<PromotionResponse>>(ApiRoutes.Growth.Promotions.Base);
+        var all = result.IsSuccessful ? result.ResultData ?? [] : [];
+        _promotions = [.. all.Where(p => p.ExpiresAt is null || p.ExpiresAt > DateTimeOffset.UtcNow)
+            .OrderBy(p => p.DisplayOrder)];
+    }
+}

@@ -1,5 +1,5 @@
 @page "/admin/site-content/about-us"
-@attribute [Authorize]
+@attribute [Authorize(Roles = "Admin,Super Admin,Member")]
 @inject IApiClient ApiClient
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
@@ -32,7 +32,7 @@
             }
         </MudTd>
         <MudTd DataLabel="Title">@entry.Title</MudTd>
-        <MudTd DataLabel="Description">@entry.Description</MudTd>
+        <MudTd DataLabel="Description">@PlainTextPreview(entry.Description)</MudTd>
         <MudTd DataLabel="Actions">
             <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
                 <MudIconButton Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" title="Edit"
@@ -69,5 +69,14 @@
 
         Snackbar.ShowSuccess(result.DisplayMessage);
         await _table.ReloadAsync();
+    }
+
+    /// <summary>Description is rich-text HTML (MudExRichTextEdit) - the list is a compact preview,
+    /// not a rendered view, so tags are stripped and the result trimmed to one readable line.</summary>
+    private static string PlainTextPreview(string html)
+    {
+        var text = System.Net.WebUtility.HtmlDecode(System.Text.RegularExpressions.Regex.Replace(html, "<.*?>", " "));
+        text = System.Text.RegularExpressions.Regex.Replace(text, @"\s+", " ").Trim();
+        return text.Length > 100 ? text[..100] + "..." : text;
     }
 }

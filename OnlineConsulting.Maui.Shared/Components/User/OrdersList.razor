@@ -1,0 +1,62 @@
+@* Caller's own orders - GetOrders is current-user-scoped server-side, no UserId ever sent from here. *@
+@namespace OnlineConsulting.Maui.Shared.Components.User
+@inject IApiClient ApiClient
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+}
+else
+{
+    <SearchableTable TItem="OrderResponse" Items="_orders" Filter="@((order, text) => order.OrderNumber.Contains(text, StringComparison.OrdinalIgnoreCase))"
+                      SearchPlaceholder="Search order number">
+        <HeaderContent>
+            <MudTh>Order #</MudTh>
+            <MudTh>Date</MudTh>
+            <MudTh>Status</MudTh>
+            <MudTh>Payment</MudTh>
+            <MudTh Class="mud-table-cell-align-right">Total</MudTh>
+        </HeaderContent>
+        <RowTemplate Context="order">
+            <MudTd DataLabel="Order #">
+                <MudLink Href="@($"/user/orders/{order.Id}")">@order.OrderNumber</MudLink>
+            </MudTd>
+            <MudTd DataLabel="Date">@DateTimeFormat.FormatDateTime(order.CreatedDate)</MudTd>
+            <MudTd DataLabel="Status">@order.OrderStatus</MudTd>
+            <MudTd DataLabel="Payment">
+                <MudChip T="string" Size="Size.Small" Color="@(order.PaymentStatus == "Paid" ? Color.Success : order.PaymentStatus == "Refunded" ? Color.Default : Color.Warning)">@order.PaymentStatus</MudChip>
+            </MudTd>
+            <MudTd DataLabel="Total" Class="mud-table-cell-align-right">@CurrencyFormat.Format(order.TotalPrice)</MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudText>No orders yet.</MudText>
+        </NoRecordsContent>
+    </SearchableTable>
+}
+
+@code {
+    private List<OrderResponse> _orders = [];
+    private bool _loading = true;
+    private string? _loadError;
+
+    protected override Task OnInitializedAsync() => ReloadAsync();
+
+    private async Task ReloadAsync()
+    {
+        _loading = true;
+        var result = await ApiClient.GetAsync<List<OrderResponse>>(ApiRoutes.Commerce.Orders.Mine);
+        if (!result.IsSuccessful || result.ResultData is null)
+        {
+            _loadError = result.DisplayMessage;
+            _orders = [];
+        }
+        else
+        {
+            _orders = result.ResultData;
+        }
+
+        _loading = false;
+    }
+}

@@ -1,0 +1,66 @@
+@page "/admin/site-content/feature-highlights-intro"
+@attribute [Authorize(Roles = "Admin,Super Admin,Member")]
+@inject IApiClient ApiClient
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+<PageTitle>Feature Highlights Intro</PageTitle>
+
+<PageHeroBanner Title="Feature Highlights Intro" Subtitle="Manage the intro paragraph and cover image shown above the 'what we provide' cards.">
+    <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.Add"
+                   OnClick="CreateAsync">New Intro</MudButton>
+    </ActionContent>
+</PageHeroBanner>
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+<ServerDataTable TItem="FeatureHighlightsIntroResponse" @ref="_table" ApiBasePath="@ApiRoutes.SiteContent.FeatureHighlightsIntro.All"
+                 SearchPlaceholder="Search description" OnLoadError="@(message => _loadError = message)">
+    <HeaderContent>
+        <MudTh>Description</MudTh>
+        <MudTh>Display order</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate Context="intro">
+        <MudTd DataLabel="Description">@intro.Description</MudTd>
+        <MudTd DataLabel="Display order">@intro.DisplayOrder</MudTd>
+        <MudTd DataLabel="Actions">
+            <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
+                <MudIconButton Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" title="Edit"
+                               OnClick="@(() => EditAsync(intro))" />
+
+                <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" title="Delete"
+                               OnClick="@(() => DeleteAsync(intro))" />
+            </MudButtonGroup>
+        </MudTd>
+    </RowTemplate>
+</ServerDataTable>
+
+@code {
+    private ServerDataTable<FeatureHighlightsIntroResponse> _table = default!;
+    private string? _loadError;
+
+    private void CreateAsync() => Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/feature-highlights-intro/new");
+
+    private void EditAsync(FeatureHighlightsIntroResponse intro) => Navigation.NavigateTo(AppRoutes.AdminHome + $"/site-content/feature-highlights-intro/{intro.Id}/edit");
+
+    private async Task DeleteAsync(FeatureHighlightsIntroResponse intro)
+    {
+        if (!await DialogService.ConfirmDeleteAsync("feature highlights intro", intro.Description))
+        {
+            return;
+        }
+
+        var result = await ApiClient.DeleteAsync(ApiRoutes.SiteContent.FeatureHighlightsIntro.ById(intro.Id));
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await _table.ReloadAsync();
+    }
+}

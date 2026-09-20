@@ -1,6 +1,6 @@
 @page "/admin/platform/module-offerings/new"
 @page "/admin/platform/module-offerings/{Id:guid}/edit"
-@attribute [Authorize]
+@attribute [Authorize(Roles = "Admin,Super Admin,Member")]
 @using OnlineConsulting.Maui.Shared.Infrastructure.Forms
 @using OnlineConsulting.Maui.Shared.Pages.Admin.Platform.ModuleOfferingModels
 @inject IApiClient ApiClient
@@ -50,7 +50,7 @@
             <MudItem xs="12" sm="6">
                 @if (Id is null)
                 {
-                    <MudSelect T="string" @bind-Value="_model.BillingCycle" Label="Billing cycle" Variant="Variant.Outlined" Margin="Margin.Dense">
+                    <MudSelect T="string" @bind-Value="_model.BillingCycle" Label="Billing cycle" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true">
                         <MudSelectItem T="string" Value="@("Monthly")">Monthly</MudSelectItem>
                         <MudSelectItem T="string" Value="@("Annual")">Annual</MudSelectItem>
                     </MudSelect>

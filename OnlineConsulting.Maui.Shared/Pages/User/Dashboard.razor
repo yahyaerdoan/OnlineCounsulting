@@ -1,0 +1,93 @@
+@* Customer dashboard landing page - stat cards + quick actions. Order stats are a lightweight
+   client-side count over GetAsync(Orders.Mine) - not shared with Orders.razor's own load,
+   matching this project's existing per-page-load pattern (see Cart.razor). *@
+@page "/user/dashboard"
+@attribute [Authorize(Roles = AppRoles.User)]
+@layout OnlineConsulting.Maui.Shared.Layout.DashboardLayout
+@inject IApiClient ApiClient
+
+<PageTitle>Dashboard</PageTitle>
+
+<DashboardPageHeading Text="Welcome to Your Dashboard" />
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+    }
+    else
+    {
+        <MudGrid Class="mb-6">
+            <MudItem xs="6" md="2">
+                <DashboardStatCard Label="Total Orders" Color="Color.Primary">@_totalOrders</DashboardStatCard>
+            </MudItem>
+            <MudItem xs="6" md="2">
+                <DashboardStatCard Label="Pending" Color="Color.Warning">@_pendingOrders</DashboardStatCard>
+            </MudItem>
+            <MudItem xs="6" md="2">
+                <DashboardStatCard Label="Paid" Color="Color.Success">@_paidOrders</DashboardStatCard>
+            </MudItem>
+            <MudItem xs="6" md="2">
+                <DashboardStatCard Label="Cancelled" Color="Color.Error">@_cancelledOrders</DashboardStatCard>
+            </MudItem>
+            <MudItem xs="12" md="4">
+                <DashboardStatCard Label="Total Spent">@CurrencyFormat.Format(_totalSpent)</DashboardStatCard>
+            </MudItem>
+        </MudGrid>
+
+        <MudGrid>
+            <MudItem xs="12" sm="6" md="4">
+                <DashboardActionCard Icon="@Icons.Material.Outlined.ShoppingBag" Color="Color.Primary" Title="Recent Orders"
+                                      Description="View and track your latest orders." Href="/user/orders" ButtonText="View Orders" />
+            </MudItem>
+            <MudItem xs="12" sm="6" md="4">
+                <DashboardActionCard Icon="@Icons.Material.Outlined.LocationOn" Color="Color.Success" Title="Manage Addresses"
+                                      Description="Update your shipping and billing addresses." Href="/user/addresses" ButtonText="Edit Addresses" />
+            </MudItem>
+            <MudItem xs="12" sm="6" md="4">
+                <DashboardActionCard Icon="@Icons.Material.Outlined.PersonOutline" Color="Color.Warning" Title="Account Settings"
+                                      Description="View your profile details." Href="/user/profile" ButtonText="Edit Profile" />
+            </MudItem>
+            <MudItem xs="12" sm="6" md="4">
+                <DashboardActionCard Icon="@Icons.Material.Outlined.Build" Color="Color.Info" Title="My Equipment"
+                                      Description="Check your installed equipment and service history." Href="/user/equipment" ButtonText="View Equipment" />
+            </MudItem>
+            <MudItem xs="12" sm="6" md="4">
+                <DashboardActionCard Icon="@Icons.Material.Outlined.CalendarMonth" Color="Color.Secondary" Title="Book an Appointment"
+                                      Description="Schedule a service visit." Href="/appointment" ButtonText="Book Now" />
+            </MudItem>
+            <MudItem xs="12" sm="6" md="4">
+                <DashboardActionCard Icon="@Icons.Material.Outlined.SupportAgent" Color="Color.Error" Title="Support"
+                                      Description="Need help? Get in touch with us." Href="/contact" ButtonText="Contact Support" />
+            </MudItem>
+        </MudGrid>
+    }
+
+@code {
+    private List<OrderResponse> _orders = [];
+    private bool _loading = true;
+    private string? _loadError;
+
+    private int _totalOrders => _orders.Count;
+    private int _pendingOrders => _orders.Count(o => o.OrderStatus == "Pending");
+    private int _paidOrders => _orders.Count(o => o.PaymentStatus == "Paid");
+    private int _cancelledOrders => _orders.Count(o => o.OrderStatus == "Cancelled");
+    private decimal _totalSpent => _orders.Where(o => o.PaymentStatus == "Paid").Sum(o => o.TotalPrice);
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await ApiClient.GetAsync<List<OrderResponse>>(ApiRoutes.Commerce.Orders.Mine);
+        if (!result.IsSuccessful || result.ResultData is null)
+        {
+            _loadError = result.DisplayMessage;
+            _orders = [];
+        }
+        else
+        {
+            _orders = result.ResultData;
+        }
+
+        _loading = false;
+    }
+}

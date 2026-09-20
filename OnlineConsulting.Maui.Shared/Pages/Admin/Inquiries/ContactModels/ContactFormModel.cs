@@ -12,6 +12,3 @@ public class ContactFormModel
 
     public string WorkingHours { get; set; } = string.Empty;
 }
-
-/// <summary>Local mirror of the Api-side CompanyContactResponse - Maui.Shared can't reference the Application project.</summary>
-public record CompanyContactResponse(Guid Id, string Email, string Phone, string Address, string Description, string WorkingHours);

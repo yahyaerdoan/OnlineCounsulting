@@ -1,8 +1,9 @@
 @page "/admin/settings/users"
-@attribute [Authorize]
+@attribute [Authorize(Roles = "Admin,Super Admin,Member")]
 @inject IApiClient ApiClient
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
+@inject NavigationManager Navigation
 
 <PageTitle>Users</PageTitle>
 
@@ -40,6 +41,9 @@
 
                 <MudIconButton Icon="@Icons.Material.Outlined.ManageAccounts" Color="Color.Default" title="Manage roles"
                                OnClick="@(() => ManageRolesAsync(user))" />
+
+                <MudIconButton Icon="@Icons.Material.Outlined.Tune" Color="Color.Default" title="Narrow permissions"
+                               OnClick="@(() => Navigation.NavigateTo($"{AppRoutes.AdminHome}/settings/users/{user.Id}/permissions"))" />
 
                 <MudToggleIconButton Toggled="user.IsActive" ToggledChanged="@(_ => ToggleActiveAsync(user))"
                                       Icon="@Icons.Material.Outlined.PersonAddAlt1" Color="Color.Success" title="Activate/Deactivate"

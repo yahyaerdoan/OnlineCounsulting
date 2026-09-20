@@ -1,6 +1,8 @@
 @namespace OnlineConsulting.Maui.Shared.Pages.Admin.Growth
+@using OnlineConsulting.Maui.Shared.Infrastructure.Forms
 @inject IApiClient ApiClient
 @inject ISnackbar Snackbar
+@inject FormState<CompleteReferralModel> Form
 
 <MudDialog>
     <TitleContent>
@@ -9,12 +11,10 @@
     <DialogContent>
         <EntitySummaryHeader Title="@Referral.Code" Subtitle="@($"Referrer: {Referral.ReferrerName ?? Referral.ReferrerEmail}")" />
 
-        <MudNumericField T="decimal" @bind-Value="_rewardAmount" Label="Reward amount" Variant="Variant.Outlined" Margin="Margin.Dense" Min="0.01m" Format="F2" Class="mt-3"
-                         Adornment="Adornment.Start" AdornmentText="$" HideSpinButtons="true" />
-        @if (_error is not null)
-        {
-            <ApiErrorAlert Message="@_error" Severity="Severity.Error" />
-        }
+        <EditForm EditContext="@Form.EditContext">
+            <MudNumericField T="decimal" @bind-Value="_model.RewardAmount" For="@(() => _model.RewardAmount)" Label="Reward amount" Variant="Variant.Outlined" Margin="Margin.Dense" Min="0.01m" Format="F2" Class="mt-3"
+                             Adornment="Adornment.Start" AdornmentText="$" HideSpinButtons="true" />
+        </EditForm>
     </DialogContent>
     <DialogActions>
         <DialogActionButtons OnOk="CompleteAsync" IsBusy="@_isBusy" />
@@ -28,26 +28,31 @@
     [Parameter, EditorRequired]
     public ReferralResponse Referral { get; set; } = default!;
 
-    private decimal _rewardAmount = 10m;
+    private readonly CompleteReferralModel _model = new();
     private bool _isBusy;
-    private string? _error;
+
+    protected override void OnInitialized() => Form.Bind(_model);
 
     private async Task CompleteAsync()
     {
         _isBusy = true;
-        _error = null;
 
-        var result = await ApiClient.PostAsync(ApiRoutes.Growth.Referrals.Complete(Referral.Id), new { rewardAmount = _rewardAmount });
+        var result = await ApiClient.PostAsync(ApiRoutes.Growth.Referrals.Complete(Referral.Id), new { rewardAmount = _model.RewardAmount });
 
         _isBusy = false;
 
         if (!result.IsSuccessful)
         {
-            _error = result.DisplayMessage;
+            Form.DisplayErrors(result, Snackbar);
             return;
         }
 
         Snackbar.ShowSuccess(result.DisplayMessage);
         MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private sealed class CompleteReferralModel
+    {
+        public decimal RewardAmount { get; set; } = 10m;
     }
 }

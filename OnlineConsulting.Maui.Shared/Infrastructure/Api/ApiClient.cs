@@ -1,4 +1,5 @@
 ﻿using OnlineConsulting.Maui.Shared.Infrastructure.Auth;
+using Polly.CircuitBreaker;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -42,7 +43,7 @@ public class ApiClient(HttpClient httpClient, IAccessTokenProvider? tokenProvide
         {
             response = await SendCoreAsync(method, path, content, cancellationToken);
         }
-        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or BrokenCircuitException)
         {
             return new ApiEnvelope<T>(default, false, 0, NetworkErrorMessage, null);
         }
@@ -61,7 +62,7 @@ public class ApiClient(HttpClient httpClient, IAccessTokenProvider? tokenProvide
         {
             response = await SendCoreAsync(method, path, content, cancellationToken);
         }
-        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or BrokenCircuitException)
         {
             return new ApiEnvelope(false, 0, NetworkErrorMessage, null);
         }

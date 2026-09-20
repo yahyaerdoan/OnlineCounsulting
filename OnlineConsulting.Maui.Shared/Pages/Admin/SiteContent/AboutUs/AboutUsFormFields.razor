@@ -1,4 +1,5 @@
-@namespace OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent
+﻿@namespace OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent
+@using MudExRichTextEditor
 @using OnlineConsulting.Maui.Shared.Pages.Admin.Catalog
 @using OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent.AboutUsModels
 @inject IApiClient ApiClient
@@ -7,8 +8,9 @@
 <MudStack Spacing="3">
     <MudTextField @bind-Value="Model.Title" For="@(() => Model.Title)" Label="Title" Variant="Variant.Outlined" Margin="Margin.Dense" />
 
-    <MudTextField @bind-Value="Model.Description" For="@(() => Model.Description)" Label="Description" Variant="Variant.Outlined" Margin="Margin.Dense"
-                  Lines="1" MaxLines="5" Sizing="InputSizing.Auto" />
+    <MudText Typo="Typo.body2" Color="Color.Secondary">Description</MudText>
+    <MudExRichTextEdit @ref="_editor" @bind-Value="Model.Description" Height="240" Placeholder="Description" />
+    <ValidationMessage For="@(() => Model.Description)" Class="mud-input-error" />
 
     <MudTextField @bind-Value="Model.VideoUrl" For="@(() => Model.VideoUrl)" Label="Video URL" Variant="Variant.Outlined" Margin="Margin.Dense" />
 
@@ -23,11 +25,34 @@
     public AboutUsFormModel Model { get; set; } = default!;
 
     private bool _isUploading;
+    private MudExRichTextEdit _editor = default!;
+    private string? _pendingInitialDescription;
+
+    /// <summary>SetHtml bypasses Quill's clipboard importer and drops foreign markup (e.g. lists) -
+    /// clear before mount, then reload via InsertHtmlAsync after render to load it losslessly.</summary>
+    protected override void OnParametersSet()
+    {
+        if (_pendingInitialDescription is null && !string.IsNullOrEmpty(Model.Description))
+        {
+            _pendingInitialDescription = Model.Description;
+            Model.Description = string.Empty;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && _pendingInitialDescription is { } html)
+        {
+            // SetHtml("") first just to await the editor's JS-ready wait - InsertHtmlAsync has none.
+            await _editor.SetHtml(string.Empty);
+            await _editor.InsertHtmlAsync(html);
+        }
+    }
 
     private async Task OnFileSelectedAsync(InputFileChangeEventArgs e)
     {
         _isUploading = true;
-        var result = await MediaUploadHelper.UploadAsync(ApiClient, e.File);
+        var result = await MediaUploadHelper.UploadAsync(ApiClient, e.File, MediaFolders.AboutUs);
         _isUploading = false;
 
         if (!result.IsSuccessful || result.ResultData is null)

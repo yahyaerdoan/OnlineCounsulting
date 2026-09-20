@@ -1,0 +1,41 @@
+@* "How It Works" - a connected step timeline (numbered badge + a linking rail on desktop)
+   instead of a plain icon grid, so the sequence reads as an ordered process, not a loose list. *@
+@using OnlineConsulting.Maui.Shared.Infrastructure.Api
+@inject IApiClient ApiClient
+
+<div class="marketing-dark-section">
+    <MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
+        <div class="marketing-section-header-left">
+            <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center" Class="mb-1">
+                <MudIcon Icon="@Icons.Material.Filled.PlayArrow" Color="Color.Primary" Size="Size.Small" />
+                <MudText Typo="Typo.subtitle1" Color="Color.Primary" Class="text-strong">Getting Started</MudText>
+            </MudStack>
+            <MudText Typo="Typo.h5" Class="marketing-display text-strong">How It Works</MudText>
+        </div>
+
+        <div class="marketing-process-track">
+            @for (var i = 0; i < _steps.Count; i++)
+            {
+                var step = _steps[i];
+                <div class="marketing-process-step">
+                    <div class="marketing-process-badge" style="@($"background:{step.IconColor ?? "var(--mud-palette-primary)"};")">
+                        <MudIcon Icon="@step.Icon" Style="color:#ffffff;" />
+                        <span class="marketing-process-number">@((i + 1).ToString("00"))</span>
+                    </div>
+                    <MudText Typo="Typo.h6" Class="mt-4">@step.Title</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">@step.Description</MudText>
+                </div>
+            }
+        </div>
+    </MudContainer>
+</div>
+
+@code {
+    private List<ServiceProcessStepResponse> _steps = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await ApiClient.GetAsync<List<ServiceProcessStepResponse>>(ApiRoutes.SiteContent.ServiceProcessStep.Base);
+        _steps = result.IsSuccessful ? result.ResultData?.OrderBy(s => s.DisplayOrder).ToList() ?? [] : [];
+    }
+}

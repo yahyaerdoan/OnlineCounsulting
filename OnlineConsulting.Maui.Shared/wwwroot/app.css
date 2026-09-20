@@ -5,7 +5,1261 @@
 /* ---- Shared text utilities ---- */
 
 .text-strong {
+    font-weight: 600;
+}
+
+/* ---- Marketing design tokens (soft white-toned: ink/gray + one muted soft-coral accent) ---- */
+
+:root {
+    --font-marketing: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    --marketing-ink: #1D1D1F;
+    --marketing-ink-secondary: #86868B;
+    --marketing-surface-alt: #F5F5F7;
+    --marketing-hairline: #D2D2D7;
+    /* Darker than --marketing-ink-secondary - that gray fails contrast on the footer's light bg. */
+    --marketing-footer-text: #4B4B50;
+    /* Whole-layout wash - soft, barely-there off-white over the page background. */
+    --marketing-page-bg: #efefef59;
+    /* Same ink as text/tiles, not flat black - stays in the theme's monochrome family. */
+    --marketing-dark: #1D1D1F;
+    /* Single standard corner radius for every button, admin + marketing. */
+    --button-radius: 6px;
+    /* Single standard padding for every button, admin + marketing. */
+    --button-padding: 5px 20px;
+    /* Standard hover: saturate+darken, never a faded opacity dim (reads as disabled). */
+    --button-hover-filter: saturate(1.5) brightness(0.95);
+}
+
+/* ---- Home page sections ---- */
+
+.marketing-hero {
+    position: relative;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: var(--marketing-dark);
+    min-height: 620px;
+    display: flex;
+    align-items: center;
+}
+
+/* Full-bleed pseudo-element, not the (shorter) content wrapper - avoids un-darkened photo strips above/below it. */
+.marketing-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+/* Flat scrim, not a gradient - text is vertically centered so a bottom-only-dark gradient
+   could leave it unreadable. Left-aligned, not centered, so lines share one starting edge. */
+.marketing-hero-overlay {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    padding: 64px 0;
+    text-align: left;
+}
+
+.marketing-hero-title {
+    color: #ffffff;
+    font-family: var(--font-marketing);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
+    max-width: 700px;
+}
+
+.marketing-hero-subtitle {
+    color: rgba(255, 255, 255, 0.92);
+    margin: 16px 0 0;
+    max-width: 700px;
+    line-height: 1.7;
+    white-space: pre-line;
+    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* Subtle inline link under the summary - the rest of a long CMS description lives on /about
+   instead of crowding the hero, but stays one click away. */
+.marketing-hero-learn-more {
+    display: inline-block;
+    margin-top: 10px;
+    color: #ffffff !important;
+    font-weight: 500;
+    text-decoration: none !important;
+    opacity: 0.85;
+    transition: opacity 0.2s ease;
+}
+
+.marketing-hero-learn-more:hover {
+    opacity: 1;
+}
+
+/* Page banner (About/Gallery/Contact/... - every marketing page except Home). Minimal: flat
+   gray band, small type, compact padding - not a hero-sized title block. */
+.marketing-page-banner {
+    background: var(--marketing-surface-alt);
+    padding: 20px 0;
+}
+
+/* PageBanner-backed variant - real background image with a dark overlay so text stays readable. */
+.marketing-page-banner-image {
+    background-size: cover;
+    background-position: center;
+    padding: 0;
+}
+
+.marketing-page-banner-image .marketing-page-banner-overlay {
+    background: rgba(0, 0, 0, 0.45);
+    padding: 20px 0;
+}
+
+.marketing-page-banner-image .marketing-page-banner-overlay .mud-typography {
+    color: #ffffff;
+}
+
+.marketing-page-banner-image .marketing-breadcrumb-link {
+    color: rgba(255, 255, 255, 0.75) !important;
+}
+
+.marketing-page-banner-image .marketing-breadcrumb-link:hover {
+    color: #ffffff !important;
+}
+
+.marketing-breadcrumb-link {
+    text-decoration: none !important;
+}
+
+.marketing-breadcrumb-link:hover {
+    color: var(--mud-palette-primary) !important;
+}
+
+/* MudImage has no width constraint outside MudAvatar/Fluid="true" - without this, width follows the photo's own aspect ratio. */
+.service-detail-image {
+    width: 100%;
+    display: block;
+}
+
+/* Signals the thumbnail is clickable (see marketing.js initServiceGallery). Opacity dip, not fade-to-nothing. */
+.service-gallery-thumb {
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+}
+
+.service-gallery-thumb:hover {
+    opacity: 0.85;
+}
+
+.marketing-video-embed {
+    position: relative;
+    width: 100%;
+    padding-top: 56.25%;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* Pins the video while a long description scrolls past. Desktop only - mobile stacks them, so sticky would trap it on screen. */
+@media (min-width: 960px) {
+    .marketing-video-embed-sticky {
+        position: sticky;
+        top: 64px;
+    }
+}
+
+.marketing-video-embed iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+/* Plain image block - no radius, no shadow, no lift. */
+.marketing-gallery-item {
+    display: block;
+    overflow: hidden;
+    border-radius: 8px;
+}
+
+.marketing-quote-section {
+    background: var(--marketing-surface-alt);
+    padding: 120px 0;
+}
+
+@media (max-width: 959px) {
+    .marketing-quote-section {
+        padding: 64px 0;
+    }
+}
+
+/* Shared "flat surface card" shape - hairline border, standard radius. Used by every marketing
+   card variant below (category tile, feature card, testimonial card, promo card) instead of each
+   repeating the same two declarations; each keeps its own background/padding/layout. */
+.marketing-category-tile,
+.marketing-feature-card,
+.marketing-testimonial-card,
+.marketing-promo-card,
+.contact-form {
+    border-radius: 8px;
+    border: 1px solid var(--marketing-hairline);
+}
+
+/* Contact page panels (form + info) - same flat-card shape as the rest of the site's cards. */
+.contact-form {
+    background: var(--marketing-surface-alt);
+    padding: 28px;
+    height: 100%;
+}
+
+/* Contact info's icon+value rows - a small tinted circle instead of a bare inline icon. */
+.contact-info-icon {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(var(--mud-palette-primary-rgb), 0.12);
+}
+
+.contact-info-link {
+    color: var(--marketing-ink) !important;
+    text-decoration: none !important;
+}
+
+.contact-info-link:hover {
+    color: var(--mud-palette-primary) !important;
+}
+
+/* Shared hover-lift - rises 4px and tints the border primary on hover. Card-specific extras
+   (category tile's box-shadow) stay on that card's own :hover rule below. */
+.marketing-category-tile:hover,
+.marketing-feature-card:hover,
+.marketing-testimonial-card:hover,
+.marketing-pricing-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--mud-palette-primary);
+}
+
+/* Pricing/Membership plan cards - same feel across Signup, Pricing.razor and Membership.razor. */
+.marketing-pricing-card {
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.marketing-pricing-card:hover {
+    box-shadow: 0 12px 24px -14px rgba(16, 16, 32, 0.18);
+}
+
+.marketing-pricing-card-featured {
+    border-color: var(--mud-palette-primary) !important;
+    border-width: 2px !important;
+}
+
+.marketing-pricing-badge {
+    position: absolute;
+    top: -12px;
+    right: 20px;
+    padding: 4px 14px;
+    border-radius: 999px;
+    background: var(--mud-palette-primary);
+    color: var(--mud-palette-primary-text);
+    font-size: 12px;
     font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    box-shadow: 0 6px 14px -6px rgba(16, 16, 32, 0.35);
+}
+
+/* Clickable category card - flat surface, left-aligned copy with a description and a
+   "View services" link so the tile reads as navigation, not decoration. */
+.marketing-category-tile {
+    height: 100%;
+    min-height: 172px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    text-decoration: none !important;
+    background: var(--marketing-surface-alt) !important;
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.marketing-category-tile:hover {
+    box-shadow: 0 12px 24px -14px rgba(16, 16, 32, 0.18);
+}
+
+.marketing-category-icon {
+    font-size: 36px;
+    transition: transform 0.4s ease;
+}
+
+.marketing-category-tile:hover .marketing-category-icon {
+    transform: scale(1.12);
+}
+
+.marketing-category-title {
+    color: var(--marketing-ink);
+    margin-top: 10px;
+    font-weight: 500;
+}
+
+.marketing-category-desc {
+    margin-top: 4px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.marketing-category-link {
+    margin-top: auto;
+    padding-top: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--mud-palette-primary);
+    transition: gap 0.2s ease;
+}
+
+.marketing-category-tile:hover .marketing-category-link {
+    gap: 8px;
+}
+
+.tile-malachite,
+.tile-sunglow,
+.tile-mariner,
+.tile-brilliantrose,
+.tile-shakespeare,
+.tile-deyork {
+    background: var(--marketing-surface-alt);
+}
+
+/* Light section band - no dark/black fills anywhere, just the surface-alt gray against white
+   for rhythm between sections. */
+.marketing-dark-section {
+    background: var(--marketing-surface-alt);
+}
+
+/* "How It Works" step timeline - numbered circular badges on a connecting rail (desktop only;
+   collapses to a plain stacked list on mobile since there's no room for a rail there). */
+.marketing-process-track {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px 16px;
+    position: relative;
+}
+
+@media (min-width: 960px) {
+    .marketing-process-track::before {
+        content: "";
+        position: absolute;
+        top: 28px;
+        left: 60px;
+        right: 60px;
+        height: 2px;
+        background: var(--marketing-hairline);
+    }
+}
+
+.marketing-process-step {
+    position: relative;
+    text-align: center;
+}
+
+.marketing-process-badge {
+    position: relative;
+    z-index: 1;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    box-shadow: 0 10px 20px -10px rgba(16, 16, 32, 0.35);
+}
+
+.marketing-process-number {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #ffffff;
+    color: var(--marketing-ink);
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--marketing-hairline);
+}
+
+/* "Why Choose Us" feature row - a vertical numbered list (not a card grid) so any item count
+   lines up cleanly, no orphaned last card on an odd number of items. Everything's visible up
+   front (no click-to-expand) - hover just shifts/tints the row so it still feels alive. */
+.marketing-feature-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 8px;
+    border-bottom: 1px solid var(--marketing-hairline);
+    transition: transform 0.25s ease, background-color 0.25s ease;
+}
+
+.marketing-feature-row:hover {
+    transform: translateX(8px);
+    background: var(--marketing-surface-alt);
+}
+
+.marketing-feature-row:last-child {
+    border-bottom: none;
+}
+
+/* Faint by default, lights up to the accent color on hover - same "more vivid" hover language
+   used for buttons elsewhere, not a fade. */
+.marketing-feature-number {
+    flex-shrink: 0;
+    width: 40px;
+    font-family: var(--font-marketing);
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--marketing-hairline);
+    transition: color 0.25s ease;
+}
+
+.marketing-feature-row:hover .marketing-feature-number {
+    color: var(--mud-palette-primary);
+}
+
+.marketing-feature-title {
+    transition: color 0.25s ease;
+}
+
+.marketing-feature-row:hover .marketing-feature-title {
+    color: var(--mud-palette-primary) !important;
+}
+
+/* Circular badge, not a square photo thumbnail - reads as an icon even though admins upload a
+   real image, and stays consistent regardless of the source photo's own aspect ratio. */
+.marketing-feature-icon {
+    flex-shrink: 0;
+    border-radius: 50%;
+    border: 1px solid var(--marketing-hairline);
+    transition: transform 0.25s ease;
+}
+
+.marketing-feature-row:hover .marketing-feature-icon {
+    transform: scale(1.15);
+}
+
+/* Hovering any row on the left also nudges the right-side image - ties the two columns together
+   instead of the image sitting there inert. :has() reaches across to the row's sibling column. */
+.marketing-feature-columns:has(.marketing-feature-row:hover) .marketing-feature-intro-image {
+    transform: scale(1.03);
+    box-shadow: 0 28px 48px -20px rgba(16, 16, 32, 0.32);
+}
+
+/* eduhas layout's right-column cover image next to the feature list - rounded + a soft shadow so
+   it reads as a deliberate visual, not a bare unstyled <img>. Fixed height (not height:100%, which
+   has no defined-height ancestor here and falls back to the photo's own aspect ratio) keeps every
+   photo the same size regardless of how tall the source image is. */
+.marketing-feature-intro-image {
+    width: 100%;
+    height: 420px;
+    border-radius: 12px;
+    box-shadow: 0 20px 40px -20px rgba(16, 16, 32, 0.25);
+    transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.15s ease;
+}
+
+.marketing-section-intro-text {
+    margin-top: 8px;
+}
+
+/* Testimonial quote card - review text up front, a large faint watermark quote mark, reviewer
+   identity pinned to the footer with a hairline divider above it. */
+.marketing-testimonial-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 20px 18px 16px;
+    background: var(--marketing-surface-alt);
+    overflow: hidden;
+    transition: transform 0.25s ease, border-color 0.25s ease;
+}
+
+.marketing-testimonial-quote-icon {
+    position: absolute;
+    top: 8px;
+    right: 16px;
+    font-size: 64px !important;
+    color: var(--mud-palette-primary);
+    opacity: 0.12;
+}
+
+.marketing-testimonial-desc {
+    position: relative;
+    margin-top: 12px;
+    color: var(--marketing-ink);
+    line-height: 1.6;
+}
+
+.marketing-testimonial-footer {
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid var(--marketing-hairline);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Baseline "prose" styling for CMS rich-text output (MudExRichTextEdit) - without this, injected
+   h1/h2/ul render at the theme's raw browser/global heading sizes, wildly oversized next to the
+   surrounding body copy. */
+/* Bold, not the theme's soft 450 page-heading weight - these are editor-authored section headings
+   inside a long CMS document, not page chrome, so they should read as actually bold (matching what
+   the rich-text editor itself already shows) so they stand out and break up the prose. */
+.marketing-rich-text h1,
+.marketing-rich-text h2,
+.marketing-rich-text h3 {
+    font-family: var(--font-marketing);
+    color: var(--marketing-ink);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    text-align: left;
+    margin: 1.2rem 0 0.4rem;
+}
+
+.marketing-rich-text h1 {
+    font-size: 1.4rem;
+}
+
+.marketing-rich-text h2 {
+    font-size: 1.15rem;
+}
+
+.marketing-rich-text h3 {
+    font-size: 1.05rem;
+}
+
+.marketing-rich-text > :first-child {
+    margin-top: 0;
+}
+
+.marketing-rich-text p {
+    margin: 0 0 0.75rem;
+}
+
+.marketing-rich-text ul,
+.marketing-rich-text ol {
+    margin: 0 0 0.75rem;
+    padding-left: 1.4rem;
+}
+
+.marketing-rich-text li {
+    margin-bottom: 0.3rem;
+}
+
+/* Promotion card - a "coupon ticket" look (accent left edge + dashed stub divider) instead of a
+   plain box, so an offer reads as an offer at a glance, fully visible, no click required. */
+.marketing-promo-card {
+    padding: 16px 18px;
+    background: var(--marketing-surface-alt);
+    border-left: 4px solid var(--mud-palette-primary) !important;
+}
+
+.marketing-promo-title {
+    color: var(--marketing-ink);
+    font-size: 1.05rem;
+}
+
+.marketing-promo-expiry {
+    flex-shrink: 0;
+}
+
+/* Dashed stub divider - the "tear line" between a coupon's header and its details. */
+.marketing-promo-divider {
+    border-top: 1px dashed var(--marketing-hairline);
+    margin: 12px 0;
+}
+
+/* CSS-only tab toggle (Details / Ask Your Questions on service detail) - hidden radio inputs +
+   label buttons + sibling selectors, zero JS (Static SSR has no @onclick to toggle panels). */
+.marketing-tabs-radio {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.marketing-tabs-btn {
+    padding: var(--button-padding);
+    border-radius: var(--button-radius);
+    border: 1px solid var(--marketing-hairline);
+    color: var(--marketing-ink-secondary);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.marketing-tabs-panel {
+    display: none;
+}
+
+#service-tab-details:checked ~ #service-panel-details,
+#service-tab-ask:checked ~ #service-panel-ask {
+    display: block;
+}
+
+#service-tab-details:checked ~ .marketing-tabs-nav label[for="service-tab-details"],
+#service-tab-ask:checked ~ .marketing-tabs-nav label[for="service-tab-ask"] {
+    background: var(--mud-palette-primary);
+    border-color: var(--mud-palette-primary);
+    color: #ffffff;
+}
+
+.marketing-textarea {
+    width: 100%;
+    min-height: 120px;
+    resize: vertical;
+    border-radius: 8px;
+    border: 1px solid var(--marketing-hairline);
+    background: var(--marketing-surface-alt);
+    color: var(--marketing-ink);
+    padding: 12px 14px;
+    font-size: .95rem;
+    font-family: inherit;
+    outline: none;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.marketing-textarea:focus {
+    border-color: var(--mud-palette-primary);
+    box-shadow: 0 0 0 3px rgba(var(--mud-palette-primary-rgb), 0.14);
+}
+
+/* Contact-style forms (ContactMessageForm) - label above field, not a floating overlay. */
+.marketing-field {
+    margin-bottom: .25rem;
+}
+
+.marketing-field-label {
+    display: block;
+    margin-bottom: .35rem;
+}
+
+.marketing-field-input,
+.marketing-field-textarea {
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid var(--marketing-hairline);
+    background: var(--marketing-surface-alt);
+    color: var(--marketing-ink);
+    font-size: .9rem;
+    font-family: inherit;
+    outline: none;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.marketing-field-input {
+    height: 44px;
+    padding: 0 14px;
+}
+
+.marketing-field-textarea {
+    min-height: 130px;
+    resize: vertical;
+    padding: 12px 14px;
+}
+
+.marketing-field-input:focus,
+.marketing-field-textarea:focus {
+    border-color: var(--mud-palette-primary);
+    box-shadow: 0 0 0 3px rgba(var(--mud-palette-primary-rgb), 0.14);
+}
+
+.marketing-field-input.invalid,
+.marketing-field-textarea.invalid {
+    border-color: var(--mud-palette-error, #D32F2F);
+}
+
+.marketing-field-error {
+    display: block;
+    margin-top: .35rem;
+    font-size: .78rem;
+    color: var(--mud-palette-error, #D32F2F);
+}
+
+/* ---- Marketing site (Apple.com-style visual system) ---- */
+
+.marketing-display {
+    font-family: var(--font-marketing);
+}
+
+/* Tight tracking on headings only - Apple's large display type sits closer together than body
+   text; MudBlazor's Typography.LetterSpacing is int-only (px), so this is set in CSS instead. */
+.marketing-layout-main h1, .marketing-layout-main h2, .marketing-layout-main h3,
+.marketing-layout-main h4, .marketing-layout-main h5, .marketing-layout-main h6,
+.marketing-page-banner h1, .marketing-page-banner h2, .marketing-page-banner h3 {
+    letter-spacing: -0.02em;
+}
+
+.marketing-brand-mark {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none !important;
+    white-space: nowrap;
+    color: var(--marketing-ink);
+}
+
+.marketing-brand-mark .mud-icon-root {
+    color: var(--mud-palette-primary);
+}
+
+.marketing-brand-mark-on-dark {
+    color: #ffffff;
+}
+
+.marketing-brand-word {
+    font-family: var(--font-marketing);
+    font-weight: 600;
+    font-size: 21px;
+    letter-spacing: -0.01em;
+}
+
+.marketing-brand-word-muted {
+    opacity: .55;
+}
+
+.marketing-top-bar {
+    color: var(--marketing-ink);
+    font-size: 12px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--marketing-hairline);
+}
+
+.marketing-top-bar-link {
+    color: var(--marketing-ink) !important;
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none !important;
+}
+
+/* Matches .header-phone-cta's icon treatment - same accent color for both utility-strip icons. */
+.marketing-top-bar-link .mud-icon-root {
+    color: var(--mud-palette-primary);
+}
+
+.header-phone-cta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--marketing-ink) !important;
+    text-decoration: none !important;
+}
+
+.header-phone-cta .mud-icon-root {
+    color: var(--mud-palette-primary);
+}
+
+.header-phone-cta-text strong {
+    color: var(--marketing-ink);
+    font-weight: 600;
+}
+
+.header-phone-cta:hover .header-phone-cta-text strong {
+    color: var(--mud-palette-primary);
+}
+
+/* Flat CTA - accent fill, standard button radius. Hover darkens the fill (more vivid/present),
+   never fades via opacity - a faded button reads as disabled, not hovered. */
+.header-book-now-btn {
+    display: inline-flex;
+    align-items: center;
+    background-color: var(--mud-palette-primary) !important;
+    color: #ffffff !important;
+    font-size: 13px;
+    font-weight: 400;
+    padding: var(--button-padding);
+    border-radius: var(--button-radius);
+    text-decoration: none !important;
+    cursor: pointer;
+    transition: filter 0.2s ease;
+}
+
+.header-book-now-btn:hover {
+    filter: var(--button-hover-filter);
+    color: #ffffff !important;
+}
+
+.marketing-top-bar-link:hover {
+    color: var(--marketing-ink) !important;
+}
+
+.marketing-login-register .marketing-top-bar-link:not(:last-child)::after {
+    content: "|";
+    margin-left: 8px;
+    opacity: .5;
+}
+
+.marketing-login-register .marketing-top-bar-link {
+    color: var(--marketing-ink) !important;
+    font-weight: 700 !important;
+}
+
+/* Translucent, blurred nav - Apple's signature header treatment even before the scroll-triggered
+   sticky state kicks in. */
+.marketing-app-bar {
+    background: rgba(255, 255, 255, 0.8) !important;
+    backdrop-filter: saturate(1.8) blur(20px);
+    -webkit-backdrop-filter: saturate(1.8) blur(20px);
+    color: var(--marketing-ink) !important;
+    border-bottom: 1px solid var(--marketing-hairline);
+}
+
+/* Toolbar's own padding removed - the MudContainer inside it now supplies the real gutter, the
+   same one .marketing-top-bar uses, so both rows line up exactly instead of an approximated one. */
+.marketing-app-bar .mud-toolbar {
+    padding: 0;
+}
+
+/* MudMainContent reserves space for a "fixed" appbar by default - it can't see that the real
+   MudAppBar (Fixed="false") is wrapped in .marketing-sticky-header, so it always adds this padding
+   even though the header sits in normal document flow. That's the gap under the nav bar. */
+.marketing-layout-main {
+    padding-top: 0 !important;
+    background-color: var(--marketing-page-bg);
+}
+
+/* Sticky footer - .mud-main-content already has flex:1 1 auto, .mud-layout just needs to be the flex column it assumes. */
+.marketing-app-layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* ---- Sticky header on scroll ---- */
+
+.marketing-sticky-header.is-sticky {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 999;
+    animation: marketing-sticky-in 0.3s ease-out;
+}
+
+@keyframes marketing-sticky-in {
+    from {
+        transform: translateY(-100%);
+    }
+
+    to {
+        transform: translateY(0);
+    }
+}
+
+/* Reserves the header's height so sticky mode doesn't yank content up underneath it. */
+.marketing-sticky-header-spacer {
+    display: none;
+    height: 48px;
+}
+
+.marketing-sticky-header-spacer.is-active {
+    display: block;
+}
+
+/* Color-only hover - no underline, no bar. NavLink's own .active class (applied for the current
+   page) gets the same color, permanently. */
+.marketing-nav-link {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--marketing-ink) !important;
+    text-decoration: none !important;
+}
+
+.marketing-nav-link:hover,
+.marketing-nav-link.active {
+    color: var(--mud-palette-primary) !important;
+}
+
+/* Own breakpoint, not MudBlazor's d-none/d-md-flex - those applied at once on real mobile widths. */
+.marketing-app-bar .marketing-nav {
+    display: none !important;
+}
+
+.marketing-app-bar .header-book-now-btn {
+    display: none !important;
+}
+
+.marketing-nav-toggle {
+    margin-right: 4px;
+    display: inline-flex !important;
+}
+
+@media (min-width: 960px) {
+    .marketing-app-bar .marketing-nav {
+        display: flex !important;
+    }
+
+    .marketing-app-bar .header-book-now-btn {
+        display: inline-flex !important;
+    }
+
+    .marketing-nav-toggle {
+        display: none !important;
+    }
+}
+
+/* Full-screen overlay, Apple's mobile-nav pattern - not a dropdown panel. Always display:flex -
+   actual show/hide is opacity/visibility (see .marketing-nav-open), not display, so it stays
+   interactive-ready the instant JS toggles it. */
+.marketing-nav-mobile {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 72px 28px 28px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s;
+}
+
+.marketing-nav-mobile.marketing-nav-open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.marketing-nav-mobile .marketing-nav-link {
+    padding: 8px 0;
+    font-size: 15px;
+    font-weight: 500;
+    border-bottom: 1px solid var(--marketing-hairline);
+}
+
+.marketing-nav-close {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+}
+
+body.marketing-nav-lock {
+    overflow: hidden;
+}
+
+/* ---- Marketing section spacing (tightened - minimal, not Apple's 140px rhythm) ---- */
+
+.marketing-section {
+    padding-top: 56px;
+    padding-bottom: 56px;
+}
+
+.marketing-section-tight {
+    padding-top: 36px;
+    padding-bottom: 36px;
+}
+
+@media (max-width: 959px) {
+    .marketing-section {
+        padding-top: 28px;
+        padding-bottom: 28px;
+    }
+
+    .marketing-section-tight {
+        padding-top: 20px;
+        padding-bottom: 20px;
+    }
+}
+
+/* Scroll-reveal (see marketing.js initScrollReveal) - subtle fade+rise, no-op under
+   prefers-reduced-motion (guarded in JS, and again here as a safety net). */
+.marketing-reveal {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.marketing-reveal.marketing-revealed {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .marketing-reveal {
+        opacity: 1;
+        transform: none;
+        transition: none;
+    }
+}
+
+/* ---- Marketing footer (Apple's light-gray, minimal footer treatment) ---- */
+
+.marketing-footer {
+    background: var(--marketing-surface-alt);
+    color: var(--marketing-footer-text);
+    font-size: 13px;
+}
+
+.marketing-footer .mud-typography {
+    color: var(--marketing-footer-text);
+    font-size: 13px;
+}
+
+.marketing-footer .mud-link {
+    color: var(--marketing-footer-text) !important;
+    font-size: 13px;
+    text-decoration: none !important;
+    transition: color 0.2s ease;
+}
+
+/* Footer column titles ("Quick Links", "Popular Services", "Newsletter") - bold and black,
+   standing out from the muted body/link text around them. */
+.marketing-footer-heading {
+    color: var(--marketing-ink) !important;
+    font-weight: 700 !important;
+}
+
+.marketing-footer .mud-link:hover {
+    color: var(--marketing-ink) !important;
+}
+
+/* Popular Services title - turns the theme's primary (soft-coral/orange) color on hover. */
+.footer-course-title {
+    transition: color 0.2s ease;
+}
+
+.marketing-footer .footer-course-title:hover {
+    color: var(--mud-palette-primary) !important;
+}
+
+/* :not() excludes the newsletter send button - its own color rule would otherwise get overridden, making the icon disappear. */
+.marketing-footer .mud-icon-button:not(.newsletter-button) {
+    color: var(--marketing-ink) !important;
+    transition: color 0.2s ease;
+}
+
+.marketing-footer .mud-icon-button:not(.newsletter-button):hover {
+    color: var(--mud-palette-primary) !important;
+}
+
+/* Light vertical rule between footer columns - desktop only, columns stack below md. */
+@media (min-width: 960px) {
+    .marketing-footer .mud-grid-item:not(:first-child) {
+        border-left: 1px solid var(--marketing-hairline);
+    }
+}
+
+/* ---- Service card (flat surface, no shadow - Apple's product-tile treatment) ---- */
+
+.single-popular-courses {
+    overflow-x: hidden;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.25s ease;
+}
+
+.single-popular-courses:hover {
+    transform: translateY(-4px);
+}
+
+.popular-courses-image {
+    overflow: hidden;
+}
+
+.popular-courses-image img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+}
+
+.single-popular-courses:hover .popular-courses-image img {
+    transform: scale(1.06);
+}
+
+.popular-courses-contnet {
+    padding: 28px 24px;
+    background: var(--marketing-surface-alt);
+}
+
+.popular-courses-title {
+    height: 43.19px;
+    overflow: hidden;
+    font-weight: 600;
+    margin: 0 0 5px;
+}
+
+.popular-courses-title a {
+    color: var(--marketing-ink);
+}
+
+.post_meta {
+    margin-bottom: 10px;
+    font-size: 12px;
+}
+
+.post_meta ul {
+    height: 56px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.post_meta ul li {
+    display: inline-block;
+    position: relative;
+    padding: 0 8px 0 0;
+    margin: 0 8px 0 0;
+}
+
+.post_meta ul li:not(:last-child)::after {
+    content: "";
+    width: 1px;
+    height: 10px;
+    background: #7c7c7c;
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+}
+
+.post_meta ul li a {
+    color: var(--mud-palette-primary);
+}
+
+.post_meta p {
+    margin: 0;
+}
+
+.price-strike {
+    text-decoration: line-through;
+    color: gray;
+}
+
+.price-discounted {
+    color: var(--mud-palette-primary);
+    font-weight: bold;
+}
+
+.price-off {
+    color: green;
+    font-weight: bold;
+}
+
+.price-plain {
+    color: #000000;
+    font-weight: bold;
+}
+
+.popular-courses-desc {
+    height: 75px;
+    overflow: hidden;
+    font-size: 14px;
+    color: var(--marketing-ink-secondary);
+    margin: 0;
+}
+
+.button-block {
+    margin-top: 35px;
+}
+
+/* Secondary button - hairline outline, ink text, fills with the soft accent (not black)
+   on hover. Used for every non-primary marketing CTA (card actions, "All Services", quote
+   requests). */
+.botton-border {
+    padding: var(--button-padding) !important;
+    border: 1px solid var(--marketing-ink) !important;
+    color: var(--marketing-ink) !important;
+    border-radius: var(--button-radius) !important;
+    font-size: 14px !important;
+    font-weight: 400 !important;
+    text-transform: none !important;
+    background: transparent !important;
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.botton-border:hover:not(:disabled) {
+    background: var(--mud-palette-primary) !important;
+    border-color: var(--mud-palette-primary) !important;
+    color: #ffffff !important;
+}
+
+.marketing-app-bar .mud-button-root,
+.marketing-app-bar .mud-link {
+    transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+/* MudBadge's default -8px top offset pokes the cart-count dot above the app bar's own top edge -
+   the bar sits flush at the document/viewport top with no room above it, so the top slice of the
+   badge was rendering off-screen. Nudge it down just enough to stay fully visible. */
+.marketing-app-bar .mud-badge-root .mud-badge {
+    top: 2px !important;
+}
+
+/* Left-aligned section intro (Why Choose Us / How It Works / Popular Services) - a deliberate
+   contrast against the centered ones (Categories/Testimonials), so sections don't all read as
+   identical eyebrow+heading blocks stacked down the page. */
+.marketing-section-header-left {
+/*    max-width: 640px;
+*/    margin-bottom: 32px;
+}
+
+/* Right-aligned variant (Promotions) - a third rhythm alongside centered/left so the page
+   doesn't settle into just two repeating patterns. */
+.marketing-section-header-right {
+    max-width: 640px;
+    margin: 0 0 32px auto;
+    text-align: right;
+}
+
+.marketing-avatar {
+    border-radius: 50%;
+}
+
+/* Flat accent fill, no shadow, no gradient, standard button radius. Hover darkens the fill
+   (more vivid/present), never fades via opacity - a faded button reads as disabled. */
+.marketing-layout-main .mud-button-filled,
+.marketing-footer .mud-button-filled {
+    border-radius: var(--button-radius) !important;
+    padding: var(--button-padding) !important;
+    font-weight: 400 !important;
+    text-transform: none !important;
+    box-shadow: none !important;
+    transition: filter 0.2s ease;
+}
+
+.marketing-layout-main .mud-button-filled:hover,
+.marketing-footer .mud-button-filled:hover {
+    filter: var(--button-hover-filter);
+    box-shadow: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .single-popular-courses,
+    .popular-courses-image img,
+    .botton-border,
+    .marketing-category-tile,
+    .marketing-layout-main .mud-button-filled,
+    .marketing-footer .mud-link,
+    .marketing-footer .mud-icon-button {
+        transition: none !important;
+    }
 }
 
 /* ---- Auth shell (Login and any other unauthenticated page) ---- */
@@ -122,13 +1376,9 @@
     transition: border-color .15s ease, box-shadow .15s ease;
 }
 
+/* Placeholder text is never shown - the attribute only exists as a CSS hook for :placeholder-shown below. */
 .auth-input::placeholder {
     color: transparent;
-    transition: color .15s ease;
-}
-
-.auth-input:focus::placeholder {
-    color: var(--mud-palette-text-secondary, #9C9CB0);
 }
 
 .auth-input:focus {
@@ -147,7 +1397,7 @@
     transition: background-color 5000s;
 }
 
-/* Floating label - starts inside like a placeholder, moves onto the border on focus/value. */
+/* Outlined floating label - sits inside like a placeholder, moves onto the border line on focus/value. */
 .auth-input-label {
     position: absolute;
     left: 44px;
@@ -191,7 +1441,8 @@
 
 .auth-submit {
     height: 48px !important;
-    border-radius: 12px !important;
+    border-radius: var(--button-radius) !important;
+    padding: var(--button-padding) !important;
     font-weight: 600 !important;
     text-transform: none !important;
     font-size: .98rem !important;
@@ -363,6 +1614,45 @@
     overflow: hidden;
 }
 
+/* User dashboard sidebar - same rounded-pill active/hover language as the admin .nav-drawer
+   above, adapted for a standalone MudNavMenu inside a MudPaper card rather than a fixed rail. */
+.user-dashboard-nav .mud-nav-link {
+    border-radius: 8px;
+    margin: 2px 4px;
+    padding: 8px 12px;
+    transition: background-color .12s ease, color .12s ease;
+}
+
+.user-dashboard-nav .mud-nav-link:hover {
+    background: rgba(var(--mud-palette-primary-rgb), 0.06);
+}
+
+.user-dashboard-nav .mud-nav-link.active {
+    background: rgba(var(--mud-palette-primary-rgb), 0.1);
+    color: var(--mud-palette-primary) !important;
+    font-weight: 600;
+}
+
+.user-dashboard-nav .mud-nav-link .mud-icon-root {
+    opacity: .7;
+}
+
+.user-dashboard-nav .mud-nav-link.active .mud-icon-root {
+    opacity: 1;
+}
+
+/* Dashboard quick-action cards - a subtle lift + shadow on hover, matching the modern-card feel
+   the sidebar's rounded-pill nav already has. */
+.dashboard-action-card {
+    transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+
+.dashboard-action-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+    border-color: var(--mud-palette-primary);
+}
+
 .page-shell {
     animation: page-fade-in .2s ease;
 }
@@ -376,4 +1666,164 @@
    Mud's own default height is oversized for a small sidebar/tile upload widget. */
 .mud-file-upload-dragarea {
     height: 96px;
+}
+
+/* ---- Marketing ---- */
+
+.marketing-search-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    max-width: 26rem;
+}
+
+.marketing-search-wrap svg {
+    position: absolute;
+    left: 14px;
+    width: 18px;
+    height: 18px;
+    opacity: .55;
+    pointer-events: none;
+}
+
+.marketing-search-wrap.no-icon .marketing-search-input {
+    padding-left: 14px;
+}
+
+.marketing-search-input {
+    width: 100%;
+    height: 44px;
+    border-radius: 8px;
+    border: 1px solid var(--mud-palette-lines-default, #E5E5F0);
+    background: transparent;
+    color: var(--mud-palette-text-primary, #1E1B2E);
+    padding: 0 14px 0 44px;
+    font-size: .9rem;
+    outline: none;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.marketing-search-input:focus {
+    border-color: var(--mud-palette-primary);
+    box-shadow: 0 0 0 3px rgba(var(--mud-palette-primary-rgb), 0.14);
+}
+
+/* Standalone plug-and-play search section (ServiceSearchSection) - its own soft band, pill
+   search bar, so it reads as a distinct feature rather than an inline page-header row. */
+.marketing-search-section {
+    background: var(--marketing-surface-alt);
+    padding: 28px 0;
+}
+
+/* Input and button merged into one bordered box - border sits on the container, not each
+   child, so the button reads as attached to the input's right edge, not a separate control. */
+.marketing-search-section-form {
+    display: flex;
+    align-items: stretch;
+    border: 1px solid var(--marketing-ink);
+    border-radius: 8px;
+    overflow: hidden;
+    max-width: 32rem;
+    margin: 0 auto;
+}
+
+.marketing-search-section-form .marketing-search-wrap {
+    max-width: none;
+    flex: 1;
+}
+
+.marketing-search-section-form:focus-within {
+    border-color: var(--mud-palette-primary);
+    box-shadow: 0 0 0 3px rgba(var(--mud-palette-primary-rgb), 0.14);
+}
+
+.marketing-search-section-form .marketing-search-input {
+    height: 40px;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    padding-left: 44px;
+}
+
+.marketing-search-section-btn {
+    border-radius: 0 !important;
+    height: 40px;
+    padding: 0 18px !important;
+    box-shadow: none !important;
+    text-transform: none !important;
+    font-weight: 400 !important;
+    flex-shrink: 0;
+    border: none !important;
+    border-left: 1px solid var(--marketing-ink) !important;
+}
+
+/* ---- Footer newsletter input+button - flat, hairline-bordered, matches Apple's minimal
+   footer form treatment (no dark chip, no coral accent). ---- */
+
+.newsletter-input-box {
+    position: relative;
+}
+
+.newsletter-input {
+    width: 100%;
+    background: #ffffff;
+    border-radius: 8px;
+    border: 1px solid var(--marketing-hairline);
+    color: var(--marketing-ink);
+    padding: 8px 44px 8px 12px;
+    font-size: 12px;
+    outline: none;
+    transition: border-color .15s ease;
+}
+
+.newsletter-input:focus {
+    border-color: var(--mud-palette-primary);
+}
+
+.newsletter-input::placeholder {
+    color: var(--marketing-ink-secondary);
+}
+
+/* Right corners only - it sits flush against the input's left edge, so a rounded left side would float mid-input. */
+.newsletter-button {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    border: none;
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+    border-top-right-radius: var(--button-radius) !important;
+    border-bottom-right-radius: var(--button-radius) !important;
+    background: var(--mud-palette-primary) !important;
+    color: #ffffff !important;
+    padding: 0 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: filter 0.2s ease, opacity 0.2s ease;
+}
+
+.newsletter-button:hover {
+    filter: var(--button-hover-filter);
+}
+
+.newsletter-button:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+/* ---- Standard radius+padding for every button (--button-radius/--button-padding). MudIconButton
+   excluded (circular, icon-sized), .marketing-search-section-btn excluded (flush-merged with its input). ---- */
+.mud-button-root:not(.mud-icon-button):not(.marketing-search-section-btn) {
+    border-radius: var(--button-radius) !important;
+    padding: var(--button-padding) !important;
+}
+
+/* Same standard hover as the pill CTAs, extended to every plain button. .botton-border
+   excluded - it already inverts to a solid fill on hover. */
+.mud-button-root:not(.mud-icon-button):not(.botton-border):hover,
+.marketing-tabs-btn:hover {
+    filter: var(--button-hover-filter);
 }

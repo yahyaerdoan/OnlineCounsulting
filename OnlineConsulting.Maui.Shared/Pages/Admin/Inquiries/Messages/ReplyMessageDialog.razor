@@ -1,6 +1,8 @@
 @namespace OnlineConsulting.Maui.Shared.Pages.Admin.Inquiries
+@using OnlineConsulting.Maui.Shared.Infrastructure.Forms
 @inject IApiClient ApiClient
 @inject ISnackbar Snackbar
+@inject FormState<ReplyMessageModel> Form
 
 <MudDialog>
     <TitleContent>
@@ -9,12 +11,10 @@
     <DialogContent>
         <EntitySummaryHeader Title="@Message.Subject" Subtitle="@Message.Email" />
 
-        <MudTextField @bind-Value="_replyBody" Label="Reply" Variant="Variant.Outlined" Margin="Margin.Dense"
-                      Lines="4" MaxLines="10" Sizing="InputSizing.Auto" Class="mt-3" />
-        @if (_error is not null)
-        {
-            <ApiErrorAlert Message="@_error" Severity="Severity.Error" />
-        }
+        <EditForm EditContext="@Form.EditContext">
+            <MudTextField @bind-Value="_model.ReplyBody" For="@(() => _model.ReplyBody)" Label="Reply" Variant="Variant.Outlined" Margin="Margin.Dense"
+                          Lines="4" MaxLines="10" Sizing="InputSizing.Auto" Class="mt-3" />
+        </EditForm>
     </DialogContent>
     <DialogActions>
         <DialogActionButtons OnOk="SendAsync" IsBusy="@_isBusy" />
@@ -28,26 +28,31 @@
     [Parameter, EditorRequired]
     public MessageResponse Message { get; set; } = default!;
 
-    private string _replyBody = string.Empty;
+    private readonly ReplyMessageModel _model = new();
     private bool _isBusy;
-    private string? _error;
+
+    protected override void OnInitialized() => Form.Bind(_model);
 
     private async Task SendAsync()
     {
         _isBusy = true;
-        _error = null;
 
-        var result = await ApiClient.PostAsync(ApiRoutes.Inquiries.Messages.Reply(Message.Id), new { replyBody = _replyBody });
+        var result = await ApiClient.PostAsync(ApiRoutes.Inquiries.Messages.Reply(Message.Id), new { replyBody = _model.ReplyBody });
 
         _isBusy = false;
 
         if (!result.IsSuccessful)
         {
-            _error = result.DisplayMessage;
+            Form.DisplayErrors(result, Snackbar);
             return;
         }
 
         Snackbar.ShowSuccess(result.DisplayMessage);
         MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private sealed class ReplyMessageModel
+    {
+        public string ReplyBody { get; set; } = string.Empty;
     }
 }

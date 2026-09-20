@@ -1,6 +1,6 @@
 @page "/admin/platform/bundles/new"
 @page "/admin/platform/bundles/{Id:guid}/edit"
-@attribute [Authorize]
+@attribute [Authorize(Roles = "Admin,Super Admin,Member")]
 @using OnlineConsulting.Maui.Shared.Infrastructure.Forms
 @using OnlineConsulting.Maui.Shared.Pages.Admin.Platform.BundleModels
 @inject IApiClient ApiClient
@@ -33,7 +33,7 @@ else
                     <MudTextField @bind-Value="_model.Name" For="@(() => _model.Name)" Label="Name" Variant="Variant.Outlined" Margin="Margin.Dense" />
                 </MudItem>
                 <MudItem xs="12">
-                    <MudSelect T="string" MultiSelection="true" Label="Modules" Variant="Variant.Outlined" Margin="Margin.Dense"
+                    <MudSelect T="string" MultiSelection="true" Label="Modules" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true"
                                SelectedValues="_model.ModuleKeys" SelectedValuesChanged="@(values => _model.ModuleKeys = [.. values])">
                         @foreach (var offering in _offerings)
                         {

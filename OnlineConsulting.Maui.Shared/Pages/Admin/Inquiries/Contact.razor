@@ -1,5 +1,5 @@
 @page "/admin/inquiries/contact"
-@attribute [Authorize]
+@attribute [Authorize(Roles = "Admin,Super Admin,Member")]
 @using OnlineConsulting.Maui.Shared.Infrastructure.Forms
 @using OnlineConsulting.Maui.Shared.Pages.Admin.Inquiries.ContactModels
 @inject IApiClient ApiClient

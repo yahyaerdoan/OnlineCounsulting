@@ -1,0 +1,8 @@
+@page "/user/orders"
+@attribute [Authorize(Roles = AppRoles.User)]
+@layout OnlineConsulting.Maui.Shared.Layout.DashboardLayout
+
+<PageTitle>My Orders</PageTitle>
+
+<DashboardPageHeading Text="My Orders" />
+<OrdersList />

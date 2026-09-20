@@ -1,6 +1,6 @@
 @page "/admin/operations/appointments/{AppointmentId:guid}/record-work-order"
 @namespace OnlineConsulting.Maui.Shared.Pages.Admin.Operations
-@attribute [Authorize]
+@attribute [Authorize(Roles = "Admin,Super Admin,Member")]
 @using OnlineConsulting.Maui.Shared.Infrastructure.Forms
 @using OnlineConsulting.Maui.Shared.Pages.Admin.Operations.OperationsModels
 @inject IApiClient ApiClient
@@ -30,7 +30,7 @@ else
         <MudPaper Class="pa-4">
             <MudGrid Spacing="3">
                 <MudItem xs="12" md="6">
-                    <MudSelect T="Guid" @bind-Value="_model.TechnicianUserId" Label="Technician" Variant="Variant.Outlined" Margin="Margin.Dense">
+                    <MudSelect T="Guid" @bind-Value="_model.TechnicianUserId" Label="Technician" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true">
                         @foreach (var technician in _technicians)
                         {
                             <MudSelectItem T="Guid" Value="@technician.Id">@($"{technician.FirstName} {technician.LastName} ({technician.Email})")</MudSelectItem>
@@ -49,7 +49,7 @@ else
                 @if (_model.EquipmentMode == ExistingMode)
                 {
                     <MudItem xs="12" md="6">
-                        <MudSelect T="Guid?" @bind-Value="_model.EquipmentId" Label="Existing equipment" Variant="Variant.Outlined" Margin="Margin.Dense">
+                        <MudSelect T="Guid?" @bind-Value="_model.EquipmentId" Label="Existing equipment" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true">
                             @foreach (var item in _existingEquipment)
                             {
                                 <MudSelectItem T="Guid?" Value="@item.Id">@($"{item.Type} - {item.Brand} {item.Model}")</MudSelectItem>
@@ -191,7 +191,7 @@ else
             _isUploadingAfterPhoto = true;
         }
 
-        var result = await MediaUploadHelper.UploadAsync(ApiClient, e.File);
+        var result = await MediaUploadHelper.UploadAsync(ApiClient, e.File, MediaFolders.WorkOrders);
 
         _isUploadingBeforePhoto = false;
         _isUploadingAfterPhoto = false;

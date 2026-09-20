@@ -1,0 +1,21 @@
+@* Plug-and-play service search - fully self-contained: reads its own "query" query-string
+   parameter and submits a plain GET to /services, so it can be dropped on any marketing page
+   without the host page wiring anything up. *@
+@using Microsoft.AspNetCore.Components.Forms
+
+<div class="marketing-search-section">
+    <MudContainer MaxWidth="MaxWidth.Medium">
+        <MudText Typo="Typo.subtitle1" Color="Color.Primary" Align="Align.Center" Class="text-strong">Quick Search</MudText>
+        <MudText Typo="Typo.h5" Align="Align.Center" Class="marketing-display text-strong mb-4">Find the Right Service</MudText>
+
+        <EditForm Model="this" method="get" Class="marketing-search-section-form">
+            <MarketingTextField Name="query" Placeholder="Search services..." @bind-Value="Query" />
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Outlined" Color="Color.Primary" Class="marketing-search-section-btn">Search</MudButton>
+        </EditForm>
+    </MudContainer>
+</div>
+
+@code {
+    [SupplyParameterFromQuery(Name = "query")]
+    public string? Query { get; set; }
+}

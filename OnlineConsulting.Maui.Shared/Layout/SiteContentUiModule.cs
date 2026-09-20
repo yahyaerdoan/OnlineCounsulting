@@ -22,6 +22,7 @@ public class SiteContentUiModule : IUiModule
             new NavItem("Social Links", $"{AdminPrefix}/site-content/social-links", Icons.Material.Outlined.Share),
             new NavItem("Testimonials", $"{AdminPrefix}/site-content/testimonials", Icons.Material.Outlined.RateReview),
             new NavItem("Feature Highlights", $"{AdminPrefix}/site-content/feature-highlights", Icons.Material.Outlined.Stars),
+            new NavItem("Feature Highlights Intro", $"{AdminPrefix}/site-content/feature-highlights-intro", Icons.Material.Outlined.Notes),
             new NavItem("Partnerships", $"{AdminPrefix}/site-content/partnerships", Icons.Material.Outlined.Handshake),
             new NavItem("FAQ Items", $"{AdminPrefix}/site-content/faq-items", Icons.Material.Outlined.QuestionAnswer),
             new NavItem("Page Banners", $"{AdminPrefix}/site-content/page-banners", Icons.Material.Outlined.ViewDay),

@@ -1,6 +1,6 @@
 @page "/admin/growth/memberships/new"
 @page "/admin/growth/memberships/{Id:guid}/edit"
-@attribute [Authorize]
+@attribute [Authorize(Roles = "Admin,Super Admin,Member")]
 @using OnlineConsulting.Maui.Shared.Infrastructure.Forms
 @using OnlineConsulting.Maui.Shared.Pages.Admin.Growth.MembershipPlanModels
 @inject IApiClient ApiClient
@@ -29,7 +29,7 @@
             <MudItem xs="12" sm="6">
                 @if (Id is null)
                 {
-                    <MudSelect T="string" @bind-Value="_model.BillingCycle" Label="Billing cycle" Variant="Variant.Outlined" Margin="Margin.Dense">
+                    <MudSelect T="string" @bind-Value="_model.BillingCycle" Label="Billing cycle" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true">
                         <MudSelectItem T="string" Value="@("Monthly")">Monthly</MudSelectItem>
                         <MudSelectItem T="string" Value="@("Annual")">Annual</MudSelectItem>
                     </MudSelect>
@@ -60,6 +60,16 @@
             <MudItem xs="12" sm="6">
                 <MudNumericField @bind-Value="_model.CreditAmount" For="@(() => _model.CreditAmount)" Label="Credit amount" Variant="Variant.Outlined" Margin="Margin.Dense" Min="0" Format="F2"
                                  Adornment="Adornment.Start" AdornmentText="$" HideSpinButtons="true" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                @if (Id is null)
+                {
+                    <MudNumericField @bind-Value="_model.TrialDays" For="@(() => _model.TrialDays)" Label="Trial days (optional)" Variant="Variant.Outlined" Margin="Margin.Dense" Min="1" />
+                }
+                else
+                {
+                    <MudTextField Value="@(_model.TrialDays?.ToString() ?? "None")" Label="Trial days" Variant="Variant.Outlined" Margin="Margin.Dense" ReadOnly="true" Disabled="true" />
+                }
             </MudItem>
             <MudItem xs="12">
                 <MudTextField @bind-Value="_model.Benefits" For="@(() => _model.Benefits)" Label="Benefits" Variant="Variant.Outlined" Margin="Margin.Dense"
@@ -116,6 +126,7 @@
         _model.DiscountPercent = plan.DiscountPercent;
         _model.CreditAmount = plan.CreditAmount;
         _model.Benefits = plan.Benefits;
+        _model.TrialDays = plan.TrialDays;
     }
 
     private Task SaveAsync() => Form.SubmitAsync(async () =>
@@ -131,6 +142,7 @@
                 discountPercent = _model.DiscountPercent,
                 creditAmount = _model.CreditAmount,
                 benefits = _model.Benefits,
+                trialDays = _model.TrialDays,
             });
 
             if (!createResult.IsSuccessful)

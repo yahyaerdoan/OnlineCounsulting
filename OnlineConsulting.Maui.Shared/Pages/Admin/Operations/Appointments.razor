@@ -1,5 +1,5 @@
 ﻿@page "/admin/operations/appointments"
-@attribute [Authorize]
+@attribute [Authorize(Roles = "Admin,Super Admin,Member")]
 @inject IApiClient ApiClient
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar

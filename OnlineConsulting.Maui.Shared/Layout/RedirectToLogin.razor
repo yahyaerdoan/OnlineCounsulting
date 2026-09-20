@@ -1,8 +1,23 @@
 @inject NavigationManager Navigation
 
 @code {
-    protected override void OnInitialized()
+    // Cascaded from AuthorizeRouteView, not a fresh AuthenticationStateProvider query - that
+    // second, independent fetch could race with (and disagree with) the state the route view
+    // itself just used to decide NotAuthorized, sending an authenticated-but-wrong-role user to
+    // the login form instead of home.
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthStateTask { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
     {
+        var authState = await AuthStateTask;
+        if (authState.User.Identity?.IsAuthenticated == true)
+        {
+            // Signed in but failed a role check - send home, not back into the login flow.
+            Navigation.NavigateTo("/", forceLoad: true);
+            return;
+        }
+
         var returnUrl = Uri.EscapeDataString(new Uri(Navigation.Uri).PathAndQuery);
         Navigation.NavigateTo($"{AppRoutes.Login}?returnUrl={returnUrl}", forceLoad: true);
     }

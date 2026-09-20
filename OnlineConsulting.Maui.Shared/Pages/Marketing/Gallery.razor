@@ -1,0 +1,73 @@
+@* Category filter + image grid. Query-param filtering (Static SSR), links straight to full-size - no JS lightbox. *@
+@page "/gallery"
+@attribute [ExcludeFromInteractiveRouting]
+@layout OnlineConsulting.Maui.Shared.Layout.MarketingLayout
+@using OnlineConsulting.Maui.Shared.Components.Marketing
+@using OnlineConsulting.Maui.Shared.Infrastructure.Api
+@inject IApiClient ApiClient
+
+<PageTitle>Gallery - ComfortPro</PageTitle>
+
+<MarketingPageBanner Title="Gallery" SubPage="Gallery" />
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
+    @if (_categories.Count > 0)
+    {
+        <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="2" Justify="Justify.Center" Class="mb-6">
+            <MudChip T="string" Href="/gallery" Size="Size.Small" Variant="Variant.Filled"
+                     Color="@(CategoryId is null ? Color.Primary : Color.Default)">All</MudChip>
+            @foreach (var category in _categories)
+            {
+                <MudChip T="string" Href="@($"/gallery?category={category.Id}")" Size="Size.Small" Variant="Variant.Filled"
+                         Color="@(CategoryId == category.Id ? Color.Primary : Color.Default)">@category.Name</MudChip>
+            }
+        </MudStack>
+    }
+
+    @if (_items.Count == 0)
+    {
+        <MudAlert Severity="Severity.Info">No gallery images found.</MudAlert>
+    }
+    else
+    {
+        <MudGrid Spacing="3">
+            @foreach (var item in _items)
+            {
+                <MudItem xs="12" sm="6" md="4">
+                    <a href="@_imageUrlsById.GetValueOrDefault(item.Id)" target="_blank" class="marketing-gallery-item">
+                        <MudImage Src="@_imageUrlsById.GetValueOrDefault(item.Id)" ObjectFit="ObjectFit.Cover" Height="280" Class="rounded" />
+                    </a>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+</MudContainer>
+
+@code {
+    [SupplyParameterFromQuery(Name = "category")]
+    private string? CategoryIdRaw { get; set; }
+
+    private Guid? CategoryId => Guid.TryParse(CategoryIdRaw, out var id) ? id : null;
+
+    private List<GalleryCategoryResponse> _categories = [];
+    private List<GalleryItemResponse> _items = [];
+    private Dictionary<Guid, string?> _imageUrlsById = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var categoriesResult = await ApiClient.GetAsync<List<GalleryCategoryResponse>>(ApiRoutes.SiteContent.GalleryCategory.Base);
+        _categories = categoriesResult.IsSuccessful ? categoriesResult.ResultData ?? [] : [];
+
+        var itemsResult = await ApiClient.GetAsync<List<GalleryItemResponse>>(ApiRoutes.SiteContent.GalleryItem.Base);
+        var allItems = itemsResult.IsSuccessful ? itemsResult.ResultData ?? [] : [];
+
+        _items = CategoryId is Guid categoryId
+            ? [.. allItems.Where(i => i.Categories.Any(c => c.Id == categoryId))]
+            : allItems;
+
+        var lookups = await Task.WhenAll(_items.Select(async item =>
+            (item.Id, Url: item.PhotoMediaAssetId is Guid mediaId ? await MediaUploadHelper.GetUrlAsync(ApiClient, mediaId) : null)));
+
+        _imageUrlsById = lookups.ToDictionary(l => l.Id, l => l.Url);
+    }
+}
