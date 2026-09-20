@@ -8,7 +8,7 @@ namespace OnlineConsulting.UserInterface.Infrastructure.Api;
 public static class ApiEnvelopeExtensions
 {
     public static ApiEnvelope WithoutData<T>(this ApiEnvelope<T> envelope) =>
-        new(envelope.IsSuccessful, envelope.StatusCode, envelope.StatusMessage, envelope.Errors);
+        new(envelope.IsSuccessful, envelope.StatusCode, envelope.StatusMessage, envelope.Errors, envelope.FieldErrors);
 
     /// <summary>Lets callers that pre-date IApiClient (built against ResultHandler's OperationResult directly,
     /// e.g. AccountController) keep working unchanged against an Api-backed service.</summary>

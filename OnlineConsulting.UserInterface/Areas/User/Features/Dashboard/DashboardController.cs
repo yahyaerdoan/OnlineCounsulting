@@ -47,6 +47,6 @@ public class DashboardController(IApiClient apiClient, IToastNotification toastN
         });
 
         toastNotification.ShowResult(result);
-        return RedirectToAction("Account", "Dashboard", new { area = "user" });
+        return this.RedirectToActionWithFieldErrors(result, nameof(model.ChangePassword), "Account", "Dashboard", new { area = "user" });
     }
 }

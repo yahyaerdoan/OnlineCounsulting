@@ -528,7 +528,6 @@
     <PackageReference Include="NuGet.Protocol" />
     <PackageReference Include="MediatR" />
     <PackageReference Include="NToastNotify" />
-    <PackageReference Include="ResponseResultHandler" />
     <PackageReference Include="Stripe.net" />
   </ItemGroup>
 
