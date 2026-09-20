@@ -1,20 +1,20 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
-using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.CancelMembership;
+using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.PauseMembership;
 using ResultHandler.AspNetCore.Extensions;
 
 namespace OnlineConsulting.Api.Features.Memberships.CustomerMemberships;
 
-public class CancelMembership : IEndpoint
+public class PauseMembership : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/memberships/cancel", Handle)
+        _ = app.MapPost("/api/memberships/pause", Handle)
             .WithTags("Memberships/CustomerMemberships")
             .RequireAuthorization()
-            .WithName("CancelMembership")
-            .WithDescription("Cancels the current user's active membership at the end of the current billing period - access continues until then.");
+            .WithName("PauseMembership")
+            .WithDescription("Pauses the current user's active membership - billing stops until resumed.");
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext)
@@ -26,7 +26,7 @@ public class CancelMembership : IEndpoint
             return currentUser.ToEnvelopedResult(httpContext);
         }
 
-        var result = await sender.Send(new CancelMembershipCommand(currentUser.Data.Id));
+        var result = await sender.Send(new PauseMembershipCommand(currentUser.Data.Id));
         return result.ToEnvelopedResult(httpContext);
     }
 }

@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Api.Configurations.Extensions;
 using OnlineConsulting.Modules.Identity.Application.Features.Auth.ConfirmEmail;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -12,6 +13,7 @@ public class ConfirmEmail : IEndpoint
     {
         _ = app.MapPost("/api/auth/confirm-email", Handle)
             .WithTags("Identity/Auth")
+            .RequireRateLimiting(ServiceRegistration.AuthRateLimiterPolicy)
             .WithName("ConfirmEmail")
             .WithDescription("Confirms a user's email address using the token sent at registration.");
     }

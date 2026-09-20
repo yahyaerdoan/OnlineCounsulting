@@ -11,7 +11,7 @@ public static class ServiceRegistration
     public const string AuthRateLimiterPolicy = "auth";
     public const string ReferralRedeemRateLimiterPolicy = "referral-redeem";
 
-    public static void AddApiServiceRegistration(this IServiceCollection services, ConfigurationManager configuration)
+    public static void AddApiServiceRegistration(this IServiceCollection services, IHostEnvironment environment)
     {
         _ = services.AddSharedKernel();
 
@@ -19,14 +19,17 @@ public static class ServiceRegistration
         _ = services.AddAuthorization();
         services.AddCors();
         services.AddApiOpenApi();
-        services.AddApiRateLimiting();
+        services.AddApiRateLimiting(environment);
 
         // Backs ExceptionMiddleware (Program.cs), which logs every unhandled exception before mapping it to a ProblemDetails response.
         _ = services.AddSingleton<BaseLoggerService, FileLogger>();
     }
 
-    private static void AddApiRateLimiting(this IServiceCollection services)
+    private static void AddApiRateLimiting(this IServiceCollection services, IHostEnvironment environment)
     {
+        // Higher limit locally - repeated dev reloads trip the production limit in seconds.
+        var globalPermitLimit = environment.IsDevelopment() ? 2000 : 200;
+
         _ = services.AddRateLimiter(options =>
         {
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -34,7 +37,7 @@ public static class ServiceRegistration
             options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
                 RateLimitPartition.GetFixedWindowLimiter(GetPartitionKey(httpContext), _ => new FixedWindowRateLimiterOptions
                 {
-                    PermitLimit = 200,
+                    PermitLimit = globalPermitLimit,
                     Window = TimeSpan.FromMinutes(1),
                 }));
 

@@ -15,9 +15,9 @@ public class GetAllMembershipPlans : IEndpoint
             .WithDescription("Returns the current tenant's membership plans, paginated. Public - used by the pricing page.");
     }
 
-    private static async Task<IResult> Handle(ISender sender, HttpContext httpContext, int? index = null, int? size = null)
+    private static async Task<IResult> Handle(ISender sender, HttpContext httpContext, int? index = null, int? size = null, bool includeArchived = false)
     {
-        var result = await sender.Send(new GetAllMembershipPlansQuery(PageRequestFactory.Create(index, size)));
+        var result = await sender.Send(new GetAllMembershipPlansQuery(PageRequestFactory.Create(index, size), includeArchived));
         return result.ToEnvelopedResult(httpContext);
     }
 }

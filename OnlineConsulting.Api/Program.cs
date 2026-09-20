@@ -12,6 +12,7 @@ using OnlineConsulting.Api.Configurations.Extensions;
 using OnlineConsulting.Api.Seeding;
 using OnlineConsulting.Modules.Categories.Application.Features.Constants;
 using OnlineConsulting.Modules.Categories.Infrastructure;
+using OnlineConsulting.Modules.Commerce.Application.Common;
 using OnlineConsulting.Modules.Commerce.Infrastructure;
 using OnlineConsulting.Modules.Equipment.Application.Common;
 using OnlineConsulting.Modules.Equipment.Infrastructure;
@@ -88,6 +89,7 @@ builder.Services.AddSingleton<IPermissionCatalog>(new PermissionCatalog(new Dict
     ["Memberships"] = MembershipsOperationClaims.All,
     ["Referrals"] = ReferralsOperationClaims.All,
     ["Equipment"] = EquipmentOperationClaims.All,
+    ["Commerce"] = CommerceOperationClaims.All,
 }));
 
 builder.Services.AddCategoriesModule(builder.Configuration);
@@ -114,12 +116,10 @@ builder.Services.PostConfigure<StorageOptions>(options =>
 builder.Services.AddNotificationsInfrastructure(builder.Configuration);
 builder.Services.AddPaymentsInfrastructure(builder.Configuration);
 
-builder.Services.AddApiServiceRegistration(builder.Configuration);
+builder.Services.AddApiServiceRegistration(builder.Environment);
 
-// KnownNetworks/KnownProxies cleared because the reverse proxy's IP isn't known ahead of deployment
-// (nginx/k8s ingress/Azure App Service front end) - trusting the network boundary instead, since only
-// that proxy can reach this app. Without this, RemoteIpAddress (used for anonymous rate-limit
-// partitioning - see ServiceRegistration.GetPartitionKey) always resolves to the proxy, not the client.
+// KnownNetworks/KnownProxies cleared - proxy IP isn't known ahead of deployment; without this
+// RemoteIpAddress (used for rate-limit partitioning) always resolves to the proxy, not the client.
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
@@ -130,7 +130,7 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 var app = builder.Build();
 
 await RoleSeeder.SeedAsync(app.Services);
-await HvacCatalogSeeder.SeedAsync(app.Services);
+//await HvacCatalogSeeder.SeedAsync(app.Services);
 await SuperAdminSeeder.SeedAsync(app.Services);
 
 app.MapDefaultEndpoints();

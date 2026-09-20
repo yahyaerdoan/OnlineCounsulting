@@ -8,6 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="wwwroot\Resource\**" />
+    <Content Remove="wwwroot\Resource\**" />
+    <EmbeddedResource Remove="wwwroot\Resource\**" />
+    <None Remove="wwwroot\Resource\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Core.ApplicationLayer" />
     <PackageReference Include="Core.CrossCuttingConcernLayer" />
     <PackageReference Include="Core.PersistenceLayer" />
@@ -76,7 +83,7 @@
 
   <ItemGroup>
     <Folder Include="Logs\" />
-    <Folder Include="wwwroot\Resource\LocalStorage\User-Images\" />
+    <Folder Include="wwwroot\media\" />
   </ItemGroup>
 
 </Project>
