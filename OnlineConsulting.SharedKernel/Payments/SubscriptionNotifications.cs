@@ -2,7 +2,7 @@ using MediatR;
 
 namespace OnlineConsulting.SharedKernel.Payments;
 
-/// <summary>Published by SubscriptionWebhook after a provider confirms a subscription-lifecycle event. ReferenceId is opaque here - whichever module recognizes it as one of its own CustomerMembership ids handles it. In-process MediatR notification, not a real message bus - this is a modular monolith.</summary>
+/// <summary>Published by SubscriptionWebhook after a provider confirms a lifecycle event; ReferenceId is opaque, handled by whichever module recognizes it as its own CustomerMembership id.</summary>
 public record SubscriptionRenewedNotification(string ReferenceId, string ProviderSubscriptionId, DateTimeOffset CurrentPeriodEnd) : INotification;
 
 public record SubscriptionCancelledNotification(string ReferenceId, string ProviderSubscriptionId) : INotification;

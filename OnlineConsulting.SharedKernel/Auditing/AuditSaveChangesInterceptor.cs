@@ -5,6 +5,7 @@ using OnlineConsulting.SharedKernel.CurrentUser;
 
 namespace OnlineConsulting.SharedKernel.Auditing;
 
+/// <summary>Stamps Created/Updated/Deleted audit fields on every save; a modified row with DeletedDate set is treated as a soft-delete (stamps DeletedBy only), not a regular update.</summary>
 public class AuditSaveChangesInterceptor(ICurrentUserAccessor currentUserAccessor) : SaveChangesInterceptor
 {
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
@@ -44,6 +45,7 @@ public class AuditSaveChangesInterceptor(ICurrentUserAccessor currentUserAccesso
             }
 
             var isSoftDelete = entry.Property(nameof(IEntityAuditor.DeletedDate)).IsModified && entry.Entity.DeletedDate.HasValue;
+
             if (isSoftDelete)
             {
                 entry.Entity.DeletedBy = userId;

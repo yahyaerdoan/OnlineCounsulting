@@ -1,21 +1,22 @@
-namespace OnlineConsulting.SharedKernel.Tenancy;
+﻿namespace OnlineConsulting.SharedKernel.Tenancy;
 
-/// <summary>Ambient override for ITenantProvider.TenantId, scoped to the current async call chain via AsyncLocal. TenantProvider checks this before falling back to the HTTP request's JWT claim, so code with no "current" tenant of its own (background jobs, webhook handlers, a SuperAdmin acting on a tenant that isn't their own) can direct reads/writes at an explicit tenant without an HTTP context - see IFeatureFlagWriter's implementation for the intended usage.</summary>
+/// <summary>AsyncLocal override for ITenantProvider.TenantId, checked before the JWT claim, so code with no HTTP context (background jobs, webhooks) can direct reads/writes at an explicit tenant.</summary>
 public static class TenantContextOverride
 {
-    private static readonly AsyncLocal<Guid?> Current = new();
+    private static readonly AsyncLocal<Guid?> _current = new();
 
-    public static Guid? TenantId => Current.Value;
+    public static Guid? TenantId => _current.Value;
 
     public static IDisposable BeginScope(Guid tenantId)
     {
-        var previous = Current.Value;
-        Current.Value = tenantId;
+        var previous = _current.Value;
+        _current.Value = tenantId;
+
         return new Scope(previous);
     }
 
     private sealed class Scope(Guid? previousTenantId) : IDisposable
     {
-        public void Dispose() => Current.Value = previousTenantId;
+        public void Dispose() => _current.Value = previousTenantId;
     }
 }

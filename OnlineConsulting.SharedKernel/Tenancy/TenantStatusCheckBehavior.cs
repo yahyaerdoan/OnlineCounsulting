@@ -7,9 +7,8 @@ using ResultHandler.Functional;
 
 namespace OnlineConsulting.SharedKernel.Tenancy;
 
-/// <summary>Global pipeline gate: is this caller even allowed to use the app right now. Anonymous requests (no tenant claim yet) bypass via TenantProvider.TenantId's Default fallback; IBypassesTenantStatusCheck opts specific commands out.</summary>
-public class TenantStatusCheckBehavior<TRequest, TResponse>(ITenantProvider tenantProvider, ITenantStatusReader tenantStatusReader, IHttpContextAccessor httpContextAccessor)
-    : IPipelineBehavior<TRequest, TResponse>
+/// <summary>Global pipeline gate on whether the caller's tenant is allowed to use the app; IBypassesTenantStatusCheck opts specific commands out.</summary>
+public class TenantStatusCheckBehavior<TRequest, TResponse>(ITenantProvider tenantProvider, ITenantStatusReader tenantStatusReader, IHttpContextAccessor httpContextAccessor) : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>
     where TResponse : IOperationResult, IResultFailureFactory<TResponse>
 {
@@ -21,18 +20,21 @@ public class TenantStatusCheckBehavior<TRequest, TResponse>(ITenantProvider tena
         }
 
         var tenantId = tenantProvider.TenantId;
+
         if (tenantId == TenantDefaults.DefaultTenantId)
         {
             return await next(cancellationToken);
         }
 
         var roles = httpContextAccessor.HttpContext?.User.ClaimRoles() ?? [];
+
         if (roles.Contains(GlobalOperationClaims.SuperAdmin))
         {
             return await next(cancellationToken);
         }
 
         var isBlocked = await tenantStatusReader.IsBlockedAsync(tenantId, cancellationToken);
+
         return isBlocked
             ? ResultFailureFactory.Forbidden<TResponse>("Subscription inactive - please complete payment to access your account.")
             : await next(cancellationToken);

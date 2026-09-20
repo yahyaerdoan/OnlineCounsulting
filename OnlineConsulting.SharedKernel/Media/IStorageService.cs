@@ -1,6 +1,6 @@
 namespace OnlineConsulting.SharedKernel.Media;
 
-/// <summary>One implementation per backend (Local/AzureBlob/S3, mirrors IPaymentGateway's provider pattern). Callers depend on this interface only, so swapping the active backend is a config change (Storage:ActiveProvider), not a code change.</summary>
+/// <summary>One implementation per backend (Local/AzureBlob/S3); swapping the active one is a config change (Storage:ActiveProvider), not a code change.</summary>
 public interface IStorageService
 {
     /// <summary>Matches one of StorageProviderNames - also the keyed-DI service key this implementation is registered under.</summary>

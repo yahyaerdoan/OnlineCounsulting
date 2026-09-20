@@ -1,6 +1,6 @@
 namespace OnlineConsulting.SharedKernel.Payments;
 
-/// <summary>Provider-agnostic status a gateway result is normalized into - every provider's own status vocabulary (Stripe's "requires_confirmation"/"succeeded", PayPal's "CREATED"/"COMPLETED") maps into one of these so callers never branch on a provider-specific string.</summary>
+/// <summary>Provider-agnostic status every gateway result normalizes to, so callers never branch on a provider-specific string (Stripe's "succeeded", PayPal's "COMPLETED", etc).</summary>
 public static class PaymentStatuses
 {
     public const string Pending = "Pending";

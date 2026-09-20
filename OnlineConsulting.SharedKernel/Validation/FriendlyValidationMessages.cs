@@ -6,13 +6,12 @@ namespace OnlineConsulting.SharedKernel.Validation;
 /// <summary>Overrides FluentValidation's default quoted messages with plain phrasing, solution-wide.</summary>
 public static class FriendlyValidationMessages
 {
-    /// <summary>Call once at startup, before the host is built.</summary>
+    /// <summary>Call once at startup, before the host is built. Forces culture "en" since LanguageManager won't fall back from CurrentUICulture (e.g. "en-US") to it.</summary>
     public static void Apply()
     {
         var english = ValidatorOptions.Global.LanguageManager as LanguageManager
             ?? throw new InvalidOperationException("Expected FluentValidation's default LanguageManager to still be configured.");
 
-        // Force "en" - LanguageManager won't fall back from CurrentUICulture (e.g. "en-US") to it.
         english.Culture = new System.Globalization.CultureInfo("en");
 
         english.AddTranslation("en", "NotEmptyValidator", "{PropertyName} is required.");

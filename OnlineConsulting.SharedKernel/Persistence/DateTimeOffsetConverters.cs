@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace OnlineConsulting.SharedKernel.Persistence;
 
+/// <summary>Forces DateTimeOffset columns to store as UTC DateTime - SQL Server's datetimeoffset otherwise round-trips whatever offset was passed in, so mixed-offset writes could compare incorrectly.</summary>
 public static class DateTimeOffsetConverters
 {
     public static readonly ValueConverter<DateTimeOffset, DateTime> NonNullable = new(

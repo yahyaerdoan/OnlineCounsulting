@@ -1,6 +1,6 @@
 namespace OnlineConsulting.SharedKernel.Payments;
 
-/// <summary>One implementation per provider (Mock/Stripe/PayPal). Callers depend on this interface only - never on a concrete gateway type - so swapping the active provider is a config change (Payment:ActiveProvider), not a code change.</summary>
+/// <summary>One implementation per provider (Mock/Stripe/PayPal); swapping the active one is a config change (Payment:ActiveProvider), not a code change.</summary>
 public interface IPaymentGateway
 {
     /// <summary>Matches one of PaymentProviderNames - also the keyed-DI service key this implementation is registered under.</summary>
@@ -14,7 +14,7 @@ public interface IPaymentGateway
     /// <summary>amount null means a full refund.</summary>
     Task<PaymentStatusResult> RefundAsync(string providerPaymentId, decimal? amount = null, CancellationToken cancellationToken = default);
 
-    /// <summary>Verifies the provider's webhook signature and normalizes the payload. Returns null if the payload isn't a payment-status event this gateway cares about (providers send many unrelated event types through the same endpoint). Async because some providers (PayPal) verify signatures via a callback REST call rather than a local HMAC check.</summary>
+    /// <summary>Verifies the webhook signature and normalizes the payload; null if it's not a payment-status event (providers send many unrelated event types on the same endpoint).</summary>
     Task<PaymentWebhookEvent?> VerifyAndParseWebhookAsync(string rawBody, string? signatureHeader, CancellationToken cancellationToken = default);
 }
 
