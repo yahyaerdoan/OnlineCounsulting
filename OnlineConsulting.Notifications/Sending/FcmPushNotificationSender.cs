@@ -4,7 +4,7 @@ using OnlineConsulting.SharedKernel.Notifications;
 
 namespace OnlineConsulting.Notifications.Sending;
 
-/// <summary>Structurally complete but untested end-to-end - like PayPalPaymentGateway, wiring this fully needs a real Firebase project's service account credentials, which aren't configured in this environment. Sends one message per registered device rather than a single multicast call, so one dead/unregistered token doesn't fail the whole batch for a user with multiple devices.</summary>
+/// <summary>Untested end-to-end - needs real Firebase credentials. Sends one message per device so a dead token doesn't fail the whole batch.</summary>
 public class FcmPushNotificationSender(IDeviceTokenRepository deviceTokenRepository, ILogger<FcmPushNotificationSender> logger) : IPushNotificationSender
 {
     public async Task SendToUserAsync(Guid userId, string title, string body, IDictionary<string, string>? data = null, CancellationToken cancellationToken = default)

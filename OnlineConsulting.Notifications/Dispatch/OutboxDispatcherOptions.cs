@@ -6,9 +6,7 @@ public class OutboxDispatcherOptions
     public int BatchSize { get; set; } = 20;
     public int MaxAttempts { get; set; } = 5;
 
-    /// <summary>Upper bound on how many emails this dispatcher sends at once. Each send opens its
-    /// own SMTP connection (MailKitEmailSender), so this is really a cap on concurrent SMTP
-    /// connections/throughput against the mail server, not a CPU-bound parallelism knob.</summary>
+    /// <summary>Caps concurrent SMTP connections, not CPU parallelism - each send opens its own connection.</summary>
     public int MaxConcurrentSends { get; set; } = 5;
 
     /// <summary>Caps the exponential (2^Attempts minutes) backoff between dispatcher attempts so a permanently-broken row doesn't wait days before hitting MaxAttempts.</summary>

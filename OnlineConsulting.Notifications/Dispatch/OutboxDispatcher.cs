@@ -12,8 +12,7 @@ using Polly.Retry;
 namespace OnlineConsulting.Notifications.Dispatch;
 
 /// <summary>Dispatches due outbox emails using two retry layers: fast in-process Polly retries and slower durable Attempts/NextAttemptAt backoff on the row itself.</summary>
-public class OutboxDispatcher(IServiceScopeFactory scopeFactory, IOptions<OutboxDispatcherOptions> options, ILogger<OutboxDispatcher> logger)
-    : BackgroundService
+public class OutboxDispatcher(IServiceScopeFactory scopeFactory, IOptions<OutboxDispatcherOptions> options, ILogger<OutboxDispatcher> logger) : BackgroundService
 {
     private readonly ResiliencePipeline _sendPipeline = new ResiliencePipelineBuilder()
         .AddRetry(new RetryStrategyOptions
@@ -43,6 +42,7 @@ public class OutboxDispatcher(IServiceScopeFactory scopeFactory, IOptions<Outbox
         }
     }
 
+    /// <summary>Sends run in parallel, but entity mutations are applied afterward on this thread since ChangeTracker isn't thread-safe.</summary>
     private async Task DispatchDueBatchAsync(OutboxDispatcherOptions settings, CancellationToken cancellationToken)
     {
         using var scope = scopeFactory.CreateScope();
@@ -50,21 +50,15 @@ public class OutboxDispatcher(IServiceScopeFactory scopeFactory, IOptions<Outbox
         var emailSender = scope.ServiceProvider.GetRequiredService<IEmailSender>();
 
         var now = DateTimeOffset.UtcNow;
-        var due = await context.OutboxEmails
-            .Where(e => e.Status == OutboxEmailStatus.Pending && e.NextAttemptAt <= now)
-            .OrderBy(e => e.NextAttemptAt)
-            .Take(settings.BatchSize)
-            .ToListAsync(cancellationToken);
+        var due = await context.OutboxEmails.Where(e => e.Status == OutboxEmailStatus.Pending && e.NextAttemptAt <= now).OrderBy(e => e.NextAttemptAt).Take(settings.BatchSize).ToListAsync(cancellationToken);
 
         if (due.Count == 0)
         {
             return;
         }
 
-        // Sends run in parallel (that's what MaxConcurrentSends caps), but the resulting entity
-        // mutations are applied afterward on this single thread - DbContext's ChangeTracker isn't
-        // thread-safe, so nothing here may touch a tracked entity from inside the parallel loop.
         var outcomes = new Exception?[due.Count];
+
         await Parallel.ForEachAsync(Enumerable.Range(0, due.Count),
             new ParallelOptions { MaxDegreeOfParallelism = settings.MaxConcurrentSends, CancellationToken = cancellationToken },
             async (i, ct) => outcomes[i] = await SendAsync(due[i], emailSender, ct));
@@ -82,6 +76,7 @@ public class OutboxDispatcher(IServiceScopeFactory scopeFactory, IOptions<Outbox
         try
         {
             await _sendPipeline.ExecuteAsync(ct => new ValueTask(emailSender.SendAsync(email.To, email.Subject, email.HtmlBody, email.Cc, ct)), cancellationToken);
+
             return null;
         }
         catch (Exception ex)
@@ -99,7 +94,12 @@ public class OutboxDispatcher(IServiceScopeFactory scopeFactory, IOptions<Outbox
             email.Status = OutboxEmailStatus.Sent;
             email.SentAt = DateTimeOffset.UtcNow;
             email.LastError = null;
-            logger.LogInformation("Sent outbox email {EmailId} to {To} after {Attempts} attempt(s).", email.Id, email.To, email.Attempts);
+
+            if (logger.IsEnabled(LogLevel.Information))
+            {
+                logger.LogInformation("Sent outbox email {EmailId} to {To} after {Attempts} attempt(s).", email.Id, email.To, email.Attempts);
+            }
+
             return;
         }
 
@@ -108,14 +108,23 @@ public class OutboxDispatcher(IServiceScopeFactory scopeFactory, IOptions<Outbox
         if (email.Attempts >= settings.MaxAttempts)
         {
             email.Status = OutboxEmailStatus.Failed;
-            logger.LogError(sendError, "Outbox email {EmailId} to {To} permanently failed after {Attempts} attempts.", email.Id, email.To, email.Attempts);
+
+            if (logger.IsEnabled(LogLevel.Error))
+            {
+                logger.LogError(sendError, "Outbox email {EmailId} to {To} permanently failed after {Attempts} attempts.", email.Id, email.To, email.Attempts);
+            }
         }
         else
         {
             var delay = TimeSpan.FromMinutes(Math.Pow(2, email.Attempts));
+
             email.NextAttemptAt = DateTimeOffset.UtcNow.Add(delay > settings.BackoffCap ? settings.BackoffCap : delay);
-            logger.LogWarning(sendError, "Outbox email {EmailId} to {To} failed (attempt {Attempts}/{MaxAttempts}), retrying at {NextAttemptAt}.",
-                email.Id, email.To, email.Attempts, settings.MaxAttempts, email.NextAttemptAt);
+
+            if (logger.IsEnabled(LogLevel.Warning))
+            {
+                logger.LogWarning(sendError, "Outbox email {EmailId} to {To} failed (attempt {Attempts}/{MaxAttempts}), retrying at {NextAttemptAt}.",
+                    email.Id, email.To, email.Attempts, settings.MaxAttempts, email.NextAttemptAt);
+            }
         }
     }
 }
