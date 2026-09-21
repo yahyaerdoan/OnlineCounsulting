@@ -5,9 +5,7 @@ using OnlineConsulting.UserInterface.NotificationServices.ToastrServices;
 
 namespace OnlineConsulting.UserInterface.Areas.Admin.Features.Contact;
 
-/// <summary>Admin screen for the company's contact info. Unlike the other migrated slices this has no per-id
-/// Create/Delete - the Api treats /api/contact as a singleton upsert - so Index shows the current values (or an
-/// empty prompt) and Update both creates and edits it.</summary>
+/// <summary>Contact info is a singleton upsert (no per-id Create/Delete) - Update both creates and edits it.</summary>
 [Area("Admin")]
 [Route("admin/contact")]
 [Authorize(Policy = "RequireAdminAreaAccessPolicy")]

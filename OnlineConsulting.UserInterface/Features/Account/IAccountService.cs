@@ -2,10 +2,7 @@ using ResultHandler.Core.Base;
 
 namespace OnlineConsulting.UserInterface.Features.Account;
 
-/// <summary>All authentication orchestration for the account controller - credential verification happens only
-/// via the Api (POST /api/auth/login), this app's own cookie is then signed in locally from the resulting user,
-/// translating the Api's answer into a session rather than re-checking the password in-process. Controllers
-/// depend on this alone, never on IApiClient directly.</summary>
+/// <summary>All authentication orchestration - credentials are verified only via the Api, then this app's own cookie is signed in locally from the result.</summary>
 public interface IAccountService
 {
     Task<OperationResult> RegisterAsync(string firstName, string lastName, string userName, string email, string password, CancellationToken cancellationToken = default);

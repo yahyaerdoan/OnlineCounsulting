@@ -1,16 +1,10 @@
-using System.Text.Json;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using System.Text.Json;
 
 namespace OnlineConsulting.UserInterface.Infrastructure.Api;
 
-/// <summary>
-/// Applies FieldErrors stashed by <see cref="FieldErrorsRedirect.RedirectToActionWithFieldErrors"/> to
-/// the current action's ModelState, before it runs - registered once globally so no controller needs
-/// to read TempData itself. <see cref="ITempDataDictionary.Peek"/>, not indexing, so the entry survives
-/// for the view (asp-validation-for reads ModelState, but keeping TempData intact avoids surprises if
-/// something else also reads this key).
-/// </summary>
+/// <summary>Applies FieldErrors stashed by <see cref="FieldErrorsRedirect.RedirectToActionWithFieldErrors"/> to ModelState; uses Peek (not indexing) so the entry survives for the view too.</summary>
 public class FieldErrorsModelStateFilter : IActionFilter
 {
     public void OnActionExecuting(ActionExecutingContext context)

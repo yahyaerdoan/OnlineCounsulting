@@ -23,16 +23,13 @@ public class CartPageService(ICartService cartService, IServiceCatalogService se
         return new CartViewModel(cart.Id, lines, cart.SubTotalPrice, cart.TotalPrice);
     }
 
+    /// <summary>Adds the service to cart priced at its already-discounted price, matching what the customer pays.</summary>
     public async Task<ApiEnvelope> AddToCartAsync(string slug, CancellationToken cancellationToken = default)
     {
         var service = await serviceCatalogService.GetBySlugAsync(slug, cancellationToken);
-        if (service is null)
-        {
-            return new ApiEnvelope(false, StatusCodes.Status404NotFound, "Service not found.", null);
-        }
-
-        // Priced at the service's already-discounted price, matching what the customer actually pays.
-        return await cartService.AddItemAsync(service.Id, 1, service.DiscountedPrice, service.TaxRate, cancellationToken);
+        return service is null
+            ? new ApiEnvelope(false, StatusCodes.Status404NotFound, "Service not found.", null)
+            : await cartService.AddItemAsync(service.Id, 1, service.DiscountedPrice, service.TaxRate, cancellationToken);
     }
 
     public Task<ApiEnvelope> RemoveItemAsync(Guid itemId, CancellationToken cancellationToken = default) =>

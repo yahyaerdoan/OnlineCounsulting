@@ -6,9 +6,7 @@ using ResultHandler.Core.Enums;
 
 namespace OnlineConsulting.UserInterface.Features.Account;
 
-/// <summary>Deliberately thin - all Identity/Api orchestration lives in IAccountService, this class only handles
-/// HTTP concerns (model binding, ModelState, toasts, redirects). See ARCHITECTURE_MIGRATION.md's "MVC → Api
-/// Migration" entry for why this exists.</summary>
+/// <summary>Deliberately thin - all Identity/Api orchestration lives in IAccountService, this handles only HTTP concerns.</summary>
 [AllowAnonymous]
 public class AccountController(IAccountService accountService, IToastNotification toastNotification, IRecaptchaService recaptchaService) : Controller
 {
@@ -45,7 +43,6 @@ public class AccountController(IAccountService accountService, IToastNotificatio
     [HttpGet]
     public IActionResult Login(string? returnUrl = null)
     {
-        //Get LastVisitedUrl from Session if no explicit returnUrl
         returnUrl ??= HttpContext.Session.GetString("last-visited-url") ?? Url.Action("Index", "Dashboard", new { area = "user" });
 
         ViewBag.ReturnUrl = returnUrl;
@@ -53,31 +50,28 @@ public class AccountController(IAccountService accountService, IToastNotificatio
         return View();
     }
 
+    /// <summary>One login page for all roles - post-login redirect (Admin vs. user dashboard) is chosen from the
+    /// result, not the page. Error message prefers Detail over Title since error-factory results put the
+    /// actionable text there.</summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl)
     {
         var (result, isAdmin) = await accountService.LoginAsync(model.UserNameOrEmail, model.Password, model.RememberMe);
 
-        // Error-factory results put the actionable message in Detail, so prefer it over the generic Title.
         var message = result.IsSuccessful ? result.Title : (result.Detail ?? result.Title);
         NToastService.Show(toastNotification, message, result.Status, result.IsSuccessful ? "Welcome back!" : null);
 
         if (result.IsSuccessful)
         {
-            if (!string.IsNullOrWhiteSpace(returnUrl))
-            {
-                return LocalRedirect(returnUrl);
-            }
-
-            // No single login page per role anymore (see ARCHITECTURE_MIGRATION.md's admin-login-unification
-            // entry) - everyone logs in here, the post-login destination is what differs.
-            return isAdmin
+            return !string.IsNullOrWhiteSpace(returnUrl)
+                ? LocalRedirect(returnUrl)
+                : isAdmin
                 ? RedirectToAction("Index", "Dashboard", new { area = "Admin" })
                 : RedirectToAction("Index", "Dashboard", new { area = "user" });
         }
 
-        ViewBag.ReturnUrl = returnUrl; // Keep it if login fails
+        ViewBag.ReturnUrl = returnUrl;
 
         return View(model);
     }

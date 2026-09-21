@@ -4,9 +4,7 @@ namespace OnlineConsulting.UserInterface.Areas.Admin.Features.ProvidedItem;
 
 public record ProvidedItemListItemViewModel(Guid Id, string Title, string Description, string Icon, string? IconColor);
 
-/// <summary>The legacy entity picked an icon via an ImgIcon foreign key - ServiceOffering (the new Api's name
-/// for this concept) uses an inline Icon class name string + optional IconColor instead, so this is a plain
-/// text input, not a dropdown.</summary>
+/// <summary>Icon is a plain class-name text input, not a dropdown - matches ServiceOffering's inline Icon + IconColor pattern.</summary>
 public class CreateProvidedItemViewModel
 {
     [Required, MinLength(1)]

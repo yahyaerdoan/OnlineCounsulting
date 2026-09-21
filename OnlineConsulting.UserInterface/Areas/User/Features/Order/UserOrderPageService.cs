@@ -60,10 +60,10 @@ public class UserOrderPageService(
         return model;
     }
 
+    /// <summary>Totals come from the stats endpoint; per-status counts are derived from the order list
+    /// instead of extra Api calls.</summary>
     public async Task<UserDashboardStatsViewModel> GetMyStatsAsync(CancellationToken cancellationToken = default)
     {
-        // GetOrderStats covers totals; the per-status breakdown the old screen showed is counted off the same
-        // order list rather than four extra Api round-trips.
         var stats = await orderService.GetStatsAsync(cancellationToken);
         var orders = await orderService.GetAllAsync(cancellationToken);
 

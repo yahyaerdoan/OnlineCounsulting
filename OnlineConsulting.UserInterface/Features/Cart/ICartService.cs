@@ -6,10 +6,19 @@ namespace OnlineConsulting.UserInterface.Features.Cart;
 /// cookie transparently for every IApiClient call, authenticated or anonymous.</summary>
 public interface ICartService
 {
+    /// <summary>Gets the current cart, or null if none exists.</summary>
     Task<CartResponse?> GetAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>Gets the current cart's item count.</summary>
     Task<int> GetItemsCountAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>Adds a line item to the cart.</summary>
     Task<ApiEnvelope> AddItemAsync(Guid serviceId, int quantity, decimal price, int taxRate, CancellationToken cancellationToken = default);
+
+    /// <summary>Removes a line item from the cart.</summary>
     Task<ApiEnvelope> RemoveItemAsync(Guid itemId, CancellationToken cancellationToken = default);
+
+    /// <summary>Clears the entire cart.</summary>
     Task<ApiEnvelope> ClearAsync(CancellationToken cancellationToken = default);
 }
 

@@ -5,10 +5,9 @@ namespace OnlineConsulting.UserInterface.ViewComponents.LayoutViewComponents.Hea
 
 public class LayoutHeaderBottomMainMenuComponentPartial(ICartService cartService) : ViewComponent
 {
+    /// <summary>Renders for every visitor, including anonymous ones - cart item count works via the guest_id cookie bridged by GuestIdHandler.</summary>
     public async Task<IViewComponentResult> InvokeAsync()
     {
-        // Renders on every page for every visitor including anonymous ones - ICartService/IApiClient already
-        // bridge the Api's guest_id cookie transparently via GuestIdHandler, so no logged-in user is assumed here.
         ViewBag.TotalBasketItemsCount = await cartService.GetItemsCountAsync();
 
         return View();

@@ -42,10 +42,10 @@ public class ApiClient(HttpClient httpClient) : IApiClient
         return await ReadEnvelopeAsync<T>(response, cancellationToken);
     }
 
+    /// <summary>Parses the envelope; falls back to a failed envelope for an empty body, since a routing miss
+    /// (wrong path, no matching endpoint) returns no content rather than a parseable error envelope.</summary>
     private static async Task<ApiEnvelope<T>> ReadEnvelopeAsync<T>(HttpResponseMessage response, CancellationToken cancellationToken)
     {
-        // A routing miss (wrong path, no matching endpoint) returns an empty body, not an enveloped
-        // error - only the app's own ResponseResultHandler produces a parseable envelope.
         if (response.Content.Headers.ContentLength is 0 or null)
         {
             return new ApiEnvelope<T>(default, false, (int)response.StatusCode, response.ReasonPhrase, null);

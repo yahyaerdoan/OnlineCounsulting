@@ -67,7 +67,7 @@ builder.Services.AddControllersWithViews(options =>
 
     var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
     options.Filters.Add(new AuthorizeFilter(policy));
-    options.Filters.Add<FieldErrorsModelStateFilter>();
+    _ = options.Filters.Add<FieldErrorsModelStateFilter>();
 })
 .ConfigureApiBehaviorOptions(options =>
 {
@@ -85,14 +85,12 @@ builder.Services.AddAuthentication(IdentityConstants.ApplicationScheme)
     });
 builder.Services.AddHttpContextAccessor();
 
-
 builder.Services.AddTransient<BearerTokenHandler>();
 builder.Services.AddTransient<GuestIdHandler>();
 builder.Services.AddHttpClient<IApiClient, ApiClient>(client =>
     client.BaseAddress = new Uri(builder.Configuration["Api:BaseUrl"] ?? "https+http://api"))
     .AddHttpMessageHandler<BearerTokenHandler>()
     .AddHttpMessageHandler<GuestIdHandler>();
-
 
 builder.Services.Configure<StripeOptions>(builder.Configuration.GetSection(StripeOptions.SectionName));
 builder.Services.Configure<RecaptchaOptions>(builder.Configuration.GetSection(RecaptchaOptions.SectionName));
@@ -173,7 +171,6 @@ if (!app.Environment.IsDevelopment())
     _ = app.UseHsts();
 }
 
-//Nice error pages for error status codes (401/403/404/405/500 etc.)
 app.UseStatusCodePagesWithReExecute("/errorpage/{0}");
 
 app.UseHttpsRedirection();
@@ -204,7 +201,6 @@ app.Use(async (context, next) =>
 
 app.UseNToastNotify();
 
-//Legacy static entry point some browsers/tools still request
 app.MapGet("/index.html", () => Results.Redirect("/"));
 
 app.MapControllerRoute(

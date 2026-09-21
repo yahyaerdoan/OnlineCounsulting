@@ -4,9 +4,7 @@ namespace OnlineConsulting.UserInterface.Features.Service;
 /// CategoryId/CoverMediaAssetId, no navigation).</summary>
 public record ServiceCardViewModel(Guid Id, string Title, string Slug, string Description, string CategoryTitle, decimal Price, decimal DiscountedPrice, int DiscountRate, string? CoverImageUrl);
 
-/// <summary>The Api's GetAllAsync doesn't return a total count, only the requested page's items - TotalCount here
-/// is computed by fetching every service and paging client-side (see ServiceCatalogPageService), acceptable given
-/// this catalog's realistic size for a single-tenant HVAC company site.</summary>
+/// <summary>TotalCount is computed by fetching every service and paging client-side, since GetAllAsync returns no total count - acceptable at this catalog's size.</summary>
 public record ServiceListViewModel(List<ServiceCardViewModel> Services, int Page, int Size, int TotalCount)
 {
     public int TotalPages => Size <= 0 ? 0 : (int)Math.Ceiling((double)TotalCount / Size);

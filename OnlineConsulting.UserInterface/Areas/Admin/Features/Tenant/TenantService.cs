@@ -16,6 +16,7 @@ public class TenantService(IApiClient apiClient) : ITenantService
             t.Id, t.Name, t.Slug, t.Status, t.PrimaryContactEmail, t.ActiveModuleKeys, t.TotalActivePrice))];
     }
 
+    /// <summary>AvailableModules is a set difference - every offering not already an Active subscription item, so add-module UI never offers a duplicate.</summary>
     public async Task<TenantDetailViewModel?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var detailTask = apiClient.GetAsync<TenantDetailResponse>($"{TenantsPath}/{id}", cancellationToken);

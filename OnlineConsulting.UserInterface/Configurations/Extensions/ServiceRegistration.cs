@@ -39,12 +39,11 @@ public static class ServiceRegistration
             var cookieBuilder = new CookieBuilder
             {
                 Name = "OnlineConsultingCookie",
-                HttpOnly = true, // JavaScript erişimini engeller
-                SameSite = SameSiteMode.Strict, // CSRF saldırılarına karşı önlem
-                SecurePolicy = CookieSecurePolicy.Always, // Sadece HTTPS üzerinden iletilmesini sağlar
-                IsEssential = true, // GDPR uyumlu
+                HttpOnly = true,
+                SameSite = SameSiteMode.Strict,
+                SecurePolicy = CookieSecurePolicy.Always,
+                IsEssential = true,
             };
-            cookieBuilder.Name = "OnlineConsultingCookie";
             options.LoginPath = new PathString("/Account/Login");
             options.LogoutPath = new PathString("/Account/Logout");
             options.AccessDeniedPath = new PathString("/ErrorPage/Unauthorized");

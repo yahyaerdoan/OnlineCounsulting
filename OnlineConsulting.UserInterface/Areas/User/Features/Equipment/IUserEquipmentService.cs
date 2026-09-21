@@ -1,8 +1,6 @@
 ﻿namespace OnlineConsulting.UserInterface.Areas.User.Features.Equipment;
 
-/// <summary>Raw Api calls for the customer's own equipment (/api/equipment/mine) and its service history
-/// (/api/equipment/{id}/work-orders - unscoped server-side, so this service only ever calls it for ids that
-/// GetMineAsync already returned for the current user, keeping it customer-safe).</summary>
+/// <summary>Customer's own equipment and work-order history; work-order lookup is unscoped server-side, so only call it with ids GetMineAsync already returned.</summary>
 public interface IUserEquipmentService
 {
     Task<List<EquipmentResponse>> GetMineAsync(CancellationToken cancellationToken = default);

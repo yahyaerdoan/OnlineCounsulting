@@ -5,10 +5,7 @@ using OnlineConsulting.UserInterface.NotificationServices.ToastrServices;
 
 namespace OnlineConsulting.UserInterface.Features.Cart;
 
-/// <summary>Public cart - deliberately [AllowAnonymous] on every action, not just decorative: GuestIdHandler
-/// bridges the Api's guest_id cookie transparently, so anonymous users now get real, working carts (the old
-/// BusinessLogic path required a logged-in user despite the same attribute being present, so it never actually
-/// worked for guests before).</summary>
+/// <summary>Public cart - [AllowAnonymous] is functional here since GuestIdHandler bridges the Api's guest_id cookie, giving anonymous users real working carts.</summary>
 [AllowAnonymous]
 public class CartController(ICartPageService cartPageService, IToastNotification toastNotification) : Controller
 {

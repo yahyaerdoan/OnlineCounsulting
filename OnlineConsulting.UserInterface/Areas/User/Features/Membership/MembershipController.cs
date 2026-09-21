@@ -8,11 +8,7 @@ using ResultHandler.Core.Enums;
 
 namespace OnlineConsulting.UserInterface.Areas.User.Features.Membership;
 
-/// <summary>Requires login (no [AllowAnonymous], app-wide RequireAuthenticatedUser default policy) - the
-/// public plan browsing page (Features/Membership, top-level) is what's anonymous, this is the paid-subscribe
-/// step. Mirrors CheckoutController's PRG+TempData pattern for carrying a Stripe ClientSecret across the
-/// redirect to the confirm step, but the card-tokenization step happens earlier here (Subscribe POST needs a
-/// PaymentMethodId already in hand - Checkout's Order doesn't need one until Confirm).</summary>
+/// <summary>Requires login (paid-subscribe step); mirrors CheckoutController's PRG+TempData pattern but needs a PaymentMethodId already in hand at Subscribe POST, not just at Confirm.</summary>
 [Area("User")]
 [Route("user/membership")]
 public class MembershipController(IMembershipService membershipService, IToastNotification toastNotification, IOptions<StripeOptions> stripeOptions) : Controller
@@ -38,6 +34,7 @@ public class MembershipController(IMembershipService membershipService, IToastNo
         });
     }
 
+    /// <summary>Subscribes to a plan; a null ClientSecret in the result means the first invoice already settled synchronously (e.g. Mock gateway, or a card that skipped 3DS/SCA), so no client-side confirm step is needed.</summary>
     [HttpPost("subscribe")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Subscribe(SubscribeMembershipViewModel model, CancellationToken cancellationToken)
@@ -61,8 +58,6 @@ public class MembershipController(IMembershipService membershipService, IToastNo
             return RedirectToAction("Subscribe", new { planId = model.PlanId });
         }
 
-        // A null ClientSecret means the subscription's first invoice already settled synchronously (e.g. Mock
-        // gateway, or a card that didn't need 3DS/SCA) - nothing left for the client to confirm.
         if (result.ResultData.ClientSecret is null)
         {
             NToastService.Show(toastNotification, "Subscribed successfully!", ResultStatus.Ok);

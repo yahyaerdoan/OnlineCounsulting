@@ -32,7 +32,6 @@ public class AdminGalleryItemService(IGalleryService galleryService, IMediaServi
 
     public async Task<UpdateGalleryItemViewModel?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        // The Api exposes the item list only - there is no single-item endpoint, so the item is picked out of it.
         var items = await galleryService.GetItemsAsync(cancellationToken);
         var item = items.FirstOrDefault(i => i.Id == id);
         if (item is null)

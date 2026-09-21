@@ -2,11 +2,12 @@ using OnlineConsulting.UserInterface.Infrastructure.Api;
 
 namespace OnlineConsulting.UserInterface.Areas.Admin.Features.Order;
 
-/// <summary>Admin-wide order list/refund via the Api's admin-orders endpoint. There is no hard-delete endpoint
-/// for orders - RefundAsync is what the admin list's old "Delete" button now calls, since refunding is the real
-/// world equivalent of taking back a placed order.</summary>
+/// <summary>Orders have no hard-delete endpoint - RefundAsync is what the old "Delete" button now calls instead.</summary>
 public interface IAdminOrderService
 {
+    /// <summary>Fetches all orders.</summary>
     Task<List<AdminOrderListItemViewModel>> GetAllAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>Refunds an order, fully by default or partially when an amount is given.</summary>
     Task<ApiEnvelope> RefundAsync(Guid orderId, decimal? amount = null, CancellationToken cancellationToken = default);
 }

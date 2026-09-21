@@ -2,9 +2,7 @@ using OnlineConsulting.UserInterface.Infrastructure.Api;
 
 namespace OnlineConsulting.UserInterface.Features.Service;
 
-/// <summary>Wraps the Services module's Api endpoints - cover photo is CoverMediaAssetId (resolve via
-/// IMediaService), the extended gallery is MediaItems (AddMediaItemAsync/RemoveMediaItemAsync replace what used
-/// to be a separate ServiceImageController).</summary>
+/// <summary>Wraps the Services module's Api endpoints; MediaItems add/remove now replaces the old separate ServiceImageController.</summary>
 public interface IServiceCatalogService
 {
     Task<List<ServiceCatalogResponse>> GetAllAsync(int? index = null, int? size = null, CancellationToken cancellationToken = default);

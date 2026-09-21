@@ -2,9 +2,7 @@ using OnlineConsulting.UserInterface.Features.Category;
 
 namespace OnlineConsulting.UserInterface.Features.Home;
 
-/// <summary>Api orchestration for the two home-page widgets that don't already have their own dedicated,
-/// Api-backed service (Categories, Our Services/featured) - the rest of the home widgets
-/// (Slider/WhatWeProvide/HowIGetService/Testimonials) each have their own, e.g. ISliderItemService.</summary>
+/// <summary>Api orchestration for the two home-page widgets without their own dedicated service (Categories, featured Services) - the rest have their own, e.g. ISliderItemService.</summary>
 public interface IHomeContentService
 {
     Task<List<CategoryResponse>> GetCategoriesAsync(CancellationToken cancellationToken = default);

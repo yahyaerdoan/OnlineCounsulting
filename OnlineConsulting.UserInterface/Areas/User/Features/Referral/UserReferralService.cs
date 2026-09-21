@@ -6,6 +6,7 @@ public class UserReferralService(IApiClient apiClient) : IUserReferralService
 {
     private const string ReferralsPath = "/api/referrals";
 
+    /// <summary>POST, not GET - the endpoint creates the caller's code on first call, then returns the existing one.</summary>
     public async Task<string> GetMyCodeAsync(CancellationToken cancellationToken = default)
     {
         var result = await apiClient.PostAsync<string>($"{ReferralsPath}/my-code", null, cancellationToken);

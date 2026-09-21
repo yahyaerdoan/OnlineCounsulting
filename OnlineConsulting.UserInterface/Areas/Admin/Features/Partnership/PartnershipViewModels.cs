@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace OnlineConsulting.UserInterface.Areas.Admin.Features.Partnership;
 
-/// <summary>PhotoUrl is resolved separately from the Media module (GetMediaAsset) since PartnershipResponse only carries the MediaAssetId, not a display-ready Url - the Api's own cross-module convention (plain id, no navigation) applies here too.</summary>
+/// <summary>PhotoUrl is resolved separately via the Media module since PartnershipResponse only carries the MediaAssetId.</summary>
 public record PartnershipListItemViewModel(Guid Id, string FirstName, string LastName, string Title, string Description, string Email, string WebsiteUrl, string? PhotoUrl);
 
 public record PartnershipSocialLinkViewModel(Guid Id, string Name, string Url, string Icon, string? IconColor);

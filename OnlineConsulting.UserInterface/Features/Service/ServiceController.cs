@@ -6,9 +6,7 @@ using OnlineConsulting.UserInterface.NotificationServices.ToastrServices;
 
 namespace OnlineConsulting.UserInterface.Features.Service;
 
-/// <summary>Public service catalog (Index) + service detail (Detail) pages. The "ask about this service" form on
-/// Detail reuses IContactService (Features/Contact) instead of a Service-specific message service - it posts to
-/// the same generic /api/inquiries/messages endpoint the site-wide Contact form uses, no ServiceId is attached.</summary>
+/// <summary>Public service catalog/detail pages; the "ask about this service" form reuses IContactService's generic inquiries endpoint, no ServiceId attached.</summary>
 [AllowAnonymous]
 public class ServiceController(IContactService contactService, IToastNotification toastNotification) : Controller
 {

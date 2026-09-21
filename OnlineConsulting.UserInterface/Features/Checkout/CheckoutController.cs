@@ -20,6 +20,8 @@ public class CheckoutController(ICheckoutService checkoutService, IUserAddressSe
         return View();
     }
 
+    /// <summary>Places the order; a null PaymentClientSecret means the gateway already settled synchronously
+    /// (e.g. Mock), so it skips straight to the order instead of the Stripe confirm step.</summary>
     [HttpPost]
     public async Task<IActionResult> PlaceOrder(Guid cartId, CancellationToken cancellationToken)
     {
@@ -31,9 +33,6 @@ public class CheckoutController(ICheckoutService checkoutService, IUserAddressSe
             return RedirectToAction("Index", "Checkout", new { area = "", cartId });
         }
 
-        // A null PaymentClientSecret means the gateway already settled the payment synchronously (e.g. Mock) -
-        // nothing left for the client to confirm, go straight to the order. A real gateway like Stripe leaves
-        // the order Pending until the client completes 3DS/SCA, so route through the confirmation page instead.
         if (result.ResultData.PaymentClientSecret is null)
         {
             return RedirectToAction("Order", "Dashboard", new { area = "User" });
@@ -45,9 +44,7 @@ public class CheckoutController(ICheckoutService checkoutService, IUserAddressSe
         return RedirectToAction("Confirm");
     }
 
-    /// <summary>Renders the Stripe Payment Element for the order just created by PlaceOrder - the client secret
-    /// only exists once an Order row does, so this can't be shown before PlaceOrder runs (hence the TempData
-    /// round-trip via the PRG redirect rather than passing it as a query string).</summary>
+    /// <summary>Renders the Stripe Payment Element for the order PlaceOrder just created; secret arrives via TempData since it can't exist before PlaceOrder runs.</summary>
     [HttpGet("/checkout/confirm")]
     public IActionResult Confirm()
     {
@@ -62,10 +59,7 @@ public class CheckoutController(ICheckoutService checkoutService, IUserAddressSe
         return View();
     }
 
-    /// <summary>Stripe redirects the browser here after the customer completes (or abandons) 3DS/SCA - the query
-    /// params it appends (redirect_status etc.) only describe what just happened client-side. The order's real
-    /// PaymentStatus comes from the gateway's webhook (already wired, see Modules/Commerce's OnPaymentStatusChanged),
-    /// so this is just a friendly landing page, not the source of truth.</summary>
+    /// <summary>Stripe's post-3DS landing page - redirect_status is client-side only; the real PaymentStatus comes from the gateway webhook, not this page.</summary>
     [HttpGet("/checkout/return")]
     public IActionResult Return(string? redirect_status)
     {
@@ -77,8 +71,8 @@ public class CheckoutController(ICheckoutService checkoutService, IUserAddressSe
         return RedirectToAction("Order", "Dashboard", new { area = "User" });
     }
 
-    // oldAddressId is no longer needed - the Api unmarks the previous shipping address itself, kept as a route
-    // parameter only so the untouched CheckoutBillingDetailsComponentPartial form markup keeps posting the same fields.
+    /// <param name="oldAddressId">Unused - the Api unmarks the previous address itself; kept only so the
+    /// existing form markup keeps posting the same fields.</param>
     [HttpPost]
     public async Task<IActionResult> SetShippingAddress(Guid addressId, string oldAddressId, Guid cartId, CancellationToken cancellationToken)
     {
@@ -88,6 +82,8 @@ public class CheckoutController(ICheckoutService checkoutService, IUserAddressSe
         return RedirectToAction("Index", "checkout", new { cartId });
     }
 
+    /// <param name="oldAddressId">Unused - the Api unmarks the previous address itself; kept only so the
+    /// existing form markup keeps posting the same fields.</param>
     [HttpPost]
     public async Task<IActionResult> SetBillingAddress(Guid addressId, string oldAddressId, Guid cartId, CancellationToken cancellationToken)
     {

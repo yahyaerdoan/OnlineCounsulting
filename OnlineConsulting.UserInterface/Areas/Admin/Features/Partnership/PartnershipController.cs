@@ -5,11 +5,7 @@ using OnlineConsulting.UserInterface.NotificationServices.ToastrServices;
 
 namespace OnlineConsulting.UserInterface.Areas.Admin.Features.Partnership;
 
-/// <summary>Pilot slice for the MVC -> Api migration (see ARCHITECTURE_MIGRATION.md). Deliberately thin - every
-/// Api call and view-model mapping lives in IPartnershipService, this class only handles HTTP concerns (model
-/// binding, ModelState, toasts, redirects). Everything for this feature (controller, service, view models, wire
-/// DTO) lives in this one folder, mirroring the vertical-slice convention the Api modules already use - only the
-/// .cshtml views stay under Views/ since that's a hard Razor lookup convention.</summary>
+/// <summary>Pilot slice for the MVC -> Api migration (see ARCHITECTURE_MIGRATION.md) - vertical-slice folder like the Api modules, only .cshtml stays under Views/ per Razor's lookup convention.</summary>
 [Area("Admin")]
 [Route("admin/partnerships")]
 [Authorize(Policy = "RequireAdminAreaAccessPolicy")]

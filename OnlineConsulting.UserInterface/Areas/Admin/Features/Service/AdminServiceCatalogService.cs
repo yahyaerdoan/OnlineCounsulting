@@ -80,7 +80,6 @@ public class AdminServiceCatalogService(
 
     public async Task<ApiEnvelope> CreateAsync(CreateServiceViewModel model, CancellationToken cancellationToken = default)
     {
-        // Photos are uploaded before the service exists so the first one can be its cover in a single create call.
         var assetIds = await UploadAllAsync(model.Images, cancellationToken);
 
         var created = await serviceCatalogService.CreateAsync(

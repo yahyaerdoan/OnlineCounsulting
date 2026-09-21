@@ -1,9 +1,6 @@
 ﻿namespace OnlineConsulting.UserInterface.Infrastructure.Api;
 
-/// <summary>Bridges the Api's guest_id cookie (set by IGuestIdAccessor for anonymous basket callers) across the
-/// server-to-server IApiClient HttpClient - forwards the browser's guest_id cookie on the way out, and re-sets
-/// whatever guest_id the Api issues/refreshes on the real browser response on the way back (mirrors GuestIdAccessor's
-/// cookie options exactly, since the browser never talks to the Api directly).</summary>
+/// <summary>Bridges the Api's guest_id cookie across the server-to-server IApiClient call, since the browser never talks to the Api directly.</summary>
 public class GuestIdHandler(IHttpContextAccessor httpContextAccessor) : DelegatingHandler
 {
     private const string CookieName = "guest_id";

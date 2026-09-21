@@ -18,7 +18,7 @@ public class CartService(IApiClient apiClient) : ICartService
         return result.ResultData;
     }
 
-    // UserId/GuestId are resolved and overwritten server-side by BasketOwnerResolver - not sent from here.
+    /// <summary>UserId/GuestId are resolved server-side by BasketOwnerResolver - not sent from here.</summary>
     public Task<ApiEnvelope> AddItemAsync(Guid serviceId, int quantity, decimal price, int taxRate, CancellationToken cancellationToken = default) =>
         apiClient.PostAsync($"{BasketPath}/items", new { ServiceId = serviceId, Quantity = quantity, Price = price, TaxRate = taxRate }, cancellationToken);
 

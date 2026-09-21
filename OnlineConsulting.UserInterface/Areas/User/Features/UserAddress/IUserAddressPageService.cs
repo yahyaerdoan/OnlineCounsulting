@@ -6,8 +6,15 @@ namespace OnlineConsulting.UserInterface.Areas.User.Features.UserAddress;
 /// Services.IUserAddressService Api wrapper (/api/addresses, always scoped to the logged-in user).</summary>
 public interface IUserAddressPageService
 {
+    /// <summary>Gets the current user's addresses for the dashboard list.</summary>
     Task<AddressListPageViewModel> GetListAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>Creates a new address for the current user.</summary>
     Task<ApiEnvelope> CreateAsync(CreateUserAddressViewModel model, CancellationToken cancellationToken = default);
+
+    /// <summary>Updates an existing address for the current user.</summary>
     Task<ApiEnvelope> UpdateAsync(UpdateUserAddressViewModel model, CancellationToken cancellationToken = default);
+
+    /// <summary>Deletes an address for the current user.</summary>
     Task<ApiEnvelope> DeleteAsync(Guid id, CancellationToken cancellationToken = default);
 }

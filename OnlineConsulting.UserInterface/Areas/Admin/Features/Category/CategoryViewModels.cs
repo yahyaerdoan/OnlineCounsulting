@@ -4,9 +4,7 @@ namespace OnlineConsulting.UserInterface.Areas.Admin.Features.Category;
 
 public record CategoryListItemViewModel(Guid Id, string Title, string Description, string Icon, string? IconColor);
 
-/// <summary>The legacy entity picked its icon through an ImgIcon foreign key - the Categories module dropped
-/// that column in favour of an inline Icon class name + optional IconColor, so this is a plain text input
-/// (same pattern as ServiceProcessStep/ServiceOffering), not a dropdown and not a file upload.</summary>
+/// <summary>Icon is a plain class-name text input (not a dropdown/upload) - the legacy ImgIcon FK was dropped in favor of inline Icon + IconColor.</summary>
 public class CreateCategoryViewModel
 {
     [Required, MinLength(1)]

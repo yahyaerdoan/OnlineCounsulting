@@ -80,6 +80,7 @@ public class EquipmentService(IApiClient apiClient) : IEquipmentService
         return users.Select(u => new CustomerOptionViewModel(u.Id, $"{u.FirstName} {u.LastName} ({u.Email})")).ToList();
     }
 
+    // No per-id API endpoint - fetches the first 100 items and filters client-side, so a tenant past that count breaks GetByIdAsync/UpdateAsync lookups.
     private async Task<EquipmentItemResponse?> FindAsync(Guid id, CancellationToken cancellationToken)
     {
         var result = await apiClient.GetAsync<Paginated<EquipmentItemResponse>>($"{EquipmentPath}?size=100", cancellationToken);

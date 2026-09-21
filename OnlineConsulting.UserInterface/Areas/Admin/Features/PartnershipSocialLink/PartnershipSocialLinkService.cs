@@ -7,6 +7,7 @@ public class PartnershipSocialLinkService(IApiClient apiClient, IPartnershipServ
 {
     private const string PartnershipSocialLinksPath = "/api/site-content/partnership-social-links";
 
+    /// <summary>No dedicated "links for one partnership" endpoint - reuses IPartnershipService's showcase query (which already includes social links) and filters client-side.</summary>
     public async Task<List<PartnershipSocialLinkListItemViewModel>> GetAllByPartnershipAsync(Guid partnershipId, CancellationToken cancellationToken = default)
     {
         var partnerships = await partnershipService.GetAllWithSocialLinksAsync(cancellationToken);

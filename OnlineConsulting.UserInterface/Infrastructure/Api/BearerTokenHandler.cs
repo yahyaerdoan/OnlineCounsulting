@@ -2,7 +2,7 @@
 
 namespace OnlineConsulting.UserInterface.Infrastructure.Api;
 
-/// <summary>Attaches the current user's Api access token (session-stored at login) to every outgoing IApiClient request. Anonymous requests simply go out without an Authorization header - the Api's own [AllowAnonymous]/public endpoints handle that, everything else correctly comes back 401.</summary>
+/// <summary>Attaches the session-stored Api access token to every outgoing IApiClient request; anonymous requests just go out without one.</summary>
 public class BearerTokenHandler(IHttpContextAccessor httpContextAccessor) : DelegatingHandler
 {
     protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)

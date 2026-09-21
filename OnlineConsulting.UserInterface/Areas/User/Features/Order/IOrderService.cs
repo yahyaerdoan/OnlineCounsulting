@@ -3,8 +3,14 @@
 /// <summary>Self-service order history/detail/stats for the current logged-in user via /api/orders*.</summary>
 public interface IOrderService
 {
+    /// <summary>Gets all orders for the current user.</summary>
     Task<List<OrderResponse>> GetAllAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>Gets order detail by id, scoped to the current user.</summary>
+    /// <returns>Null if not found or not owned by the caller.</returns>
     Task<OrderDetailResponse?> GetDetailAsync(Guid id, CancellationToken cancellationToken = default);
+
+    /// <summary>Gets order totals/spend stats for the current user.</summary>
     Task<OrderStatsResponse?> GetStatsAsync(CancellationToken cancellationToken = default);
 }
 

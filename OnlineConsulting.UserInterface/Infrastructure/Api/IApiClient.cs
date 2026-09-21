@@ -1,6 +1,6 @@
 namespace OnlineConsulting.UserInterface.Infrastructure.Api;
 
-/// <summary>Thin typed HttpClient wrapper for calling OnlineConsulting.Api from MVC controllers/ViewComponents - one client for every module rather than one per module, since the envelope shape and auth handling are identical everywhere.</summary>
+/// <summary>Thin typed HttpClient wrapper for calling the Api; one client for every module since envelope shape and auth handling are identical everywhere.</summary>
 public interface IApiClient
 {
     Task<ApiEnvelope<T>> GetAsync<T>(string path, CancellationToken cancellationToken = default);

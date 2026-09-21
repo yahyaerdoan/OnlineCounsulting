@@ -4,9 +4,7 @@ namespace OnlineConsulting.UserInterface.Areas.Admin.Features.HowIGetService;
 
 public record HowIGetServiceListItemViewModel(Guid Id, string Title, string Description, string Icon, string? IconColor);
 
-/// <summary>The legacy entity picked an icon via an ImgIcon foreign key - ServiceProcessStep (the new Api's
-/// name for this concept) uses an inline Icon class name string + optional IconColor instead (same pattern
-/// Categories already switched to), so this is a plain text input, not a dropdown.</summary>
+/// <summary>Icon is a plain class-name text input, not a dropdown - matches ServiceProcessStep's inline Icon + IconColor pattern.</summary>
 public class CreateHowIGetServiceViewModel
 {
     [Required, MinLength(1)]

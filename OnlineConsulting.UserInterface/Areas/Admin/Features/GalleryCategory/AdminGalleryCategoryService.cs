@@ -13,7 +13,6 @@ public class AdminGalleryCategoryService(IGalleryService galleryService) : IAdmi
 
     public async Task<UpdateGalleryCategoryViewModel?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        // The Api exposes the tag list only - there is no single-tag endpoint, so the item is picked out of it.
         var categories = await galleryService.GetCategoriesAsync(cancellationToken);
         var category = categories.FirstOrDefault(c => c.Id == id);
         return category is null

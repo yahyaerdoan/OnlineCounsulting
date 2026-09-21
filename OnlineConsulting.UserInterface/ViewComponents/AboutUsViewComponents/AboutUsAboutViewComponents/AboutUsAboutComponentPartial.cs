@@ -4,9 +4,7 @@ using System.Web;
 
 namespace OnlineConsulting.UserInterface.ViewComponents.AboutUsViewComponents.AboutUsAboutViewComponents;
 
-/// <summary>No dedicated public IAboutUsService exists yet (the public AboutUsController is a static view with
-/// no Api call of its own) - reuses the admin IAboutUsService like the Home page partials already do for their
-/// admin-owned content services, since these are DTO/API concerns, not access-control.</summary>
+/// <summary>No dedicated public IAboutUsService exists yet - reuses the admin one, since this is a DTO/API concern, not access-control.</summary>
 public class AboutUsAboutComponentPartial(IAboutUsService aboutUsService) : ViewComponent
 {
     public async Task<IViewComponentResult> InvokeAsync()

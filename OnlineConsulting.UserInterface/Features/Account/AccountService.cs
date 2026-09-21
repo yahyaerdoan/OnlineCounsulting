@@ -38,9 +38,7 @@ public class AccountService(IApiClient apiClient, IHttpContextAccessor httpConte
         return Result.Success("You've been logged out. See you again soon!");
     }
 
-    /// <summary>Verifies credentials against the Api (the only place that ever checks a password) and stores the
-    /// resulting access token in Session. Returns null on any failure (bad credentials, or the Api rejecting the
-    /// just-issued token on the immediate follow-up call).</summary>
+    /// <summary>Verifies credentials against the Api and stores the resulting token in Session; returns null on any failure.</summary>
     private async Task<CurrentUserResponse?> AuthenticateAsync(string userNameOrEmail, string password, CancellationToken cancellationToken)
     {
         var httpContext = GetHttpContext();

@@ -7,6 +7,8 @@ public class MediaService(IApiClient apiClient) : IMediaService
 {
     private const string MediaPath = "/api/media";
 
+    /// <summary>Uploads the file and returns the new asset's id (POST /api/media returns only the id, not the
+    /// full asset shape - that comes back from GET via <see cref="ResolveUrlAsync"/>).</summary>
     public async Task<Guid?> UploadAsync(IFormFile? file, CancellationToken cancellationToken = default)
     {
         if (file is not { Length: > 0 })
@@ -20,8 +22,6 @@ public class MediaService(IApiClient apiClient) : IMediaService
         fileContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
         content.Add(fileContent, "file", file.FileName);
 
-        // POST /api/media returns OperationDataResult<Guid> - just the new asset's id, not the full
-        // MediaAssetResponse shape (that only comes back from GET, used by ResolveUrlAsync below).
         var result = await apiClient.PostFileAsync<Guid>(MediaPath, content, cancellationToken);
         return result.IsSuccessful ? result.ResultData : null;
     }

@@ -7,6 +7,7 @@ public class SystemUserService(IApiClient apiClient) : ISystemUserService
     private const string UsersPath = "/api/users";
     private const string RolesPath = "/api/roles";
 
+    /// <summary>Joins users to roles by name (the only shared key the API exposes); an unmatched role name gets an empty description instead of failing the whole list.</summary>
     public async Task<List<SystemUserListItemViewModel>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         var usersTask = apiClient.GetAsync<List<UserResponse>>(UsersPath, cancellationToken);
