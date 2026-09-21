@@ -14,6 +14,7 @@ public class StripePaymentGateway(IOptions<PaymentOptions> options) : IPaymentGa
     public async Task<PaymentIntentResult> CreatePaymentIntentAsync(CreatePaymentIntentRequest request, CancellationToken cancellationToken = default)
     {
         var service = new PaymentIntentService(_client);
+
         var intent = await service.CreateAsync(new PaymentIntentCreateOptions
         {
             Amount = ToMinorUnits(request.Amount),
@@ -30,12 +31,14 @@ public class StripePaymentGateway(IOptions<PaymentOptions> options) : IPaymentGa
     {
         var service = new PaymentIntentService(_client);
         var intent = await service.GetAsync(providerPaymentId, cancellationToken: cancellationToken);
+
         return new PaymentStatusResult(intent.Id, MapStatus(intent.Status), intent.ClientSecret);
     }
 
     public async Task<PaymentStatusResult> RefundAsync(string providerPaymentId, decimal? amount = null, CancellationToken cancellationToken = default)
     {
         var service = new RefundService(_client);
+
         var refund = await service.CreateAsync(new RefundCreateOptions
         {
             PaymentIntent = providerPaymentId,
@@ -45,16 +48,16 @@ public class StripePaymentGateway(IOptions<PaymentOptions> options) : IPaymentGa
         return new PaymentStatusResult(providerPaymentId, refund.Status == "succeeded" ? PaymentStatuses.Refunded : PaymentStatuses.Pending);
     }
 
+    /// <summary>Verifies the Stripe signature and parses a payment-intent webhook event; returns null for anything invalid or irrelevant rather than throwing, since input is untrusted external data.</summary>
     public Task<PaymentWebhookEvent?> VerifyAndParseWebhookAsync(string rawBody, string? signatureHeader, CancellationToken cancellationToken = default)
     {
-        // Reject before EventUtility - it assumes a non-null header and throws NullReferenceException, not StripeException, otherwise.
         if (string.IsNullOrEmpty(signatureHeader) || string.IsNullOrEmpty(rawBody))
         {
             return Task.FromResult<PaymentWebhookEvent?>(null);
         }
 
-        // Caught broadly on purpose - untrusted external input, any construction failure means "not a valid webhook call", never a 500.
         Event stripeEvent;
+
         try
         {
             stripeEvent = EventUtility.ConstructEvent(rawBody, signatureHeader, _webhookSecret);
@@ -70,6 +73,7 @@ public class StripePaymentGateway(IOptions<PaymentOptions> options) : IPaymentGa
         }
 
         var referenceId = intent.Metadata.GetValueOrDefault("ReferenceId");
+
         return referenceId is null
             ? Task.FromResult<PaymentWebhookEvent?>(null)
             : stripeEvent.Type switch

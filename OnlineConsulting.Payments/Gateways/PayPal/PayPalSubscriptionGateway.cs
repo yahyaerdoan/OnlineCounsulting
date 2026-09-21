@@ -5,7 +5,7 @@ using System.Net.Http.Json;
 
 namespace OnlineConsulting.Payments.Gateways.PayPal;
 
-/// <summary>Structurally complete PayPal Subscriptions v1 implementation, mirroring PayPalPaymentGateway - untested end-to-end (no PayPal sandbox credentials configured in this environment). PayPal has no server-side "attach a card with a secret key" flow like Stripe: the payer must be redirected to the "approve" link returned from CreateSubscriptionAsync before the subscription activates, so PaymentMethodId is ignored and the approval URL rides back on SubscriptionResult.ClientSecret instead (see that record's doc comment).</summary>
+/// <summary>Structurally complete but untested PayPal Subscriptions v1 gateway; PaymentMethodId is ignored since PayPal has no card-attach flow - the payer instead follows the "approve" link returned on SubscriptionResult.ClientSecret.</summary>
 public class PayPalSubscriptionGateway(IHttpClientFactory httpClientFactory, IOptions<PaymentOptions> options) : ISubscriptionGateway
 {
     private readonly PayPalOptions _options = options.Value.PayPal;
@@ -17,7 +17,7 @@ public class PayPalSubscriptionGateway(IHttpClientFactory httpClientFactory, IOp
 
     private HttpClient CreateClient() => httpClientFactory.CreateClient(nameof(PayPalSubscriptionGateway));
 
-    /// <summary>No customer object exists in PayPal's Subscriptions API - the subscriber is specified directly (by email) on subscription creation - so this makes no API call, it just carries the email through as the "customer id" for CreateSubscriptionAsync to use.</summary>
+    /// <summary>No customer object in PayPal's API - this makes no call, it just carries the email through as the "customer id" for CreateSubscriptionAsync.</summary>
     public Task<SubscriptionCustomerResult> EnsureCustomerAsync(EnsureCustomerRequest request, string? idempotencyKey = null, CancellationToken cancellationToken = default) =>
         Task.FromResult(new SubscriptionCustomerResult(request.Email));
 
@@ -31,12 +31,14 @@ public class PayPalSubscriptionGateway(IHttpClientFactory httpClientFactory, IOp
 
         using var client = CreateClient();
         using var productResponse = await client.SendAsync(productRequest, cancellationToken);
+
         _ = productResponse.EnsureSuccessStatusCode();
-        var product = await productResponse.Content.ReadFromJsonAsync<PayPalProduct>(cancellationToken: cancellationToken)
-            ?? throw new InvalidOperationException("PayPal returned an empty product response.");
+
+        var product = await productResponse.Content.ReadFromJsonAsync<PayPalProduct>(cancellationToken: cancellationToken) ?? throw new InvalidOperationException("PayPal returned an empty product response.");
 
         using var planRequest = new HttpRequestMessage(HttpMethod.Post, "/v1/billing/plans");
         planRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
         planRequest.Content = JsonContent.Create(new
         {
             product_id = product.Id,
@@ -56,7 +58,9 @@ public class PayPalSubscriptionGateway(IHttpClientFactory httpClientFactory, IOp
         });
 
         using var planResponse = await client.SendAsync(planRequest, cancellationToken);
+
         _ = planResponse.EnsureSuccessStatusCode();
+
         var plan = await planResponse.Content.ReadFromJsonAsync<PayPalPlan>(cancellationToken: cancellationToken)
             ?? throw new InvalidOperationException("PayPal returned an empty plan response.");
 
@@ -70,6 +74,7 @@ public class PayPalSubscriptionGateway(IHttpClientFactory httpClientFactory, IOp
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, "/v1/billing/subscriptions");
         httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
         httpRequest.Headers.Add("PayPal-Request-Id", request.ReferenceId);
+
         httpRequest.Content = JsonContent.Create(new
         {
             plan_id = request.ProviderPriceId,
@@ -80,7 +85,9 @@ public class PayPalSubscriptionGateway(IHttpClientFactory httpClientFactory, IOp
 
         using var client = CreateClient();
         using var response = await client.SendAsync(httpRequest, cancellationToken);
+
         _ = response.EnsureSuccessStatusCode();
+
         var subscription = await response.Content.ReadFromJsonAsync<PayPalSubscription>(cancellationToken: cancellationToken)
             ?? throw new InvalidOperationException("PayPal returned an empty subscription response.");
 
@@ -89,9 +96,7 @@ public class PayPalSubscriptionGateway(IHttpClientFactory httpClientFactory, IOp
         return new SubscriptionResult(subscription.Id, MapStatus(subscription.Status), DateTimeOffset.UtcNow, approveLink);
     }
 
-    /// <summary>atPeriodEnd is ignored - PayPal's Subscriptions API has no deferred-cancellation concept,
-    /// so this always cancels immediately regardless of the flag (same graceful-degradation convention
-    /// as CreateSubscriptionRequest.DiscountAmount on this gateway).</summary>
+    /// <summary>atPeriodEnd is ignored - PayPal has no deferred-cancellation concept, so this always cancels immediately.</summary>
     public async Task<SubscriptionResult> CancelSubscriptionAsync(string providerSubscriptionId, bool atPeriodEnd = false, CancellationToken cancellationToken = default)
     {
         var accessToken = await GetAccessTokenAsync(cancellationToken);
@@ -101,7 +106,9 @@ public class PayPalSubscriptionGateway(IHttpClientFactory httpClientFactory, IOp
         httpRequest.Content = JsonContent.Create(new { reason = "Cancelled by customer" });
 
         using var client = CreateClient();
+
         using var response = await client.SendAsync(httpRequest, cancellationToken);
+
         _ = response.EnsureSuccessStatusCode();
 
         return new SubscriptionResult(providerSubscriptionId, PaymentStatuses.Refunded, DateTimeOffset.UtcNow);
@@ -119,6 +126,7 @@ public class PayPalSubscriptionGateway(IHttpClientFactory httpClientFactory, IOp
 
         using var client = CreateClient();
         using var response = await client.SendAsync(httpRequest, cancellationToken);
+
         _ = response.EnsureSuccessStatusCode();
 
         return new SubscriptionResult(providerSubscriptionId, PaymentStatuses.Pending, DateTimeOffset.UtcNow);
@@ -135,18 +143,17 @@ public class PayPalSubscriptionGateway(IHttpClientFactory httpClientFactory, IOp
 
         using var client = CreateClient();
         using var response = await client.SendAsync(httpRequest, cancellationToken);
+
         _ = response.EnsureSuccessStatusCode();
 
         return new SubscriptionResult(providerSubscriptionId, PaymentStatuses.Succeeded, DateTimeOffset.UtcNow);
     }
 
-    /// <summary>PayPal's REST Subscriptions API has no in-place plan-change endpoint - changing plans
-    /// would require cancelling and creating a new subscription, out of scope. Known, accepted
-    /// limitation: PayPal isn't the active provider.</summary>
+    /// <summary>PayPal has no in-place plan-change endpoint - would require cancel-and-recreate, out of scope while PayPal isn't the active provider.</summary>
     public Task<SubscriptionResult> UpdateSubscriptionPriceAsync(string providerSubscriptionId, string newProviderPriceId, CancellationToken cancellationToken = default) =>
         throw new NotSupportedException("PayPal subscriptions do not support in-place plan changes.");
 
-    /// <summary>PayPal's Subscriptions API models a subscription as a single plan_id - there is no concept of independently-priced additional line items, so à la carte multi-module tenants aren't representable on this provider. Known, accepted limitation: PayPal isn't the active provider.</summary>
+    /// <summary>PayPal models a subscription as a single plan_id, so à la carte multi-module tenants aren't representable on this provider.</summary>
     public Task<string> AddSubscriptionItemAsync(string providerSubscriptionId, string providerPriceId, string? idempotencyKey = null, CancellationToken cancellationToken = default) =>
         throw new NotSupportedException("PayPal subscriptions do not support multiple line items.");
 
@@ -163,6 +170,7 @@ public class PayPalSubscriptionGateway(IHttpClientFactory httpClientFactory, IOp
     private async Task<string> GetAccessTokenAsync(CancellationToken cancellationToken)
     {
         using var client = CreateClient();
+
         return await PayPalAuth.GetAccessTokenAsync(client, _options, cancellationToken);
     }
 

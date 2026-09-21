@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 
 namespace OnlineConsulting.Payments.Gateways.Mock;
 
-/// <summary>No network calls - deterministic in-memory gateway for dev/testing without real provider credentials. Amounts ending in .00 succeed immediately; anything else is left Pending, mirroring how a real card can be declined or need extra confirmation, so callers can exercise both paths without a sandbox account.</summary>
+/// <summary>Deterministic in-memory gateway for dev/testing - amounts ending in .00 succeed immediately, anything else stays Pending so callers can exercise both paths without a sandbox account.</summary>
 public class MockPaymentGateway : IPaymentGateway
 {
     private static readonly ConcurrentDictionary<string, PaymentStatusResult> _payments = new();
@@ -27,6 +27,7 @@ public class MockPaymentGateway : IPaymentGateway
     {
         var result = new PaymentStatusResult(providerPaymentId, PaymentStatuses.Refunded);
         _payments[providerPaymentId] = result;
+
         return Task.FromResult(result);
     }
 

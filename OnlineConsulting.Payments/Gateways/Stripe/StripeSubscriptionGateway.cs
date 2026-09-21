@@ -16,6 +16,7 @@ public class StripeSubscriptionGateway(IOptions<PaymentOptions> options) : ISubs
     public async Task<SubscriptionCustomerResult> EnsureCustomerAsync(EnsureCustomerRequest request, string? idempotencyKey = null, CancellationToken cancellationToken = default)
     {
         var service = new CustomerService(_client);
+
         var customer = await service.CreateAsync(new CustomerCreateOptions
         {
             Email = request.Email,
@@ -28,6 +29,7 @@ public class StripeSubscriptionGateway(IOptions<PaymentOptions> options) : ISubs
     public async Task<SubscriptionPriceResult> EnsurePriceAsync(EnsurePriceRequest request, CancellationToken cancellationToken = default)
     {
         var productService = new ProductService(_client);
+
         var product = await productService.CreateAsync(new ProductCreateOptions
         {
             Name = request.Name,
@@ -35,6 +37,7 @@ public class StripeSubscriptionGateway(IOptions<PaymentOptions> options) : ISubs
         }, cancellationToken: cancellationToken);
 
         var priceService = new PriceService(_client);
+
         var price = await priceService.CreateAsync(new PriceCreateOptions
         {
             Product = product.Id,
@@ -50,18 +53,21 @@ public class StripeSubscriptionGateway(IOptions<PaymentOptions> options) : ISubs
     public async Task<SubscriptionResult> CreateSubscriptionAsync(CreateSubscriptionRequest request, string? idempotencyKey = null, CancellationToken cancellationToken = default)
     {
         var paymentMethodService = new PaymentMethodService(_client);
+
         var attachedPaymentMethod = await paymentMethodService.AttachAsync(request.PaymentMethodId, new PaymentMethodAttachOptions
         {
             Customer = request.ProviderCustomerId,
         }, cancellationToken: cancellationToken);
 
         var customerService = new CustomerService(_client);
+
         _ = await customerService.UpdateAsync(request.ProviderCustomerId, new CustomerUpdateOptions
         {
             InvoiceSettings = new CustomerInvoiceSettingsOptions { DefaultPaymentMethod = attachedPaymentMethod.Id },
         }, cancellationToken: cancellationToken);
 
         List<SubscriptionDiscountOptions>? discounts = null;
+
         if (request.DiscountAmount is > 0)
         {
             var couponService = new CouponService(_client);
@@ -76,6 +82,7 @@ public class StripeSubscriptionGateway(IOptions<PaymentOptions> options) : ISubs
         }
 
         var subscriptionService = new SubscriptionService(_client);
+
         var subscription = await subscriptionService.CreateAsync(new SubscriptionCreateOptions
         {
             Customer = request.ProviderCustomerId,
@@ -91,20 +98,25 @@ public class StripeSubscriptionGateway(IOptions<PaymentOptions> options) : ISubs
     public async Task<SubscriptionResult> CancelSubscriptionAsync(string providerSubscriptionId, bool atPeriodEnd = false, CancellationToken cancellationToken = default)
     {
         var service = new SubscriptionService(_client);
+
         if (atPeriodEnd)
         {
             var updated = await service.UpdateAsync(providerSubscriptionId, new SubscriptionUpdateOptions { CancelAtPeriodEnd = true }, cancellationToken: cancellationToken);
+
             return ToSubscriptionResult(updated);
         }
 
         var subscription = await service.CancelAsync(providerSubscriptionId, cancellationToken: cancellationToken);
+
         return ToSubscriptionResult(subscription);
     }
 
     public async Task<SubscriptionResult> UpdateSubscriptionPriceAsync(string providerSubscriptionId, string newProviderPriceId, CancellationToken cancellationToken = default)
     {
         var service = new SubscriptionService(_client);
+
         var subscription = await service.GetAsync(providerSubscriptionId, cancellationToken: cancellationToken);
+
         var itemId = subscription.Items.Data[0].Id;
 
         var updated = await service.UpdateAsync(providerSubscriptionId, new SubscriptionUpdateOptions
@@ -119,6 +131,7 @@ public class StripeSubscriptionGateway(IOptions<PaymentOptions> options) : ISubs
     public async Task<SubscriptionResult> PauseSubscriptionAsync(string providerSubscriptionId, CancellationToken cancellationToken = default)
     {
         var service = new SubscriptionService(_client);
+
         var updated = await service.UpdateAsync(providerSubscriptionId, new SubscriptionUpdateOptions
         {
             PauseCollection = new SubscriptionPauseCollectionOptions { Behavior = "void" },
@@ -127,14 +140,13 @@ public class StripeSubscriptionGateway(IOptions<PaymentOptions> options) : ISubs
         return ToSubscriptionResult(updated);
     }
 
-    /// <summary>Stripe.net has no property to explicitly clear pause_collection - omitting it leaves the
-    /// existing value untouched, and the API only unsets it when the field is sent as an empty object.
-    /// ExtraParams is the documented way to send that literal empty value.</summary>
+    /// <summary>Stripe.net has no property to clear pause_collection; ExtraParams sends the literal empty object the API requires to unset it.</summary>
     public async Task<SubscriptionResult> ResumeSubscriptionAsync(string providerSubscriptionId, CancellationToken cancellationToken = default)
     {
         var service = new SubscriptionService(_client);
         var options = new SubscriptionUpdateOptions();
         options.AddExtraParam("pause_collection", "");
+
         var updated = await service.UpdateAsync(providerSubscriptionId, options, cancellationToken: cancellationToken);
 
         return ToSubscriptionResult(updated);
@@ -143,6 +155,7 @@ public class StripeSubscriptionGateway(IOptions<PaymentOptions> options) : ISubs
     public async Task<string> AddSubscriptionItemAsync(string providerSubscriptionId, string providerPriceId, string? idempotencyKey = null, CancellationToken cancellationToken = default)
     {
         var service = new SubscriptionItemService(_client);
+
         var item = await service.CreateAsync(new SubscriptionItemCreateOptions
         {
             Subscription = providerSubscriptionId,
@@ -155,6 +168,7 @@ public class StripeSubscriptionGateway(IOptions<PaymentOptions> options) : ISubs
     public async Task RemoveSubscriptionItemAsync(string providerSubscriptionItemId, CancellationToken cancellationToken = default)
     {
         var service = new SubscriptionItemService(_client);
+
         _ = await service.DeleteAsync(providerSubscriptionItemId, cancellationToken: cancellationToken);
     }
 
@@ -166,6 +180,7 @@ public class StripeSubscriptionGateway(IOptions<PaymentOptions> options) : ISubs
         }
 
         Event stripeEvent;
+
         try
         {
             stripeEvent = EventUtility.ConstructEvent(rawBody, signatureHeader, _webhookSecret);
@@ -185,6 +200,7 @@ public class StripeSubscriptionGateway(IOptions<PaymentOptions> options) : ISubs
                     }
 
                     var referenceId = subscription.Metadata.GetValueOrDefault("ReferenceId");
+
                     return referenceId is null
                         ? Task.FromResult<SubscriptionWebhookEvent?>(null)
                         : Task.FromResult<SubscriptionWebhookEvent?>(new SubscriptionWebhookEvent(subscription.Id, referenceId, SubscriptionEventKinds.Cancelled));
@@ -199,6 +215,7 @@ public class StripeSubscriptionGateway(IOptions<PaymentOptions> options) : ISubs
 
                     var subscriptionDetails = invoice.Parent?.SubscriptionDetails;
                     var referenceId = subscriptionDetails?.Metadata?.GetValueOrDefault("ReferenceId");
+
                     if (subscriptionDetails?.SubscriptionId is null || referenceId is null)
                     {
                         return Task.FromResult<SubscriptionWebhookEvent?>(null);
@@ -212,6 +229,7 @@ public class StripeSubscriptionGateway(IOptions<PaymentOptions> options) : ISubs
                     return Task.FromResult<SubscriptionWebhookEvent?>(new SubscriptionWebhookEvent(subscriptionDetails.SubscriptionId, referenceId, eventKind, newRenewalDate));
                 }
             default:
+
                 return Task.FromResult<SubscriptionWebhookEvent?>(null);
         }
     }

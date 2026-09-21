@@ -9,12 +9,11 @@ namespace OnlineConsulting.Payments;
 
 public static class PaymentsServiceCollectionExtensions
 {
-    /// <summary>Registers every gateway under its own keyed-DI slot (so a refund can explicitly target the provider that originally processed it) plus a plain, unkeyed IPaymentGateway resolved from Payment:ActiveProvider for ordinary checkout code that doesn't care which provider is active.</summary>
+    /// <summary>Registers every gateway keyed by provider (so a refund can target the one that processed it), plus an unkeyed IPaymentGateway resolved from Payment:ActiveProvider for ordinary checkout code.</summary>
     public static IServiceCollection AddPaymentsInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         _ = services.Configure<PaymentOptions>(configuration.GetSection("Payment"));
-        var activeProvider = configuration.GetSection("Payment")["ActiveProvider"]
-            ?? throw new InvalidOperationException("Payment:ActiveProvider is not configured.");
+        var activeProvider = configuration.GetSection("Payment")["ActiveProvider"] ?? throw new InvalidOperationException("Payment:ActiveProvider is not configured.");
 
         _ = services.AddKeyedSingleton<IPaymentGateway, MockPaymentGateway>(PaymentProviderNames.Mock);
         _ = services.AddKeyedSingleton<IPaymentGateway, StripePaymentGateway>(PaymentProviderNames.Stripe);
@@ -24,6 +23,7 @@ public static class PaymentsServiceCollectionExtensions
             var payPalOptions = configuration.GetSection("Payment:PayPal").Get<PayPalOptions>() ?? new PayPalOptions();
             client.BaseAddress = new Uri(payPalOptions.UseSandbox ? "https://api-m.sandbox.paypal.com" : "https://api-m.paypal.com");
         });
+
         _ = services.AddKeyedSingleton<IPaymentGateway, PayPalPaymentGateway>(PaymentProviderNames.PayPal);
 
         _ = services.AddSingleton(serviceProvider => serviceProvider.GetRequiredKeyedService<IPaymentGateway>(activeProvider));
@@ -36,6 +36,7 @@ public static class PaymentsServiceCollectionExtensions
             var payPalOptions = configuration.GetSection("Payment:PayPal").Get<PayPalOptions>() ?? new PayPalOptions();
             client.BaseAddress = new Uri(payPalOptions.UseSandbox ? "https://api-m.sandbox.paypal.com" : "https://api-m.paypal.com");
         });
+
         _ = services.AddKeyedSingleton<ISubscriptionGateway, PayPalSubscriptionGateway>(PaymentProviderNames.PayPal);
 
         _ = services.AddSingleton(serviceProvider => serviceProvider.GetRequiredKeyedService<ISubscriptionGateway>(activeProvider));

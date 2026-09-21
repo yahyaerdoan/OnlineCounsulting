@@ -5,7 +5,7 @@ using System.Net.Http.Json;
 
 namespace OnlineConsulting.Payments.Gateways.PayPal;
 
-/// <summary>Structurally complete PayPal Orders v2 implementation, proving IPaymentGateway isn't shaped around Stripe specifically - but untested end-to-end (no PayPal sandbox credentials configured in this environment). Uses raw REST calls instead of PayPal's SDK to keep the dependency light for a provider that isn't active yet. Takes IHttpClientFactory (not a typed HttpClient) because this gateway is registered as a singleton - a constructor-captured HttpClient would pin one handler/connection pool for the app's whole lifetime instead of letting IHttpClientFactory rotate handlers.</summary>
+/// <summary>Structurally complete but untested PayPal Orders v2 gateway (no sandbox credentials configured); uses IHttpClientFactory, not a captured HttpClient, since this gateway is a singleton.</summary>
 public class PayPalPaymentGateway(IHttpClientFactory httpClientFactory, IOptions<PaymentOptions> options) : IPaymentGateway
 {
     private readonly PayPalOptions _options = options.Value.PayPal;
@@ -14,6 +14,7 @@ public class PayPalPaymentGateway(IHttpClientFactory httpClientFactory, IOptions
 
     private HttpClient CreateClient() => httpClientFactory.CreateClient(nameof(PayPalPaymentGateway));
 
+    /// <summary>Creates a PayPal order; there is no client-secret concept, so the returned "approve" link is what a frontend redirects the payer to.</summary>
     public async Task<PaymentIntentResult> CreatePaymentIntentAsync(CreatePaymentIntentRequest request, CancellationToken cancellationToken = default)
     {
         var accessToken = await GetAccessTokenAsync(cancellationToken);
@@ -21,6 +22,7 @@ public class PayPalPaymentGateway(IHttpClientFactory httpClientFactory, IOptions
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, "/v2/checkout/orders");
         httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
         httpRequest.Headers.Add("PayPal-Request-Id", request.IdempotencyKey);
+
         httpRequest.Content = JsonContent.Create(new
         {
             intent = "CAPTURE",
@@ -36,11 +38,12 @@ public class PayPalPaymentGateway(IHttpClientFactory httpClientFactory, IOptions
 
         using var client = CreateClient();
         using var response = await client.SendAsync(httpRequest, cancellationToken);
+
         _ = response.EnsureSuccessStatusCode();
+
         var order = await response.Content.ReadFromJsonAsync<PayPalOrder>(cancellationToken: cancellationToken)
             ?? throw new InvalidOperationException("PayPal returned an empty order response.");
 
-        // No client-secret concept in PayPal - the "approve" link is what a frontend redirects the payer to instead.
         var approveLink = order.Links?.FirstOrDefault(l => l.Rel == "approve")?.Href;
 
         return new PaymentIntentResult(order.Id, MapStatus(order.Status), approveLink);
@@ -55,19 +58,22 @@ public class PayPalPaymentGateway(IHttpClientFactory httpClientFactory, IOptions
 
         using var client = CreateClient();
         using var response = await client.SendAsync(httpRequest, cancellationToken);
+
         _ = response.EnsureSuccessStatusCode();
+
         var order = await response.Content.ReadFromJsonAsync<PayPalOrder>(cancellationToken: cancellationToken)
             ?? throw new InvalidOperationException("PayPal returned an empty order response.");
 
         return new PaymentStatusResult(order.Id, MapStatus(order.Status));
     }
 
-    /// <summary>Simplified: assumes providerPaymentId is an order that was fully captured under a single capture. A production version would need the capture id (returned when the order is captured), not the order id, to refund correctly.</summary>
+    /// <summary>Simplified: assumes a single full capture; production would need the capture id, not the order id, to refund correctly.</summary>
     public async Task<PaymentStatusResult> RefundAsync(string providerPaymentId, decimal? amount = null, CancellationToken cancellationToken = default)
     {
         var accessToken = await GetAccessTokenAsync(cancellationToken);
 
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"/v2/payments/captures/{providerPaymentId}/refund");
+
         httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
         if (amount.HasValue)
         {
@@ -76,16 +82,15 @@ public class PayPalPaymentGateway(IHttpClientFactory httpClientFactory, IOptions
 
         using var client = CreateClient();
         using var response = await client.SendAsync(httpRequest, cancellationToken);
+
         _ = response.EnsureSuccessStatusCode();
 
         return new PaymentStatusResult(providerPaymentId, PaymentStatuses.Refunded);
     }
 
+    /// <summary>Not implemented: PayPal verifies webhooks via a callback REST call needing the original request headers, which this interface doesn't carry.</summary>
     public async Task<PaymentWebhookEvent?> VerifyAndParseWebhookAsync(string rawBody, string? signatureHeader, CancellationToken cancellationToken = default)
     {
-        // PayPal verifies webhooks via a callback REST call (not a local HMAC check like Stripe) - it needs the
-        // original headers, which this interface doesn't carry through. Left unimplemented since PayPal isn't
-        // the active provider; wiring this properly means threading the raw HttpRequest headers down to here.
         await Task.CompletedTask;
         throw new NotSupportedException("PayPal webhook verification needs the original request headers - not implemented until PayPal is actually activated.");
     }
@@ -93,6 +98,7 @@ public class PayPalPaymentGateway(IHttpClientFactory httpClientFactory, IOptions
     private async Task<string> GetAccessTokenAsync(CancellationToken cancellationToken)
     {
         using var client = CreateClient();
+
         return await PayPalAuth.GetAccessTokenAsync(client, _options, cancellationToken);
     }
 
