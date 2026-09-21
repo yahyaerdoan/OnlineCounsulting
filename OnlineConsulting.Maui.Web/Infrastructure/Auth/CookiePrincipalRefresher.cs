@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authentication;
+﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using OnlineConsulting.Maui.Shared.Infrastructure.Api;
 using OnlineConsulting.Maui.Shared.Infrastructure.Auth;
@@ -8,15 +8,12 @@ using System.Security.Claims;
 
 namespace OnlineConsulting.Maui.Web.Infrastructure.Auth;
 
-/// <summary>Keeps the sign-in cookie's role/IsSuperAdmin claims in sync with the Api's refresh-token
-/// flow. RefreshTokenCommand already re-reads the user's roles from the database on every refresh -
-/// without this, that fresh access token gets used for Api calls but the cookie's own claims (what
-/// [Authorize(Roles=...)] and IsSuperAdmin() actually check) stay frozen at login-time values until
-/// the user manually signs out and back in.</summary>
+/// <summary>Keeps the sign-in cookie's role/IsSuperAdmin claims in sync with the Api's refresh-token flow, so they don't stay frozen at login-time values.</summary>
 public class CookiePrincipalRefresher(IHttpClientFactory httpClientFactory)
 {
     private static readonly TimeSpan RefreshBuffer = TimeSpan.FromSeconds(60);
 
+    /// <summary>Runs on each cookie validation; refreshes tokens and claims if near expiry, rejects the principal on failure.</summary>
     public async Task ValidateAsync(CookieValidatePrincipalContext context)
     {
         var principal = context.Principal;
@@ -42,6 +39,7 @@ public class CookiePrincipalRefresher(IHttpClientFactory httpClientFactory)
         if (!refreshResult.IsSuccessful || refreshResult.ResultData is null)
         {
             await RejectAsync(context);
+
             return;
         }
 
@@ -52,6 +50,7 @@ public class CookiePrincipalRefresher(IHttpClientFactory httpClientFactory)
         if (!userResult.IsSuccessful || userResult.ResultData is null)
         {
             await RejectAsync(context);
+
             return;
         }
 
@@ -70,6 +69,7 @@ public class CookiePrincipalRefresher(IHttpClientFactory httpClientFactory)
     private static async Task RejectAsync(CookieValidatePrincipalContext context)
     {
         context.RejectPrincipal();
+
         await context.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
     }
 }

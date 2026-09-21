@@ -41,22 +41,12 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.ExpireTimeSpan = TimeSpan.FromDays(14);
         options.SlidingExpiration = true;
 
-        // AccessDeniedPath defaulted to the login page - a signed-in user with the wrong role
-        // (e.g. an admin opening the Customer-only dashboard) landed back on the login form
-        // instead of just being sent home. This only fires for a fresh top-level request (the
-        // page component's own [Authorize] is also endpoint metadata, enforced here before Blazor
-        // even renders); an in-circuit SPA navigation never hits this and goes through
-        // RedirectToLogin.razor instead, which already does the right thing.
         options.Events.OnRedirectToAccessDenied = context =>
         {
             context.Response.Redirect("/");
             return Task.CompletedTask;
         };
 
-        // Runs on a real top-level request, before Blazor's circuit takes over - the one point
-        // where a cookie rewrite is possible. Keeps role/IsSuperAdmin claims fresh via the same
-        // refresh-token flow that already renews the Api access token, instead of leaving them
-        // frozen at login-time until the user manually signs out and back in.
         options.Events.OnValidatePrincipal = context =>
             context.HttpContext.RequestServices.GetRequiredService<CookiePrincipalRefresher>().ValidateAsync(context);
     });
@@ -81,6 +71,7 @@ if (!app.Environment.IsDevelopment())
     _ = app.UseExceptionHandler("/Error", createScopeForErrors: true);
     _ = app.UseHsts();
 }
+
 app.UseStatusCodePagesWithReExecute(AppRoutes.NotFound, createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
 
@@ -96,7 +87,6 @@ app.MapGet(AppRoutes.Logout, async context =>
     context.Response.Redirect($"{AppRoutes.Login}?goodbye={Guid.NewGuid():N}");
 });
 
-// App's own assembly is excluded here - already covered by MapRazorComponents<App>, else AddAdditionalAssemblies throws.
 var moduleRegistry = app.Services.GetRequiredService<UiModuleRegistry>();
 var additionalAssemblies = new[] { typeof(OnlineConsulting.Maui.Shared._Imports).Assembly }
     .Concat(moduleRegistry.AdditionalAssemblies)
