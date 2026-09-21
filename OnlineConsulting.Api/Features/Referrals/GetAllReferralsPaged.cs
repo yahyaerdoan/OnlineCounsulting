@@ -1,4 +1,4 @@
-using Core.PersistenceLayer.Dynamics.Dynamic;
+﻿using Core.PersistenceLayer.Dynamics.Dynamic;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
@@ -10,8 +10,7 @@ using PageRequest = Core.ApplicationLayer.Requests.Page.PageRequest;
 
 namespace OnlineConsulting.Api.Features.Referrals;
 
-/// <summary>Adds referrer/referred display names on top of the paged Application-layer response, same
-/// enrichment shape GetAllOrdersAdminPaged.cs already uses for the identical need.</summary>
+/// <summary>Adds referrer/referred display names on top of the paged Application-layer response - same enrichment shape GetAllOrdersAdminPaged.cs uses for the identical need.</summary>
 public record AdminReferralResponse(Guid Id, string Code, string Status, decimal? RewardAmount, DateTimeOffset? RewardedAt, Guid ReferrerUserId, string? ReferrerEmail, string? ReferrerName, Guid ReferredUserId, string? ReferredEmail, string? ReferredName);
 
 public class GetAllReferralsPaged : IEndpoint
@@ -22,18 +21,18 @@ public class GetAllReferralsPaged : IEndpoint
             .WithTags("Referrals")
             .RequireAuthorization()
             .WithName("GetAllReferralsPaged")
-            .WithDescription("Returns all referrals (Admin only), paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body, with referrer/referred display names.");
+            .WithDescription("Returns all referrals (Admin only), paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body, with referrer/referred display names. Loads all users unbounded for the referrer/referred join, not a paged listing of its own.");
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext, [AsParameters] ListQueryParameters query, [FromBody] DynamicQuery? dynamicQuery)
     {
         var referralsResult = await sender.Send(new GetAllReferralsPagedQuery(query.ToPageRequest(), dynamicQuery));
+
         if (!referralsResult.IsSuccessful || referralsResult.Data is null)
         {
             return referralsResult.ToEnvelopedResult(httpContext);
         }
 
-        // Unbounded - this is a lookup for every referral's parties, not a paged listing of its own.
         var usersResult = await sender.Send(new GetAllUsersQuery(new PageRequest { PageIndex = 0, PageSize = int.MaxValue }));
         var usersById = (usersResult.IsSuccessful ? usersResult.Data?.Items : null)?.ToDictionary(u => u.Id) ?? [];
 
@@ -41,7 +40,9 @@ public class GetAllReferralsPaged : IEndpoint
         {
             _ = usersById.TryGetValue(r.ReferrerUserId, out var referrer);
             _ = usersById.TryGetValue(r.ReferredUserId, out var referred);
+
             return new AdminReferralResponse(r.Id, r.Code, r.Status, r.RewardAmount, r.RewardedAt, r.ReferrerUserId, referrer?.Email, referrer?.UserName, r.ReferredUserId, referred?.Email, referred?.UserName);
+
         }).ToList();
 
         var response = new Core.PersistenceLayer.Pagings.Paging.Paginate<AdminReferralResponse>

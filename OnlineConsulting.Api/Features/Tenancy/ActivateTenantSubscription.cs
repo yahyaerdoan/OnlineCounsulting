@@ -9,7 +9,7 @@ using ResultHandler.Facade;
 
 namespace OnlineConsulting.Api.Features.Tenancy;
 
-/// <summary>Retries billing alone for a tenant already reserved and admin-created by SignUp.cs but not yet Active (its ActivateTenantSubscriptionCommand step failed, e.g. a Stripe error) - the original /api/tenancy/signup can't be resubmitted at that point since AdminEmail/AdminPassword no longer make sense once the user already exists. Authenticated: the tenant's own admin logs in (their account was created regardless of billing outcome) and calls this. TenantOwnershipGuard check happens here rather than inside ActivateTenantSubscriptionCommand itself, because that command is also sent anonymously from SignUp.cs's own internal orchestration (no JWT/tenant claim exists at that point) and so cannot itself depend on ITenantProvider - see ActivateTenantSubscriptionCommand's doc comment.</summary>
+/// <summary>Retries billing for a tenant SignUp.cs already created but couldn't activate (e.g. a Stripe error); the admin logs in and retries here since /signup can't be resubmitted once the user exists. Ownership is checked here, not in ActivateTenantSubscriptionCommand, because that command also runs anonymously from SignUp.cs's own orchestration with no JWT/tenant claim available.</summary>
 public record ActivateTenantSubscriptionRequest(string PaymentMethodId);
 
 public class ActivateTenantSubscription : IEndpoint
@@ -31,6 +31,7 @@ public class ActivateTenantSubscription : IEndpoint
         }
 
         var result = await sender.Send(new ActivateTenantSubscriptionCommand(tenantId, request.PaymentMethodId));
+
         return result.ToEnvelopedResult(httpContext);
     }
 }

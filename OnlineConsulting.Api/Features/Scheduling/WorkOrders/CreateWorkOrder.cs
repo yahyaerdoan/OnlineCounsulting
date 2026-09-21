@@ -7,25 +7,10 @@ using ResultHandler.AspNetCore.Extensions;
 
 namespace OnlineConsulting.Api.Features.Scheduling.WorkOrders;
 
-/// <summary>Wraps CreateWorkOrderCommand with an optional NewEquipment sub-request, so a technician who just installed something can record the work order and the equipment in one call instead of two (Equipment module's CreateEquipmentItem, then Scheduling's CreateWorkOrder with the returned id). Both modules stay decoupled - this orchestration lives in the Api layer, neither module's Application project references the other's.</summary>
-public record CreateWorkOrderRequest(
-    Guid AppointmentId,
-    Guid TechnicianUserId,
-    string? PartsUsed,
-    string? TechnicianNotes,
-    DateTimeOffset? CompletedAt,
-    Guid? EquipmentId,
-    NewEquipmentRequest? NewEquipment);
+/// <summary>Wraps CreateWorkOrderCommand with an optional NewEquipment sub-request so one call can record both; orchestration lives here to keep Equipment and Scheduling modules decoupled.</summary>
+public record CreateWorkOrderRequest(Guid AppointmentId, Guid TechnicianUserId, string? PartsUsed, string? TechnicianNotes, DateTimeOffset? CompletedAt, Guid? EquipmentId, NewEquipmentRequest? NewEquipment);
 
-public record NewEquipmentRequest(
-    Guid CustomerUserId,
-    string Type,
-    string? Brand,
-    string? Model,
-    string? SerialNumber,
-    DateTimeOffset? InstallDate,
-    DateTimeOffset? WarrantyExpiresAt,
-    string? Notes);
+public record NewEquipmentRequest(Guid CustomerUserId, string Type, string? Brand, string? Model, string? SerialNumber, DateTimeOffset? InstallDate, DateTimeOffset? WarrantyExpiresAt, string? Notes);
 
 public class CreateWorkOrder : IEndpoint
 {
@@ -45,9 +30,9 @@ public class CreateWorkOrder : IEndpoint
         if (equipmentId is null && request.NewEquipment is not null)
         {
             var newEquipment = request.NewEquipment;
-            var createEquipmentResult = await sender.Send(new CreateEquipmentItemCommand(
-                newEquipment.CustomerUserId, newEquipment.Type, newEquipment.Brand, newEquipment.Model,
-                newEquipment.SerialNumber, newEquipment.InstallDate, newEquipment.WarrantyExpiresAt, newEquipment.Notes));
+
+            var createEquipmentResult = await sender
+                .Send(new CreateEquipmentItemCommand(newEquipment.CustomerUserId, newEquipment.Type, newEquipment.Brand, newEquipment.Model, newEquipment.SerialNumber, newEquipment.InstallDate, newEquipment.WarrantyExpiresAt, newEquipment.Notes));
 
             if (!createEquipmentResult.IsSuccessful)
             {
@@ -58,7 +43,9 @@ public class CreateWorkOrder : IEndpoint
         }
 
         var command = new CreateWorkOrderCommand(request.AppointmentId, request.TechnicianUserId, request.PartsUsed, request.TechnicianNotes, request.CompletedAt, equipmentId);
+
         var result = await sender.Send(command);
+
         return result.ToEnvelopedResult(httpContext);
     }
 }

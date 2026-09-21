@@ -17,21 +17,22 @@ public class Login : IEndpoint
             .WithTags("Identity/Auth")
             .RequireRateLimiting(ServiceRegistration.AuthRateLimiterPolicy)
             .WithName("Login")
-            .WithDescription("Validates credentials and issues a JWT access token + refresh token.");
+            .WithDescription("Validates credentials and issues a JWT access token + refresh token. Also folds any guest-cookie basket into the user's basket, since the guest cookie is only meaningful while unauthenticated.");
     }
 
     private static async Task<IResult> Handle([FromBody] LoginCommand command, ISender sender, HttpContext httpContext, IGuestIdAccessor guestIdAccessor)
     {
         var result = await sender.Send(command);
+
         if (!result.IsSuccessful || result.Data is null)
         {
             return result.ToEnvelopedResult(httpContext);
         }
 
-        // Guest cookie is only meaningful while unauthenticated, so fold any guest basket into the user's basket now.
         if (guestIdAccessor.TryGetGuestId() is { } guestId)
         {
             _ = await sender.Send(new MergeGuestBasketCommand(result.Data.UserId, guestId));
+
             guestIdAccessor.ClearGuestId();
         }
 

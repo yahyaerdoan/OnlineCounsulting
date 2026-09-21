@@ -4,7 +4,7 @@ using OnlineConsulting.SharedKernel.Payments;
 
 namespace OnlineConsulting.Api.Features.Payments;
 
-/// <summary>One route for every subscription-capable provider - {provider} picks the keyed ISubscriptionGateway that knows how to verify that provider's own signature scheme. Separate from PaymentWebhook (one-time PaymentIntent events) since they're different interfaces/event vocabularies, even though today they're both served by Stripe.</summary>
+/// <summary>Separate from PaymentWebhook because subscription and one-time-payment events use different gateway interfaces/vocabularies, even though both are served by Stripe today.</summary>
 public class SubscriptionWebhook : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
@@ -12,22 +12,26 @@ public class SubscriptionWebhook : IEndpoint
         _ = app.MapPost("/api/payments/webhooks/{provider}/subscriptions", Handle)
             .WithTags("Payments")
             .WithName("SubscriptionWebhook")
-            .WithDescription("Receives async subscription-lifecycle callbacks (renewed/cancelled/payment failed) from a provider and notifies the owning module (Memberships) once verified.");
+            .WithDescription("Receives async subscription-lifecycle callbacks (renewed/cancelled/payment failed) from a provider and notifies the owning module (Memberships) once verified. Unrecognized/irrelevant event types are acknowledged with 200 OK so the provider stops retrying.");
     }
 
     private static async Task<IResult> Handle(string provider, HttpContext httpContext, IServiceProvider serviceProvider, IPublisher publisher, CancellationToken cancellationToken)
     {
         var gateway = serviceProvider.GetKeyedService<ISubscriptionGateway>(provider);
+
         if (gateway is null)
         {
             return Results.NotFound($"Unknown payment provider '{provider}'.");
         }
 
         using var reader = new StreamReader(httpContext.Request.Body);
+
         var rawBody = await reader.ReadToEndAsync(cancellationToken);
+
         var signatureHeader = httpContext.Request.Headers["Stripe-Signature"].FirstOrDefault();
 
         var webhookEvent = await gateway.VerifyAndParseWebhookAsync(rawBody, signatureHeader, cancellationToken);
+
         if (webhookEvent is null)
         {
             return Results.Ok();

@@ -1,4 +1,4 @@
-using Core.PersistenceLayer.Dynamics.Dynamic;
+﻿using Core.PersistenceLayer.Dynamics.Dynamic;
 using Core.PersistenceLayer.Pagings.Paging;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -21,25 +21,28 @@ public class GetAllOrdersAdminPaged : IEndpoint
             .WithTags("Commerce/Orders")
             .RequireAuthorization()
             .WithName("GetAllOrdersAdminPaged")
-            .WithDescription("Returns every user's orders (Super Admin only), paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body, with per-order totals and basic owner display info.");
+            .WithDescription("Returns every user's orders (Super Admin only), paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body, with per-order totals and basic owner display info. Loads all users unbounded for the owner-info join, not a paged listing of its own.");
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext, [AsParameters] ListQueryParameters query, [FromBody] DynamicQuery? dynamicQuery)
     {
         var ordersResult = await sender.Send(new GetAllOrdersAdminPagedQuery(query.ToPageRequest(), dynamicQuery));
+
         if (!ordersResult.IsSuccessful || ordersResult.Data is null)
         {
             return ordersResult.ToEnvelopedResult(httpContext);
         }
 
-        // Unbounded - this is a lookup for every order's owner, not a paged listing of its own.
         var usersResult = await sender.Send(new GetAllUsersQuery(new PageRequest { PageIndex = 0, PageSize = int.MaxValue }));
+
         var usersById = (usersResult.IsSuccessful ? usersResult.Data?.Items : null)?.ToDictionary(u => u.Id) ?? [];
 
         var responseItems = ordersResult.Data.Items.Select(o =>
         {
             _ = usersById.TryGetValue(o.UserId, out var user);
+
             return new AdminOrderResponse(o.Id, o.OrderNumber, o.OrderStatus, o.PaymentStatus, o.TotalPrice, o.CreatedDate, o.UserId, user?.Email, user?.UserName);
+
         }).ToList();
 
         var response = new Paginate<AdminOrderResponse>

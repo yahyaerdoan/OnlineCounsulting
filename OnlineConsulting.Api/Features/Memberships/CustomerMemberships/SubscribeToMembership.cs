@@ -18,21 +18,24 @@ public class SubscribeToMembership : IEndpoint
             .WithTags("Memberships/CustomerMemberships")
             .RequireAuthorization()
             .WithName("SubscribeToMembership")
-            .WithDescription("Subscribes the current user to a membership plan using an already-tokenized payment method id (e.g. from Stripe.js). CreditToApplyAmount, if given, is clamped to the user's referral-reward credit balance here and to the plan price by the handler, then applied as a one-time discount.");
+            .WithDescription("Subscribes the current user to a membership plan using an already-tokenized payment method id (e.g. from Stripe.js). CreditToApplyAmount, if given, is clamped to the user's referral-reward credit balance here and to the plan price by the handler, then applied as a one-time discount. Credit is spent only after the subscription succeeds, so a failed payment never burns the user's balance.");
     }
 
     private static async Task<IResult> Handle([FromBody] SubscribeToMembershipCommand command, ISender sender, HttpContext httpContext)
     {
         var currentUser = await sender.Send(new GetCurrentUserQuery());
+
         if (!currentUser.IsSuccessful || currentUser.Data is null)
         {
             return currentUser.ToEnvelopedResult(httpContext);
         }
 
         var requestedCreditAmount = 0m;
+
         if (command.CreditToApplyAmount is > 0)
         {
             var creditSummary = await sender.Send(new GetMyAccountCreditQuery(currentUser.Data.Id));
+
             if (!creditSummary.IsSuccessful || creditSummary.Data is null)
             {
                 return creditSummary.ToEnvelopedResult(httpContext);
@@ -50,12 +53,7 @@ public class SubscribeToMembership : IEndpoint
 
         if (result.IsSuccessful && result.Data is not null && result.Data.AppliedCreditAmount is > 0)
         {
-            _ = await sender.Send(new SpendAccountCreditCommand(
-                currentUser.Data.Id,
-                result.Data.AppliedCreditAmount.Value,
-                "Applied to membership subscription",
-                AccountCreditSourceTypes.MembershipDiscount,
-                result.Data.CustomerMembershipId));
+            _ = await sender.Send(new SpendAccountCreditCommand(currentUser.Data.Id, result.Data.AppliedCreditAmount.Value, "Applied to membership subscription", AccountCreditSourceTypes.MembershipDiscount, result.Data.CustomerMembershipId));
         }
 
         return result.ToEnvelopedResult(httpContext);

@@ -9,39 +9,52 @@ using MediatR;
 using Microsoft.AspNetCore.HttpOverrides;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Api.Configurations.Extensions;
-using OnlineConsulting.Api.Seeding;
 using OnlineConsulting.Modules.Categories.Application.Features.Constants;
 using OnlineConsulting.Modules.Categories.Infrastructure;
+using OnlineConsulting.Modules.Categories.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Commerce.Application.Common;
 using OnlineConsulting.Modules.Commerce.Infrastructure;
+using OnlineConsulting.Modules.Commerce.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Equipment.Application.Common;
 using OnlineConsulting.Modules.Equipment.Infrastructure;
+using OnlineConsulting.Modules.Equipment.Infrastructure.Persistence;
 using OnlineConsulting.Modules.FeatureFlags.Application.Features.Constants;
 using OnlineConsulting.Modules.FeatureFlags.Infrastructure;
+using OnlineConsulting.Modules.FeatureFlags.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Identity.Application.Features.Invites.Constants;
 using OnlineConsulting.Modules.Identity.Application.Features.Roles.Constants;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Constants;
 using OnlineConsulting.Modules.Identity.Infrastructure;
+using OnlineConsulting.Modules.Identity.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Identity.Infrastructure.Seeding;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Contact.Constants;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Messages.Constants;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.Constants;
 using OnlineConsulting.Modules.Inquiries.Infrastructure;
+using OnlineConsulting.Modules.Inquiries.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Media.Application.Features.Constants;
 using OnlineConsulting.Modules.Media.Infrastructure;
+using OnlineConsulting.Modules.Media.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Memberships.Application.Common;
 using OnlineConsulting.Modules.Memberships.Infrastructure;
+using OnlineConsulting.Modules.Memberships.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Referrals.Application.Common;
 using OnlineConsulting.Modules.Referrals.Infrastructure;
+using OnlineConsulting.Modules.Referrals.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Scheduling.Application.Common;
 using OnlineConsulting.Modules.Scheduling.Infrastructure;
 using OnlineConsulting.Modules.Scheduling.Infrastructure.Hubs;
+using OnlineConsulting.Modules.Scheduling.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Services.Application.Features.Constants;
 using OnlineConsulting.Modules.Services.Infrastructure;
+using OnlineConsulting.Modules.Services.Infrastructure.Persistence;
 using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Infrastructure;
+using OnlineConsulting.Modules.SiteContent.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Tenancy.Infrastructure;
+using OnlineConsulting.Modules.Tenancy.Infrastructure.Persistence;
 using OnlineConsulting.Notifications;
+using OnlineConsulting.Notifications.Persistence;
 using OnlineConsulting.Payments;
 using OnlineConsulting.ServiceDefaults;
 using OnlineConsulting.SharedKernel.Tenancy;
@@ -106,6 +119,7 @@ builder.Services.AddReferralsModule(builder.Configuration);
 builder.Services.AddEquipmentModule(builder.Configuration);
 builder.Services.AddTenancyModule(builder.Configuration);
 builder.Services.AddStorageInfrastructure(builder.Configuration);
+
 builder.Services.PostConfigure<StorageOptions>(options =>
 {
     if (string.IsNullOrEmpty(options.Local.RootPath))
@@ -113,8 +127,25 @@ builder.Services.PostConfigure<StorageOptions>(options =>
         options.Local.RootPath = Path.Combine(builder.Environment.WebRootPath, "media");
     }
 });
+
 builder.Services.AddNotificationsInfrastructure(builder.Configuration);
 builder.Services.AddPaymentsInfrastructure(builder.Configuration);
+
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<CategoriesDbContext>()
+    .AddDbContextCheck<CommerceDbContext>()
+    .AddDbContextCheck<EquipmentDbContext>()
+    .AddDbContextCheck<FeatureFlagsDbContext>()
+    .AddDbContextCheck<AppIdentityDbContext>()
+    .AddDbContextCheck<InquiriesDbContext>()
+    .AddDbContextCheck<MediaDbContext>()
+    .AddDbContextCheck<MembershipsDbContext>()
+    .AddDbContextCheck<ReferralsDbContext>()
+    .AddDbContextCheck<SchedulingDbContext>()
+    .AddDbContextCheck<ServicesDbContext>()
+    .AddDbContextCheck<SiteContentDbContext>()
+    .AddDbContextCheck<TenancyDbContext>()
+    .AddDbContextCheck<NotificationsDbContext>();
 
 builder.Services.AddApiServiceRegistration(builder.Environment);
 

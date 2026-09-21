@@ -8,20 +8,11 @@ using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Api.Seeding;
 
-/// <summary>
-/// Seeds the default tenant's HVAC service catalog (Category+Service), skipping any category whose
-/// title already exists so it's safe to run on every startup and won't duplicate or fight with
-/// categories an admin added by hand. Prices are placeholders (call-for-quote convention, common for HVAC
-/// trade work) for the tenant admin to fill in via the admin panel - this only establishes the
-/// Category/Service structure. Bypasses MediatR (same reasoning as RoleSeeder: no HttpContext exists
-/// at startup, so ISecureAddRequest authorization would reject every command) and writes directly
-/// through the repositories instead; TenantSaveChangesInterceptor still stamps TenantId from
-/// ITenantProvider, which falls back to TenantDefaults.DefaultTenantId with no HttpContext present.
-/// </summary>
+/// <summary>Seeds the default tenant's HVAC catalog, skipping existing category titles so it's safe on every startup; bypasses MediatR (same reasoning as RoleSeeder - no HttpContext at startup) and writes through repositories directly.</summary>
 public static class HvacCatalogSeeder
 {
-    private const string PlaceholderDetailedDescription = "Detailed pricing and scope for this service will be filled in by the tenant admin. This entry was created by the initial HVAC catalog seed.";
-    private const decimal PlaceholderPrice = 1m;
+    private const string _placeholderDetailedDescription = "Detailed pricing and scope for this service will be filled in by the tenant admin. This entry was created by the initial HVAC catalog seed.";
+    private const decimal _placeholderPrice = 1m;
 
     public static async Task SeedAsync(IServiceProvider services)
     {
@@ -44,12 +35,12 @@ public static class HvacCatalogSeeder
                 Description = categorySeed.Description,
                 Icon = categorySeed.Icon,
             };
+
             _ = await categoryRepository.AddAsync(category);
 
             foreach (var serviceTitle in categorySeed.ServiceTitles)
             {
-                var slug = await SlugGenerator.GenerateUniqueAsync(serviceTitle,
-                    candidate => serviceRepository.AnyAsync(s => s.Slug == candidate));
+                var slug = await SlugGenerator.GenerateUniqueAsync(serviceTitle, candidate => serviceRepository.AnyAsync(s => s.Slug == candidate));
 
                 var service = new Service
                 {
@@ -59,12 +50,12 @@ public static class HvacCatalogSeeder
                     Title = serviceTitle,
                     Slug = slug,
                     Description = $"{serviceTitle} services from a licensed, experienced HVAC team.",
-                    DetailedDescription = PlaceholderDetailedDescription,
-                    Price = PlaceholderPrice,
+                    DetailedDescription = _placeholderDetailedDescription,
+                    Price = _placeholderPrice,
                     FeaturedArea = false,
                     DiscountRate = 0,
                     TaxRate = 0,
-                    DiscountedPrice = ServicePriceCalculator.CalculateDiscountedPrice(PlaceholderPrice, discountRatePercent: 0),
+                    DiscountedPrice = ServicePriceCalculator.CalculateDiscountedPrice(_placeholderPrice, discountRatePercent: 0),
                     RequiresPrepayment = false,
                     IsEmergencyAvailable = categorySeed.EmergencyServiceTitles.Contains(serviceTitle),
                 };

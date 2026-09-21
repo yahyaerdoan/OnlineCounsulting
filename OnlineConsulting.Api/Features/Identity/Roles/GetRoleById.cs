@@ -29,8 +29,8 @@ public class GetRoleById : IEndpoint
 
     internal static Dictionary<string, Link> BuildLinks(HttpContext httpContext, LinkGenerator linkGenerator, Guid id)
         => httpContext.Links(linkGenerator)
-            .Add("self", "GetRoleById", "GET", new { id })
-            .Add("edit", "UpdateRole", "PUT", new { id })
-            .AddCustom("delete", "DeleteRole", "DELETE", new { id })
+            .Add("self", "GetRoleById", HttpMethods.Get, new { id })
+            .Add("edit", "UpdateRole", HttpMethods.Put, new { id })
+            .AddCustom("delete", "DeleteRole", HttpMethods.Delete, new { id })
             .Build();
 }

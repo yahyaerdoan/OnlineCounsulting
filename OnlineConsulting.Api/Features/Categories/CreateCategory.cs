@@ -17,10 +17,10 @@ public class CreateCategory : IEndpoint
             .WithDescription("Creates a new category for the current tenant.");
     }
 
-    private static async Task<IResult> Handle(
-        [FromBody] CreateCategoryCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] CreateCategoryCommand command, ISender sender, HttpContext httpContext)
     {
         var result = await sender.Send(command);
+
         return result.ToEnvelopedResult(httpContext);
     }
 }

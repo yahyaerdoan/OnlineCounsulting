@@ -35,6 +35,6 @@ public class GetSubscribers : IEndpoint
 
     internal static Dictionary<string, Link> BuildLinks(HttpContext httpContext, LinkGenerator linkGenerator, Guid id)
         => httpContext.Links(linkGenerator)
-            .AddCustom("delete", "Unsubscribe", "DELETE", new { id })
+            .AddCustom("delete", "Unsubscribe", HttpMethods.Delete, new { id })
             .Build();
 }

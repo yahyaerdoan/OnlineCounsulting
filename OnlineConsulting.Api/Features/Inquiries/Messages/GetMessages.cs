@@ -35,7 +35,7 @@ public class GetMessages : IEndpoint
 
     internal static Dictionary<string, Link> BuildLinks(HttpContext httpContext, LinkGenerator linkGenerator, Guid id)
         => httpContext.Links(linkGenerator)
-            .AddCustom("delete", "DeleteMessage", "DELETE", new { id })
-            .AddCustom("reply", "ReplyToMessage", "POST", new { id })
+            .AddCustom("delete", "DeleteMessage", HttpMethods.Delete, new { id })
+            .AddCustom("reply", "ReplyToMessage", HttpMethods.Post, new { id })
             .Build();
 }

@@ -11,23 +11,27 @@ public static class ServiceRegistration
     public const string AuthRateLimiterPolicy = "auth";
     public const string ReferralRedeemRateLimiterPolicy = "referral-redeem";
 
+    /// <summary>
+    /// Registers API-layer services. Authorization here is bare "must be logged in" - role/permission
+    /// policies and JWT wiring live in IdentityModule and AuthorizationAddingBehavior. Also registers the
+    /// file logger that backs ExceptionMiddleware (Program.cs) for unhandled-exception logging.
+    /// </summary>
     public static void AddApiServiceRegistration(this IServiceCollection services, IHostEnvironment environment)
     {
         _ = services.AddSharedKernel();
 
-        // Identity/JWT wiring and role/permission policies live in IdentityModule and AuthorizationAddingBehavior, so this only needs "must be logged in".
         _ = services.AddAuthorization();
+
         services.AddCors();
         services.AddApiOpenApi();
         services.AddApiRateLimiting(environment);
 
-        // Backs ExceptionMiddleware (Program.cs), which logs every unhandled exception before mapping it to a ProblemDetails response.
         _ = services.AddSingleton<BaseLoggerService, FileLogger>();
     }
 
+    /// <summary>Global limit is higher in Development so repeated dev reloads don't trip it within seconds.</summary>
     private static void AddApiRateLimiting(this IServiceCollection services, IHostEnvironment environment)
     {
-        // Higher limit locally - repeated dev reloads trip the production limit in seconds.
         var globalPermitLimit = environment.IsDevelopment() ? 2000 : 200;
 
         _ = services.AddRateLimiter(options =>
@@ -79,6 +83,7 @@ public static class ServiceRegistration
 
                 var components = document.Components ??= new OpenApiComponents();
                 var securitySchemes = components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
+
                 securitySchemes["Bearer"] = new OpenApiSecurityScheme
                 {
                     Name = "Authorization",
@@ -90,6 +95,7 @@ public static class ServiceRegistration
                 };
 
                 var security = document.Security ??= [];
+
                 security.Add(new OpenApiSecurityRequirement
                 {
                     [new OpenApiSecuritySchemeReference("Bearer", document)] = [],
@@ -97,6 +103,7 @@ public static class ServiceRegistration
 
                 return Task.CompletedTask;
             });
+
             _ = options.AddOperationTransformer<AuthorizeOperationTransformer>();
         });
     }

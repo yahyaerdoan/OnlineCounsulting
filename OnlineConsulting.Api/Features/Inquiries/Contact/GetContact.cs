@@ -28,7 +28,7 @@ public class GetContact : IEndpoint
 
     internal static Dictionary<string, Link> BuildLinks(HttpContext httpContext, LinkGenerator linkGenerator)
         => httpContext.Links(linkGenerator)
-            .Add("self", "GetContact", "GET")
-            .Add("edit", "UpdateContact", "PUT")
+            .Add("self", "GetContact", HttpMethods.Get)
+            .Add("edit", "UpdateContact", HttpMethods.Put)
             .Build();
 }

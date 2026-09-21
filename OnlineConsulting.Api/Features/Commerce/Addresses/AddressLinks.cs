@@ -8,9 +8,9 @@ internal static class AddressLinks
 {
     public static Dictionary<string, Link> Build(HttpContext httpContext, LinkGenerator linkGenerator, Guid id)
         => httpContext.Links(linkGenerator)
-            .Add("edit", "UpdateUserAddress", "PUT", new { id })
-            .AddCustom("delete", "DeleteUserAddress", "DELETE", new { id })
-            .AddCustom("set-shipping", "SetShippingAddress", "PUT", new { id })
-            .AddCustom("set-billing", "SetBillingAddress", "PUT", new { id })
+            .Add("edit", "UpdateUserAddress", HttpMethods.Put, new { id })
+            .AddCustom("delete", "DeleteUserAddress", HttpMethods.Delete, new { id })
+            .AddCustom("set-shipping", "SetShippingAddress", HttpMethods.Put, new { id })
+            .AddCustom("set-billing", "SetBillingAddress", HttpMethods.Put, new { id })
             .Build();
 }

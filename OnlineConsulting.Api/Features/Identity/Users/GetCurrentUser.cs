@@ -27,17 +27,18 @@ public class GetCurrentUser : IEndpoint
             .ToEnvelopedResult(httpContext);
     }
 
-    /// <summary>No "GetUserById" route exists, so "self" only applies to the caller's own record, not list entries.</summary>
+    /// <summary>includeSelf is true only for GetCurrentUser's own response; GetAllUsers list rows skip "self" since browsing another user isn't the caller viewing themselves.</summary>
     internal static Dictionary<string, Link> BuildLinks(HttpContext httpContext, LinkGenerator linkGenerator, Guid id, bool includeSelf)
     {
         var builder = httpContext.Links(linkGenerator);
         if (includeSelf)
         {
-            _ = builder.Add("self", "GetCurrentUser", "GET");
+            _ = builder.Add("self", "GetCurrentUser", HttpMethods.Get);
         }
+
         return builder
-            .AddCustom("assign-roles", "AssignRoleToUser", "PUT", new { id })
-            .AddCustom("delete", "DeleteUser", "DELETE", new { id })
+            .AddCustom("assign-roles", "AssignRoleToUser", HttpMethods.Put, new { id })
+            .AddCustom("delete", "DeleteUser", HttpMethods.Delete, new { id })
             .Build();
     }
 }

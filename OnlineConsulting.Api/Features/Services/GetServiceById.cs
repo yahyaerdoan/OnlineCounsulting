@@ -28,8 +28,8 @@ public class GetServiceById : IEndpoint
 
     internal static Dictionary<string, Link> BuildLinks(HttpContext httpContext, LinkGenerator linkGenerator, Guid id)
         => httpContext.Links(linkGenerator)
-            .Add("self", "GetServiceById", "GET", new { id })
-            .Add("edit", "UpdateService", "PUT", new { id })
-            .AddCustom("delete", "DeleteService", "DELETE", new { id })
+            .Add("self", "GetServiceById", HttpMethods.Get, new { id })
+            .Add("edit", "UpdateService", HttpMethods.Put, new { id })
+            .AddCustom("delete", "DeleteService", HttpMethods.Delete, new { id })
             .Build();
 }

@@ -12,17 +12,17 @@ public class GetAllUsers : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        // POST /query, not HTTP QUERY - Swagger can't document that verb.
         _ = app.MapPost("/api/users/query", Handle)
             .WithTags("Identity/Users")
             .RequireAuthorization()
             .WithName("GetAllUsers")
-            .WithDescription("Returns users, paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body.");
+            .WithDescription("Returns users, paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body. POST rather than HTTP QUERY, since Swagger can't document that verb.");
     }
 
     private static async Task<IResult> Handle(ISender sender, LinkGenerator linkGenerator, HttpContext httpContext, [AsParameters] ListQueryParameters query, [FromBody] DynamicQuery? dynamicQuery)
     {
         var result = await sender.Send(new GetAllUsersQuery(query.ToPageRequest(), dynamicQuery));
+
         return result
             .OnSuccess(page =>
             {

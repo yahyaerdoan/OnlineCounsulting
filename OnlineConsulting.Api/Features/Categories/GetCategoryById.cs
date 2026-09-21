@@ -28,8 +28,8 @@ public class GetCategoryById : IEndpoint
 
     internal static Dictionary<string, Link> BuildLinks(HttpContext httpContext, LinkGenerator linkGenerator, Guid id)
         => httpContext.Links(linkGenerator)
-            .Add("self", "GetCategoryById", "GET", new { id })
-            .Add("edit", "UpdateCategory", "PUT", new { id })
-            .AddCustom("delete", "DeleteCategory", "DELETE", new { id })
+            .Add("self", "GetCategoryById", HttpMethods.Get, new { id })
+            .Add("edit", "UpdateCategory", HttpMethods.Put, new { id })
+            .AddCustom("delete", "DeleteCategory", HttpMethods.Delete, new { id })
             .Build();
 }
