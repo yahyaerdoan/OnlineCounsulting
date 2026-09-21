@@ -4,5 +4,6 @@ public class InviteUserFormModel
 {
     public string Email { get; set; } = string.Empty;
 
-    public string RoleName { get; set; } = "Member"; // matches GlobalOperationClaims.Member on the API
+    /// <summary>Matches GlobalOperationClaims.Member on the API.</summary>
+    public string RoleName { get; set; } = "Member";
 }

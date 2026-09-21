@@ -1,4 +1,4 @@
-@* Mirrors the legacy footer (UserInterface's LayoutFooterTopArea* ViewComponents) - newsletter form
+﻿@* Mirrors the legacy footer (UserInterface's LayoutFooterTopArea* ViewComponents) - newsletter form
    posts for real to Inquiries.Newsletter.Subscribe, unlike the legacy action="#". *@
 @using OnlineConsulting.Maui.Shared.Infrastructure.Api
 @inject IApiClient ApiClient
@@ -137,6 +137,7 @@
         _isSubscribing = false;
 
         Snackbar.Add(result.DisplayMessage, result.IsSuccessful ? Severity.Success : Severity.Error);
+
         if (result.IsSuccessful)
         {
             _newsletterModel.Email = string.Empty;

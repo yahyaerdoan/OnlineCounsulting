@@ -1,4 +1,4 @@
-using MudBlazor;
+﻿using MudBlazor;
 using System.Reflection;
 
 namespace OnlineConsulting.Maui.Shared.Infrastructure.Icons;
@@ -29,6 +29,7 @@ public static class IconCatalog
         return map;
     }
 
+    /// <summary>Finds icon values by name substring, or the first page of all icons when term is empty.</summary>
     public static IReadOnlyList<string> Search(string? term, int maxResults = 50)
     {
         var matches = string.IsNullOrWhiteSpace(term)
@@ -42,9 +43,7 @@ public static class IconCatalog
     public static string NameOf(string? value) =>
         value is not null && NamesByValue.Value.TryGetValue(value, out var name) ? name : value ?? string.Empty;
 
-    /// <summary>Normalizes a stored Icon value for rendering - passes known SVG values through,
-    /// resolves a legacy dotted name (e.g. "Icons.Material.Filled.Hvac") to its real value, else
-    /// returns the input unchanged.</summary>
+    /// <summary>Normalizes a stored Icon value for rendering, resolving legacy dotted names (e.g. "Icons.Material.Filled.Hvac") to their real value.</summary>
     public static string Resolve(string? storedValue)
     {
         if (string.IsNullOrWhiteSpace(storedValue))
@@ -58,6 +57,7 @@ public static class IconCatalog
         }
 
         var name = storedValue[(storedValue.LastIndexOf('.') + 1)..];
+
         return ValuesByName.Value.TryGetValue(name, out var value) ? value : storedValue;
     }
 
@@ -74,6 +74,7 @@ public static class IconCatalog
         AddFieldsFrom(typeof(global::MudBlazor.Icons.Custom.Uncategorized), result);
 
         result.Sort((a, b) => string.CompareOrdinal(a.Name, b.Name));
+
         return result;
     }
 

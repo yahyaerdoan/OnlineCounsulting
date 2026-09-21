@@ -2,9 +2,7 @@
 
 namespace OnlineConsulting.Maui.Shared.Theme;
 
-/// <summary>Single source of truth for the admin app's look. Per-tenant palettes will later
-/// override just the PaletteLight/PaletteDark colors here (see ITenantThemeProvider), so keep
-/// every visual choice routed through this theme instead of ad-hoc component styling.</summary>
+/// <summary>Single source of truth for the admin app's look; per-tenant palettes will later override just the PaletteLight/PaletteDark colors here (see ITenantThemeProvider).</summary>
 public static class AppTheme
 {
     public static MudTheme Default { get; } = new()

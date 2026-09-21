@@ -8,9 +8,11 @@ public class TokenRefresher(IHttpClientFactory httpClientFactory, IAccessTokenPr
     private readonly SemaphoreSlim _lock = new(1, 1);
     private Task<TokenSet?>? _inFlight;
 
+    /// <returns>The refreshed token set, or null if the exchange failed.</returns>
     public async Task<TokenSet?> RefreshAsync(TokenSet current, CancellationToken cancellationToken)
     {
         await _lock.WaitAsync(cancellationToken);
+
         try
         {
             _inFlight ??= ExchangeAsync(current, cancellationToken);
@@ -37,7 +39,9 @@ public class TokenRefresher(IHttpClientFactory httpClientFactory, IAccessTokenPr
         }
 
         var refreshed = new TokenSet(result.ResultData.AccessToken, result.ResultData.RefreshToken, result.ResultData.AccessTokenExpiresAt);
+
         await tokenProvider.SetTokenSetAsync(refreshed);
+
         return refreshed;
     }
 }

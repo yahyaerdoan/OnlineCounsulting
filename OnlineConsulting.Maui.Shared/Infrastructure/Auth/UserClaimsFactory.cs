@@ -3,9 +3,7 @@ using System.Security.Claims;
 
 namespace OnlineConsulting.Maui.Shared.Infrastructure.Auth;
 
-/// <summary>Builds the base claim set from a CurrentUserResponse - identical on every host. Each
-/// host still appends its own host-specific claims on top (e.g. the Web host's cookie-carried
-/// access token), so this returns a list rather than a finished ClaimsIdentity.</summary>
+/// <summary>Builds the host-agnostic base claim set; returns a list, not a finished ClaimsIdentity, since each host appends its own claims on top.</summary>
 public static class UserClaimsFactory
 {
     public static List<Claim> BuildBaseClaims(CurrentUserResponse user) =>

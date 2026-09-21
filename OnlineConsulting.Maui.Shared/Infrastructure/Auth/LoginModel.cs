@@ -1,8 +1,6 @@
 namespace OnlineConsulting.Maui.Shared.Infrastructure.Auth;
 
-/// <summary>Shared login form model. RememberMe only affects the Web host's cookie persistence -
-/// the MAUI head ignores it. No DataAnnotations - the API's FluentValidation rules are the source
-/// of truth; the native "required" input attribute still covers a genuinely empty submit.</summary>
+/// <summary>RememberMe only affects Web's cookie persistence (MAUI ignores it); no DataAnnotations - the API's FluentValidation is the source of truth.</summary>
 public class LoginModel
 {
     public string UserNameOrEmail { get; set; } = string.Empty;

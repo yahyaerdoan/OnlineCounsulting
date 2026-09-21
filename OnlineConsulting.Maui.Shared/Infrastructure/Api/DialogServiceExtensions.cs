@@ -9,10 +9,11 @@ public static class DialogServiceExtensions
     /// <summary>The MaxWidth.Small/FullWidth shape every admin CRUD dialog uses.</summary>
     public static readonly DialogOptions SmallDialogOptions = new() { MaxWidth = MaxWidth.Small, FullWidth = true };
 
+    /// <summary>Shows a delete confirmation dialog; leaves YesText as the default "OK" since MudMessageBox already renders it Color.Primary.</summary>
     public static async Task<bool> ConfirmDeleteAsync(this IDialogService dialogService, string entityLabel, string itemName)
     {
-        // YesText defaults to "OK" - MudMessageBox already renders it Color.Primary.
         var confirmed = await dialogService.ShowMessageBoxAsync("Delete Confirmation", $"Delete {entityLabel} \"{itemName}\"? This cannot be undone.", cancelText: "Cancel");
+
         return confirmed == true;
     }
 
@@ -20,6 +21,7 @@ public static class DialogServiceExtensions
     public static async Task<bool> ConfirmAsync(this IDialogService dialogService, string title, string message)
     {
         var confirmed = await dialogService.ShowMessageBoxAsync(title, message, cancelText: "Cancel");
+
         return confirmed == true;
     }
 
@@ -37,6 +39,7 @@ public static class DialogServiceExtensions
     {
         var dialog = await showDialog;
         var result = await dialog.Result;
+
         if (result is { Canceled: false })
         {
             await reload();

@@ -23,13 +23,13 @@ public sealed class FormState<TModel> where TModel : class
         set;
     }
 
-    /// <summary>Call once in OnInitialized (not the constructor - form-bound models aren't set yet there).</summary>
+    /// <summary>Call once in OnInitialized (not the constructor - form-bound models aren't set yet there).
+    /// Clears stored field errors on revalidation, since nothing here recomputes them otherwise.</summary>
     public void Bind(TModel model)
     {
         EditContext = new EditContext(model);
         ValidationMessages = new ValidationMessageStore(EditContext);
 
-        // Validate() fails forever on stale field errors otherwise - nothing here revalidates them.
         EditContext.OnValidationRequested += (_, _) => ValidationMessages.Clear();
     }
 
@@ -43,6 +43,7 @@ public sealed class FormState<TModel> where TModel : class
     public void DisplayErrors(IApiResult result, ISnackbar snackbar)
     {
         var generalError = DisplayErrors(result);
+
         if (generalError is not null)
         {
             snackbar.ShowError(generalError);

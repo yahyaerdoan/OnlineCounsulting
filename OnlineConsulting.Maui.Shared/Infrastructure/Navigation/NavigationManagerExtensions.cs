@@ -10,6 +10,7 @@ public static class NavigationManagerExtensions
     public static string? WithoutQueryFlag(this NavigationManager navigation, string flag)
     {
         var marker = $"{flag}=true";
+
         return !navigation.Uri.Contains(marker, StringComparison.Ordinal)
             ? null
             : navigation.Uri
@@ -18,6 +19,7 @@ public static class NavigationManagerExtensions
             .Replace($"?{marker}", "", StringComparison.Ordinal);
     }
 
+    /// <summary>Navigates to the current URI with the marker removed, if it was present.</summary>
     public static void ClearQueryFlag(this NavigationManager navigation, string flag)
     {
         var cleanUri = navigation.WithoutQueryFlag(flag);
