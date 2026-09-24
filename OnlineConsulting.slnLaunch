@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "New Profile",
+    "Projects": [
+      {
+        "Path": "OnlineConsulting.AppHost\\OnlineConsulting.AppHost.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "OnlineConsulting.Maui\\OnlineConsulting.Maui.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

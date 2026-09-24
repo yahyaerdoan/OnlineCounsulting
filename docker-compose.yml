@@ -1,6 +1,0 @@
-services:
-  onlineconsulting.userinterface:
-    image: ${DOCKER_REGISTRY-}onlineconsultinguserinterface
-    build:
-      context: .
-      dockerfile: OnlineConsulting.UserInterface/Dockerfile
