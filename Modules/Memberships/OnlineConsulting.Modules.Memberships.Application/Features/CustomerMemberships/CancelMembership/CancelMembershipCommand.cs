@@ -9,11 +9,7 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.CancelMembership;
 
-/// <summary>Cancels at period end - the member keeps Active access/benefits through RenewalDate, the
-/// subscription stops renewing after that. Status only flips to Cancelled once the provider's webhook
-/// fires at the real period end (see OnSubscriptionCancelledHandler). UserId is always resolved
-/// server-side, never trusted from the client. AdminCancelMembershipCommand is the immediate-cancel
-/// admin override.</summary>
+/// <summary>Cancels at period end (status flips via webhook, see OnSubscriptionCancelledHandler); AdminCancelMembershipCommand is the immediate-cancel override.</summary>
 public record CancelMembershipCommand(Guid UserId) : IRequest<OperationResult>, ISecureAddRequest
 {
     [JsonIgnore]

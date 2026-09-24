@@ -16,7 +16,7 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Scheduling.Application.Features.WorkOrders.CreateWorkOrder;
 
-/// <summary>Recording a WorkOrder is what completes the Appointment - no separate "CompleteAppointment" command exists, since letting the two be updated independently risks a WorkOrder existing against an Appointment that's still Pending/Confirmed. Two SaveChanges (WorkOrder add + Appointment update) in one handler, hence ITransactionAddRequest.</summary>
+/// <summary>Recording a WorkOrder is what completes the Appointment - no separate CompleteAppointment command, so the two stay in sync; hence ITransactionAddRequest.</summary>
 public record CreateWorkOrderCommand(Guid AppointmentId, Guid TechnicianUserId, string? PartsUsed, string? TechnicianNotes, DateTimeOffset? CompletedAt, Guid? EquipmentId = null)
     : IRequest<OperationDataResult<Guid>>, ISecureAddRequest, ITransactionAddRequest
 {

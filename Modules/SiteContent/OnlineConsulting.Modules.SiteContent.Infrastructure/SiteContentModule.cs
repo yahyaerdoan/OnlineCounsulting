@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OnlineConsulting.Modules.SiteContent.Application;
+using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.AboutUss.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Application.Features.FaqItems.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Application.Features.FeatureHighlights.Abstractions;
@@ -29,13 +30,14 @@ using OnlineConsulting.Modules.SiteContent.Infrastructure.Repositories.Partnersh
 using OnlineConsulting.Modules.SiteContent.Infrastructure.Repositories.Service;
 using OnlineConsulting.SharedKernel.Auditing;
 using OnlineConsulting.SharedKernel.Authorization;
-using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.SiteContent.Infrastructure;
 
+/// <summary>DI composition root for the SiteContent module - registers its DbContext, repositories, MediatR handlers, validators, and operation claims.</summary>
 public static class SiteContentModule
 {
+    /// <summary>Wires up the SiteContent module's EF Core context, repositories, MediatR/FluentValidation, transaction pipeline, and default admin permissions.</summary>
     public static IServiceCollection AddSiteContentModule(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");

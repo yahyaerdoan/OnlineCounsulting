@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OnlineConsulting.Modules.Memberships.Application;
+using OnlineConsulting.Modules.Memberships.Application.Common;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Abstractions;
 using OnlineConsulting.Modules.Memberships.Application.Features.MembershipPlans.Abstractions;
 using OnlineConsulting.Modules.Memberships.Application.Features.PromoCodes.Abstractions;
@@ -11,7 +12,6 @@ using OnlineConsulting.Modules.Memberships.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Memberships.Infrastructure.Repositories;
 using OnlineConsulting.SharedKernel.Auditing;
 using OnlineConsulting.SharedKernel.Authorization;
-using OnlineConsulting.Modules.Memberships.Application.Common;
 using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Memberships.Infrastructure;

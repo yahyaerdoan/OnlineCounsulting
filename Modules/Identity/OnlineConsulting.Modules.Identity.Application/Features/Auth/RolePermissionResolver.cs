@@ -22,16 +22,14 @@ public static class RolePermissionResolver
             }
 
             var claims = await roleManager.GetClaimsAsync(role);
+
             permissions.AddRange(claims.Where(c => c.Type == PermissionClaimTypes.Type).Select(c => c.Value));
         }
 
         return [.. permissions.Distinct()];
     }
 
-    /// <summary>Removes any permission the user has individually denied (PermissionOverrideClaimTypes.Deny) from
-    /// their role-derived list - lets a tenant Owner narrow one team member without touching the shared role.
-    /// Never removes a bypass claim (FullAccess/TenantFullAccess/SuperAdmin) - those aren't "permissions" in the
-    /// catalog sense, and per-user denial only ever targets the actual catalog claims a role grants.</summary>
+    /// <summary>Strips individually-denied permissions from the role-derived list; bypass claims (FullAccess/SuperAdmin) are never denyable.</summary>
     public static async Task<List<string>> ApplyUserOverridesAsync(UserManager<User> userManager, User user, List<string> rolePermissions)
     {
         var deniedPermissions = (await userManager.GetClaimsAsync(user)).Where(c => c.Type == PermissionOverrideClaimTypes.Deny).Select(c => c.Value).ToHashSet();
@@ -39,9 +37,7 @@ public static class RolePermissionResolver
         return deniedPermissions.Count == 0 ? rolePermissions : [.. rolePermissions.Where(p => !deniedPermissions.Contains(p))];
     }
 
-    /// <summary>Replaces bypass claims (FullAccess/SuperAdmin) with the full permission catalog for display, so API
-    /// responses show what a bypass actually grants instead of the opaque flag itself. Authorization checks never
-    /// call this - they keep matching the raw bypass claim.</summary>
+    /// <summary>Expands bypass claims to the full catalog for display only - authorization checks still match the raw claim.</summary>
     public static List<string> ExpandForDisplay(List<string> permissions, IPermissionCatalog permissionCatalog) =>
         permissions.Contains(PermissionClaimTypes.FullAccess) || permissions.Contains(GlobalOperationClaims.SuperAdmin)
             ? [.. permissionCatalog.AllPermissions]

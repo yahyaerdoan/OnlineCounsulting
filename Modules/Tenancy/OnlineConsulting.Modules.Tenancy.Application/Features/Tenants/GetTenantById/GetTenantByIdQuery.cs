@@ -19,7 +19,7 @@ public record GetTenantByIdQuery(Guid TenantId) : IRequest<OperationDataResult<T
     [JsonIgnore]
     public string[] Roles => [GlobalOperationClaims.SuperAdmin];
 
-    // Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.
+    /// <summary>Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.</summary>
     [JsonIgnore]
     public bool AllowTenantBypass => false;
 }
@@ -40,7 +40,7 @@ public class GetTenantByIdHandler(ITenantRepository tenantRepository, ITenantSub
 
         var items = subscription is null
             ? []
-            : (await tenantSubscriptionItemRepository.GetListAsync(i => i.TenantSubscriptionId == subscription.Id, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken)).Items.ToList();
+            : (await tenantSubscriptionItemRepository.GetListAsync(i => i.TenantSubscriptionId == subscription.Id, orderBy: q => q.OrderBy(i => i.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken)).Items.ToList();
 
         return Result.Success(TenantDetailResponse.FromDomain(tenant, subscription, items), "Tenant retrieved successfully.");
     }

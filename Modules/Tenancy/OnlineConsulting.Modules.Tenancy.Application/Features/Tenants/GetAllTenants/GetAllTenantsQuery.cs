@@ -15,13 +15,13 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.GetAllTenants;
 
-/// <summary>Platform-owner dashboard listing of every tenant, SuperAdmin only. Active modules and total active price are derived from each tenant's non-cancelled TenantSubscription and its non-removed TenantSubscriptionItem rows - a small per-page join rather than a new repository method, since ITenantSubscriptionRepository/ITenantSubscriptionItemRepository can already filter by a set of tenant/subscription ids.</summary>
+/// <summary>Platform-owner dashboard listing of every tenant, SuperAdmin only - active modules/price are derived via a per-page join over non-cancelled subscriptions rather than a new repository method.</summary>
 public record GetAllTenantsQuery(PageRequest PageRequest) : IRequest<OperationDataResult<Paginate<TenantSummaryResponse>>>, ISecureAddRequest
 {
     [JsonIgnore]
     public string[] Roles => [GlobalOperationClaims.SuperAdmin];
 
-    // Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.
+    /// <summary>Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.</summary>
     [JsonIgnore]
     public bool AllowTenantBypass => false;
 }
@@ -31,7 +31,7 @@ public class GetAllTenantsHandler(ITenantRepository tenantRepository, ITenantSub
 {
     public async Task<OperationDataResult<Paginate<TenantSummaryResponse>>> Handle(GetAllTenantsQuery request, CancellationToken cancellationToken)
     {
-        var tenants = await tenantRepository.GetListAsync(index: request.PageRequest.PageIndex, size: request.PageRequest.PageSize, cancellationToken: cancellationToken);
+        var tenants = await tenantRepository.GetListAsync(orderBy: q => q.OrderBy(t => t.Id), index: request.PageRequest.PageIndex, size: request.PageRequest.PageSize, cancellationToken: cancellationToken);
 
         if (tenants.Items.Count == 0)
         {
@@ -48,13 +48,13 @@ public class GetAllTenantsHandler(ITenantRepository tenantRepository, ITenantSub
         var tenantIds = tenants.Items.Select(t => t.Id).ToList();
 
         var subscriptions = await tenantSubscriptionRepository
-            .GetListAsync(s => tenantIds.Contains(s.TenantId) && s.Status != TenantSubscriptionStatuses.Cancelled, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+            .GetListAsync(s => tenantIds.Contains(s.TenantId) && s.Status != TenantSubscriptionStatuses.Cancelled, orderBy: q => q.OrderBy(s => s.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
 
         var subscriptionIdsByTenantId = subscriptions.Items.ToDictionary(s => s.Id, s => s.TenantId);
         var subscriptionIds = subscriptionIdsByTenantId.Keys.ToList();
 
         var items = await tenantSubscriptionItemRepository
-            .GetListAsync(i => subscriptionIds.Contains(i.TenantSubscriptionId) && i.Status == TenantSubscriptionItemStatuses.Active, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+            .GetListAsync(i => subscriptionIds.Contains(i.TenantSubscriptionId) && i.Status == TenantSubscriptionItemStatuses.Active, orderBy: q => q.OrderBy(i => i.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
 
         var itemsByTenantId = items.Items.GroupBy(i => subscriptionIdsByTenantId[i.TenantSubscriptionId]).ToDictionary(g => g.Key, g => g.ToList());
 

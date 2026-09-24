@@ -13,6 +13,7 @@ using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.SiteContent.Application.Features.Partnerships.GetAllPartnershipsPaged;
 
+/// <summary>Paged counterpart to GetAllPartnershipsQuery - same "Partnerships" feature-flag gate, returns an empty page instead of the full list when disabled.</summary>
 public record GetAllPartnershipsPagedQuery(PageRequest PageRequest, DynamicQuery? DynamicQuery = null) : IRequest<OperationDataResult<Paginate<PartnershipResponse>>>;
 
 public class GetAllPartnershipsPagedHandler(IPartnershipRepository partnershipRepository, IPartnershipSocialLinkRepository socialLinkRepository, IFeatureFlagReader featureFlagReader)
@@ -30,7 +31,7 @@ public class GetAllPartnershipsPagedHandler(IPartnershipRepository partnershipRe
         var paged = await partnershipRepository.Query().ToDynamicPaginateAsync(request.PageRequest, request.DynamicQuery, defaultOrderBy: x => x.DisplayOrder, tieBreaker: x => x.Id, cancellationToken);
 
         var partnershipIds = paged.Items.Select(x => x.Id).ToHashSet();
-        var socialLinks = await socialLinkRepository.GetListAsync(x => partnershipIds.Contains(x.PartnershipId), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+        var socialLinks = await socialLinkRepository.GetListAsync(x => partnershipIds.Contains(x.PartnershipId), orderBy: q => q.OrderBy(x => x.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
         var socialLinksByPartnershipId = socialLinks.Items.ToLookup(x => x.PartnershipId);
 
         var response = new Paginate<PartnershipResponse>

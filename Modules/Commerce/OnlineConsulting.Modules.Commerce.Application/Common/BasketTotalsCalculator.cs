@@ -16,7 +16,7 @@ public static class BasketTotalsCalculator
     /// <summary>Reloads a basket's items, recomputes its totals, and saves it - call after any basket item write.</summary>
     public static async Task RecalculateAndSaveAsync(Basket basket, IBasketItemRepository basketItemRepository, IBasketRepository basketRepository, CancellationToken cancellationToken)
     {
-        var items = await basketItemRepository.GetListAsync(i => i.BasketId == basket.Id, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+        var items = await basketItemRepository.GetListAsync(i => i.BasketId == basket.Id, orderBy: q => q.OrderBy(i => i.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
         (basket.Quantity, basket.SubTotalPrice, basket.TotalPrice) = Calculate(items.Items);
         _ = await basketRepository.UpdateAsync(basket);
     }

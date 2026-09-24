@@ -32,16 +32,11 @@ public class RefreshTokenService(IRefreshTokenRepository repository, IJwtTokenHe
         return (refreshToken.RawToken, refreshToken.Expires);
     }
 
+    /// <summary>Validates a refresh token using a constant-time hash compare, to avoid a timing side-channel.</summary>
     public async Task<bool> ValidateAsync(User user, string rawToken, CancellationToken cancellationToken = default)
     {
         var stored = await repository.GetAsync(rt => rt.UserId == user.Id, cancellationToken: cancellationToken);
 
-        if (stored is null || stored.ExpiresAt < DateTime.UtcNow)
-        {
-            return false;
-        }
-
-        // Constant-time compare to avoid a timing side-channel - Core.SecurityLayer only provides the hash.
-        return CryptographicOperations.FixedTimeEquals(Convert.FromHexString(TokenHashingHelper.Hash(rawToken)), Convert.FromHexString(stored.TokenHash));
+        return stored is not null && stored.ExpiresAt >= DateTime.UtcNow && CryptographicOperations.FixedTimeEquals(Convert.FromHexString(TokenHashingHelper.Hash(rawToken)), Convert.FromHexString(stored.TokenHash));
     }
 }

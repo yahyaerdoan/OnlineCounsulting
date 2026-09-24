@@ -10,6 +10,6 @@ public class AboutUs : SequentialGuidTenantEntity
     public string? VideoUrl { get; set; }
     public int DisplayOrder { get; set; }
 
-    /// <summary>Free-form JSON for template-specific extras (CTA text/link, extra styling, etc.) that don't need their own column - keeps this entity from needing a new migration every time a different UI template wants a different field.</summary>
+    /// <summary>Free-form JSON for template-specific extras, so a new field doesn't need its own migration.</summary>
     public string? Metadata { get; set; }
 }

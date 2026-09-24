@@ -17,7 +17,7 @@ public record UpdateBundleCommand(Guid Id, string Name, List<string> ModuleKeys,
     [JsonIgnore]
     public string[] Roles => [GlobalOperationClaims.SuperAdmin];
 
-    // Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.
+    /// <summary>Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.</summary>
     [JsonIgnore]
     public bool AllowTenantBypass => false;
 }
@@ -36,7 +36,7 @@ public class UpdateBundleHandler(IBundleRepository repository, IModuleOfferingRe
         var moduleKeys = request.ModuleKeys.Distinct().ToList();
 
         var existingKeys = (await moduleOfferingRepository
-            .GetListAsync(m => moduleKeys.Contains(m.Key), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken))
+            .GetListAsync(m => moduleKeys.Contains(m.Key), orderBy: q => q.OrderBy(m => m.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken))
             .Items.Select(m => m.Key).ToHashSet();
 
         var unknownKeys = moduleKeys.Where(k => !existingKeys.Contains(k)).ToList();

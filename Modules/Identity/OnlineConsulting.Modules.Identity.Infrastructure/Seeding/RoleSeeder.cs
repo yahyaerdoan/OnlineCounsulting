@@ -11,7 +11,13 @@ public static class RoleSeeder
 {
     private static readonly string[] _roles = [GeneralOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, GlobalOperationClaims.Member, GlobalOperationClaims.User];
 
-    /// <summary>Ensures the built-in roles exist and hold their baseline permission claims.</summary>
+    /// <summary>
+    /// Ensures the built-in roles exist and hold their baseline permission claims. Super Admin gets
+    /// FullAccess (not its own role name as a claim - role membership already satisfies every Roles[]
+    /// check). Admin gets each module's own default grant (<see cref="IDefaultAdminPermissions"/>) instead
+    /// of a coarse bypass, so unregistered modules stay out of its reach; any leftover coarse bypass claim
+    /// from before that change is revoked.
+    /// </summary>
     public static async Task SeedAsync(IServiceProvider services)
     {
         using var scope = services.CreateScope();
@@ -25,20 +31,13 @@ public static class RoleSeeder
             }
         }
 
-        // No need to also grant SuperAdmin its own role name as a permission claim - role membership already
-        // satisfies every Roles[] check, and FullAccess already bypasses everything else.
         await GrantPermissionAsync(roleManager, GlobalOperationClaims.SuperAdmin, PermissionClaimTypes.FullAccess);
 
-        // Admin gets each module's own default grant (see IDefaultAdminPermissions) instead of a coarse
-        // bypass - every module registers its own claims, so Identity never references other modules'
-        // Application layers. A module with no registration (Tenancy, Identity's own Roles claims) stays
-        // out of Admin's reach - see GlobalOperationClaims.SuperAdmin's doc comment for why.
         foreach (var permission in scope.ServiceProvider.GetServices<IDefaultAdminPermissions>().SelectMany(p => p.Permissions).Distinct())
         {
             await GrantPermissionAsync(roleManager, GeneralOperationClaims.Admin, permission);
         }
 
-        // One-time cleanup: Admin used to hold a coarse bypass claim - no longer granted, so drop any leftover.
         await RevokePermissionAsync(roleManager, GeneralOperationClaims.Admin, PermissionClaimTypes.FullAccess);
         await RevokePermissionAsync(roleManager, GeneralOperationClaims.Admin, PermissionClaimTypes.TenantFullAccess);
     }

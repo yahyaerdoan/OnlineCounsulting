@@ -23,7 +23,7 @@ public class ClearBasketHandler(IBasketRepository basketRepository, IBasketItemR
             return BasketBusinessRules.BasketNotFound();
         }
 
-        var items = await basketItemRepository.GetListAsync(i => i.BasketId == basket.Id, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+        var items = await basketItemRepository.GetListAsync(i => i.BasketId == basket.Id, orderBy: q => q.OrderBy(i => i.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
         foreach (var item in items.Items)
         {
             _ = await basketItemRepository.DeleteAsync(item);

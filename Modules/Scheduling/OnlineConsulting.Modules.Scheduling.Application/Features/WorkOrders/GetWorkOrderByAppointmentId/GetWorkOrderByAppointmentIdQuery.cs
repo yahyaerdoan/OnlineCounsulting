@@ -21,7 +21,7 @@ public class GetWorkOrderByAppointmentIdHandler(IWorkOrderRepository workOrderRe
             return WorkOrderBusinessRules.WorkOrderNotFoundForAppointment(request.AppointmentId).ToErrorDataResult<WorkOrderResponse>();
         }
 
-        var mediaItems = await mediaItemRepository.GetListAsync(m => m.WorkOrderId == workOrder.Id, size: 100, cancellationToken: cancellationToken);
+        var mediaItems = await mediaItemRepository.GetListAsync(m => m.WorkOrderId == workOrder.Id, orderBy: q => q.OrderBy(m => m.Id), size: 100, cancellationToken: cancellationToken);
 
         return Result.Success(WorkOrderResponse.FromDomain(workOrder, mediaItems.Items), "Work order retrieved successfully.");
     }

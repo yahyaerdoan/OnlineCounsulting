@@ -5,7 +5,7 @@ using OnlineConsulting.SharedKernel.Payments;
 
 namespace OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.OnSubscriptionRenewed;
 
-/// <summary>ReferenceId is opaque to the webhook - only handled here because SubscribeToMembershipHandler set CreateSubscriptionRequest.ReferenceId to a CustomerMembership id, so it round-trips to a lookup by Id, not ProviderSubscriptionId.</summary>
+/// <summary>ReferenceId round-trips the CustomerMembership id set by SubscribeToMembershipHandler, so lookup is by Id, not ProviderSubscriptionId.</summary>
 public class OnSubscriptionRenewedHandler(ICustomerMembershipRepository repository) : INotificationHandler<SubscriptionRenewedNotification>
 {
     public async Task Handle(SubscriptionRenewedNotification notification, CancellationToken cancellationToken)

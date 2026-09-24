@@ -12,7 +12,7 @@ using OrderPaymentStatuses = OnlineConsulting.Modules.Commerce.Application.Featu
 
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Orders.RefundOrder;
 
-/// <summary>Amount null means a full refund (IPaymentGateway.RefundAsync convention). Resolves the gateway keyed by Order.PaymentProvider - not the app's currently-active provider, which may differ from whichever one actually processed this order (same routing precedent as the webhook endpoint).</summary>
+/// <summary>Amount null means a full refund; gateway is resolved by Order.PaymentProvider, not the app's currently-active provider, since they may differ.</summary>
 public record RefundOrderCommand(Guid OrderId, decimal? Amount = null) : IRequest<OperationResult>, ISecureAddRequest
 {
     [JsonIgnore]
@@ -24,6 +24,7 @@ public class RefundOrderHandler(IOrderRepository orderRepository, IServiceProvid
     public async Task<OperationResult> Handle(RefundOrderCommand request, CancellationToken cancellationToken)
     {
         var order = await orderRepository.GetAsync(o => o.Id == request.OrderId, cancellationToken: cancellationToken);
+
         if (order is null)
         {
             return Result.NotFound($"Order {request.OrderId} was not found.");
@@ -40,19 +41,22 @@ public class RefundOrderHandler(IOrderRepository orderRepository, IServiceProvid
         }
 
         var gateway = serviceProvider.GetKeyedService<IPaymentGateway>(order.PaymentProvider);
+
         if (gateway is null)
         {
             return Result.BadRequest($"Unknown payment provider '{order.PaymentProvider}' - cannot route the refund.");
         }
 
-        var failure = await PaymentGatewayCall.RunAsync(() => gateway.RefundAsync(order.ProviderPaymentId, request.Amount, cancellationToken),
-            $"Refund failed for order {request.OrderId}. Please try again or contact support.");
+        var failure = await PaymentGatewayCall.RunAsync(() =>
+        gateway.RefundAsync(order.ProviderPaymentId, request.Amount, cancellationToken), $"Refund failed for order {request.OrderId}. Please try again or contact support.");
+
         if (failure is not null)
         {
             return failure;
         }
 
         order.PaymentStatus = OrderPaymentStatuses.Refunded;
+
         _ = await orderRepository.UpdateAsync(order);
 
         return Result.Success("Order refunded successfully.");

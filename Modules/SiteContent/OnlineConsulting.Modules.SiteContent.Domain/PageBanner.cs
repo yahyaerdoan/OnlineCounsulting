@@ -2,7 +2,7 @@ using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.SiteContent.Domain;
 
-/// <summary>Renamed from the legacy Breadcrumb - the original name was a misnomer: this isn't a navigation breadcrumb trail, it's the title/description/background-image banner shown at the top of interior pages (confirmed against LayoutBredcrumbComponentPartial's actual usage).</summary>
+/// <summary>Renamed from the legacy Breadcrumb, a misnomer - this is the title/description/image banner atop interior pages, not a nav trail.</summary>
 public class PageBanner : SequentialGuidTenantEntity
 {
     public required string Title { get; set; }

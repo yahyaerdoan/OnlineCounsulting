@@ -10,13 +10,13 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.SuspendTenant;
 
-/// <summary>Platform-owner action: blocks a tenant's users from every protected endpoint (see TenantStatusCheckBehavior, which the SuperAdmin caller of this very command is itself exempt from). Only Active/PastDue tenants may be suspended - a PendingPayment/Failed/Cancelled tenant was never live to begin with.</summary>
+/// <summary>Platform-owner action: blocks a tenant's users from every protected endpoint (see TenantStatusCheckBehavior, which exempts the SuperAdmin caller). Only Active/PastDue tenants can be suspended.</summary>
 public record SuspendTenantCommand(Guid TenantId) : IRequest<OperationResult>, ISecureAddRequest
 {
     [JsonIgnore]
     public string[] Roles => [GlobalOperationClaims.SuperAdmin];
 
-    // Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.
+    /// <summary>Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.</summary>
     [JsonIgnore]
     public bool AllowTenantBypass => false;
 }

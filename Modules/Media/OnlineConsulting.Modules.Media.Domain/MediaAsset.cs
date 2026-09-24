@@ -2,7 +2,7 @@ using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Media.Domain;
 
-/// <summary>A real uploaded file (photo, not an icon - icons are a plain MudBlazor value string directly on whichever entity displays one). Uploaded once, referenced by plain id (MediaAssetId) from any module that needs to show an image - Service cover photo, GalleryItem, HeroSlide, etc.</summary>
+/// <summary>An uploaded file, not an icon (icons are a plain MudBlazor string) - uploaded once, referenced by plain id from any module that needs an image.</summary>
 public class MediaAsset : SequentialGuidTenantEntity
 {
     public required string Url { get; set; }

@@ -14,7 +14,7 @@ using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.Signup;
 
-/// <summary>First half of self-service tenant signup - public, no auth. Creates/reuses the Tenant and its PendingPayment items, no billing yet. Split out so signup can run the free email-uniqueness check before the irreversible Stripe charge.</summary>
+/// <summary>First half of self-service signup, public/no-auth - creates/reuses the Tenant + PendingPayment items so the free email-uniqueness check runs before the irreversible Stripe charge.</summary>
 public record ReserveTenantCommand(string CompanyName, List<string> ModuleKeys, string AdminEmail) : IRequest<OperationDataResult<ReserveTenantResult>>, ITransactionAddRequest;
 
 public record ReserveTenantResult(Guid TenantId);
@@ -31,7 +31,7 @@ public class ReserveTenantHandler(ITenantRepository tenantRepository, ITenantSub
             return Result.BadRequest<ReserveTenantResult>(SignupMessages.MultipleModulesNotSupportedByProvider);
         }
 
-        var offerings = await moduleOfferingRepository.GetListAsync(predicate: m => requestedKeys.Contains(m.Key) && m.IsPubliclyVisible, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+        var offerings = await moduleOfferingRepository.GetListAsync(predicate: m => requestedKeys.Contains(m.Key) && m.IsPubliclyVisible, orderBy: q => q.OrderBy(m => m.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
 
         var offeringsByKey = offerings.Items.ToDictionary(m => m.Key);
 
@@ -98,7 +98,7 @@ public class ReserveTenantHandler(ITenantRepository tenantRepository, ITenantSub
                 ?? throw new InvalidOperationException($"Tenant {tenant.Id} is pending/failed but has no TenantSubscription row.");
 
             var existingItemsPage = await tenantSubscriptionItemRepository
-                .GetListAsync(predicate: i => i.TenantSubscriptionId == tenantSubscription.Id, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+                .GetListAsync(predicate: i => i.TenantSubscriptionId == tenantSubscription.Id, orderBy: q => q.OrderBy(i => i.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
 
             existingItems = [.. existingItemsPage.Items];
         }

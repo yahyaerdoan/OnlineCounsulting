@@ -36,7 +36,13 @@ namespace OnlineConsulting.Modules.Identity.Infrastructure;
 
 public static class IdentityModule
 {
-    /// <summary>Host-agnostic wiring, used by both Api and UserInterface. Leaves auth scheme as cookie (Identity's default) - call <see cref="AddIdentityModuleJwtBearer"/> too for JWT bearer hosts.</summary>
+    /// <summary>
+    /// Host-agnostic wiring, used by both Api and UserInterface. Leaves auth scheme as cookie (Identity's
+    /// default) - call <see cref="AddIdentityModuleJwtBearer"/> too for JWT bearer hosts. ASP.NET Identity's
+    /// own password floor is deliberately loose; the real policy lives in FluentValidation validators
+    /// (e.g. RegisterValidator). Registers default Admin permissions per-module (Users, Invites) rather than
+    /// a coarse bypass - Roles is deliberately excluded since it isn't tenant-scoped and stays Super Admin-only.
+    /// </summary>
     public static IServiceCollection AddIdentityModule(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
@@ -75,8 +81,6 @@ public static class IdentityModule
         _ = services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
         _ = services.AddTransient(typeof(IPipelineBehavior<,>), typeof(IdentityTransactionAddingBehavior<,>));
 
-        // Users/Invites are tenant-scoped, safe for a tenant Admin to self-manage. Roles is deliberately
-        // excluded - Role isn't tenant-scoped, so its definition/permissions stay Super Admin-only.
         _ = services.AddSingleton<IDefaultAdminPermissions>(new DefaultAdminPermissions(UsersOperationClaims.All));
         _ = services.AddSingleton<IDefaultAdminPermissions>(new DefaultAdminPermissions(InvitesOperationClaims.All));
 

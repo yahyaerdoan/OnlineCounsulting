@@ -14,14 +14,14 @@ public class GetOrdersHandler(IOrderRepository orderRepository, IOrderItemReposi
 {
     public async Task<OperationDataResult<List<OrderResponse>>> Handle(GetOrdersQuery request, CancellationToken cancellationToken)
     {
-        var orders = await orderRepository.GetListAsync(o => o.UserId == request.UserId, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+        var orders = await orderRepository.GetListAsync(o => o.UserId == request.UserId, orderBy: q => q.OrderBy(o => o.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
         if (orders.Items.Count == 0)
         {
             return Result.Success(new List<OrderResponse>(), "No orders found for this user.");
         }
 
         var orderIds = orders.Items.Select(o => o.Id).ToList();
-        var items = await orderItemRepository.GetListAsync(i => orderIds.Contains(i.OrderId), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+        var items = await orderItemRepository.GetListAsync(i => orderIds.Contains(i.OrderId), orderBy: q => q.OrderBy(i => i.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
         var totalsByOrderId = items.Items.GroupBy(i => i.OrderId).ToDictionary(g => g.Key, g => g.Sum(i => i.TotalPrice));
 
         List<OrderResponse> responses = [.. orders.Items.Select(o => OrderResponse.FromDomain(o, totalsByOrderId.GetValueOrDefault(o.Id)))];

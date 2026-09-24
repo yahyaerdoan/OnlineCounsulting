@@ -7,6 +7,7 @@ using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.SiteContent.Infrastructure.Persistence;
 
+/// <summary>EF Core context for the SiteContent module. Applies tenant/soft-delete filtering and per-entity property lengths; enforces uniqueness on ServiceArea.Slug and the GalleryItemCategory (TenantId, GalleryItemId, GalleryCategoryId) combination, and indexes FaqItem.ServiceId. AboutUs.Description is sized for rich-text HTML from MudExRichTextEdit rather than plain text.</summary>
 public class SiteContentDbContext(DbContextOptions<SiteContentDbContext> options, ITenantProvider tenantProvider) : DbContext(options)
 {
     public DbSet<AboutUs> AboutUss => Set<AboutUs>();
@@ -35,8 +36,6 @@ public class SiteContentDbContext(DbContextOptions<SiteContentDbContext> options
         _ = modelBuilder.Entity<AboutUs>(builder =>
         {
             _ = builder.Property(x => x.Title).HasMaxLength(200).IsRequired();
-            // Holds rich-text HTML from MudExRichTextEdit, not plain text - markup overhead needs
-            // far more room than the other Description columns in this file.
             _ = builder.Property(x => x.Description).HasMaxLength(20000).IsRequired();
             _ = builder.Property(x => x.CoverImage).HasMaxLength(500);
             _ = builder.Property(x => x.VideoUrl).HasMaxLength(500);

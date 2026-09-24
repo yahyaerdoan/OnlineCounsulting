@@ -13,13 +13,14 @@ using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.Signup;
 
-/// <summary>Bills the Pending TenantSubscriptionItem rows via ISubscriptionGateway. Runs BEFORE CreateTenantAdminCommand in SignUp.cs (pay-first) - no user/email is ever created for a signup that never pays. Also reused, unchanged, by the authenticated retry endpoint POST /api/tenancy/{tenantId}/activate for a tenant/subscription stuck mid-provisioning. Not ITransactionAddRequest: it charges a real card partway through, and a transaction that only commits at the end would roll back local status on a later throw while the real charge stays captured.</summary>
+/// <summary>Bills the Pending items via ISubscriptionGateway; runs before CreateTenantAdminCommand (pay-first) and is reused by the authenticated retry endpoint. Not ITransactionAddRequest - it charges a real card mid-handler, so a rollback-on-throw would strand a captured charge.</summary>
 public record ActivateTenantSubscriptionCommand(Guid TenantId, string PaymentMethodId)
     : IRequest<OperationDataResult<ActivateTenantSubscriptionResult>>, IBypassesTenantStatusCheck;
 
 /// <summary>ClientSecret mirrors SubscribeToMembershipResult - null for Stripe, a PayPal approval URL when PayPal is active. Null on a resume call where the base subscription was already created in a prior attempt.</summary>
 public record ActivateTenantSubscriptionResult(Guid TenantId, string? ClientSecret);
 
+/// <summary>A declined first charge is a hard failure (Failed), not PastDue - PastDue means an already-paying tenant's renewal failed. A stale Failed status found once ProviderSubscriptionId is already set is treated as recoverable, since that id is only ever set after CreateSubscriptionAsync genuinely succeeded.</summary>
 public class ActivateTenantSubscriptionHandler(ITenantRepository tenantRepository, ITenantSubscriptionRepository tenantSubscriptionRepository, ITenantSubscriptionItemRepository tenantSubscriptionItemRepository, IModuleOfferingRepository moduleOfferingRepository, ISubscriptionGateway subscriptionGateway)
     : IRequestHandler<ActivateTenantSubscriptionCommand, OperationDataResult<ActivateTenantSubscriptionResult>>
 {
@@ -35,7 +36,7 @@ public class ActivateTenantSubscriptionHandler(ITenantRepository tenantRepositor
             ?? throw new InvalidOperationException($"Tenant {tenant.Id} has no TenantSubscription row.");
 
         var itemsPage = await tenantSubscriptionItemRepository
-            .GetListAsync(predicate: i => i.TenantSubscriptionId == tenantSubscription.Id, size: RepositoryQuerySize.Unbounded, enableTracking: true, cancellationToken: cancellationToken);
+            .GetListAsync(predicate: i => i.TenantSubscriptionId == tenantSubscription.Id, orderBy: q => q.OrderBy(i => i.Id), size: RepositoryQuerySize.Unbounded, enableTracking: true, cancellationToken: cancellationToken);
 
         var pendingItems = itemsPage.Items
             .Where(i => i.Status is TenantSubscriptionItemStatuses.Pending or TenantSubscriptionItemStatuses.Failed)
@@ -44,7 +45,7 @@ public class ActivateTenantSubscriptionHandler(ITenantRepository tenantRepositor
         var pendingModuleKeys = pendingItems.Select(i => i.ModuleKey).ToList();
 
         var offerings = await moduleOfferingRepository
-            .GetListAsync(predicate: m => pendingModuleKeys.Contains(m.Key), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+            .GetListAsync(predicate: m => pendingModuleKeys.Contains(m.Key), orderBy: q => q.OrderBy(m => m.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
 
         var offeringsByKey = offerings.Items.ToDictionary(m => m.Key);
 
@@ -82,8 +83,6 @@ public class ActivateTenantSubscriptionHandler(ITenantRepository tenantRepositor
                     idempotencyKey: $"tenant-signup-subscription:{tenantSubscription.Id}",
                     cancellationToken: cancellationToken);
 
-                // A declined first charge is a hard failure here, not PastDue - PastDue means an already-paying
-                // tenant's renewal failed, which doesn't apply to a subscription that never succeeded once.
                 if (subscription.Status == PaymentStatuses.Failed)
                 {
                     tenant.Status = TenantStatuses.Failed;
@@ -109,7 +108,6 @@ public class ActivateTenantSubscriptionHandler(ITenantRepository tenantRepositor
             }
             else if (tenantSubscription.Status == TenantSubscriptionStatuses.Failed)
             {
-                // ProviderSubscriptionId only gets set once CreateSubscriptionAsync genuinely succeeds, so a Failed status here is stale, not a real failure.
                 tenantSubscription.Status = TenantSubscriptionStatuses.Active;
                 _ = await tenantSubscriptionRepository.UpdateAsync(tenantSubscription);
             }

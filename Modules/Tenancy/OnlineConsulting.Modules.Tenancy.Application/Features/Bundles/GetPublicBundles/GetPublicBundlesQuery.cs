@@ -16,7 +16,7 @@ public class GetPublicBundlesHandler(IBundleRepository bundleRepository)
     public async Task<OperationDataResult<List<BundleResponse>>> Handle(GetPublicBundlesQuery request, CancellationToken cancellationToken)
     {
         var bundles = await bundleRepository.GetListAsync(
-            b => b.IsPubliclyVisible, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+            b => b.IsPubliclyVisible, orderBy: q => q.OrderBy(b => b.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
 
         var response = bundles.Items.Select(BundleResponse.FromDomain).ToList();
 

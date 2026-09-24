@@ -11,7 +11,7 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Referrals.Application.Features.Referrals.RedeemReferralCode;
 
-/// <summary>ReferredUserId is always resolved server-side from the authenticated caller, never trusted from the client. A user can redeem at most one referral code, ever - enforced here, not just at signup, so the same rule applies regardless of when the customer first hears about the program.</summary>
+/// <summary>A user can redeem at most one referral code, ever - enforced here (not just at signup) regardless of when they first hear about the program.</summary>
 public record RedeemReferralCodeCommand(Guid ReferredUserId, string Code) : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
     [JsonIgnore]

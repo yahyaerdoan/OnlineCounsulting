@@ -10,6 +10,10 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Addresses.CreateUserAddress;
 
+/// <summary>
+/// Creates a user address. Setting <see cref="IsShippingAddress"/> or <see cref="IsBillingAddress"/>
+/// unsets that flag on the user's previous holder, since each user has at most one of each.
+/// </summary>
 public record CreateUserAddressCommand(Guid UserId, string AddressName, string? CompanyName, string Country, string AddressLine, string City, string State, string Zipcode, string? Notes, bool IsShippingAddress, bool IsBillingAddress)
     : IRequest<OperationDataResult<Guid>>, ITransactionAddRequest, ISecureAddRequest
 {
@@ -35,10 +39,9 @@ public class CreateUserAddressHandler(IUserAddressRepository repository) : IRequ
             IsShippingAddress = request.IsShippingAddress,
             IsBillingAddress = request.IsBillingAddress,
         };
+
         _ = await repository.AddAsync(address);
 
-        // A user has at most one shipping and one billing address, so claiming either here unsets its old holder.
-        // Uses the id the insert above just assigned, not a pre-generated one - see UserAddressDefaultFlag.
         if (request.IsShippingAddress)
         {
             await UserAddressDefaultFlag.ClearPreviousShippingHolderAsync(repository, request.UserId, address.Id, cancellationToken);

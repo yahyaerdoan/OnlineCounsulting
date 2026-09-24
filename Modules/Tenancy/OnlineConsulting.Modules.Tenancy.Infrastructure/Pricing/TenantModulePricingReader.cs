@@ -23,6 +23,7 @@ public class TenantModulePricingReader(
 
         var items = await tenantSubscriptionItemRepository.GetListAsync(
             i => i.TenantSubscriptionId == tenantSubscription.Id && i.Status == TenantSubscriptionItemStatuses.Active,
+            orderBy: q => q.OrderBy(i => i.Id),
             size: RepositoryQuerySize.Unbounded,
             cancellationToken: cancellationToken);
 

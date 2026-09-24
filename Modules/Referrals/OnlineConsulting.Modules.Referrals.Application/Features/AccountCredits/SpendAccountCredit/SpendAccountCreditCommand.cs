@@ -10,7 +10,7 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Referrals.Application.Features.AccountCredits.SpendAccountCredit;
 
-/// <summary>The one write path for debiting a customer's account credit - balance is derived (sum of ledger entries), never stored, so every spend must go through here to avoid a negative balance. Callers (e.g. Membership subscribe orchestration) must only send this after the thing the credit is paying for has already succeeded, since this command itself can't be rolled back once committed.</summary>
+/// <summary>The one write path for debiting credit (balance is derived, never stored); callers must send this only after the thing it's paying for has already succeeded, since it can't be rolled back.</summary>
 public record SpendAccountCreditCommand(Guid UserId, decimal Amount, string Reason, string SourceType, Guid SourceId) : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
     [JsonIgnore]
@@ -21,7 +21,7 @@ public class SpendAccountCreditHandler(IAccountCreditRepository creditRepository
 {
     public async Task<OperationDataResult<Guid>> Handle(SpendAccountCreditCommand request, CancellationToken cancellationToken)
     {
-        var entries = await creditRepository.GetListAsync(c => c.UserId == request.UserId, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+        var entries = await creditRepository.GetListAsync(c => c.UserId == request.UserId, orderBy: q => q.OrderBy(c => c.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
 
         var balance = entries.Items.Sum(c => c.Amount);
 

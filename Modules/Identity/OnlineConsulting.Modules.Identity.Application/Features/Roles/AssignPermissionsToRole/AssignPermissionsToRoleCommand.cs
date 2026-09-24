@@ -18,15 +18,20 @@ namespace OnlineConsulting.Modules.Identity.Application.Features.Roles.AssignPer
 
 public record AssignPermissionsToRoleCommand(Guid RoleId, List<string> Permissions) : IRequest<OperationResult>, ISecureAddRequest, ITransactionAddRequest
 {
-    // Role isn't tenant-scoped (no TenantId) - only SuperAdmin may edit a role shared across tenants.
+    /// <summary>Roles aren't tenant-scoped, so only Super Admin may edit one - it's shared across tenants.</summary>
     [JsonIgnore]
     public string[] Roles => [GlobalOperationClaims.SuperAdmin];
 
-    // Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.
+    /// <summary>Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.</summary>
     [JsonIgnore]
     public bool AllowTenantBypass => false;
 }
 
+/// <summary>
+/// Replaces a role's permission claims with the given set. Granting FullAccess or Super Admin requires the
+/// caller already hold that same privilege. SuperAdmin is a bypass sentinel (see RoleSeeder), not a catalog
+/// permission, so it is validated the same way as FullAccess rather than checked against the catalog.
+/// </summary>
 public class AssignPermissionsToRoleHandler(RoleManager<Role> roleManager, IHttpContextAccessor httpContextAccessor, IPermissionCatalog permissionCatalog) : IRequestHandler<AssignPermissionsToRoleCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(AssignPermissionsToRoleCommand request, CancellationToken cancellationToken)
@@ -41,14 +46,15 @@ public class AssignPermissionsToRoleHandler(RoleManager<Role> roleManager, IHttp
             return Result.Forbidden("Only Super Admin can grant Super Admin access to another role.");
         }
 
-        // SuperAdmin is a bypass sentinel (see RoleSeeder), not a catalog permission - same treatment as FullAccess.
         var unknownPermissions = request.Permissions.Where(p => p != PermissionClaimTypes.FullAccess && p != GlobalOperationClaims.SuperAdmin && !permissionCatalog.AllPermissions.Contains(p)).ToList();
+
         if (unknownPermissions.Count > 0)
         {
             return Result.BadRequest($"Unknown permission(s): {string.Join(", ", unknownPermissions)}.");
         }
 
         var role = await roleManager.FindByIdAsync(request.RoleId.ToString());
+
         if (role is null)
         {
             return Result.NotFound(RoleMessages.NoRoleDataFound);

@@ -22,7 +22,7 @@ public class GetAllCustomerMembershipsHandler(ICustomerMembershipRepository repo
 {
     public async Task<OperationDataResult<Paginate<CustomerMembershipResponse>>> Handle(GetAllCustomerMembershipsQuery request, CancellationToken cancellationToken)
     {
-        var memberships = await repository.GetListAsync(index: request.PageRequest.PageIndex, size: request.PageRequest.PageSize, cancellationToken: cancellationToken);
+        var memberships = await repository.GetListAsync(orderBy: q => q.OrderBy(m => m.Id), index: request.PageRequest.PageIndex, size: request.PageRequest.PageSize, cancellationToken: cancellationToken);
 
         var response = new Paginate<CustomerMembershipResponse>
         {

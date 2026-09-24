@@ -15,7 +15,7 @@ public class GetServicesHandler(IServiceRepository repository)
 {
     public async Task<OperationDataResult<Paginate<ServiceResponse>>> Handle(GetServicesQuery request, CancellationToken cancellationToken)
     {
-        var services = await repository.GetListAsync(index: request.PageRequest.PageIndex, size: request.PageRequest.PageSize, cancellationToken: cancellationToken);
+        var services = await repository.GetListAsync(orderBy: q => q.OrderBy(s => s.Id), index: request.PageRequest.PageIndex, size: request.PageRequest.PageSize, cancellationToken: cancellationToken);
 
         var response = new Paginate<ServiceResponse>
         {

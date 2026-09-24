@@ -10,7 +10,7 @@ using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.SiteContent.Application.Features.Partnerships.GetAllPartnerships;
 
-/// <summary>Public - no login required, matches GetAllTestimonialsQuery. Gated by the "Partnerships" feature flag (FeatureFlagKeys.Partnerships in Modules/FeatureFlags's Application layer is the source of truth for this key string - duplicated as a literal here since modules don't reference each other's Application projects, same convention as cross-module ids).</summary>
+/// <summary>Public, matches GetAllTestimonialsQuery; the "Partnerships" flag key is duplicated as a literal since modules don't reference each other's Application projects.</summary>
 public record GetAllPartnershipsQuery : IRequest<OperationDataResult<List<PartnershipResponse>>>;
 
 public class GetAllPartnershipsHandler(IPartnershipRepository partnershipRepository, IPartnershipSocialLinkRepository socialLinkRepository, IFeatureFlagReader featureFlagReader)
@@ -26,7 +26,7 @@ public class GetAllPartnershipsHandler(IPartnershipRepository partnershipReposit
         }
 
         var partnerships = await partnershipRepository.GetListAsync(orderBy: q => q.OrderBy(x => x.DisplayOrder), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
-        var socialLinks = await socialLinkRepository.GetListAsync(size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+        var socialLinks = await socialLinkRepository.GetListAsync(orderBy: q => q.OrderBy(x => x.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
         var socialLinksByPartnershipId = socialLinks.Items.ToLookup(x => x.PartnershipId);
 
         var response = partnerships.Items

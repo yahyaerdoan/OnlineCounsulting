@@ -17,9 +17,7 @@ public class CustomerMembership : SequentialGuidTenantEntity
     public string? ProviderCustomerId { get; set; }
     public string? ProviderSubscriptionId { get; set; }
 
-    /// <summary>True once the member has requested cancellation - Status stays Active (they keep access
-    /// through RenewalDate) until the provider's webhook fires at the real period end and
-    /// OnSubscriptionCancelledHandler flips Status to Cancelled.</summary>
+    /// <summary>True once cancellation is requested; Status stays Active until the webhook flips it to Cancelled at period end.</summary>
     public bool CancelAtPeriodEnd { get; set; }
 
     /// <summary>When this membership first became PastDue - null once back to Active. Drives

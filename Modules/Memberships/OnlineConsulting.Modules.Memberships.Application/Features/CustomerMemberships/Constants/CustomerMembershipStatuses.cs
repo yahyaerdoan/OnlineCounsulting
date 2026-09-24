@@ -10,6 +10,6 @@ public static class CustomerMembershipStatuses
     public const string Cancelled = "Cancelled";
     public const string Paused = "Paused";
 
-    /// <summary>Signup failed after the provider-side customer/subscription calls started - kept as a terminal, recorded state (rather than deleting the row) so a failed Stripe charge always has a local trace and a retried subscribe can find and resume it.</summary>
+    /// <summary>Terminal state kept (not deleted) so a failed subscribe attempt has a trace and can be resumed.</summary>
     public const string Failed = "Failed";
 }

@@ -26,18 +26,26 @@ public record AssignRoleToUserCommand(Guid UserId, List<RoleAssignmentRequest> R
     public string[] Roles => [UsersOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, UsersOperationClaims.Write];
 }
 
+/// <summary>
+/// Applies a full role assignment matrix for a user (callers resend the whole matrix, e.g. UserRolesDialog.razor,
+/// so an unchanged entry must pass - only an actual grant/revoke is checked). Guards the Super Admin role so
+/// only an existing Super Admin can grant/revoke it, a user cannot revoke their own, and the platform always
+/// keeps at least one; similarly guards against leaving a tenant with no active Admin.
+/// </summary>
 public class AssignRoleToUserHandler(UserManager<User> userManager, ITenantOwnershipReader tenantOwnershipReader, ITenantProvider tenantProvider, IHttpContextAccessor httpContextAccessor, ICurrentUserAccessor currentUserAccessor)
     : IRequestHandler<AssignRoleToUserCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(AssignRoleToUserCommand request, CancellationToken cancellationToken)
     {
         var user = await userManager.FindByIdAsync(request.UserId.ToString());
+
         if (user is null)
         {
             return UserBusinessRules.UserNotFoundOrInvalidData();
         }
 
         var ownerGuardResult = await TenantOwnerProtection.EnsureCallerMayModifyAsync(userManager, tenantOwnershipReader, tenantProvider, httpContextAccessor, user, cancellationToken);
+
         if (ownerGuardResult is not null)
         {
             return ownerGuardResult;
@@ -45,13 +53,12 @@ public class AssignRoleToUserHandler(UserManager<User> userManager, ITenantOwner
 
         var callerRoles = httpContextAccessor.HttpContext?.User.ClaimRoles() ?? [];
         var superAdminAssignment = request.RoleAssignments.FirstOrDefault(a => a.RoleName == GlobalOperationClaims.SuperAdmin);
+
         if (superAdminAssignment is not null)
         {
             var currentlySuperAdmin = await userManager.IsInRoleAsync(user, GlobalOperationClaims.SuperAdmin);
             var isRevoke = currentlySuperAdmin && !superAdminAssignment.IsAssigned;
 
-            // Callers resend the whole role matrix (see UserRolesDialog.razor), so an unchanged
-            // SuperAdmin=false entry must pass - only reject an actual grant/revoke attempt.
             if (!callerRoles.Contains(GlobalOperationClaims.SuperAdmin) && currentlySuperAdmin != superAdminAssignment.IsAssigned)
             {
                 return Result.Forbidden("Only a Super Admin may grant or revoke the Super Admin role.");
@@ -74,6 +81,7 @@ public class AssignRoleToUserHandler(UserManager<User> userManager, ITenantOwner
         }
 
         var adminAssignment = request.RoleAssignments.FirstOrDefault(a => a.RoleName == GeneralOperationClaims.Admin);
+
         if (adminAssignment is { IsAssigned: false } && await userManager.IsInRoleAsync(user, GeneralOperationClaims.Admin))
         {
             var tenantAdmins = await userManager.GetUsersInRoleAsync(GeneralOperationClaims.Admin);

@@ -42,7 +42,7 @@ public class MembershipGracePeriodCleanupService(IServiceScopeFactory scopeFacto
         var cutoff = DateTimeOffset.UtcNow - settings.GraceAfter;
 
         var candidates = await membershipRepository
-            .GetListAsync(predicate: m => m.Status == CustomerMembershipStatuses.PastDue && m.PastDueSince != null && m.PastDueSince <= cutoff, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+            .GetListAsync(predicate: m => m.Status == CustomerMembershipStatuses.PastDue && m.PastDueSince != null && m.PastDueSince <= cutoff, orderBy: q => q.OrderBy(m => m.PastDueSince), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
 
         if (candidates.Items.Count == 0)
         {

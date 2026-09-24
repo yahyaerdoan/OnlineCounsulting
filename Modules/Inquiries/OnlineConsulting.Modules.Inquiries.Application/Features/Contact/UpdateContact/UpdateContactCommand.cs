@@ -20,10 +20,10 @@ public record UpdateContactCommand(string Email, string Phone, string Address, s
 
 public class UpdateContactHandler(ICompanyContactRepository repository) : IRequestHandler<UpdateContactCommand, OperationResult>
 {
+    /// <summary>Creates or updates the single contact row (uses GetListAsync since GetAsync requires a predicate).</summary>
     public async Task<OperationResult> Handle(UpdateContactCommand request, CancellationToken cancellationToken)
     {
-        // GetListAsync is used instead of GetAsync because its predicate is optional, unlike GetAsync's required one.
-        var existingContacts = await repository.GetListAsync(size: RepositoryQuerySize.SingleItem, cancellationToken: cancellationToken);
+        var existingContacts = await repository.GetListAsync(orderBy: q => q.OrderBy(c => c.Id), size: RepositoryQuerySize.SingleItem, cancellationToken: cancellationToken);
         var contact = existingContacts.Items.FirstOrDefault();
 
         if (contact is null)

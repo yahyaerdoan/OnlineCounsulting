@@ -21,7 +21,7 @@ public class GetAllPromoCodesHandler(IPromoCodeRepository repository) : IRequest
 {
     public async Task<OperationDataResult<Paginate<PromoCodeResponse>>> Handle(GetAllPromoCodesQuery request, CancellationToken cancellationToken)
     {
-        var promoCodes = await repository.GetListAsync(index: request.PageRequest.PageIndex, size: request.PageRequest.PageSize, cancellationToken: cancellationToken);
+        var promoCodes = await repository.GetListAsync(orderBy: q => q.OrderBy(p => p.Id), index: request.PageRequest.PageIndex, size: request.PageRequest.PageSize, cancellationToken: cancellationToken);
 
         var response = new Paginate<PromoCodeResponse>
         {

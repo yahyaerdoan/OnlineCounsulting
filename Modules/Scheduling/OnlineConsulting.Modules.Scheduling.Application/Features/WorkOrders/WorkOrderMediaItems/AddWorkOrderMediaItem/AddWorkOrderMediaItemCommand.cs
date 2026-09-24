@@ -11,7 +11,7 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Scheduling.Application.Features.WorkOrders.WorkOrderMediaItems.AddWorkOrderMediaItem;
 
-/// <summary>Attaches an already-uploaded MediaAsset (photo or video, told apart by its ContentType) to a WorkOrder's before/after gallery - same pattern as Services.AddServiceMediaItemCommand. Upload itself goes through the Media module's own UploadMediaAsset first, not duplicated here.</summary>
+/// <summary>Attaches an already-uploaded MediaAsset to a WorkOrder's before/after gallery - upload itself goes through UploadMediaAsset first.</summary>
 public record AddWorkOrderMediaItemCommand(Guid WorkOrderId, Guid MediaAssetId, bool IsBeforePhoto, int DisplayOrder = 0) : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
     [JsonIgnore]

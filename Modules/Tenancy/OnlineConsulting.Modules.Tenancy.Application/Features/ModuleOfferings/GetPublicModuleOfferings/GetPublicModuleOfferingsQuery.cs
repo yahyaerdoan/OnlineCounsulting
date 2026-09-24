@@ -16,7 +16,7 @@ public class GetPublicModuleOfferingsHandler(IModuleOfferingRepository moduleOff
     public async Task<OperationDataResult<List<ModuleOfferingResponse>>> Handle(GetPublicModuleOfferingsQuery request, CancellationToken cancellationToken)
     {
         var offerings = await moduleOfferingRepository.GetListAsync(
-            m => m.IsPubliclyVisible, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+            m => m.IsPubliclyVisible, orderBy: q => q.OrderBy(m => m.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
 
         var response = offerings.Items.Select(ModuleOfferingResponse.FromDomain).ToList();
 

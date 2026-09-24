@@ -2,7 +2,7 @@ using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.SiteContent.Domain.Service;
 
-/// <summary>A card in the "what we provide" homepage section. Renamed from the legacy ProvidedItem for clarity, same rationale as WhatWeProvide -> FeatureHighlight. Independent of ServiceProcessStep - same shape, different content type, no relationship between them.</summary>
+/// <summary>A card in the "what we provide" homepage section; renamed from the legacy ProvidedItem, unrelated to ServiceProcessStep despite the similar shape.</summary>
 public class ServiceOffering : SequentialGuidTenantEntity
 {
     public required string Title { get; set; }

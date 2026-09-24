@@ -6,7 +6,7 @@ using ResultHandler.Core.Abstractions;
 
 namespace OnlineConsulting.Modules.Scheduling.Infrastructure.Pipelines;
 
-/// <summary>Closes EfTransactionAddingBehavior's TContext to this module's DbContext so it can be registered as an open generic. No current handler implements ITransactionAddRequest yet (every Scheduling write is single-SaveChanges) - registered for when a multi-write slice needs it.</summary>
+/// <summary>Closes EfTransactionAddingBehavior to this module's DbContext for open-generic registration; unused today since every Scheduling write is single-SaveChanges.</summary>
 public class SchedulingTransactionAddingBehavior<TRequest, TResponse>(SchedulingDbContext context) : EfTransactionAddingBehavior<TRequest, TResponse, SchedulingDbContext>(context)
     where TRequest : IRequest<TResponse>, ITransactionAddRequest
     where TResponse : IOperationResult;

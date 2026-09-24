@@ -13,17 +13,14 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.CancelTenant;
 
-/// <summary>Platform-owner offboarding action - permanent, unlike Suspend (which Reactivate can undo).
-/// Cancels the tenant's real subscription with the payment provider (all module items at once, one
-/// Stripe subscription per tenant) and marks both the subscription and the tenant Cancelled. No data is
-/// deleted - this only stops billing and blocks access, same as Suspend, but irreversibly.</summary>
+/// <summary>Platform-owner offboarding - permanent, unlike Suspend/Reactivate. Cancels the tenant's provider subscription and marks tenant+subscription Cancelled; no data is deleted.</summary>
 public record CancelTenantCommand(Guid TenantId) : IRequest<OperationResult>, ISecureAddRequest
 {
     [JsonIgnore]
     public string[] Roles => [GlobalOperationClaims.SuperAdmin];
 
-    // Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.
-[JsonIgnore]
+    /// <summary>Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.</summary>
+    [JsonIgnore]
     public bool AllowTenantBypass => false;
 }
 

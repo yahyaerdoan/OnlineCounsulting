@@ -49,6 +49,7 @@ public class AppIdentityDbContext(DbContextOptions<AppIdentityDbContext> options
         base.OnModelCreating(modelBuilder);
     }
 
+    /// <summary>Forces every newly-added user to start active - IsActive is a manage-time toggle, not a creation input, regardless of what the caller set.</summary>
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         foreach (var entry in ChangeTracker.Entries<User>().Where(e => e.State == EntityState.Added))

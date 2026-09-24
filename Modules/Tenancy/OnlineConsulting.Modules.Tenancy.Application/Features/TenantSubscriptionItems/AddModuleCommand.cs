@@ -17,7 +17,7 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems;
 
-/// <summary>Adds one more à la carte module to an already-subscribed tenant - billed immediately, prorated (see ISubscriptionGateway.AddSubscriptionItemAsync). Roles => [] deliberately: "who may call this" is an ownership check (the caller's own tenant, or a SuperAdmin acting on another tenant), not a role - see TenantOwnershipGuard.</summary>
+/// <summary>Adds one à la carte module to a subscribed tenant, billed immediately/prorated. Roles => [] deliberately - authorization is an ownership check (see TenantOwnershipGuard), not a role.</summary>
 public record AddModuleCommand(Guid TenantId, string ModuleKey) : IRequest<OperationResult>, ISecureAddRequest
 {
     [JsonIgnore]

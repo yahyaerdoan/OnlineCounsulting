@@ -7,9 +7,10 @@ using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.FeatureFlags.Application.Features.SetFeatureFlag;
 
-/// <summary>Upsert+cache-invalidate logic shared by SetFeatureFlagCommand (writes the "current tenant", via ITenantProvider/JWT claim) and the cross-module IFeatureFlagWriter implementation in Infrastructure (writes an explicit tenant, via TenantContextOverride) - both end up at the same row, so the write path lives in exactly one place.</summary>
+/// <summary>Shared upsert+invalidate logic for SetFeatureFlagCommand (current tenant) and IFeatureFlagWriter (explicit tenant via TenantContextOverride) - one write path for both.</summary>
 public class FeatureFlagUpserter(IFeatureFlagRepository repository, IFeatureFlagCacheInvalidator cacheInvalidator)
 {
+    /// <summary>Creates or updates the flag override for <paramref name="key"/>, then invalidates the cross-module IFeatureFlagReader cache (separate from GetFeatureFlagsQuery's own CacheGroupKey, cleared via ICacheRemoveRequest).</summary>
     public async Task<OperationResult> UpsertAsync(string key, bool isEnabled, CancellationToken cancellationToken)
     {
         if (!FeatureFlagKeys.Defaults.ContainsKey(key))
@@ -26,10 +27,10 @@ public class FeatureFlagUpserter(IFeatureFlagRepository repository, IFeatureFlag
         else
         {
             existing.IsEnabled = isEnabled;
+
             _ = await repository.UpdateAsync(existing);
         }
 
-        // Invalidates IFeatureFlagReader's own IMemoryCache (the cross-module hot-path reader, outside MediatR entirely - see FeatureFlagCache.cs). SetFeatureFlagCommand's own ICacheRemoveRequest separately clears GetFeatureFlagsQuery's CacheGroupKey via CacheRemovingBehavior; these are two independent caches serving two different call paths, not a duplicate of each other.
         cacheInvalidator.Invalidate();
 
         return Result.Success("Feature flag updated successfully.");

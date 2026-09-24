@@ -14,7 +14,7 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Referrals.Application.Features.Referrals.CompleteReferral;
 
-/// <summary>Manual admin action, not automated - rewarding a referral is a real payout, so it stays a deliberate confirmation step rather than firing automatically off some app event (same reasoning as ConfirmAppointment staying a manual tenant decision). Two writes (Referral update + AccountCredit add), hence ITransactionAddRequest.</summary>
+/// <summary>Manual admin action, not automated - rewarding a referral is a real payout, so it stays a deliberate confirmation step; two writes (Referral + AccountCredit), hence ITransactionAddRequest.</summary>
 public record CompleteReferralCommand(Guid Id, decimal RewardAmount) : IRequest<OperationResult>, ISecureAddRequest, ITransactionAddRequest
 {
     [JsonIgnore]

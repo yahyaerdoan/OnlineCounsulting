@@ -10,12 +10,11 @@ namespace OnlineConsulting.Modules.Categories.Application.Features.GetCategories
 
 public record GetCategoriesQuery(PageRequest PageRequest) : IRequest<OperationDataResult<Paginate<CategoryResponse>>>;
 
-public class GetCategoriesHandler(ICategoryRepository repository)
-    : IRequestHandler<GetCategoriesQuery, OperationDataResult<Paginate<CategoryResponse>>>
+public class GetCategoriesHandler(ICategoryRepository repository) : IRequestHandler<GetCategoriesQuery, OperationDataResult<Paginate<CategoryResponse>>>
 {
     public async Task<OperationDataResult<Paginate<CategoryResponse>>> Handle(GetCategoriesQuery request, CancellationToken cancellationToken)
     {
-        var categories = await repository.GetListAsync(index: request.PageRequest.PageIndex, size: request.PageRequest.PageSize, cancellationToken: cancellationToken);
+        var categories = await repository.GetListAsync(orderBy: q => q.OrderBy(c => c.Id), index: request.PageRequest.PageIndex, size: request.PageRequest.PageSize, cancellationToken: cancellationToken);
 
         var response = new Paginate<CategoryResponse>
         {

@@ -17,6 +17,7 @@ public record DeleteMediaAssetCommand(Guid Id) : IRequest<OperationResult>, ISec
     public string[] Roles => [MediaOperationClaims.Admin, MediaOperationClaims.Write, MediaOperationClaims.Delete, GlobalOperationClaims.SuperAdmin];
 }
 
+/// <summary>Deletes a media asset; the file is only removed from storage if the active provider matches the one that originally stored it, since another backend's delete API would no-op or throw.</summary>
 public class DeleteMediaAssetHandler(IMediaAssetRepository repository, IStorageService storageService) : IRequestHandler<DeleteMediaAssetCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(DeleteMediaAssetCommand request, CancellationToken cancellationToken)
@@ -27,9 +28,6 @@ public class DeleteMediaAssetHandler(IMediaAssetRepository repository, IStorageS
             return MediaBusinessRules.NotFound(request.Id);
         }
 
-        // Only physically delete the file if this asset was actually stored by the currently active
-        // provider - deleting via the wrong backend's API would either no-op or throw depending on
-        // provider, neither of which is what we want here.
         if (entity.StorageProvider == storageService.ProviderName)
         {
             await storageService.DeleteAsync(entity.Url, cancellationToken);

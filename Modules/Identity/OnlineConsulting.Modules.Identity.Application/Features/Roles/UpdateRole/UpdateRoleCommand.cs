@@ -11,11 +11,11 @@ namespace OnlineConsulting.Modules.Identity.Application.Features.Roles.UpdateRol
 
 public record UpdateRoleCommand(Guid Id, string Name, string? Description) : IRequest<OperationResult>, ISecureAddRequest
 {
-    // Role isn't tenant-scoped (no TenantId) - only SuperAdmin may edit a role shared across tenants.
+    /// <summary>Roles aren't tenant-scoped, so only Super Admin may edit one - it's shared across tenants.</summary>
     [JsonIgnore]
     public string[] Roles => [GlobalOperationClaims.SuperAdmin];
 
-    // Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.
+    /// <summary>Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.</summary>
     [JsonIgnore]
     public bool AllowTenantBypass => false;
 }
@@ -25,6 +25,7 @@ public class UpdateRoleHandler(RoleManager<Role> roleManager) : IRequestHandler<
     public async Task<OperationResult> Handle(UpdateRoleCommand request, CancellationToken cancellationToken)
     {
         var role = await roleManager.FindByIdAsync(request.Id.ToString());
+
         if (role is null)
         {
             return Result.BadRequest("The role could not be found. Please ensure the provided data is correct and try again.");

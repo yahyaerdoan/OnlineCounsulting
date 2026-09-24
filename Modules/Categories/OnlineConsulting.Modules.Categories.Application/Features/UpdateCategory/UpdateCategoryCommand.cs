@@ -10,9 +10,7 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Categories.Application.Features.UpdateCategory;
 
-/// <summary>See CreateCategoryCommand for why this doesn't opt into ITransactionAddRequest.</summary>
-public record UpdateCategoryCommand(Guid Id, string Title, string Description, string Icon, string? IconColor = null)
-    : IRequest<OperationResult>, ISecureAddRequest
+public record UpdateCategoryCommand(Guid Id, string Title, string Description, string Icon, string? IconColor = null) : IRequest<OperationResult>, ISecureAddRequest
 {
     [JsonIgnore]
     public string[] Roles => [CategoriesOperationClaims.Admin, CategoriesOperationClaims.Write, CategoriesOperationClaims.Update, GlobalOperationClaims.SuperAdmin];
@@ -23,6 +21,7 @@ public class UpdateCategoryHandler(ICategoryRepository repository) : IRequestHan
     public async Task<OperationResult> Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
     {
         var category = await repository.GetAsync(c => c.Id == request.Id, cancellationToken: cancellationToken);
+
         if (category is null)
         {
             return CategoryBusinessRules.CategoryNotFound(request.Id);

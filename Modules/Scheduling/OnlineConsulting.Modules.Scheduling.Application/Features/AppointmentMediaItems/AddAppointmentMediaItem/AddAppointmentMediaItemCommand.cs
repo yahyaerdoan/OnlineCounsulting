@@ -11,7 +11,7 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Scheduling.Application.Features.AppointmentMediaItems.AddAppointmentMediaItem;
 
-/// <summary>UserId is always resolved server-side from the authenticated caller, never trusted from the client (see CreateAppointmentCommand). Scoped to the caller's own appointment - filtering by UserId instead of a separate authorization check keeps a stranger's appointment id indistinguishable from a nonexistent one, same convention as GetMyAppointmentsQuery.</summary>
+/// <summary>UserId comes from the authenticated caller, never the client; filtering by it makes a stranger's appointment id look like a nonexistent one.</summary>
 public record AddAppointmentMediaItemCommand(Guid UserId, Guid AppointmentId, Guid MediaAssetId, int DisplayOrder = 0) : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
     [JsonIgnore]

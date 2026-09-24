@@ -9,6 +9,7 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.SiteContent.Application.Features.GalleryItems.DeleteGalleryItem;
 
+/// <summary>Also deletes the item's GalleryItemCategory links first - unlike DeleteGalleryCategoryCommand, which leaves links orphaned.</summary>
 public record DeleteGalleryItemCommand(Guid Id) : IRequest<OperationResult>, ISecureAddRequest
 {
     [JsonIgnore]
@@ -26,7 +27,7 @@ public class DeleteGalleryItemHandler(IGalleryItemRepository repository, IGaller
             return SiteContentBusinessRules.NotFound("Gallery item", request.Id);
         }
 
-        var links = await categoryLinkRepository.GetListAsync(x => x.GalleryItemId == request.Id, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+        var links = await categoryLinkRepository.GetListAsync(x => x.GalleryItemId == request.Id, orderBy: q => q.OrderBy(x => x.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
         foreach (var link in links.Items)
         {
             _ = await categoryLinkRepository.DeleteAsync(link);

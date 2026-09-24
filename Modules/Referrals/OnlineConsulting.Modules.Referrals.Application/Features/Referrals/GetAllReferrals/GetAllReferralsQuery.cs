@@ -21,7 +21,7 @@ public class GetAllReferralsHandler(IReferralRepository repository) : IRequestHa
 {
     public async Task<OperationDataResult<Paginate<ReferralResponse>>> Handle(GetAllReferralsQuery request, CancellationToken cancellationToken)
     {
-        var referrals = await repository.GetListAsync(index: request.PageRequest.PageIndex, size: request.PageRequest.PageSize, cancellationToken: cancellationToken);
+        var referrals = await repository.GetListAsync(orderBy: q => q.OrderBy(r => r.Id), index: request.PageRequest.PageIndex, size: request.PageRequest.PageSize, cancellationToken: cancellationToken);
 
         var response = new Paginate<ReferralResponse>
         {

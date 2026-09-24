@@ -10,6 +10,7 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.SiteContent.Application.Features.GalleryItems.UpdateGalleryItem;
 
+/// <summary>Category links are replaced wholesale (delete all, then re-add CategoryIds) rather than diffed - simpler than reconciling adds/removes for a handful of rows per item.</summary>
 public record UpdateGalleryItemCommand(Guid Id, string Description, List<Guid> CategoryIds, Guid? PhotoMediaAssetId = null, int DisplayOrder = 0, Dictionary<string, object>? Metadata = null) : IRequest<OperationResult>, ISecureAddRequest
 {
     [JsonIgnore]
@@ -34,7 +35,7 @@ public class UpdateGalleryItemHandler(IGalleryItemRepository repository, IGaller
 
         _ = await repository.UpdateAsync(entity);
 
-        var existingLinks = await categoryLinkRepository.GetListAsync(x => x.GalleryItemId == request.Id, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+        var existingLinks = await categoryLinkRepository.GetListAsync(x => x.GalleryItemId == request.Id, orderBy: q => q.OrderBy(x => x.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
 
         foreach (var link in existingLinks.Items)
         {

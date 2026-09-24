@@ -21,7 +21,7 @@ public class GetBasketItemsCountHandler(IBasketRepository basketRepository, IBas
             return Result.Success(0, "No basket yet.");
         }
 
-        var items = await basketItemRepository.GetListAsync(i => i.BasketId == basket.Id, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+        var items = await basketItemRepository.GetListAsync(i => i.BasketId == basket.Id, orderBy: q => q.OrderBy(i => i.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
 
         return Result.Success(items.Count, "Basket item count retrieved successfully.");
     }

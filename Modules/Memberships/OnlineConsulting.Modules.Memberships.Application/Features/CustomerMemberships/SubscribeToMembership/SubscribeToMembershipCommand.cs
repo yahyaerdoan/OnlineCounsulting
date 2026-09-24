@@ -13,8 +13,7 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.SubscribeToMembership;
 
-/// <summary>UserId/Email are always resolved server-side from the authenticated caller, never trusted from the client (see CreateAppointmentCommand for the same convention). PaymentMethodId comes from the provider's client-side SDK (Stripe.js) - it must already be tokenized before this call, never a raw card number. Ignored by providers with no such concept (PayPal - see ISubscriptionGateway.CreateSubscriptionAsync). CreditToApplyAmount is clamped by the caller against the user's account credit balance only - this module has no knowledge of Referrals' AccountCredit ledger. The handler applies the final clamp against the plan's own price (which it already loads) and reports the actual amount used via SubscribeToMembershipResult.AppliedCreditAmount. PromoCode (optional) is validated via PromoCodeEvaluator and its discount is combined with CreditToApplyAmount into a single one-time gateway discount - see CreateSubscriptionRequest.DiscountAmount.
-/// The Pending/Failed dedup lookup below is check-then-act with no locking (same residual race as SignUp.cs's email pre-check, see ARCHITECTURE_MIGRATION.md) - two near-simultaneous requests for the same user+plan can each miss the check and create their own row/subscription. No reusable distributed-lock abstraction was found in this repo's referenced packages (Core.ApplicationLayer's CacheAddingBehavior has an internal HandleWithDistributedLockAsync, but it's private plumbing scoped to cache-key population, not an injectable general-purpose lock), so this is accepted as a low-probability residual risk rather than closed with app-level locking.</summary>
+/// <summary>PaymentMethodId must already be tokenized client-side (Stripe.js), never a raw card number; CreditToApplyAmount and PromoCode discounts combine into one gateway-side discount clamped to the plan's price.</summary>
 public record SubscribeToMembershipCommand(Guid UserId, string Email, Guid MembershipPlanId, string PaymentMethodId, decimal? CreditToApplyAmount = null, string? PromoCode = null)
     : IRequest<OperationDataResult<SubscribeToMembershipResult>>, ISecureAddRequest
 {
@@ -22,10 +21,11 @@ public record SubscribeToMembershipCommand(Guid UserId, string Email, Guid Membe
     public string[] Roles => [];
 }
 
-/// <summary>Deliberately NOT ITransactionAddRequest (this command doesn't opt into one already): the handler charges a real card via ISubscriptionGateway partway through, and a DB transaction that only commits after the whole handler returns would roll back the local CustomerMembership row if a later step throws - leaving a real Stripe charge with zero trace in this database. Every repository call below is its own immediately-saved write (see EfRepositoryBase.AddAsync/UpdateAsync), so each step is durable the instant it happens, independent of anything that runs after it.</summary>
+/// <summary>Deliberately not ITransactionAddRequest - a real card charge happens partway through, so each repository call saves immediately instead of rolling back and losing the charge's trace.</summary>
 public class SubscribeToMembershipHandler(ICustomerMembershipRepository membershipRepository, IMembershipPlanRepository planRepository, IPromoCodeRepository promoCodeRepository, ISubscriptionGateway subscriptionGateway)
     : IRequestHandler<SubscribeToMembershipCommand, OperationDataResult<SubscribeToMembershipResult>>
 {
+    /// <summary>Creates or resumes a pending subscription attempt; a Failed status is only stale here since ProviderSubscriptionId is set only after CreateSubscriptionAsync genuinely succeeds.</summary>
     public async Task<OperationDataResult<SubscribeToMembershipResult>> Handle(SubscribeToMembershipCommand request, CancellationToken cancellationToken)
     {
         var plan = await planRepository.GetAsync(p => p.Id == request.MembershipPlanId, cancellationToken: cancellationToken);
@@ -158,7 +158,6 @@ public class SubscribeToMembershipHandler(ICustomerMembershipRepository membersh
             {
                 if (membership.Status == CustomerMembershipStatuses.Failed)
                 {
-                    // ProviderSubscriptionId only gets set once CreateSubscriptionAsync genuinely succeeds, so a Failed status here is stale, not a real failure.
                     membership.Status = CustomerMembershipStatuses.Active;
 
                     _ = await membershipRepository.UpdateAsync(membership);

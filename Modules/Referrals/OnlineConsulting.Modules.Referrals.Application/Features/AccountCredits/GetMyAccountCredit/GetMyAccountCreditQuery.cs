@@ -15,7 +15,7 @@ public class GetMyAccountCreditHandler(IAccountCreditRepository repository) : IR
 {
     public async Task<OperationDataResult<AccountCreditSummaryResponse>> Handle(GetMyAccountCreditQuery request, CancellationToken cancellationToken)
     {
-        var entries = await repository.GetListAsync(c => c.UserId == request.UserId, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+        var entries = await repository.GetListAsync(c => c.UserId == request.UserId, orderBy: q => q.OrderBy(c => c.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
         var entryResponses = entries.Items.Select(AccountCreditResponse.FromDomain).ToList();
         var balance = entries.Items.Sum(c => c.Amount);
 

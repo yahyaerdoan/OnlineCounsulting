@@ -1,7 +1,6 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
 using Core.SecurityLayer.Authorization;
-using Core.SecurityLayer.Constants;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -18,38 +17,43 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Identity.Application.Features.Users.SetUserPermissionOverrides;
 
-/// <summary>DeniedPermissions replaces the user's full denied set (same "resend the whole list" convention
-/// as AssignPermissionsToRoleCommand) - every permission not in this list is restored to whatever the
-/// user's role grants.</summary>
+/// <summary>DeniedPermissions replaces the user's full denied set (same resend-the-whole-list convention as AssignPermissionsToRoleCommand).</summary>
 public record SetUserPermissionOverridesCommand(Guid UserId, List<string> DeniedPermissions) : IRequest<OperationResult>, ISecureAddRequest, ITransactionAddRequest
 {
     [JsonIgnore]
     public string[] Roles => [UsersOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, UsersOperationClaims.Write];
 }
 
+/// <summary>
+/// Replaces a user's denied-permission set. Only permissions the user's own role actually grants can be
+/// denied - a bypass claim (FullAccess/TenantFullAccess/SuperAdmin) or a permission the role never had
+/// isn't a valid target.
+/// </summary>
 public class SetUserPermissionOverridesHandler(UserManager<User> userManager, RoleManager<Role> roleManager, IPermissionCatalog permissionCatalog, ITenantOwnershipReader tenantOwnershipReader, ITenantProvider tenantProvider, IHttpContextAccessor httpContextAccessor)
     : IRequestHandler<SetUserPermissionOverridesCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(SetUserPermissionOverridesCommand request, CancellationToken cancellationToken)
     {
         var user = await userManager.FindByIdAsync(request.UserId.ToString());
+
         if (user is null)
         {
             return Result.NotFound(UserMessages.UserNotFound);
         }
 
         var ownerGuardResult = await TenantOwnerProtection.EnsureCallerMayModifyAsync(userManager, tenantOwnershipReader, tenantProvider, httpContextAccessor, user, cancellationToken);
+
         if (ownerGuardResult is not null)
         {
             return ownerGuardResult;
         }
 
-        // Only permissions the user's own role actually grants can be denied - a bypass claim
-        // (FullAccess/TenantFullAccess/SuperAdmin) or a permission the role never had isn't a valid target.
         var roles = await userManager.GetRolesAsync(user);
+
         var rolePermissions = await RolePermissionResolver.ResolvePermissionsAsync(roleManager, roles);
 
         var invalidPermissions = request.DeniedPermissions.Where(p => !rolePermissions.Contains(p) || !permissionCatalog.AllPermissions.Contains(p)).ToList();
+
         if (invalidPermissions.Count > 0)
         {
             return Result.BadRequest($"Cannot deny permission(s) the user's role doesn't grant: {string.Join(", ", invalidPermissions)}.");
@@ -60,6 +64,7 @@ public class SetUserPermissionOverridesHandler(UserManager<User> userManager, Ro
         foreach (var claim in existingDeniedClaims.Where(c => !request.DeniedPermissions.Contains(c.Value)))
         {
             var removeResult = await userManager.RemoveClaimAsync(user, claim);
+
             if (!removeResult.Succeeded)
             {
                 return Result.BadRequest($"{string.Join("; ", removeResult.Errors.Select(e => e.Description))} errors occurred while updating permission overrides.");
@@ -69,6 +74,7 @@ public class SetUserPermissionOverridesHandler(UserManager<User> userManager, Ro
         foreach (var permission in request.DeniedPermissions.Where(p => existingDeniedClaims.TrueForAll(c => c.Value != p)))
         {
             var addResult = await userManager.AddClaimAsync(user, new Claim(PermissionOverrideClaimTypes.Deny, permission));
+
             if (!addResult.Succeeded)
             {
                 return Result.BadRequest($"{string.Join("; ", addResult.Errors.Select(e => e.Description))} errors occurred while updating permission overrides.");

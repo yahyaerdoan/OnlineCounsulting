@@ -10,9 +10,7 @@ using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Identity.Application.Features.Invites.AcceptInvite;
 
-/// <summary>Accepts a teammate invite and creates the invited person's account. Deliberately not an
-/// ISecureAddRequest - the invited person is not logged in yet, and the invite token itself is the only
-/// proof of authorization needed. TenantId comes from the Invite row, never from the caller.</summary>
+/// <summary>Accepts a teammate invite; not ISecureAddRequest since the invitee isn't logged in - the token itself is the proof of authorization.</summary>
 public record AcceptInviteCommand(string Token, string FirstName, string LastName, string Password, string? PhoneNumber = null)
     : IRequest<OperationResult>, ITransactionAddRequest;
 
@@ -22,6 +20,7 @@ public class AcceptInviteHandler(IInviteRepository inviteRepository, UserManager
     public async Task<OperationResult> Handle(AcceptInviteCommand request, CancellationToken cancellationToken)
     {
         var invite = await inviteRepository.GetAsync(i => i.Token == request.Token, cancellationToken: cancellationToken);
+
         if (invite is null)
         {
             return Result.NotFound(InviteMessages.InviteNotFound);
@@ -35,7 +34,9 @@ public class AcceptInviteHandler(IInviteRepository inviteRepository, UserManager
         if (invite.ExpiresAt < DateTime.UtcNow)
         {
             invite.Status = InviteStatuses.Expired;
+
             _ = await inviteRepository.UpdateAsync(invite);
+
             return Result.BadRequest(InviteMessages.InviteExpired);
         }
 
@@ -73,6 +74,7 @@ public class AcceptInviteHandler(IInviteRepository inviteRepository, UserManager
 
         invite.Status = InviteStatuses.Accepted;
         invite.AcceptedAt = DateTime.UtcNow;
+
         _ = await inviteRepository.UpdateAsync(invite);
 
         return Result.Created($"Account created. Your username is \"{userName}\" - you can also sign in with your email.");

@@ -7,7 +7,7 @@ using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Scheduling.Application.Features.WorkOrders.GetWorkOrdersByEquipmentId;
 
-/// <summary>The service history behind the equipment health panel - every WorkOrder a technician tagged against this piece of equipment, most recent first. No media items populated here (list view, same N+1-avoidance convention as ServiceResponse/AppointmentResponse) - fetch a single WorkOrder's gallery via GetWorkOrderByAppointmentId if needed.</summary>
+/// <summary>Service history behind the equipment health panel, most recent first; media items omitted (list view) - fetch via GetWorkOrderByAppointmentId if needed.</summary>
 public record GetWorkOrdersByEquipmentIdQuery(Guid EquipmentId) : IRequest<OperationDataResult<List<WorkOrderResponse>>>;
 
 public class GetWorkOrdersByEquipmentIdHandler(IWorkOrderRepository repository) : IRequestHandler<GetWorkOrdersByEquipmentIdQuery, OperationDataResult<List<WorkOrderResponse>>>

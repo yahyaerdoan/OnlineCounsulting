@@ -10,13 +10,13 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.ReactivateTenant;
 
-/// <summary>Platform-owner action: lifts a suspension, restoring the tenant to Active. Billing is untouched - this only reverses SuspendTenantCommand's access block, it does not retry payment (see ActivateTenantSubscriptionCommand for that).</summary>
+/// <summary>Platform-owner action: lifts a suspension back to Active; billing untouched, does not retry payment (see ActivateTenantSubscriptionCommand).</summary>
 public record ReactivateTenantCommand(Guid TenantId) : IRequest<OperationResult>, ISecureAddRequest
 {
     [JsonIgnore]
     public string[] Roles => [GlobalOperationClaims.SuperAdmin];
 
-    // Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.
+    /// <summary>Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.</summary>
     [JsonIgnore]
     public bool AllowTenantBypass => false;
 }

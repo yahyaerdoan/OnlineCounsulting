@@ -14,7 +14,7 @@ public class GetContactHandler(ICompanyContactRepository repository) : IRequestH
 {
     public async Task<OperationDataResult<CompanyContactResponse>> Handle(GetContactQuery request, CancellationToken cancellationToken)
     {
-        var contacts = await repository.GetListAsync(size: RepositoryQuerySize.SingleItem, enableTracking: false, cancellationToken: cancellationToken);
+        var contacts = await repository.GetListAsync(orderBy: q => q.OrderBy(c => c.Id), size: RepositoryQuerySize.SingleItem, enableTracking: false, cancellationToken: cancellationToken);
         var contact = contacts.Items.FirstOrDefault();
 
         return contact is null

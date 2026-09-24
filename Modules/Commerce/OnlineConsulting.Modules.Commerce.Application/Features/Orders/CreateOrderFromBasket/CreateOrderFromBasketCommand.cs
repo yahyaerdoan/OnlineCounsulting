@@ -23,31 +23,40 @@ using SharedPaymentStatuses = OnlineConsulting.SharedKernel.Payments.PaymentStat
 
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Orders.CreateOrderFromBasket;
 
+/// <summary>Converts the user's basket into an order and starts payment.</summary>
 public record CreateOrderFromBasketCommand(Guid UserId, string Email) : IRequest<OperationDataResult<CreateOrderResult>>, ITransactionAddRequest, ISecureAddRequest
 {
     [JsonIgnore]
     public string[] Roles => [];
 }
 
+/// <summary>
+/// Creates an order and payment intent from the user's basket. The order id also serves as the gateway
+/// idempotency key so retries cannot double-charge. A synchronous-Paid result sends the confirmation email
+/// and clears the basket immediately; an async/Pending charge leaves both for <c>OnPaymentStatusChangedHandler</c>
+/// to finish once the payment webhook confirms it.
+/// </summary>
 public class CreateOrderFromBasketHandler(IBasketRepository basketRepository, IBasketItemRepository basketItemRepository, IUserAddressRepository userAddressRepository, IOrderRepository orderRepository, IOrderItemRepository orderItemRepository, IEmailOutboxWriter<ICommerceOutboxModule> outboxWriter, IEmailTemplate<OrderConfirmationEmailModel> confirmationTemplate, IPaymentGateway paymentGateway)
     : IRequestHandler<CreateOrderFromBasketCommand, OperationDataResult<CreateOrderResult>>
 {
     public async Task<OperationDataResult<CreateOrderResult>> Handle(CreateOrderFromBasketCommand request, CancellationToken cancellationToken)
     {
         var basket = await basketRepository.GetAsync(b => b.UserId == request.UserId, cancellationToken: cancellationToken);
+
         if (basket is null)
         {
             return Result.BadRequest<CreateOrderResult>(BasketMessages.BasketNotFoundOrEmpty);
         }
 
-        var basketItems = await basketItemRepository.GetListAsync(i => i.BasketId == basket.Id, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+        var basketItems = await basketItemRepository.GetListAsync(i => i.BasketId == basket.Id, orderBy: q => q.OrderBy(i => i.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+
         if (basketItems.Items.Count == 0)
         {
             return Result.BadRequest<CreateOrderResult>(BasketMessages.BasketNotFoundOrEmpty);
         }
 
-        var shippingAddress = await userAddressRepository.GetAsync(a => a.UserId == request.UserId && a.IsShippingAddress,
-            enableTracking: false, cancellationToken: cancellationToken);
+        var shippingAddress = await userAddressRepository.GetAsync(a => a.UserId == request.UserId && a.IsShippingAddress, enableTracking: false, cancellationToken: cancellationToken);
+
         if (shippingAddress is null)
         {
             return Result.BadRequest<CreateOrderResult>(AddressMessages.ShippingAddressNotFound);
@@ -63,10 +72,9 @@ public class CreateOrderFromBasketHandler(IBasketRepository basketRepository, IB
         var orderId = SequentialGuidTenantEntity.NewId();
         var total = basketItems.Items.Sum(i => TaxCalculator.Calculate(i.Price, i.Quantity, i.TaxRate).TotalPrice);
 
-        // OrderId doubles as the gateway idempotency key - retries can't double-charge.
-        var (failure, paymentIntent) = await PaymentGatewayCall.RunWithResultAsync(
-            () => paymentGateway.CreatePaymentIntentAsync(new CreatePaymentIntentRequest(total, "usd", orderId.ToString(), request.Email, IdempotencyKey: orderId.ToString()), cancellationToken),
-            "Could not start payment for your order. Please try again.");
+        var (failure, paymentIntent) = await PaymentGatewayCall.RunWithResultAsync(() =>
+        paymentGateway.CreatePaymentIntentAsync(new CreatePaymentIntentRequest(total, "usd", orderId.ToString(), request.Email, IdempotencyKey: orderId.ToString()), cancellationToken), "Could not start payment for your order. Please try again.");
+
         if (failure is not null || paymentIntent is null)
         {
             return Result.BadRequest<CreateOrderResult>(failure?.Detail ?? "Could not start payment for your order.");
@@ -74,16 +82,13 @@ public class CreateOrderFromBasketHandler(IBasketRepository basketRepository, IB
 
         var order = await CreateOrderWithItemsAsync(orderId, request.UserId, shippingAddress.Id, billingAddress.Id, basketItems.Items, paymentIntent);
 
-        // Only synchronous-Paid orders get the email here - the webhook path sends it via OnPaymentStatusChangedHandler.
         if (order.PaymentStatus == OrderPaymentStatuses.Paid)
         {
             var confirmationModel = new OrderConfirmationEmailModel(order.OrderNumber, basketItems.Items.Count, total);
+
             await outboxWriter.EnqueueAsync(request.Email, confirmationTemplate.Subject(confirmationModel), confirmationTemplate.Build(confirmationModel), sourceReference: $"Order:{order.Id}", cancellationToken: cancellationToken);
         }
 
-        // Only a synchronous-Paid gateway result clears the basket here - an async (Pending) result
-        // means the charge hasn't actually happened yet, so the basket must survive until the webhook
-        // confirms it in OnPaymentStatusChangedHandler. Otherwise an abandoned/failed payment loses the cart.
         if (order.PaymentStatus == OrderPaymentStatuses.Paid)
         {
             foreach (var basketItem in basketItems.Items)
@@ -94,8 +99,6 @@ public class CreateOrderFromBasketHandler(IBasketRepository basketRepository, IB
             _ = await basketRepository.DeleteAsync(basket);
         }
 
-        // Gateway already settled the charge synchronously (e.g. Mock's whole-dollar test amounts) -
-        // no client secret means Checkout.razor won't show a redundant/confusing "confirm payment" step.
         var clientSecretForClient = paymentIntent.Status == SharedPaymentStatuses.Succeeded ? null : paymentIntent.ClientSecret;
 
         return Result.Created(new CreateOrderResult(order.Id, clientSecretForClient, order.OrderNumber), $"Order created: {order.OrderNumber}");
@@ -115,6 +118,7 @@ public class CreateOrderFromBasketHandler(IBasketRepository basketRepository, IB
             ShippingAddressId = shippingAddressId,
             InvoiceAddressId = billingAddressId,
         };
+
         _ = await orderRepository.AddAsync(order);
 
         foreach (var basketItem in basketItems)
@@ -128,6 +132,7 @@ public class CreateOrderFromBasketHandler(IBasketRepository basketRepository, IB
                 TaxRate = basketItem.TaxRate,
             };
             TaxCalculator.Apply(orderItem);
+
             _ = await orderItemRepository.AddAsync(orderItem);
         }
 

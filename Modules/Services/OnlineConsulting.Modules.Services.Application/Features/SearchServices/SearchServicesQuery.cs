@@ -18,7 +18,7 @@ public class SearchServicesHandler(IServiceRepository repository) : IRequestHand
             return Result.Success(new List<ServiceResponse>(), "No search query provided.");
         }
 
-        var services = await repository.GetListAsync(s => s.Title.Contains(request.Query) || s.Description.Contains(request.Query), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+        var services = await repository.GetListAsync(s => s.Title.Contains(request.Query) || s.Description.Contains(request.Query), orderBy: q => q.OrderBy(s => s.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
 
         List<ServiceResponse> response = [.. services.Items.Select(s => ServiceResponse.FromDomain(s))];
 

@@ -10,7 +10,6 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Categories.Application.Features.DeleteCategory;
 
-/// <summary>See CreateCategoryCommand for why this doesn't opt into ITransactionAddRequest.</summary>
 public record DeleteCategoryCommand(Guid Id) : IRequest<OperationResult>, ISecureAddRequest
 {
     [JsonIgnore]

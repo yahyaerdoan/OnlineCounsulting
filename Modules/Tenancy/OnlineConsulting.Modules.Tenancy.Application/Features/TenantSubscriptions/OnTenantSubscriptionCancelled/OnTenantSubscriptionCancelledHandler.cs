@@ -6,7 +6,7 @@ using OnlineConsulting.SharedKernel.Payments;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.OnTenantSubscriptionCancelled;
 
-/// <summary>Handles cancellation initiated on the provider side (e.g. from the Stripe dashboard) - no-ops if already Cancelled. Cascades to Tenant.Status = Suspended, which is what TenantStatusCheckBehavior (a later phase) will gate access on.</summary>
+/// <summary>Handles provider-initiated cancellation (e.g. Stripe dashboard) - no-ops if already Cancelled, cascades to Tenant.Status = Suspended.</summary>
 public class OnTenantSubscriptionCancelledHandler(ITenantSubscriptionRepository subscriptionRepository, ITenantRepository tenantRepository) : INotificationHandler<SubscriptionCancelledNotification>
 {
     public async Task Handle(SubscriptionCancelledNotification notification, CancellationToken cancellationToken)

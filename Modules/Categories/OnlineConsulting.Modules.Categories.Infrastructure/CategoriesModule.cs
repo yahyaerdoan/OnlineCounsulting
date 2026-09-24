@@ -5,12 +5,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OnlineConsulting.Modules.Categories.Application;
 using OnlineConsulting.Modules.Categories.Application.Abstractions;
+using OnlineConsulting.Modules.Categories.Application.Features.Constants;
 using OnlineConsulting.Modules.Categories.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Categories.Infrastructure.Pipelines;
 using OnlineConsulting.Modules.Categories.Infrastructure.Repositories;
 using OnlineConsulting.SharedKernel.Auditing;
 using OnlineConsulting.SharedKernel.Authorization;
-using OnlineConsulting.Modules.Categories.Application.Features.Constants;
 using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Categories.Infrastructure;

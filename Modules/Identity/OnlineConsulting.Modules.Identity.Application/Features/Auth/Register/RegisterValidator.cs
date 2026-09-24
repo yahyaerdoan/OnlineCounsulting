@@ -4,6 +4,7 @@ using OnlineConsulting.Modules.Identity.Domain;
 
 namespace OnlineConsulting.Modules.Identity.Application.Features.Auth.Register;
 
+/// <summary>Validates registration input. Uniqueness checks run synchronously - FluentValidation's implicit ASP.NET pipeline only supports sync rules.</summary>
 public class RegisterValidator : AbstractValidator<RegisterCommand>
 {
     public RegisterValidator(UserManager<User> userManager)
@@ -13,7 +14,6 @@ public class RegisterValidator : AbstractValidator<RegisterCommand>
 
         _ = RuleFor(x => x.UserName)
             .NotEmpty()
-            // Sync, not async: FluentValidation's implicit ASP.NET pipeline only supports sync rules.
             .Must(userName =>
             {
                 var normalizedUserName = userManager.NormalizeName(userName);

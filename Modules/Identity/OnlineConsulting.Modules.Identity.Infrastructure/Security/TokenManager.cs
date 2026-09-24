@@ -34,7 +34,11 @@ public class TokenManager(IJwtTokenHelper jwtTokenHelper, IOptions<TokenOption> 
         return (accessToken.Token, accessToken.Expiration);
     }
 
-    /// <summary>Reads claims from an expired token for the refresh flow - <see cref="IJwtTokenHelper"/> only creates tokens.</summary>
+    /// <summary>
+    /// Reads claims from an expired token for the refresh flow - <see cref="IJwtTokenHelper"/> only creates tokens.
+    /// Looks up the user id under both NameIdentifier and "sub", since <see cref="JwtSecurityTokenHandler"/>
+    /// remaps "sub" to NameIdentifier by default (same dual lookup as CurrentUserAccessor).
+    /// </summary>
     public string? GetUserIdFromExpiredToken(string accessToken)
     {
         var validationParameters = new TokenValidationParameters
@@ -51,13 +55,9 @@ public class TokenManager(IJwtTokenHelper jwtTokenHelper, IOptions<TokenOption> 
         try
         {
             var principal = new JwtSecurityTokenHandler().ValidateToken(accessToken, validationParameters, out var securityToken);
-            if (securityToken is not JwtSecurityToken jwt || !jwt.Header.Alg.Equals(SecurityAlgorithms.HmacSha512Signature, StringComparison.InvariantCultureIgnoreCase))
-            {
-                return null;
-            }
-
-            // JwtSecurityTokenHandler remaps "sub" to NameIdentifier by default - same dual lookup as CurrentUserAccessor.
-            return principal.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+            return securityToken is not JwtSecurityToken jwt || !jwt.Header.Alg.Equals(SecurityAlgorithms.HmacSha512Signature, StringComparison.InvariantCultureIgnoreCase)
+                ? null
+                : principal.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
         }
         catch (SecurityTokenException)
         {

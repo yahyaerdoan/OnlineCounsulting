@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using Core.ApplicationLayer.Pipelines.Cachings.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.FeatureFlags.Application.Abstractions;
@@ -12,7 +12,7 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.FeatureFlags.Application.Features.GetFeatureFlags;
 
-/// <summary>Every known key (FeatureFlagKeys.Defaults) merged with the tenant's stored overrides, so the admin UI always sees a full, stable list even before any override row exists. Cached via Core.ApplicationLayer's ICacheAddRequest (same CacheAddingBehavior/CacheGroupKey pattern MetroMiles uses for GetListBrandQuery) - TenantId has to be a plain field rather than resolved from ITenantProvider inside CacheKey, since these are computed properties with no DI access; the endpoint fills it in from the request's tenant context, same as CreatedBrandCommand-style server-computed fields.</summary>
+/// <summary>Merges every known key (FeatureFlagKeys.Defaults) with the tenant's stored overrides so the admin UI always sees a full list; TenantId is a plain field since CacheKey has no DI access to ITenantProvider.</summary>
 public record GetFeatureFlagsQuery(Guid TenantId) : IRequest<OperationDataResult<List<FeatureFlagResponse>>>, ISecureAddRequest, ICacheAddRequest
 {
     [JsonIgnore]
@@ -32,12 +32,12 @@ public record GetFeatureFlagsQuery(Guid TenantId) : IRequest<OperationDataResult
     public string? CacheGroupKey => $"FeatureFlags:{TenantId}";
 }
 
-public class GetFeatureFlagsHandler(IFeatureFlagRepository repository, ITenantModulePricingReader tenantModulePricingReader)
-    : IRequestHandler<GetFeatureFlagsQuery, OperationDataResult<List<FeatureFlagResponse>>>
+public class GetFeatureFlagsHandler(IFeatureFlagRepository repository, ITenantModulePricingReader tenantModulePricingReader) : IRequestHandler<GetFeatureFlagsQuery, OperationDataResult<List<FeatureFlagResponse>>>
 {
     public async Task<OperationDataResult<List<FeatureFlagResponse>>> Handle(GetFeatureFlagsQuery request, CancellationToken cancellationToken)
     {
-        var overrides = await repository.GetListAsync(size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+        var overrides = await repository.GetListAsync(orderBy: q => q.OrderBy(f => f.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+
         var overridesByKey = overrides.Items.ToDictionary(f => f.Key, f => f.IsEnabled);
 
         var pricingByKey = await tenantModulePricingReader.GetForTenantAsync(request.TenantId, cancellationToken);
@@ -46,6 +46,7 @@ public class GetFeatureFlagsHandler(IFeatureFlagRepository repository, ITenantMo
             .Select(kvp =>
             {
                 var isPurchased = pricingByKey.TryGetValue(kvp.Key, out var pricing);
+
                 return new FeatureFlagResponse(
                     kvp.Key,
                     overridesByKey.GetValueOrDefault(kvp.Key, kvp.Value),

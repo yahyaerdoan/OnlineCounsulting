@@ -15,8 +15,9 @@ public class ModuleOffering : SequentialGuidEntity
     /// <summary>SharedKernel.Payments.BillingCycles.* - shared vocabulary with ISubscriptionGateway.</summary>
     public required string BillingCycle { get; set; }
 
-    /// <summary>Set once at creation via ISubscriptionGateway.EnsurePriceAsync - provider prices are immutable, so a price change requires a new ProviderPriceId, not an update to this one.</summary>
     public string? ProviderProductId { get; set; }
+
+    /// <summary>Set once at creation via ISubscriptionGateway.EnsurePriceAsync - provider prices are immutable, so a price change requires a new ProviderPriceId, not an update to this one.</summary>
     public string? ProviderPriceId { get; set; }
 
     public bool IsPubliclyVisible { get; set; } = true;

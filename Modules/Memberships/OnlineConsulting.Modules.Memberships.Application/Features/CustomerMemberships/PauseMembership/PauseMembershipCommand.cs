@@ -9,9 +9,7 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.PauseMembership;
 
-/// <summary>Stops billing indefinitely without cancelling - the member keeps their spot/pricing, no
-/// invoices are created until ResumeMembershipCommand. UserId is always resolved server-side, never
-/// trusted from the client.</summary>
+/// <summary>Stops billing indefinitely without cancelling - member keeps their pricing, no invoices until ResumeMembershipCommand.</summary>
 public record PauseMembershipCommand(Guid UserId) : IRequest<OperationResult>, ISecureAddRequest
 {
     [JsonIgnore]

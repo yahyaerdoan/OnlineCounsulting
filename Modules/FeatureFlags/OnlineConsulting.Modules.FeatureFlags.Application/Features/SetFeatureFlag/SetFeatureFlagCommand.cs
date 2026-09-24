@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using Core.ApplicationLayer.Pipelines.Cachings.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.FeatureFlags.Application.Features.Constants;
@@ -7,7 +7,7 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.FeatureFlags.Application.Features.SetFeatureFlag;
 
-/// <summary>Upserts the current tenant's override for a key. Single write (Add or Update, never both) - deliberately not ITransactionAddRequest, reserved for handlers with 2+ SaveChanges calls. ICacheRemoveRequest.CacheKey is empty (matches MetroMiles' CacheRemovingSecuredRequest convention) - this command has no single cache entry of its own to remove, it only needs to clear GetFeatureFlagsQuery's CacheGroupKey.</summary>
+/// <summary>Upserts the current tenant's flag; not ITransactionAddRequest (single SaveChanges), and CacheKey is empty since only the CacheGroupKey needs clearing.</summary>
 public record SetFeatureFlagCommand(string Key, bool IsEnabled) : IRequest<OperationResult>, ISecureAddRequest, ICacheRemoveRequest
 {
     [JsonIgnore]
@@ -26,8 +26,7 @@ public record SetFeatureFlagCommand(string Key, bool IsEnabled) : IRequest<Opera
     public string? CacheGroupKey => $"FeatureFlags:{TenantId}";
 }
 
-public class SetFeatureFlagHandler(FeatureFlagUpserter upserter)
-    : IRequestHandler<SetFeatureFlagCommand, OperationResult>
+public class SetFeatureFlagHandler(FeatureFlagUpserter upserter) : IRequestHandler<SetFeatureFlagCommand, OperationResult>
 {
     public Task<OperationResult> Handle(SetFeatureFlagCommand request, CancellationToken cancellationToken) =>
         upserter.UpsertAsync(request.Key, request.IsEnabled, cancellationToken);

@@ -18,8 +18,8 @@ public class GetAllGalleryItemsHandler(IGalleryItemRepository itemRepository, IG
     public async Task<OperationDataResult<List<GalleryItemResponse>>> Handle(GetAllGalleryItemsQuery request, CancellationToken cancellationToken)
     {
         var items = await itemRepository.GetListAsync(orderBy: q => q.OrderBy(x => x.DisplayOrder), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
-        var links = await linkRepository.GetListAsync(size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
-        var categories = await categoryRepository.GetListAsync(size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+        var links = await linkRepository.GetListAsync(orderBy: q => q.OrderBy(x => x.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+        var categories = await categoryRepository.GetListAsync(orderBy: q => q.OrderBy(x => x.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
 
         var categoriesById = categories.Items.ToDictionary(c => c.Id);
         var linksByItemId = links.Items.ToLookup(l => l.GalleryItemId);

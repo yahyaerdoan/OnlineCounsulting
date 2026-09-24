@@ -13,6 +13,11 @@ namespace OnlineConsulting.Modules.Identity.Application.Common;
 /// <summary>Guards a write to another user: same tenant required, target can't be a Super Admin or the tenant owner. Null = allowed.</summary>
 public static class TenantOwnerProtection
 {
+    /// <summary>
+    /// Checks the target's own role (not the caller's) - a non-Super Admin caller can otherwise land in the
+    /// same tenant as a Super Admin (e.g. invited directly by one) and would pass every other check.
+    /// </summary>
+    /// <returns>Null if the caller may modify the target; otherwise the forbidding result to return.</returns>
     public static async Task<OperationResult?> EnsureCallerMayModifyAsync(UserManager<User> userManager, ITenantOwnershipReader tenantOwnershipReader, ITenantProvider tenantProvider, IHttpContextAccessor httpContextAccessor, User target, CancellationToken cancellationToken = default)
     {
         if (!TenantOwnershipGuard.CallerMayManage(target.TenantId, tenantProvider.TenantId, httpContextAccessor))
@@ -21,19 +26,19 @@ public static class TenantOwnerProtection
         }
 
         var callerRoles = httpContextAccessor.HttpContext?.User.ClaimRoles() ?? [];
+
         if (callerRoles.Contains(GlobalOperationClaims.SuperAdmin))
         {
             return null;
         }
 
-        // Target's own role, not the caller's - a non-SuperAdmin can otherwise land in the same
-        // TenantId as a SuperAdmin (e.g. invited directly by one) and would pass every other check.
         if (await userManager.IsInRoleAsync(target, GlobalOperationClaims.SuperAdmin))
         {
             return Result.Forbidden("A Super Admin's role or membership cannot be changed by another admin.");
         }
 
         var targetIsOwner = await tenantOwnershipReader.IsOwnerAsync(target.TenantId, target.Id, cancellationToken);
+
         return targetIsOwner
             ? Result.Forbidden("The tenant owner's role or membership cannot be changed by another admin. Only a Super Admin may do this.")
             : null;

@@ -13,6 +13,7 @@ namespace OnlineConsulting.Modules.Identity.Application.Features.Auth.ForgotPass
 
 public record ForgotPasswordCommand(string Email) : IRequest<OperationResult>, ITransactionAddRequest;
 
+/// <summary>Always returns the same success message whether or not the email exists, to prevent account enumeration.</summary>
 public class ForgotPasswordHandler(UserManager<User> userManager, IEmailOutboxWriter<IIdentityOutboxModule> outboxWriter, IEmailTemplate<ForgotPasswordEmailModel> template, IOptions<AuthEmailOptions> emailOptions)
     : IRequestHandler<ForgotPasswordCommand, OperationResult>
 {
@@ -21,12 +22,14 @@ public class ForgotPasswordHandler(UserManager<User> userManager, IEmailOutboxWr
     public async Task<OperationResult> Handle(ForgotPasswordCommand request, CancellationToken cancellationToken)
     {
         var user = await userManager.FindByEmailAsync(request.Email);
+
         if (user is null)
         {
             return Result.Success(_successMessage);
         }
 
         var token = await userManager.GeneratePasswordResetTokenAsync(user);
+
         var resetUrl = $"{emailOptions.Value.ClientOrigin}/reset-password?userId={user.Id}&token={Uri.EscapeDataString(token)}";
         var model = new ForgotPasswordEmailModel(user.FirstName, resetUrl);
 

@@ -15,7 +15,7 @@ public class GetServicesByCategoryHandler(IServiceRepository repository)
 {
     public async Task<OperationDataResult<Paginate<ServiceResponse>>> Handle(GetServicesByCategoryQuery request, CancellationToken cancellationToken)
     {
-        var services = await repository.GetListAsync(s => s.CategoryId == request.CategoryId,
+        var services = await repository.GetListAsync(s => s.CategoryId == request.CategoryId, orderBy: q => q.OrderBy(s => s.Id),
             index: request.PageRequest.PageIndex, size: request.PageRequest.PageSize, cancellationToken: cancellationToken);
 
         var response = new Paginate<ServiceResponse>

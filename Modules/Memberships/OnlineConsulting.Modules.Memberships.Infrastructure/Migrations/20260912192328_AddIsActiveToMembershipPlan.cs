@@ -2,30 +2,29 @@
 
 #nullable disable
 
-namespace OnlineConsulting.Modules.Memberships.Infrastructure.Migrations
+namespace OnlineConsulting.Modules.Memberships.Infrastructure.Migrations;
+
+/// <inheritdoc />
+public partial class AddIsActiveToMembershipPlan : Migration
 {
     /// <inheritdoc />
-    public partial class AddIsActiveToMembershipPlan : Migration
+    protected override void Up(MigrationBuilder migrationBuilder)
     {
-        /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.AddColumn<bool>(
-                name: "IsActive",
-                schema: "Memberships",
-                table: "MembershipPlans",
-                type: "bit",
-                nullable: false,
-                defaultValue: true);
-        }
+        _ = migrationBuilder.AddColumn<bool>(
+            name: "IsActive",
+            schema: "Memberships",
+            table: "MembershipPlans",
+            type: "bit",
+            nullable: false,
+            defaultValue: true);
+    }
 
-        /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropColumn(
-                name: "IsActive",
-                schema: "Memberships",
-                table: "MembershipPlans");
-        }
+    /// <inheritdoc />
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        _ = migrationBuilder.DropColumn(
+            name: "IsActive",
+            schema: "Memberships",
+            table: "MembershipPlans");
     }
 }

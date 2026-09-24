@@ -19,9 +19,7 @@ public record ValidatePromoCodeCommand(Guid UserId, string Code, Guid Membership
 
 public record ValidatePromoCodeResult(bool IsValid, string? Error, decimal DiscountAmount, decimal FinalPrice);
 
-/// <summary>Preview only - unlike SubscribeToMembershipCommand's use of the same evaluator, this never
-/// touches PromoCode.RedemptionCount. IsValid=false is returned as a normal 200 (Result.Success), not
-/// a BadRequest, so the UI can render the reason inline instead of a validation-error toast.</summary>
+/// <summary>Preview only - never touches PromoCode.RedemptionCount; IsValid=false is still a 200 so the UI can render the reason inline, not as a toast.</summary>
 public class ValidatePromoCodeHandler(IMembershipPlanRepository planRepository, IPromoCodeRepository promoCodeRepository, ICustomerMembershipRepository membershipRepository)
     : IRequestHandler<ValidatePromoCodeCommand, OperationDataResult<ValidatePromoCodeResult>>
 {

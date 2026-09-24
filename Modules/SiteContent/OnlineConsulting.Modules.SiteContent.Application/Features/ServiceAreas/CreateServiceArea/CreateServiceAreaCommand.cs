@@ -10,6 +10,7 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.SiteContent.Application.Features.ServiceAreas.CreateServiceArea;
 
+/// <summary>Slug is derived from Name+State and de-duplicated against existing slugs (see UpdateServiceAreaCommand, which never changes it once set).</summary>
 public record CreateServiceAreaCommand(string Name, string State, string? IntroText, int DisplayOrder = 0) : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
     [JsonIgnore]

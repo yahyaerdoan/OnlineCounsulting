@@ -2,7 +2,7 @@ using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Scheduling.Domain;
 
-/// <summary>A customer-submitted photo/video of the issue, attached before the technician visits so they can review it and prepare (parts, tools) ahead of time. Same shape as Scheduling.WorkOrderMediaItem - plain MediaAssetId, no navigation, MediaAsset lives in the Media module's own DbContext.</summary>
+/// <summary>Customer-submitted photo/video, attached pre-visit so the technician can prepare; plain MediaAssetId, no navigation (MediaAsset lives in the Media module).</summary>
 public class AppointmentMediaItem : SequentialGuidTenantEntity
 {
     public required Guid AppointmentId { get; set; }

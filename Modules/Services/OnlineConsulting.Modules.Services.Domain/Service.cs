@@ -13,7 +13,7 @@ public class Service : SequentialGuidTenantEntity
     public required string DetailedDescription { get; set; }
     public required decimal Price { get; set; }
 
-    /// <summary>Application.Features.Constants.ServicePriceTypes.* - Fixed shows Price as-is, StartingAt shows "From {Price}" (a diagnostic/call-out fee, actual repair cost varies), Range shows "{Price} - {PriceMax}". Honest pricing display instead of a single number that's misleading for variable-cost repair work.</summary>
+    /// <summary>ServicePriceTypes.* - Fixed shows Price as-is, StartingAt shows "From {Price}", Range shows "{Price} - {PriceMax}".</summary>
     public string PriceType { get; set; } = "Fixed";
 
     /// <summary>Only meaningful when PriceType is Range.</summary>
@@ -24,7 +24,7 @@ public class Service : SequentialGuidTenantEntity
     public int TaxRate { get; set; }
     public decimal DiscountedPrice { get; set; }
 
-    /// <summary>When true, a Scheduling appointment for this service must reach PendingPayment/Confirmed via a paid Commerce order before the tenant confirms it. False (default) keeps booking payment-free until a real payment gateway exists.</summary>
+    /// <summary>When true, a Scheduling appointment must reach PendingPayment/Confirmed via a paid Commerce order before the tenant confirms it.</summary>
     public bool RequiresPrepayment { get; set; }
 
     /// <summary>Whether this service can be requested as an urgent/24-7 callout (e.g. "HVAC Emergency"), not a separate service - an urgency modifier on the same service.</summary>

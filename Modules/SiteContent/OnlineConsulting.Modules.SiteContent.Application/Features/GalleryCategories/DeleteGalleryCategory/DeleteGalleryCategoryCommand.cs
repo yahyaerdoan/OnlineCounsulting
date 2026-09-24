@@ -8,6 +8,7 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.SiteContent.Application.Features.GalleryCategories.DeleteGalleryCategory;
 
+/// <summary>Does not clean up GalleryItemCategory links pointing at this category - GetAllGalleryItemsQuery/Paged filter orphaned links out defensively instead.</summary>
 public record DeleteGalleryCategoryCommand(Guid Id) : IRequest<OperationResult>, ISecureAddRequest
 {
     [JsonIgnore]

@@ -13,10 +13,6 @@ public class Tenant : SequentialGuidEntity
     /// <summary>Stripe customer id for this tenant's billing.</summary>
     public string? ProviderCustomerId { get; set; }
 
-    /// <summary>Id of the Identity User who is this tenant's actual owner - the first admin created at
-    /// signup (CreateTenantAdminCommand), set via SetTenantOwnerCommand right after. Distinct from any other
-    /// Admin-role user later invited into the same tenant - only the owner gets owner-only protections
-    /// (see TenantOwnerProtection in the Identity module). Nullable because tenants created before this field
-    /// existed have no owner recorded.</summary>
+    /// <summary>Id of the tenant's actual owner (first admin, set via SetTenantOwnerCommand) - distinct from later-invited Admin users, who don't get owner-only protections (see TenantOwnerProtection). Null for tenants predating this field.</summary>
     public Guid? OwnerUserId { get; set; }
 }

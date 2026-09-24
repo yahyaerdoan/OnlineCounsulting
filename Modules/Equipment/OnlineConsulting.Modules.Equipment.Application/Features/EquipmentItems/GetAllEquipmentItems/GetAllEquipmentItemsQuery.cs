@@ -21,7 +21,7 @@ public class GetAllEquipmentItemsHandler(IEquipmentItemRepository repository) : 
 {
     public async Task<OperationDataResult<Paginate<EquipmentItemResponse>>> Handle(GetAllEquipmentItemsQuery request, CancellationToken cancellationToken)
     {
-        var items = await repository.GetListAsync(index: request.PageRequest.PageIndex, size: request.PageRequest.PageSize, cancellationToken: cancellationToken);
+        var items = await repository.GetListAsync(orderBy: q => q.OrderBy(i => i.Id), index: request.PageRequest.PageIndex, size: request.PageRequest.PageSize, cancellationToken: cancellationToken);
 
         var response = new Paginate<EquipmentItemResponse>
         {

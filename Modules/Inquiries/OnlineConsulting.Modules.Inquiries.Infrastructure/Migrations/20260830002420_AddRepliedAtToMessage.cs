@@ -1,31 +1,29 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace OnlineConsulting.Modules.Inquiries.Infrastructure.Migrations
+namespace OnlineConsulting.Modules.Inquiries.Infrastructure.Migrations;
+
+/// <inheritdoc />
+public partial class AddRepliedAtToMessage : Migration
 {
     /// <inheritdoc />
-    public partial class AddRepliedAtToMessage : Migration
+    protected override void Up(MigrationBuilder migrationBuilder)
     {
-        /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.AddColumn<DateTimeOffset>(
-                name: "RepliedAt",
-                schema: "Inquiries",
-                table: "Messages",
-                type: "datetimeoffset",
-                nullable: true);
-        }
+        _ = migrationBuilder.AddColumn<DateTimeOffset>(
+            name: "RepliedAt",
+            schema: "Inquiries",
+            table: "Messages",
+            type: "datetimeoffset",
+            nullable: true);
+    }
 
-        /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropColumn(
-                name: "RepliedAt",
-                schema: "Inquiries",
-                table: "Messages");
-        }
+    /// <inheritdoc />
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        _ = migrationBuilder.DropColumn(
+            name: "RepliedAt",
+            schema: "Inquiries",
+            table: "Messages");
     }
 }

@@ -9,6 +9,10 @@ namespace OnlineConsulting.Modules.Identity.Application.Features.Users.ChangePas
 
 public record ChangePasswordCommand(Guid UserId, string CurrentPassword, string NewPassword) : IRequest<OperationResult>;
 
+/// <summary>
+/// Changes a user's password. New-password complexity is already covered by the validator, so any
+/// UserManager failure here is attributed to an incorrect current password.
+/// </summary>
 public class ChangePasswordHandler(UserManager<User> userManager) : IRequestHandler<ChangePasswordCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(ChangePasswordCommand request, CancellationToken cancellationToken)
@@ -27,15 +31,12 @@ public class ChangePasswordHandler(UserManager<User> userManager) : IRequestHand
             return Result.Success("Password changed successfully.");
         }
 
-        // NewPassword's own complexity is already caught earlier by ChangePasswordValidator, so the
-        // only failure UserManager can realistically still report here is the current password being
-        // wrong - attribute it to that field instead of NewPassword.
         var isCurrentPasswordWrong = result.Errors.Any(e => e.Code == nameof(IdentityErrorDescriber.PasswordMismatch));
         var field = isCurrentPasswordWrong ? nameof(request.CurrentPassword) : nameof(request.NewPassword);
 
         return OperationResult.Failure(new Dictionary<string, IReadOnlyList<string>>
         {
-            [field] = [.. result.Errors.Select(e => e.Description)],
+            [field] = [.. result.Errors.Select(e => e.Description)]
         });
     }
 }

@@ -35,7 +35,7 @@ public class GetAllOrdersAdminPagedHandler(IOrderRepository orderRepository, IOr
         }
 
         var orderIds = paged.Items.Select(o => o.Id).ToList();
-        var items = await orderItemRepository.GetListAsync(i => orderIds.Contains(i.OrderId), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+        var items = await orderItemRepository.GetListAsync(i => orderIds.Contains(i.OrderId), orderBy: q => q.OrderBy(i => i.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
         var totalsByOrderId = items.Items.GroupBy(i => i.OrderId).ToDictionary(g => g.Key, g => g.Sum(i => i.TotalPrice));
 
         var response = new Paginate<AdminOrderResponse>

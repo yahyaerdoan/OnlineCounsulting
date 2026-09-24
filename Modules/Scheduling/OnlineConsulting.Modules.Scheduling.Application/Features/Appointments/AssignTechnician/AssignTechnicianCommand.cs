@@ -11,7 +11,7 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.AssignTechnician;
 
-/// <summary>Dispatch - assigns which technician is headed to this appointment, ahead of the visit. This is what authorizes that technician to push live location updates for the appointment (see TechnicianTrackingHub.PushLocation) and lets the customer's client start listening for them.</summary>
+/// <summary>Dispatch - also what authorizes the technician to push live location updates via TechnicianTrackingHub.PushLocation.</summary>
 public record AssignTechnicianCommand(Guid Id, Guid TechnicianUserId) : IRequest<OperationResult>, ISecureAddRequest
 {
     [JsonIgnore]

@@ -17,7 +17,7 @@ public record GetAllBundlesQuery(PageRequest PageRequest) : IRequest<OperationDa
     [JsonIgnore]
     public string[] Roles => [GlobalOperationClaims.SuperAdmin];
 
-    // Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.
+    /// <summary>Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.</summary>
     [JsonIgnore]
     public bool AllowTenantBypass => false;
 }
@@ -26,7 +26,7 @@ public class GetAllBundlesHandler(IBundleRepository repository) : IRequestHandle
 {
     public async Task<OperationDataResult<Paginate<BundleAdminResponse>>> Handle(GetAllBundlesQuery request, CancellationToken cancellationToken)
     {
-        var bundles = await repository.GetListAsync(index: request.PageRequest.PageIndex, size: request.PageRequest.PageSize, cancellationToken: cancellationToken);
+        var bundles = await repository.GetListAsync(orderBy: q => q.OrderBy(b => b.Id), index: request.PageRequest.PageIndex, size: request.PageRequest.PageSize, cancellationToken: cancellationToken);
 
         var response = new Paginate<BundleAdminResponse>
         {

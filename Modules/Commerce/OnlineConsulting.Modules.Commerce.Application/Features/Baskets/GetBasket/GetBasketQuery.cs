@@ -12,20 +12,18 @@ namespace OnlineConsulting.Modules.Commerce.Application.Features.Baskets.GetBask
 /// <summary>Exactly one of UserId/GuestId is non-null, resolved at the Api layer (see BasketOwnerResolver).</summary>
 public record GetBasketQuery(Guid? UserId, Guid? GuestId) : IRequest<OperationDataResult<BasketResponse>>;
 
-public class GetBasketHandler(IBasketRepository basketRepository, IBasketItemRepository basketItemRepository)
-    : IRequestHandler<GetBasketQuery, OperationDataResult<BasketResponse>>
+public class GetBasketHandler(IBasketRepository basketRepository, IBasketItemRepository basketItemRepository) : IRequestHandler<GetBasketQuery, OperationDataResult<BasketResponse>>
 {
     public async Task<OperationDataResult<BasketResponse>> Handle(GetBasketQuery request, CancellationToken cancellationToken)
     {
-        // Read-only lookup - no mutation follows, so track nothing.
-        var basket = await basketRepository.GetAsync(BasketOwnerLookup.Predicate(request.UserId, request.GuestId),
-            enableTracking: false, cancellationToken: cancellationToken);
+        var basket = await basketRepository.GetAsync(BasketOwnerLookup.Predicate(request.UserId, request.GuestId), enableTracking: false, cancellationToken: cancellationToken);
+
         if (basket is null)
         {
             return Result.NotFound<BasketResponse>(BasketMessages.BasketNotFound);
         }
 
-        var items = await basketItemRepository.GetListAsync(i => i.BasketId == basket.Id, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+        var items = await basketItemRepository.GetListAsync(i => i.BasketId == basket.Id, orderBy: q => q.OrderBy(i => i.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
 
         return Result.Success(BasketResponse.FromDomain(basket, items.Items), "Basket retrieved successfully.");
     }

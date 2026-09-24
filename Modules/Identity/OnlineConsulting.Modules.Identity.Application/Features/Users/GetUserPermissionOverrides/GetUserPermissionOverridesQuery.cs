@@ -21,12 +21,18 @@ public record GetUserPermissionOverridesQuery(Guid UserId) : IRequest<OperationD
     public string[] Roles => [UsersOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, UsersOperationClaims.Read];
 }
 
+/// <summary>
+/// Returns the permissions a user's role grants (editable list) and which of those are currently denied.
+/// A bypass-holding user (FullAccess/TenantFullAccess/SuperAdmin) has no meaningful catalog baseline to
+/// narrow, so the editable list is restricted to real catalog permissions only.
+/// </summary>
 public class GetUserPermissionOverridesHandler(UserManager<User> userManager, RoleManager<Role> roleManager, IPermissionCatalog permissionCatalog, ITenantProvider tenantProvider, IHttpContextAccessor httpContextAccessor)
     : IRequestHandler<GetUserPermissionOverridesQuery, OperationDataResult<UserPermissionOverridesResponse>>
 {
     public async Task<OperationDataResult<UserPermissionOverridesResponse>> Handle(GetUserPermissionOverridesQuery request, CancellationToken cancellationToken)
     {
         var user = await userManager.FindByIdAsync(request.UserId.ToString());
+
         if (user is null)
         {
             return Result.NotFound<UserPermissionOverridesResponse>(UserMessages.UserNotFound);
@@ -38,10 +44,9 @@ public class GetUserPermissionOverridesHandler(UserManager<User> userManager, Ro
         }
 
         var roles = await userManager.GetRolesAsync(user);
+
         var rolePermissions = await RolePermissionResolver.ResolvePermissionsAsync(roleManager, roles);
 
-        // A bypass-holding user (FullAccess/TenantFullAccess/SuperAdmin) has no meaningful catalog baseline
-        // to narrow - restrict the editable list to real catalog permissions only.
         var editablePermissions = rolePermissions.Where(permissionCatalog.AllPermissions.Contains).ToList();
 
         var deniedPermissions = (await userManager.GetClaimsAsync(user)).Where(c => c.Type == PermissionOverrideClaimTypes.Deny).Select(c => c.Value).ToList();

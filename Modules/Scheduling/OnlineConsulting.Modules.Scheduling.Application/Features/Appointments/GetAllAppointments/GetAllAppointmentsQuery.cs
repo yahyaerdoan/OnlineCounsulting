@@ -11,9 +11,7 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.GetAllAppointments;
 
-/// <summary>Admin/dispatch-side listing of every appointment for the tenant, optionally filtered by status - the
-/// counterpart to GetMyAppointmentsQuery's owner-scoped list, needed so an admin can actually find the
-/// Pending appointments ConfirmAppointment/AssignTechnician operate on.</summary>
+/// <summary>Admin/dispatch-side listing across all users - counterpart to GetMyAppointmentsQuery's owner-scoped list.</summary>
 public record GetAllAppointmentsQuery(string? Status, PageRequest PageRequest) : IRequest<OperationDataResult<Paginate<AppointmentResponse>>>, ISecureAddRequest
 {
     [JsonIgnore]

@@ -9,6 +9,10 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Addresses.UpdateUserAddress;
 
+/// <summary>
+/// Updates a user address. Setting <see cref="IsShippingAddress"/> or <see cref="IsBillingAddress"/>
+/// unsets that flag on the user's previous holder, since each user has at most one of each.
+/// </summary>
 public record UpdateUserAddressCommand(Guid Id, Guid UserId, string AddressName, string? CompanyName, string Country, string AddressLine, string City, string State, string Zipcode, string? Notes, bool IsShippingAddress, bool IsBillingAddress)
     : IRequest<OperationResult>, ITransactionAddRequest, ISecureAddRequest
 {
@@ -21,12 +25,12 @@ public class UpdateUserAddressHandler(IUserAddressRepository repository) : IRequ
     public async Task<OperationResult> Handle(UpdateUserAddressCommand request, CancellationToken cancellationToken)
     {
         var address = await repository.GetAsync(a => a.Id == request.Id && a.UserId == request.UserId, cancellationToken: cancellationToken);
+
         if (address is null)
         {
             return Result.NotFound($"Address {request.Id} was not found.");
         }
 
-        // See CreateUserAddressCommand for why claiming shipping/billing here unsets whichever other address holds that flag.
         if (request.IsShippingAddress && !address.IsShippingAddress)
         {
             await UserAddressDefaultFlag.ClearPreviousShippingHolderAsync(repository, request.UserId, address.Id, cancellationToken);

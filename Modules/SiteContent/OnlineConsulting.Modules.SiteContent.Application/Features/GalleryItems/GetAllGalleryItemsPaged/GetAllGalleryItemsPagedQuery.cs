@@ -22,8 +22,8 @@ public class GetAllGalleryItemsPagedHandler(IGalleryItemRepository itemRepositor
         var paged = await itemRepository.Query().ToDynamicPaginateAsync(request.PageRequest, request.DynamicQuery, defaultOrderBy: x => x.DisplayOrder, tieBreaker: x => x.Id, cancellationToken);
 
         var itemIds = paged.Items.Select(x => x.Id).ToHashSet();
-        var links = await linkRepository.GetListAsync(x => itemIds.Contains(x.GalleryItemId), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
-        var categories = await categoryRepository.GetListAsync(size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+        var links = await linkRepository.GetListAsync(x => itemIds.Contains(x.GalleryItemId), orderBy: q => q.OrderBy(x => x.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+        var categories = await categoryRepository.GetListAsync(orderBy: q => q.OrderBy(x => x.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
 
         var categoriesById = categories.Items.ToDictionary(c => c.Id);
         var linksByItemId = links.Items.ToLookup(l => l.GalleryItemId);

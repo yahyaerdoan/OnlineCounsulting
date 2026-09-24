@@ -1,43 +1,41 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace OnlineConsulting.Modules.Memberships.Infrastructure.Migrations
+namespace OnlineConsulting.Modules.Memberships.Infrastructure.Migrations;
+
+/// <inheritdoc />
+public partial class AddTrialSupportToMemberships : Migration
 {
     /// <inheritdoc />
-    public partial class AddTrialSupportToMemberships : Migration
+    protected override void Up(MigrationBuilder migrationBuilder)
     {
-        /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.AddColumn<int>(
-                name: "TrialDays",
-                schema: "Memberships",
-                table: "MembershipPlans",
-                type: "int",
-                nullable: true);
+        _ = migrationBuilder.AddColumn<int>(
+            name: "TrialDays",
+            schema: "Memberships",
+            table: "MembershipPlans",
+            type: "int",
+            nullable: true);
 
-            migrationBuilder.AddColumn<DateTimeOffset>(
-                name: "TrialEndDate",
-                schema: "Memberships",
-                table: "CustomerMemberships",
-                type: "datetimeoffset",
-                nullable: true);
-        }
+        _ = migrationBuilder.AddColumn<DateTimeOffset>(
+            name: "TrialEndDate",
+            schema: "Memberships",
+            table: "CustomerMemberships",
+            type: "datetimeoffset",
+            nullable: true);
+    }
 
-        /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropColumn(
-                name: "TrialDays",
-                schema: "Memberships",
-                table: "MembershipPlans");
+    /// <inheritdoc />
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        _ = migrationBuilder.DropColumn(
+            name: "TrialDays",
+            schema: "Memberships",
+            table: "MembershipPlans");
 
-            migrationBuilder.DropColumn(
-                name: "TrialEndDate",
-                schema: "Memberships",
-                table: "CustomerMemberships");
-        }
+        _ = migrationBuilder.DropColumn(
+            name: "TrialEndDate",
+            schema: "Memberships",
+            table: "CustomerMemberships");
     }
 }

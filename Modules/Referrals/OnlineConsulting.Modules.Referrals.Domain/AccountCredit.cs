@@ -2,7 +2,7 @@ using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Referrals.Domain;
 
-/// <summary>An append-only ledger entry, never updated/deleted once written - a user's balance is always the sum of their entries, not a mutable counter, so it can never drift from its own history. SourceType/SourceId trace back to whatever earned the credit (currently only "Referral"/Referral.Id).</summary>
+/// <summary>Append-only ledger entry - balance is always the sum of entries, never a mutable counter, so it can't drift from its history.</summary>
 public class AccountCredit : SequentialGuidTenantEntity
 {
     public required Guid UserId { get; set; }

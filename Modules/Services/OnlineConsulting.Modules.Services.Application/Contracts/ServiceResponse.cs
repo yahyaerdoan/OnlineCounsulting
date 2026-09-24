@@ -23,7 +23,7 @@ public class ServiceResponse : LinkedResponse
     public required bool IsEmergencyAvailable { get; init; }
     public Guid? CoverMediaAssetId { get; init; }
 
-    /// <summary>The extended photo/video gallery - empty for list-view queries (GetServices, SearchServices, etc.) to avoid an N+1 join per row, populated only by GetServiceById/GetServiceBySlug where a single service's full detail is being fetched.</summary>
+    /// <summary>Extended gallery - empty on list queries to avoid an N+1 join, populated only by GetServiceById/GetServiceBySlug.</summary>
     public List<ServiceMediaItemResponse> MediaItems { get; init; } = [];
 
     public static ServiceResponse FromDomain(Service service, List<ServiceMediaItemResponse>? mediaItems = null) => new()

@@ -17,7 +17,7 @@ public record GetAllModuleOfferingsQuery(PageRequest PageRequest) : IRequest<Ope
     [JsonIgnore]
     public string[] Roles => [GlobalOperationClaims.SuperAdmin];
 
-    // Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.
+    /// <summary>Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.</summary>
     [JsonIgnore]
     public bool AllowTenantBypass => false;
 }
@@ -26,7 +26,7 @@ public class GetAllModuleOfferingsHandler(IModuleOfferingRepository repository) 
 {
     public async Task<OperationDataResult<Paginate<ModuleOfferingAdminResponse>>> Handle(GetAllModuleOfferingsQuery request, CancellationToken cancellationToken)
     {
-        var offerings = await repository.GetListAsync(index: request.PageRequest.PageIndex, size: request.PageRequest.PageSize, cancellationToken: cancellationToken);
+        var offerings = await repository.GetListAsync(orderBy: q => q.OrderBy(o => o.Id), index: request.PageRequest.PageIndex, size: request.PageRequest.PageSize, cancellationToken: cancellationToken);
 
         var response = new Paginate<ModuleOfferingAdminResponse>
         {

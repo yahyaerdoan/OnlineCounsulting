@@ -9,9 +9,7 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.ResumeMembership;
 
-/// <summary>Reverses PauseMembershipCommand - billing resumes. RenewalDate self-corrects on the next
-/// real provider renewal webhook rather than being guessed here. UserId is always resolved
-/// server-side, never trusted from the client.</summary>
+/// <summary>Reverses PauseMembershipCommand; RenewalDate self-corrects on the next real provider renewal webhook rather than being guessed here.</summary>
 public record ResumeMembershipCommand(Guid UserId) : IRequest<OperationResult>, ISecureAddRequest
 {
     [JsonIgnore]

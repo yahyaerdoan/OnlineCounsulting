@@ -10,9 +10,7 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.ChangeMembershipPlan;
 
-/// <summary>Upgrade/downgrade for an already-Active membership - swaps the provider-side subscription's
-/// price in place (prorated), unlike SubscribeToMembership which creates a brand new subscription.
-/// UserId is always resolved server-side, never trusted from the client.</summary>
+/// <summary>Upgrade/downgrade for an Active membership - swaps the provider subscription's price in place (prorated), unlike SubscribeToMembership which creates a new one.</summary>
 public record ChangeMembershipPlanCommand(Guid UserId, Guid NewMembershipPlanId) : IRequest<OperationResult>, ISecureAddRequest
 {
     [JsonIgnore]

@@ -2,7 +2,7 @@
 
 namespace OnlineConsulting.Modules.Scheduling.Infrastructure.Hubs;
 
-/// <summary>Per-connection minimum interval between PushLocation calls - a buggy or malicious technician client could otherwise flood the hub (and every connected customer) with GPS pings far faster than any UI could use. In-memory/single-instance, same scaling caveat as the SignalR Redis backplane itself (a multi-instance deployment would need this synchronized too, e.g. via Redis).</summary>
+/// <summary>Rate-limits PushLocation per connection so a buggy/malicious client can't flood the hub; in-memory only, needs Redis to work across instances.</summary>
 internal static class TechnicianLocationThrottle
 {
     private static readonly ConcurrentDictionary<string, DateTimeOffset> LastPushAt = new();

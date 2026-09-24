@@ -14,7 +14,7 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.CreateAppointment;
 
-/// <summary>Books a service (ServiceId set) or requests a generic meeting with the tenant (ServiceId null) - same underlying Appointment either way. UserId is always resolved server-side from the authenticated caller, never trusted from the client. ITransactionAddRequest keeps the appointment write and its confirmation-email outbox row atomic (EfTransactionAddingBehavior, not TransactionScope, so no MSDTC risk).</summary>
+/// <summary>ServiceId null means a generic meeting request, not a booking; ITransactionAddRequest keeps the appointment write and its confirmation-email outbox row atomic.</summary>
 public record CreateAppointmentCommand(Guid UserId, string Email, Guid? ServiceId, DateTimeOffset ScheduledStart, DateTimeOffset ScheduledEnd, string? CustomerNote, string? ServiceAddress = null)
     : IRequest<OperationDataResult<Guid>>, ISecureAddRequest, ITransactionAddRequest
 {
@@ -48,7 +48,6 @@ public class CreateAppointmentHandler(IAppointmentRepository repository, IEmailO
             Status = AppointmentStatuses.Pending,
             CustomerNote = request.CustomerNote,
             ServiceAddress = request.ServiceAddress,
-            // Always false for now - no payment gateway exists yet, so no appointment can be gated on payment. Wiring this from Service.RequiresPrepayment is deferred until that integration lands (see AppointmentStatuses.PendingPayment).
             RequiresPrepayment = false,
         };
 

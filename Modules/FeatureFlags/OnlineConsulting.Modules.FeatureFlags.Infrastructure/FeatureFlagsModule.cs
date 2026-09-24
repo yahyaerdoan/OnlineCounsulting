@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OnlineConsulting.Modules.FeatureFlags.Application;
 using OnlineConsulting.Modules.FeatureFlags.Application.Abstractions;
+using OnlineConsulting.Modules.FeatureFlags.Application.Features.Constants;
 using OnlineConsulting.Modules.FeatureFlags.Application.Features.SetFeatureFlag;
 using OnlineConsulting.Modules.FeatureFlags.Infrastructure.Caching;
 using OnlineConsulting.Modules.FeatureFlags.Infrastructure.Persistence;
@@ -13,7 +14,6 @@ using OnlineConsulting.Modules.FeatureFlags.Infrastructure.Repositories;
 using OnlineConsulting.Modules.FeatureFlags.Infrastructure.Writing;
 using OnlineConsulting.SharedKernel.Auditing;
 using OnlineConsulting.SharedKernel.Authorization;
-using OnlineConsulting.Modules.FeatureFlags.Application.Features.Constants;
 using OnlineConsulting.SharedKernel.FeatureFlags;
 using OnlineConsulting.SharedKernel.Tenancy;
 

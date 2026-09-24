@@ -2,7 +2,7 @@
 
 namespace OnlineConsulting.Modules.Identity.Application.Features.Auth.CreateTenantAdmin;
 
-/// <summary>Deliberately no email-uniqueness Must() check, unlike RegisterValidator - a duplicate-email check here would be the exact same check-then-act race this command exists to close. UserManager.CreateAsync's own atomic unique index is the real guard; see CreateTenantAdminCommand's doc comment.</summary>
+/// <summary>No email-uniqueness check here (unlike RegisterValidator) - UserManager.CreateAsync's atomic unique index is the real guard, avoiding a check-then-act race.</summary>
 public class CreateTenantAdminValidator : AbstractValidator<CreateTenantAdminCommand>
 {
     public CreateTenantAdminValidator()

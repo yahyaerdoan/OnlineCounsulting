@@ -14,9 +14,7 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.GetMyTenant;
 
-/// <summary>Tenant-side self-service counterpart to GetTenantByIdQuery (SuperAdmin only, takes an
-/// arbitrary id) - always resolves the CALLER's own tenant from ITenantProvider, so any tenant admin
-/// can see their own subscription/modules without needing a platform-level role.</summary>
+/// <summary>Tenant-side counterpart to GetTenantByIdQuery - resolves the caller's own tenant from ITenantProvider, so any tenant admin can view it without a platform role.</summary>
 public record GetMyTenantQuery : IRequest<OperationDataResult<TenantSummaryResponse>>, ISecureAddRequest
 {
     [JsonIgnore]
@@ -40,7 +38,7 @@ public class GetMyTenantHandler(ITenantRepository tenantRepository, ITenantSubsc
         var items = subscription is null
             ? []
             : (await tenantSubscriptionItemRepository
-            .GetListAsync(i => i.TenantSubscriptionId == subscription.Id && i.Status == TenantSubscriptionItemStatuses.Active, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken)).Items.ToList();
+            .GetListAsync(i => i.TenantSubscriptionId == subscription.Id && i.Status == TenantSubscriptionItemStatuses.Active, orderBy: q => q.OrderBy(i => i.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken)).Items.ToList();
 
         var response = TenantSummaryResponse.FromDomain(tenant, [.. items.Select(i => i.ModuleKey)], items.Sum(i => i.PriceAtAddition));
         return Result.Success(response, "Tenant retrieved successfully.");

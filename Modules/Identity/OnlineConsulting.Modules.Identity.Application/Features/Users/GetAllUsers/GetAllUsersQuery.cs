@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using Core.ApplicationLayer.Requests.Page;
 using Core.PersistenceLayer.Dynamics.Dynamic;
 using Core.PersistenceLayer.Pagings.Paging;
@@ -23,13 +23,17 @@ using System.Text.Json.Serialization;
 namespace OnlineConsulting.Modules.Identity.Application.Features.Users.GetAllUsers;
 
 /// <summary>DynamicQuery carries filter+sort. Tenant scoping stays a separate .Where(), applied first.</summary>
-public record GetAllUsersQuery(PageRequest PageRequest, DynamicQuery? DynamicQuery = null)
-    : IRequest<OperationDataResult<Paginate<UserResponse>>>, ISecureAddRequest
+public record GetAllUsersQuery(PageRequest PageRequest, DynamicQuery? DynamicQuery = null) : IRequest<OperationDataResult<Paginate<UserResponse>>>, ISecureAddRequest
 {
     [JsonIgnore]
     public string[] Roles => [UsersOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, UsersOperationClaims.Read];
 }
 
+/// <summary>
+/// Lists users, scoped to the caller's tenant unless the caller is Super Admin. A non-Super Admin caller
+/// never sees a Super Admin account even if it shares their TenantId (e.g. invited directly by one) - see
+/// <see cref="OnlineConsulting.Modules.Identity.Application.Common.TenantOwnerProtection"/>.
+/// </summary>
 public class GetAllUsersHandler(UserManager<User> userManager, RoleManager<Role> roleManager, IPermissionCatalog permissionCatalog, ITenantProvider tenantProvider, IHttpContextAccessor httpContextAccessor)
     : IRequestHandler<GetAllUsersQuery, OperationDataResult<Paginate<UserResponse>>>
 {
@@ -44,17 +48,15 @@ public class GetAllUsersHandler(UserManager<User> userManager, RoleManager<Role>
 
         if (!isSuperAdmin)
         {
-            // A non-SuperAdmin can share TenantId with a SuperAdmin (e.g. invited directly by one) -
-            // never reveal that account to anyone who can't act on it (see TenantOwnerProtection).
             var superAdminIds = (await userManager.GetUsersInRoleAsync(GlobalOperationClaims.SuperAdmin)).Select(u => u.Id).ToHashSet();
+
             if (superAdminIds.Count > 0)
             {
                 usersQuery = usersQuery.Where(u => !superAdminIds.Contains(u.Id));
             }
         }
 
-        var pagedUsers = await usersQuery.ToDynamicPaginateAsync(
-            request.PageRequest, request.DynamicQuery, defaultOrderBy: u => u.LastName, tieBreaker: u => u.Id, cancellationToken);
+        var pagedUsers = await usersQuery.ToDynamicPaginateAsync(request.PageRequest, request.DynamicQuery, defaultOrderBy: u => u.LastName, tieBreaker: u => u.Id, cancellationToken);
 
         if (pagedUsers.Items.Count == 0)
         {
@@ -71,11 +73,11 @@ public class GetAllUsersHandler(UserManager<User> userManager, RoleManager<Role>
         var (permissionsByRole, roleNamesByUserId) = await GetRoleDataAsync(userManager, roleManager, cancellationToken);
 
         var items = new List<UserResponse>();
+
         foreach (var user in pagedUsers.Items)
         {
             var roles = roleNamesByUserId[user.Id];
-            var permissions = RolePermissionResolver.ExpandForDisplay(
-                [.. roles.SelectMany(role => permissionsByRole.GetValueOrDefault(role, [])).Distinct()], permissionCatalog);
+            var permissions = RolePermissionResolver.ExpandForDisplay([.. roles.SelectMany(role => permissionsByRole.GetValueOrDefault(role, [])).Distinct()], permissionCatalog);
 
             items.Add(new UserResponse
             {
@@ -103,10 +105,10 @@ public class GetAllUsersHandler(UserManager<User> userManager, RoleManager<Role>
     }
 
     /// <summary>One pass over the (small, fixed) role set instead of one GetRolesAsync call per user on the page.</summary>
-    private static async Task<(Dictionary<string, List<string>> PermissionsByRole, ILookup<Guid, string> RoleNamesByUserId)> GetRoleDataAsync(
-        UserManager<User> userManager, RoleManager<Role> roleManager, CancellationToken cancellationToken)
+    private static async Task<(Dictionary<string, List<string>> PermissionsByRole, ILookup<Guid, string> RoleNamesByUserId)> GetRoleDataAsync(UserManager<User> userManager, RoleManager<Role> roleManager, CancellationToken cancellationToken)
     {
         var roles = await roleManager.Roles.ToListAsync(cancellationToken);
+
         var permissionsByRole = new Dictionary<string, List<string>>();
         var userRolePairs = new List<(Guid UserId, string RoleName)>();
 

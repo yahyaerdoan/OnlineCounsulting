@@ -15,6 +15,7 @@ public record SubscribeNewsletterCommand(string Email) : IRequest<OperationResul
 public class SubscribeNewsletterHandler(INewsletterSubscriberRepository repository, IEmailOutboxWriter<IInquiriesOutboxModule> outboxWriter, IEmailTemplate<NewsletterSubscribedEmailModel> template)
     : IRequestHandler<SubscribeNewsletterCommand, OperationResult>
 {
+    /// <summary>Subscribes an email to the newsletter; idempotent, re-subscribing succeeds silently.</summary>
     public async Task<OperationResult> Handle(SubscribeNewsletterCommand request, CancellationToken cancellationToken)
     {
         var alreadySubscribed = await repository.AnyAsync(s => s.Email == request.Email, cancellationToken: cancellationToken);

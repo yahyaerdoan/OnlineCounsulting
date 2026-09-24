@@ -5,10 +5,11 @@ using System.Security.Claims;
 
 namespace OnlineConsulting.Modules.Scheduling.Infrastructure.Hubs;
 
-/// <summary>Relays a technician's live GPS position to the customer watching a specific appointment. Purely a real-time relay - positions are never persisted (a WorkOrder/Appointment row isn't the right place for a stream of GPS pings, and nothing downstream needs history of them). Group membership is re-validated against the current Appointment on every join, not cached, since AssignedTechnicianUserId can change between connections.</summary>
+/// <summary>Relays a technician's live GPS to the watching customer - positions are never persisted; group membership is re-validated on every join since AssignedTechnicianUserId can change.</summary>
 [Authorize]
 public class TechnicianTrackingHub(IAppointmentRepository appointmentRepository) : Hub<ITechnicianTrackingClient>
 {
+    /// <summary>Joins the caller to the appointment's tracking group. Caller must be the appointment's customer or its assigned technician.</summary>
     public async Task JoinAppointmentTracking(Guid appointmentId)
     {
         var userId = GetUserId();
@@ -21,9 +22,11 @@ public class TechnicianTrackingHub(IAppointmentRepository appointmentRepository)
         await Groups.AddToGroupAsync(Context.ConnectionId, GroupName(appointmentId));
     }
 
+    /// <summary>Removes the caller from the appointment's tracking group.</summary>
     public async Task LeaveAppointmentTracking(Guid appointmentId) =>
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, GroupName(appointmentId));
 
+    /// <summary>Broadcasts the caller's GPS position to the appointment's tracking group. Only the assigned technician may push, and is rate-limited by <see cref="TechnicianLocationThrottle"/>.</summary>
     public async Task PushLocation(Guid appointmentId, double latitude, double longitude)
     {
         if (!TechnicianLocationThrottle.TryAcquire(Context.ConnectionId))

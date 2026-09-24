@@ -6,7 +6,7 @@ using ResultHandler.Core.Abstractions;
 
 namespace OnlineConsulting.Modules.Media.Infrastructure.Pipelines;
 
-/// <summary>Closes EfTransactionAddingBehavior's TContext to this module's DbContext so it can be registered as an open generic. No current handler implements ITransactionAddRequest (every write here is single-SaveChanges) - registered for consistency with every other module's template.</summary>
+/// <summary>Closes EfTransactionAddingBehavior to this module's DbContext for open-generic registration; unused today, kept for template consistency.</summary>
 public class MediaTransactionAddingBehavior<TRequest, TResponse>(MediaDbContext context) : EfTransactionAddingBehavior<TRequest, TResponse, MediaDbContext>(context)
     where TRequest : IRequest<TResponse>, ITransactionAddRequest
     where TResponse : IOperationResult;

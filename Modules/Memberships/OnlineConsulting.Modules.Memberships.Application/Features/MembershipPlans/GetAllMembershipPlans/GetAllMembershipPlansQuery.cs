@@ -8,16 +8,14 @@ using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Memberships.Application.Features.MembershipPlans.GetAllMembershipPlans;
 
-/// <summary>Public - no ISecureAddRequest - so the pricing page can list plans without authentication. IncludeArchived
-/// is only meant for the admin plan list (Admin/Growth/Memberships.razor) - the public pricing page always omits it,
-/// which defaults to active-only.</summary>
+/// <summary>Public (no ISecureAddRequest) so the pricing page can list plans unauthenticated; IncludeArchived is admin-only, public page omits it for active-only.</summary>
 public record GetAllMembershipPlansQuery(PageRequest PageRequest, bool IncludeArchived = false) : IRequest<OperationDataResult<Paginate<MembershipPlanResponse>>>;
 
 public class GetAllMembershipPlansHandler(IMembershipPlanRepository repository) : IRequestHandler<GetAllMembershipPlansQuery, OperationDataResult<Paginate<MembershipPlanResponse>>>
 {
     public async Task<OperationDataResult<Paginate<MembershipPlanResponse>>> Handle(GetAllMembershipPlansQuery request, CancellationToken cancellationToken)
     {
-        var plans = await repository.GetListAsync(p => request.IncludeArchived || p.IsActive, index: request.PageRequest.PageIndex, size: request.PageRequest.PageSize, cancellationToken: cancellationToken);
+        var plans = await repository.GetListAsync(p => request.IncludeArchived || p.IsActive, orderBy: q => q.OrderBy(p => p.Id), index: request.PageRequest.PageIndex, size: request.PageRequest.PageSize, cancellationToken: cancellationToken);
 
         var response = new Paginate<MembershipPlanResponse>
         {

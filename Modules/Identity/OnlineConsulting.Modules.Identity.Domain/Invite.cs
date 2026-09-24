@@ -2,11 +2,7 @@ using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Identity.Domain;
 
-/// <summary>A tenant admin's invitation for a new teammate to join their tenant. The Token is the only thing
-/// the invited person needs - it is embedded in the emailed link and resolves TenantId automatically on
-/// acceptance, so they never see or enter a tenant id themselves. Not tenant-scoped by an EF query filter
-/// (see AppIdentityDbContext) because AcceptInvite is anonymous and must be able to look a row up by Token
-/// alone, before any tenant is known.</summary>
+/// <summary>A teammate invite; Token alone resolves TenantId on acceptance, so it's exempt from the EF tenant query filter (see AppIdentityDbContext) since AcceptInvite is anonymous.</summary>
 public class Invite : SequentialGuidTenantEntity
 {
     public required string Email { get; set; }

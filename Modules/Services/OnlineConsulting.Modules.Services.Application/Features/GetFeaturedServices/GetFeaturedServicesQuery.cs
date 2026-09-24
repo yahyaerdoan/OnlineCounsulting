@@ -13,7 +13,7 @@ public class GetFeaturedServicesHandler(IServiceRepository repository) : IReques
 {
     public async Task<OperationDataResult<List<ServiceResponse>>> Handle(GetFeaturedServicesQuery request, CancellationToken cancellationToken)
     {
-        var services = await repository.GetListAsync(s => s.FeaturedArea, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+        var services = await repository.GetListAsync(s => s.FeaturedArea, orderBy: q => q.OrderBy(s => s.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
 
         List<ServiceResponse> response = [.. services.Items.Select(s => ServiceResponse.FromDomain(s))];
 

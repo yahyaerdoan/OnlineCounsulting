@@ -23,7 +23,7 @@ public record GetAllTenantsPagedQuery(PageRequest PageRequest, DynamicQuery? Dyn
     [JsonIgnore]
     public string[] Roles => [GlobalOperationClaims.SuperAdmin];
 
-    // Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.
+    /// <summary>Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.</summary>
     [JsonIgnore]
     public bool AllowTenantBypass => false;
 }
@@ -50,13 +50,13 @@ public class GetAllTenantsPagedHandler(ITenantRepository tenantRepository, ITena
         var tenantIds = tenants.Items.Select(t => t.Id).ToList();
 
         var subscriptions = await tenantSubscriptionRepository
-            .GetListAsync(s => tenantIds.Contains(s.TenantId) && s.Status != TenantSubscriptionStatuses.Cancelled, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+            .GetListAsync(s => tenantIds.Contains(s.TenantId) && s.Status != TenantSubscriptionStatuses.Cancelled, orderBy: q => q.OrderBy(s => s.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
 
         var subscriptionIdsByTenantId = subscriptions.Items.ToDictionary(s => s.Id, s => s.TenantId);
         var subscriptionIds = subscriptionIdsByTenantId.Keys.ToList();
 
         var items = await tenantSubscriptionItemRepository
-            .GetListAsync(i => subscriptionIds.Contains(i.TenantSubscriptionId) && i.Status == TenantSubscriptionItemStatuses.Active, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+            .GetListAsync(i => subscriptionIds.Contains(i.TenantSubscriptionId) && i.Status == TenantSubscriptionItemStatuses.Active, orderBy: q => q.OrderBy(i => i.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
 
         var itemsByTenantId = items.Items.GroupBy(i => subscriptionIdsByTenantId[i.TenantSubscriptionId]).ToDictionary(g => g.Key, g => g.ToList());
 

@@ -8,7 +8,7 @@ using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.Signup;
 
-/// <summary>Compensates a successful charge when CreateTenantAdminCommand fails right after (rare concurrent-duplicate-email race) - cancels the just-created provider subscription so nobody pays for a tenant with no admin user, and marks the tenant Failed.</summary>
+/// <summary>Compensates a charge when CreateTenantAdminCommand fails right after (rare duplicate-email race) - cancels the provider subscription and marks the tenant Failed.</summary>
 public record RollbackTenantSignupCommand(Guid TenantId) : IRequest<OperationResult>;
 
 public class RollbackTenantSignupHandler(ITenantRepository tenantRepository, ITenantSubscriptionRepository tenantSubscriptionRepository, ISubscriptionGateway subscriptionGateway)

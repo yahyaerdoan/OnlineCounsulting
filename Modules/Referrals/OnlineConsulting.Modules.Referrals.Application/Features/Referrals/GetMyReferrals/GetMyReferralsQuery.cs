@@ -14,7 +14,7 @@ public class GetMyReferralsHandler(IReferralRepository repository) : IRequestHan
 {
     public async Task<OperationDataResult<List<ReferralResponse>>> Handle(GetMyReferralsQuery request, CancellationToken cancellationToken)
     {
-        var entities = await repository.GetListAsync(r => r.ReferrerUserId == request.ReferrerUserId, size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+        var entities = await repository.GetListAsync(r => r.ReferrerUserId == request.ReferrerUserId, orderBy: q => q.OrderBy(r => r.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
         var response = entities.Items.Select(ReferralResponse.FromDomain).ToList();
 
         return Result.Success(response, "Referrals retrieved successfully.");

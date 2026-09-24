@@ -15,7 +15,7 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems;
 
-/// <summary>Mirror image of AddModuleCommand - removes one à la carte module from an already-subscribed tenant, prorated refund/credit (see ISubscriptionGateway.RemoveSubscriptionItemAsync). Same Roles => [] + TenantOwnershipGuard authorization shape as AddModuleCommand.</summary>
+/// <summary>Mirror of AddModuleCommand - removes one à la carte module, prorated refund/credit. Same Roles => [] + TenantOwnershipGuard authorization shape.</summary>
 public record RemoveModuleCommand(Guid TenantId, string ModuleKey) : IRequest<OperationResult>, ISecureAddRequest
 {
     [JsonIgnore]

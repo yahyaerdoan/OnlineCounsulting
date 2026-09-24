@@ -12,11 +12,11 @@ namespace OnlineConsulting.Modules.Identity.Application.Features.Roles.DeleteRol
 
 public record DeleteRoleCommand(Guid RoleId) : IRequest<OperationResult>, ISecureAddRequest
 {
-    // Role isn't tenant-scoped (no TenantId) - only SuperAdmin may delete a role shared across tenants.
+    /// <summary>Roles aren't tenant-scoped, so only Super Admin may delete one - it's shared across tenants.</summary>
     [JsonIgnore]
     public string[] Roles => [GlobalOperationClaims.SuperAdmin];
 
-    // Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.
+    /// <summary>Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.</summary>
     [JsonIgnore]
     public bool AllowTenantBypass => false;
 }
@@ -26,6 +26,7 @@ public class DeleteRoleHandler(RoleManager<Role> roleManager) : IRequestHandler<
     public async Task<OperationResult> Handle(DeleteRoleCommand request, CancellationToken cancellationToken)
     {
         var role = await roleManager.FindByIdAsync(request.RoleId.ToString());
+
         if (role is null)
         {
             return RoleBusinessRules.NoRoleDataFound();

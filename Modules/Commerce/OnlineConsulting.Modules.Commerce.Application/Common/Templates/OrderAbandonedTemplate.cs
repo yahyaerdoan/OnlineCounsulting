@@ -5,8 +5,7 @@ namespace OnlineConsulting.Modules.Commerce.Application.Common.Templates;
 
 public record OrderAbandonedEmailModel(string OrderNumber);
 
-/// <summary>Sent when checkout was started but never finished (tab closed, no payment attempt) and PendingOrderCleanupService
-/// expired the order - softer tone than OrderPaymentFailedTemplate since nothing actually went wrong on our end.</summary>
+/// <summary>Sent when PendingOrderCleanupService expires an unfinished checkout - softer tone than OrderPaymentFailedTemplate since nothing went wrong.</summary>
 public class OrderAbandonedTemplate : IEmailTemplate<OrderAbandonedEmailModel>
 {
     public string Subject(OrderAbandonedEmailModel model) => $"Did you forget something? Order {model.OrderNumber} was not completed";

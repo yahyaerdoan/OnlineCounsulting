@@ -9,13 +9,13 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.ModuleOfferings.UpdateModuleOffering;
 
-/// <summary>Only local fields - never touches Key/Price/BillingCycle/ProviderProductId/ProviderPriceId. Provider prices are immutable and Key is what every TenantSubscriptionItem/FeatureFlag already points to, so a real price or key change requires creating a new offering (out of scope for this phase), mirroring UpdateMembershipPlanCommand.</summary>
+/// <summary>Only local fields - never touches Key/Price/BillingCycle/ProviderProductId/ProviderPriceId, since those are immutable/already referenced elsewhere; a real change needs a new offering.</summary>
 public record UpdateModuleOfferingCommand(Guid Id, string Name, bool IsPubliclyVisible) : IRequest<OperationResult>, ISecureAddRequest
 {
     [JsonIgnore]
     public string[] Roles => [GlobalOperationClaims.SuperAdmin];
 
-    // Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.
+    /// <summary>Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.</summary>
     [JsonIgnore]
     public bool AllowTenantBypass => false;
 }

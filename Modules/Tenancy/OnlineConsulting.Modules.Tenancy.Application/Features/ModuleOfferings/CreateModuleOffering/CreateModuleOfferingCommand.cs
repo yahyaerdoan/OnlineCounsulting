@@ -11,13 +11,13 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.ModuleOfferings.CreateModuleOffering;
 
-/// <summary>Creates the offering's provider-side product/price before persisting it - prices are immutable on the provider side, so this is the only place that ever mints one for a given offering (see ModuleOffering.ProviderPriceId), mirroring CreateMembershipPlanCommand.</summary>
+/// <summary>Mints the offering's provider-side product/price before persisting - the only place that does, since provider prices are immutable (see ModuleOffering.ProviderPriceId).</summary>
 public record CreateModuleOfferingCommand(string Key, string Name, decimal Price, string BillingCycle, bool IsPubliclyVisible) : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
     [JsonIgnore]
     public string[] Roles => [GlobalOperationClaims.SuperAdmin];
 
-    // Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.
+    /// <summary>Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.</summary>
     [JsonIgnore]
     public bool AllowTenantBypass => false;
 }

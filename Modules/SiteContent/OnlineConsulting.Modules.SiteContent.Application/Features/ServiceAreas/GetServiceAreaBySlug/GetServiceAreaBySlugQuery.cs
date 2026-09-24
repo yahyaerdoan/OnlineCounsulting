@@ -7,6 +7,7 @@ using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.SiteContent.Application.Features.ServiceAreas.GetServiceAreaBySlug;
 
+/// <summary>Looks up a service area by its stable SEO slug, for public-facing pages (not by Id).</summary>
 public record GetServiceAreaBySlugQuery(string Slug) : IRequest<OperationDataResult<ServiceAreaResponse>>;
 
 public class GetServiceAreaBySlugHandler(IServiceAreaRepository repository) : IRequestHandler<GetServiceAreaBySlugQuery, OperationDataResult<ServiceAreaResponse>>

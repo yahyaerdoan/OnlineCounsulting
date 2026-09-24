@@ -6,11 +6,7 @@ using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.Signup;
 
-/// <summary>Third step of self-service tenant signup - records which Identity User is this tenant's actual
-/// owner (Tenant.OwnerUserId), right after CreateTenantAdminCommand creates that user and before
-/// ActivateTenantSubscriptionCommand bills the card. Deliberately plain IRequest, not ISecureAddRequest, for
-/// the same reason as ActivateTenantSubscriptionCommand: OnlineConsulting.Api/Features/Tenancy/SignUp.cs sends
-/// this as an internal step of the anonymous public signup endpoint, before any JWT/tenant claim exists.</summary>
+/// <summary>Third signup step - records the tenant's owner (Tenant.OwnerUserId) after CreateTenantAdminCommand; plain IRequest, not ISecureAddRequest, since SignUp.cs calls it internally before any JWT exists.</summary>
 public record SetTenantOwnerCommand(Guid TenantId, Guid OwnerUserId) : IRequest<OperationResult>;
 
 public class SetTenantOwnerHandler(ITenantRepository tenantRepository) : IRequestHandler<SetTenantOwnerCommand, OperationResult>
