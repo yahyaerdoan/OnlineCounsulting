@@ -25,6 +25,7 @@ public static class MauiProgram
             });
 
         _ = builder.Services.AddMauiBlazorWebView();
+        ConfigureAndroidWebView();
         _ = builder.Services.AddMudServices(config =>
         {
             config.SnackbarConfiguration.PositionClass = MudBlazor.Defaults.Classes.Position.TopEnd;
@@ -70,7 +71,26 @@ public static class MauiProgram
         return builder.Build();
     }
 
-    // #if DEBUG on purpose, not AppEnvironment.IsDevelopment - must not exist in a Release binary.
+    /// <summary>Android WebView defaults to requiring a user gesture before playing any media, which
+    /// silently stops the About Us YouTube iframe from autoplaying - not a Blazor or CSS issue. Must
+    /// PREPEND, not append - BlazorWebViewHandler's own "HostPage"/"Source" mapping (which triggers
+    /// the WebView's first navigation) is already registered by the time this runs, and Android reads
+    /// several WebView settings once at that first navigation's commit; appending here (tried first)
+    /// applied the setting too late to matter.</summary>
+    private static void ConfigureAndroidWebView()
+    {
+#if ANDROID
+        Microsoft.AspNetCore.Components.WebView.Maui.BlazorWebViewHandler.BlazorWebViewMapper.PrependToMapping("DisableMediaPlaybackGesture", (handler, _) =>
+        {
+            if (handler.PlatformView is Android.Webkit.WebView webView)
+            {
+                webView.Settings.MediaPlaybackRequiresUserGesture = false;
+            }
+        });
+#endif
+    }
+
+    /// <summary>Gated on #if DEBUG rather than AppEnvironment.IsDevelopment, so the cert bypass cannot exist in a Release binary.</summary>
     private static HttpMessageHandler CreatePrimaryHandler()
     {
         var handler = new HttpClientHandler();

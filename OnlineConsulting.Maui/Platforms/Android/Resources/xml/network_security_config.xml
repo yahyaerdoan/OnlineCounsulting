@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dev-only: trusts the bundled dev cert (see OnlineConsulting.Api/DevCerts/README.md) for the
+     Android emulator's host-loopback alias (10.0.2.2), which ApiEndpoint.DevDefaultUrl points at -
+     its SAN list includes 10.0.2.2, unlike the stock ASP.NET Core dev cert, so https genuinely
+     works here instead of failing TLS hostname verification. Every other domain keeps Android's
+     default (system trust anchors only). -->
+<network-security-config>
+    <domain-config>
+        <domain includeSubdomains="false">10.0.2.2</domain>
+        <trust-anchors>
+            <certificates src="@raw/dev_cert" />
+        </trust-anchors>
+    </domain-config>
+</network-security-config>
