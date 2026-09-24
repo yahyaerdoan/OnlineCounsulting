@@ -4,7 +4,7 @@
 
 @if (_slide is not null)
 {
-    <div class="marketing-hero" style="background-image:url('@_slide.ImageUrl')">
+    <div class="marketing-hero" style="background-image:url('@MediaUrlResolver.Resolve(ApiClient, _slide.ImageUrl)')">
         <div class="marketing-hero-overlay">
             <MudContainer MaxWidth="MaxWidth.Large">
                 <MudText Typo="Typo.h3" Class="marketing-hero-title">@_slide.Title</MudText>

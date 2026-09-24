@@ -3,6 +3,9 @@
 /// <summary>Thin typed HttpClient wrapper for calling the Api, shared by every module.</summary>
 public interface IApiClient
 {
+    /// <summary>Origin the Api is reached at - needed to turn a storage-relative media Url (e.g. "/uploads/x.jpg") into one a BlazorWebView can actually load, since its own page origin isn't the Api's.</summary>
+    Uri? BaseAddress { get; }
+
     Task<ApiEnvelope<T>> GetAsync<T>(string path, CancellationToken cancellationToken = default);
 
     /// <summary>POST-based search/filter for DynamicQuery-driven lists - see ServerDataTable.</summary>

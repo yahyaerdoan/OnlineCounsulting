@@ -259,6 +259,10 @@ window.subscribeStripe = (function () {
         initFeatureShowcase();
     }
 
+    // DOMContentLoaded/enhancedload never fire in time for BlazorWebView (no static-SSR shell, no
+    // enhanced-nav pipeline) - MarketingLayout also calls this directly via JS interop after render.
+    window.initMarketingNav = init;
+
     document.addEventListener('DOMContentLoaded', init);
     document.addEventListener('enhancedload', init);
 })();

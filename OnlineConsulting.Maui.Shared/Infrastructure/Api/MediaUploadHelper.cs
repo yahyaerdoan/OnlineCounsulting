@@ -27,6 +27,6 @@ public static class MediaUploadHelper
     public static async Task<string?> GetUrlAsync(IApiClient apiClient, Guid mediaAssetId, CancellationToken cancellationToken = default)
     {
         var result = await apiClient.GetAsync<MediaAssetResponse>($"/api/media/{mediaAssetId}", cancellationToken);
-        return result.IsSuccessful ? result.ResultData?.Url : null;
+        return result.IsSuccessful ? MediaUrlResolver.Resolve(apiClient, result.ResultData?.Url) : null;
     }
 }

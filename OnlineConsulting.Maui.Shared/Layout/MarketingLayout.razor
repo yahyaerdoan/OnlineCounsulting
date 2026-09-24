@@ -5,13 +5,19 @@
 @using OnlineConsulting.Maui.Shared.Infrastructure.Api
 @using System.Security.Claims
 @inject IApiClient ApiClient
+@inject IJSRuntime JsRuntime
+@inject IPlatformInfo PlatformInfo
 
 <MudThemeProvider Theme="MarketingTheme.Default" />
 <MudPopoverProvider />
-<MudSnackbarProvider @rendermode="InteractiveServer" />
+<MudSnackbarProvider />
 <MudDialogProvider />
 
 <MudLayout Class="marketing-app-layout">
+    @if (PlatformInfo.IsNativeMobile)
+    {
+        <div class="status-bar-safe-area"></div>
+    }
     <div class="marketing-top-bar">
         <MudContainer MaxWidth="MaxWidth.Large" Class="d-flex justify-space-between align-center flex-wrap gap-2">
             <div class="d-flex align-center gap-4 flex-wrap">
@@ -124,6 +130,10 @@
         var socialLinksResult = await ApiClient.GetAsync<List<SocialLinkResponse>>(ApiRoutes.SiteContent.SocialLink.Base);
         _socialLinks = socialLinksResult.IsSuccessful ? socialLinksResult.ResultData : null;
     }
+
+    /// <summary>Re-binds marketing.js's click handlers after every render, not just DOMContentLoaded/enhancedload - neither fires reliably in BlazorWebView, and AuthorizeView's async resolution re-creates the header's DOM on a later render anyway.</summary>
+    protected override async Task OnAfterRenderAsync(bool firstRender) =>
+        await JsRuntime.InvokeVoidAsync("initMarketingNav");
 
     private static string? DisplayName(ClaimsPrincipal user) =>
         user.FindFirst(ClaimTypes.GivenName)?.Value is { Length: > 0 } firstName ? firstName : user.Identity?.Name;

@@ -42,6 +42,6 @@
     {
         var result = await ApiClient.GetAsync<List<PageBannerResponse>>(ApiRoutes.SiteContent.PageBanners.Base);
         var banner = result.IsSuccessful ? result.ResultData?.OrderBy(b => b.DisplayOrder).FirstOrDefault() : null;
-        _imageUrl = string.IsNullOrWhiteSpace(banner?.ImageUrl) ? null : banner.ImageUrl;
+        _imageUrl = string.IsNullOrWhiteSpace(banner?.ImageUrl) ? null : MediaUrlResolver.Resolve(ApiClient, banner.ImageUrl);
     }
 }

@@ -16,7 +16,7 @@
                     <MudIcon Icon="@Icons.Material.Filled.FormatQuote" Class="marketing-testimonial-quote-icon" />
                     <MudText Typo="Typo.body1" Class="marketing-testimonial-desc">@testimonial.Description</MudText>
                     <div class="marketing-testimonial-footer">
-                        <MudImage Src="@testimonial.ImageUrl" ObjectFit="ObjectFit.Cover" Width="48" Height="48" Class="marketing-avatar" />
+                        <MudImage Src="@MediaUrlResolver.Resolve(ApiClient, testimonial.ImageUrl)" ObjectFit="ObjectFit.Cover" Width="48" Height="48" Class="marketing-avatar" />
                         <div>
                             <MudText Typo="Typo.subtitle2" Class="text-strong">@testimonial.FirstName @testimonial.LastName</MudText>
                             <MudText Typo="Typo.body2" Color="Color.Secondary">@testimonial.Title</MudText>

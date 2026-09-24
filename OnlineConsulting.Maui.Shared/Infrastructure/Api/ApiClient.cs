@@ -14,6 +14,8 @@ public class ApiClient(HttpClient httpClient, IAccessTokenProvider? tokenProvide
     private static readonly TimeSpan RefreshBuffer = TimeSpan.FromSeconds(30);
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
+    public Uri? BaseAddress => httpClient.BaseAddress;
+
     public Task<ApiEnvelope<T>> GetAsync<T>(string path, CancellationToken cancellationToken = default) =>
         SendAsync<T>(HttpMethod.Get, path, null, cancellationToken);
 

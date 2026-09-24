@@ -1,7 +1,6 @@
 @* Quick-add-to-cart action for a service. Interactive island on the static-SSR marketing pages
    (see MarketingLayout's MudSnackbarProvider) so the success/error Snackbar can auto-dismiss and
    its close icon works - both need a live circuit that a plain static-SSR form post doesn't have. *@
-@rendermode InteractiveServer
 @using OnlineConsulting.Maui.Shared.Infrastructure.Commerce
 @inject IApiClient ApiClient
 @inject ISnackbar Snackbar
