@@ -29,7 +29,7 @@ public class ResumeMembershipHandler(ICustomerMembershipRepository repository, I
 
         if (membership.Status != CustomerMembershipStatuses.Paused)
         {
-            return Result.BadRequest(CustomerMembershipMessages.NotResumable);
+            return Result.Conflict(CustomerMembershipMessages.NotResumable);
         }
 
         if (membership.ProviderSubscriptionId is { } subscriptionId)

@@ -19,16 +19,8 @@ public class GetBillingAddress : IEndpoint
     }
 
     private static async Task<IResult> Handle(ISender sender, LinkGenerator linkGenerator, HttpContext httpContext)
-    {
-        var currentUser = await sender.Send(new GetCurrentUserQuery());
-        if (!currentUser.IsSuccessful || currentUser.Data is null)
-        {
-            return currentUser.ToEnvelopedResult(httpContext);
-        }
-
-        var result = await sender.Send(new GetBillingAddressQuery(currentUser.Data.Id));
-        return result
-            .OnSuccess(address => address.Links = AddressLinks.Build(httpContext, linkGenerator, address.Id))
+        => (await sender.Send(new GetCurrentUserQuery())
+                .BindAsync(user => sender.Send(new GetBillingAddressQuery(user.Id)))
+                .OnSuccessAsync(address => address.Links = AddressLinks.Build(httpContext, linkGenerator, address.Id)))
             .ToEnvelopedResult(httpContext);
-    }
 }

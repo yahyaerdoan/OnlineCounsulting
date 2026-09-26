@@ -3,6 +3,7 @@ using MediatR;
 using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.FooterInfos.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Domain;
+using OnlineConsulting.SharedKernel.Media;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -15,11 +16,11 @@ public record CreateFooterInfoCommand(string ImageUrl, string Description, int D
     public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Add];
 }
 
-public class CreateFooterInfoHandler(IFooterInfoRepository repository) : IRequestHandler<CreateFooterInfoCommand, OperationDataResult<Guid>>
+public class CreateFooterInfoHandler(IFooterInfoRepository repository, IStorageService storageService) : IRequestHandler<CreateFooterInfoCommand, OperationDataResult<Guid>>
 {
     public async Task<OperationDataResult<Guid>> Handle(CreateFooterInfoCommand request, CancellationToken cancellationToken)
     {
-        var entity = new FooterInfo { ImageUrl = request.ImageUrl, Description = request.Description, DisplayOrder = request.DisplayOrder, Metadata = MetadataSerializer.Serialize(request.Metadata) };
+        var entity = new FooterInfo { ImageUrl = storageService.ToStoredUrl(request.ImageUrl), Description = request.Description, DisplayOrder = request.DisplayOrder, Metadata = MetadataSerializer.Serialize(request.Metadata) };
 
         _ = await repository.AddAsync(entity);
 

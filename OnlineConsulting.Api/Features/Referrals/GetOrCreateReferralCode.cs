@@ -3,6 +3,7 @@ using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
 using OnlineConsulting.Modules.Referrals.Application.Features.ReferralCodes.GetOrCreateReferralCode;
 using ResultHandler.AspNetCore.Extensions;
+using ResultHandler.Functional;
 
 namespace OnlineConsulting.Api.Features.Referrals;
 
@@ -17,15 +18,6 @@ public class GetOrCreateReferralCode : IEndpoint
             .WithDescription("Returns the current user's referral code, creating one on first call.");
     }
 
-    private static async Task<IResult> Handle(ISender sender, HttpContext httpContext)
-    {
-        var currentUser = await sender.Send(new GetCurrentUserQuery());
-        if (!currentUser.IsSuccessful || currentUser.Data is null)
-        {
-            return currentUser.ToEnvelopedResult(httpContext);
-        }
-
-        var result = await sender.Send(new GetOrCreateReferralCodeCommand(currentUser.Data.Id));
-        return result.ToEnvelopedResult(httpContext);
-    }
+    private static async Task<IResult> Handle(ISender sender, HttpContext httpContext) =>
+        (await sender.Send(new GetCurrentUserQuery()).BindAsync(user => sender.Send(new GetOrCreateReferralCodeCommand(user.Id)))).ToEnvelopedResult(httpContext);
 }

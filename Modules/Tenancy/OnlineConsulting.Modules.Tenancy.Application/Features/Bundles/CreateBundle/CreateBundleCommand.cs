@@ -36,7 +36,7 @@ public class CreateBundleHandler(IBundleRepository repository, IModuleOfferingRe
 
         if (unknownKeys.Count > 0)
         {
-            return Result.BadRequest<Guid>(string.Format(BundleMessages.UnknownModuleKeysFormat, string.Join(", ", unknownKeys)));
+            return Result.UnprocessableContent<Guid>(string.Format(BundleMessages.UnknownModuleKeysFormat, string.Join(", ", unknownKeys)));
         }
 
         var bundle = new Bundle

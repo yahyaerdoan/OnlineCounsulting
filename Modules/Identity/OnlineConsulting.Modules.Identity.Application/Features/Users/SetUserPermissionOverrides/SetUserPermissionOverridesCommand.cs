@@ -56,7 +56,7 @@ public class SetUserPermissionOverridesHandler(UserManager<User> userManager, Ro
 
         if (invalidPermissions.Count > 0)
         {
-            return Result.BadRequest($"Cannot deny permission(s) the user's role doesn't grant: {string.Join(", ", invalidPermissions)}.");
+            return Result.UnprocessableContent($"Cannot deny permission(s) the user's role doesn't grant: {string.Join(", ", invalidPermissions)}.");
         }
 
         var existingDeniedClaims = (await userManager.GetClaimsAsync(user)).Where(c => c.Type == PermissionOverrideClaimTypes.Deny).ToList();
@@ -67,7 +67,7 @@ public class SetUserPermissionOverridesHandler(UserManager<User> userManager, Ro
 
             if (!removeResult.Succeeded)
             {
-                return Result.BadRequest($"{string.Join("; ", removeResult.Errors.Select(e => e.Description))} errors occurred while updating permission overrides.");
+                return Result.InternalServerError($"{string.Join("; ", removeResult.Errors.Select(e => e.Description))} errors occurred while updating permission overrides.");
             }
         }
 
@@ -77,7 +77,7 @@ public class SetUserPermissionOverridesHandler(UserManager<User> userManager, Ro
 
             if (!addResult.Succeeded)
             {
-                return Result.BadRequest($"{string.Join("; ", addResult.Errors.Select(e => e.Description))} errors occurred while updating permission overrides.");
+                return Result.InternalServerError($"{string.Join("; ", addResult.Errors.Select(e => e.Description))} errors occurred while updating permission overrides.");
             }
         }
 

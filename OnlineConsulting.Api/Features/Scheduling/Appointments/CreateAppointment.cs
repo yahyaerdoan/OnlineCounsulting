@@ -4,6 +4,7 @@ using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.CreateAppointment;
 using ResultHandler.AspNetCore.Extensions;
+using ResultHandler.Functional;
 
 namespace OnlineConsulting.Api.Features.Scheduling.Appointments;
 
@@ -19,14 +20,7 @@ public class CreateAppointment : IEndpoint
     }
 
     private static async Task<IResult> Handle([FromBody] CreateAppointmentCommand command, ISender sender, HttpContext httpContext)
-    {
-        var currentUser = await sender.Send(new GetCurrentUserQuery());
-        if (!currentUser.IsSuccessful || currentUser.Data is null)
-        {
-            return currentUser.ToEnvelopedResult(httpContext);
-        }
-
-        var result = await sender.Send(command with { UserId = currentUser.Data.Id, Email = currentUser.Data.Email });
-        return result.ToEnvelopedResult(httpContext);
-    }
+        => (await sender.Send(new GetCurrentUserQuery())
+                .BindAsync(user => sender.Send(command with { UserId = user.Id, Email = user.Email })))
+            .ToEnvelopedResult(httpContext);
 }

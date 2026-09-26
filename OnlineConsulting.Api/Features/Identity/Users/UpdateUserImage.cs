@@ -3,6 +3,7 @@ using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.UpdateUserImage;
 using ResultHandler.AspNetCore.Extensions;
+using ResultHandler.Functional;
 
 namespace OnlineConsulting.Api.Features.Identity.Users;
 
@@ -19,14 +20,7 @@ public class UpdateUserImage : IEndpoint
     }
 
     private static async Task<IResult> Handle(IFormFile image, ISender sender, HttpContext httpContext)
-    {
-        var currentUser = await sender.Send(new GetCurrentUserQuery());
-        if (!currentUser.IsSuccessful || currentUser.Data is null)
-        {
-            return currentUser.ToEnvelopedResult(httpContext);
-        }
-
-        var result = await sender.Send(new UpdateUserImageCommand(currentUser.Data.Id, image));
-        return result.ToEnvelopedResult(httpContext);
-    }
+        => (await sender.Send(new GetCurrentUserQuery())
+                .BindAsync(user => sender.Send(new UpdateUserImageCommand(user.Id, image))))
+            .ToEnvelopedResult(httpContext);
 }

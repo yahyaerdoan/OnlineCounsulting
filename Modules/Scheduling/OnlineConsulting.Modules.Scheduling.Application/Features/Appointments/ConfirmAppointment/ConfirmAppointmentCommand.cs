@@ -29,7 +29,7 @@ public class ConfirmAppointmentHandler(IAppointmentRepository repository) : IReq
 
         if (appointment.Status != AppointmentStatuses.Pending)
         {
-            return Result.BadRequest(SchedulingMessages.OnlyPendingCanBeConfirmed);
+            return Result.Conflict(SchedulingMessages.OnlyPendingCanBeConfirmed);
         }
 
         appointment.Status = AppointmentStatuses.Confirmed;

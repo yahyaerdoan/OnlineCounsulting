@@ -2,6 +2,7 @@ using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.FeatureHighlights.Abstractions;
+using OnlineConsulting.SharedKernel.Media;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -14,7 +15,7 @@ public record UpdateFeatureHighlightCommand(Guid Id, string Title, string Descri
     public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Update];
 }
 
-public class UpdateFeatureHighlightHandler(IFeatureHighlightRepository repository) : IRequestHandler<UpdateFeatureHighlightCommand, OperationResult>
+public class UpdateFeatureHighlightHandler(IFeatureHighlightRepository repository, IStorageService storageService) : IRequestHandler<UpdateFeatureHighlightCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(UpdateFeatureHighlightCommand request, CancellationToken cancellationToken)
     {
@@ -26,7 +27,7 @@ public class UpdateFeatureHighlightHandler(IFeatureHighlightRepository repositor
 
         entity.Title = request.Title;
         entity.Description = request.Description;
-        entity.ImageUrl = request.ImageUrl;
+        entity.ImageUrl = storageService.ToStoredUrl(request.ImageUrl);
         entity.DisplayOrder = request.DisplayOrder;
         entity.Metadata = MetadataSerializer.Serialize(request.Metadata);
 

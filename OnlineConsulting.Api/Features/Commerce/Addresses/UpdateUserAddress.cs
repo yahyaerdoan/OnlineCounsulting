@@ -4,6 +4,7 @@ using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.UpdateUserAddress;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
 using ResultHandler.AspNetCore.Extensions;
+using ResultHandler.Functional;
 
 namespace OnlineConsulting.Api.Features.Commerce.Addresses;
 
@@ -19,14 +20,7 @@ public class UpdateUserAddress : IEndpoint
     }
 
     private static async Task<IResult> Handle(Guid id, [FromBody] UpdateUserAddressCommand command, ISender sender, HttpContext httpContext)
-    {
-        var currentUser = await sender.Send(new GetCurrentUserQuery());
-        if (!currentUser.IsSuccessful || currentUser.Data is null)
-        {
-            return currentUser.ToEnvelopedResult(httpContext);
-        }
-
-        var result = await sender.Send(command with { Id = id, UserId = currentUser.Data.Id });
-        return result.ToEnvelopedResult(httpContext);
-    }
+        => (await sender.Send(new GetCurrentUserQuery())
+                .BindAsync(user => sender.Send(command with { Id = id, UserId = user.Id })))
+            .ToEnvelopedResult(httpContext);
 }

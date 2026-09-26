@@ -3,6 +3,7 @@ using Core.SecurityLayer.Constants;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
+using OnlineConsulting.Modules.Identity.Application.Common;
 using OnlineConsulting.Modules.Identity.Application.Common.Templates;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Notifications;
@@ -41,7 +42,7 @@ public class CreateTenantAdminHandler(UserManager<User> userManager, IEmailOutbo
         var createResult = await userManager.CreateAsync(user, request.Password);
         if (!createResult.Succeeded)
         {
-            return Result.Invalid<CreateTenantAdminResult>([.. createResult.Errors.Select(e => e.Description)]);
+            return OperationDataResult<CreateTenantAdminResult>.Failure(createResult.ToFieldErrors(passwordField: nameof(request.Password), emailField: nameof(request.Email)));
         }
 
         var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
@@ -55,7 +56,7 @@ public class CreateTenantAdminHandler(UserManager<User> userManager, IEmailOutbo
         var roleResult = await userManager.AddToRoleAsync(user, GeneralOperationClaims.Admin);
 
         return !roleResult.Succeeded
-            ? Result.Invalid<CreateTenantAdminResult>([.. roleResult.Errors.Select(e => e.Description)])
+            ? Result.InternalServerError<CreateTenantAdminResult>()
             : Result.Created(new CreateTenantAdminResult(user.Id),
             $"Account created. Your username is \"{userName}\" - you can also sign in with your email. Please check your email to confirm your account.");
     }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
 using OnlineConsulting.SharedKernel.Media;
 using OnlineConsulting.Storage.Common;
+using System.Diagnostics.CodeAnalysis;
 
 namespace OnlineConsulting.Storage.Providers;
 
@@ -48,6 +49,26 @@ public class LocalFileSystemStorageService(IOptions<StorageOptions> options) : I
         }
 
         return Task.CompletedTask;
+    }
+
+    [return: NotNullIfNotNull(nameof(url))]
+    public string? ToStoredUrl(string? url)
+    {
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var absolute) || (absolute.Scheme != Uri.UriSchemeHttp && absolute.Scheme != Uri.UriSchemeHttps))
+        {
+            return url;
+        }
+
+        var prefix = _options.PublicPathPrefix.TrimEnd('/') + "/";
+        if (!absolute.AbsolutePath.StartsWith(prefix, StringComparison.Ordinal))
+        {
+            return url;
+        }
+
+        var storageKey = Uri.UnescapeDataString(absolute.AbsolutePath[prefix.Length..]);
+        var isOwnFile = File.Exists(Path.Combine(_options.RootPath, storageKey.Replace('/', Path.DirectorySeparatorChar)));
+
+        return isOwnFile ? absolute.PathAndQuery : url;
     }
 
     /// <summary>Strips the public path prefix to recover the storage key; falls back to the bare file name for assets uploaded before folders existed.</summary>

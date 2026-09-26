@@ -13,14 +13,14 @@ public static class TenantBusinessRules
         Result.Conflict(TenantMessages.AlreadySuspended);
 
     public static OperationResult NotSuspendable() =>
-        Result.BadRequest(TenantMessages.NotSuspendable);
+        Result.Conflict(TenantMessages.NotSuspendable);
 
     public static OperationResult NotReactivatable() =>
-        Result.BadRequest(TenantMessages.NotReactivatable);
+        Result.Conflict(TenantMessages.NotReactivatable);
 
     public static OperationResult NotCancellable() =>
         Result.Conflict(TenantMessages.NotCancellable);
 
     public static OperationResult CancellationFailed() =>
-        Result.BadRequest(TenantMessages.CancellationFailed);
+        Result.BadGateway(TenantMessages.CancellationFailed);
 }

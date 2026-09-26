@@ -1,6 +1,7 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
+using OnlineConsulting.Modules.Identity.Application.Common;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
 using ResultHandler.Core.Base;
@@ -28,7 +29,7 @@ public class UpdateRoleHandler(RoleManager<Role> roleManager) : IRequestHandler<
 
         if (role is null)
         {
-            return Result.BadRequest("The role could not be found. Please ensure the provided data is correct and try again.");
+            return Result.NotFound("The role could not be found. Please ensure the provided data is correct and try again.");
         }
 
         role.Name = request.Name;
@@ -38,6 +39,6 @@ public class UpdateRoleHandler(RoleManager<Role> roleManager) : IRequestHandler<
 
         return result.Succeeded
             ? Result.Success("The role has been successfully updated.")
-            : Result.BadRequest($"{string.Join("; ", result.Errors.Select(e => $"{e.Code}: {e.Description}"))} errors occurred while saving the role. Please try again later.");
+            : OperationResult.Failure(result.ToFieldErrors(roleNameField: nameof(request.Name)));
     }
 }

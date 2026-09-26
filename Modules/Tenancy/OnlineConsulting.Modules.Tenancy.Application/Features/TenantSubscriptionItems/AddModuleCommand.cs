@@ -132,7 +132,7 @@ public class AddModuleHandler(ITenantRepository tenantRepository, ITenantSubscri
         }
         catch (Exception)
         {
-            return Result.BadRequest(TenantSubscriptionItemMessages.ModuleFeatureFlagFailed);
+            return Result.InternalServerError(TenantSubscriptionItemMessages.ModuleFeatureFlagFailed);
         }
 
         return Result.Created("Module added to the tenant's subscription.");

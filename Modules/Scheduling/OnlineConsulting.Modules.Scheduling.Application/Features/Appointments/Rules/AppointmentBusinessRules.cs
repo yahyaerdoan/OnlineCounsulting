@@ -10,5 +10,5 @@ public static class AppointmentBusinessRules
         Result.NotFound(string.Format(SchedulingMessages.AppointmentNotFoundFormat, appointmentId));
 
     public static OperationResult SlotNoLongerAvailable() =>
-        Result.BadRequest(SchedulingMessages.SlotNoLongerAvailable);
+        Result.Conflict(SchedulingMessages.SlotNoLongerAvailable);
 }

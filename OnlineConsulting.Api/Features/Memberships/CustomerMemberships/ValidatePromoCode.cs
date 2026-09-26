@@ -4,6 +4,7 @@ using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
 using OnlineConsulting.Modules.Memberships.Application.Features.PromoCodes.ValidatePromoCode;
 using ResultHandler.AspNetCore.Extensions;
+using ResultHandler.Functional;
 
 namespace OnlineConsulting.Api.Features.Memberships.CustomerMemberships;
 
@@ -19,17 +20,9 @@ public class ValidatePromoCode : IEndpoint
     }
 
     private static async Task<IResult> Handle([FromBody] ValidatePromoCodeRequest request, ISender sender, HttpContext httpContext)
-    {
-        var currentUser = await sender.Send(new GetCurrentUserQuery());
-
-        if (!currentUser.IsSuccessful || currentUser.Data is null)
-        {
-            return currentUser.ToEnvelopedResult(httpContext);
-        }
-
-        var result = await sender.Send(new ValidatePromoCodeCommand(currentUser.Data.Id, request.Code, request.MembershipPlanId));
-        return result.ToEnvelopedResult(httpContext);
-    }
+        => (await sender.Send(new GetCurrentUserQuery())
+                .BindAsync(user => sender.Send(new ValidatePromoCodeCommand(user.Id, request.Code, request.MembershipPlanId))))
+            .ToEnvelopedResult(httpContext);
 }
 
 public record ValidatePromoCodeRequest(string Code, Guid MembershipPlanId);

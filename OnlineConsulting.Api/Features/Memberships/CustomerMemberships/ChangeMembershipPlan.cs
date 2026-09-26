@@ -3,6 +3,7 @@ using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.ChangeMembershipPlan;
 using ResultHandler.AspNetCore.Extensions;
+using ResultHandler.Functional;
 
 namespace OnlineConsulting.Api.Features.Memberships.CustomerMemberships;
 
@@ -18,15 +19,7 @@ public class ChangeMembershipPlan : IEndpoint
     }
 
     private static async Task<IResult> Handle(Guid newMembershipPlanId, ISender sender, HttpContext httpContext)
-    {
-        var currentUser = await sender.Send(new GetCurrentUserQuery());
-
-        if (!currentUser.IsSuccessful || currentUser.Data is null)
-        {
-            return currentUser.ToEnvelopedResult(httpContext);
-        }
-
-        var result = await sender.Send(new ChangeMembershipPlanCommand(currentUser.Data.Id, newMembershipPlanId));
-        return result.ToEnvelopedResult(httpContext);
-    }
+        => (await sender.Send(new GetCurrentUserQuery())
+                .BindAsync(user => sender.Send(new ChangeMembershipPlanCommand(user.Id, newMembershipPlanId))))
+            .ToEnvelopedResult(httpContext);
 }

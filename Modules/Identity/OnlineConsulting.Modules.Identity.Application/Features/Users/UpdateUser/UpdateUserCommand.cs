@@ -29,7 +29,7 @@ public class UpdateUserHandler(UserManager<User> userManager, ITenantOwnershipRe
         var user = await userManager.FindByIdAsync(request.Id.ToString());
         if (user is null)
         {
-            return Result.BadRequest("Failed to map the provided user data. Please ensure the input is valid and try again.");
+            return Result.NotFound(UserMessages.UserNotFound);
         }
 
         if (!request.IsActive && currentUserAccessor.UserId == user.Id.ToString())

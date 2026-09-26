@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
 VisualStudioVersion = 18.9.12105.275
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OnlineConsulting.UserInterface", "OnlineConsulting.UserInterface\OnlineConsulting.UserInterface.csproj", "{DA3024F2-8109-4376-9DB5-B2978D2A8222}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OnlineConsulting.Api", "OnlineConsulting.Api\OnlineConsulting.Api.csproj", "{5D2976FC-CA21-46B5-8EBF-155F68553DBC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OnlineConsulting.SharedKernel", "OnlineConsulting.SharedKernel\OnlineConsulting.SharedKernel.csproj", "{617CFE1B-5C46-4151-8A08-F4D4E6491753}"
@@ -141,18 +139,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{DA3024F2-8109-4376-9DB5-B2978D2A8222}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DA3024F2-8109-4376-9DB5-B2978D2A8222}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DA3024F2-8109-4376-9DB5-B2978D2A8222}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{DA3024F2-8109-4376-9DB5-B2978D2A8222}.Debug|x64.Build.0 = Debug|Any CPU
-		{DA3024F2-8109-4376-9DB5-B2978D2A8222}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{DA3024F2-8109-4376-9DB5-B2978D2A8222}.Debug|x86.Build.0 = Debug|Any CPU
-		{DA3024F2-8109-4376-9DB5-B2978D2A8222}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DA3024F2-8109-4376-9DB5-B2978D2A8222}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DA3024F2-8109-4376-9DB5-B2978D2A8222}.Release|x64.ActiveCfg = Release|Any CPU
-		{DA3024F2-8109-4376-9DB5-B2978D2A8222}.Release|x64.Build.0 = Release|Any CPU
-		{DA3024F2-8109-4376-9DB5-B2978D2A8222}.Release|x86.ActiveCfg = Release|Any CPU
-		{DA3024F2-8109-4376-9DB5-B2978D2A8222}.Release|x86.Build.0 = Release|Any CPU
 		{5D2976FC-CA21-46B5-8EBF-155F68553DBC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5D2976FC-CA21-46B5-8EBF-155F68553DBC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5D2976FC-CA21-46B5-8EBF-155F68553DBC}.Debug|x64.ActiveCfg = Debug|Any CPU

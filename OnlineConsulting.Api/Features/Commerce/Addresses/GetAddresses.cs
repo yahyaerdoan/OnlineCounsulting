@@ -19,22 +19,14 @@ public class GetAddresses : IEndpoint
     }
 
     private static async Task<IResult> Handle(ISender sender, LinkGenerator linkGenerator, HttpContext httpContext)
-    {
-        var currentUser = await sender.Send(new GetCurrentUserQuery());
-        if (!currentUser.IsSuccessful || currentUser.Data is null)
-        {
-            return currentUser.ToEnvelopedResult(httpContext);
-        }
-
-        var result = await sender.Send(new GetAddressesQuery(currentUser.Data.Id));
-        return result
-            .OnSuccess(addresses =>
-            {
-                foreach (var address in addresses)
+        => (await sender.Send(new GetCurrentUserQuery())
+                .BindAsync(user => sender.Send(new GetAddressesQuery(user.Id)))
+                .OnSuccessAsync(addresses =>
                 {
-                    address.Links = AddressLinks.Build(httpContext, linkGenerator, address.Id);
-                }
-            })
+                    foreach (var address in addresses)
+                    {
+                        address.Links = AddressLinks.Build(httpContext, linkGenerator, address.Id);
+                    }
+                }))
             .ToEnvelopedResult(httpContext);
-    }
 }

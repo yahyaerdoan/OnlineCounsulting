@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Options;
 using OnlineConsulting.SharedKernel.Media;
 using OnlineConsulting.Storage.Common;
+using System.Diagnostics.CodeAnalysis;
 
 namespace OnlineConsulting.Storage.Providers;
 
@@ -36,6 +37,9 @@ public class AzureBlobStorageService : IStorageService
 
         return new UploadResult(blobClient.Uri.ToString(), buffer.Length, width, height);
     }
+
+    [return: NotNullIfNotNull(nameof(url))]
+    public string? ToStoredUrl(string? url) => url;
 
     public async Task DeleteAsync(string url, CancellationToken cancellationToken = default)
     {

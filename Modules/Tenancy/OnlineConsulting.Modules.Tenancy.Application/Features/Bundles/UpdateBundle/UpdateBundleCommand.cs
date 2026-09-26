@@ -43,7 +43,7 @@ public class UpdateBundleHandler(IBundleRepository repository, IModuleOfferingRe
 
         if (unknownKeys.Count > 0)
         {
-            return Result.BadRequest(string.Format(BundleMessages.UnknownModuleKeysFormat, string.Join(", ", unknownKeys)));
+            return Result.UnprocessableContent(string.Format(BundleMessages.UnknownModuleKeysFormat, string.Join(", ", unknownKeys)));
         }
 
         bundle.Name = request.Name;

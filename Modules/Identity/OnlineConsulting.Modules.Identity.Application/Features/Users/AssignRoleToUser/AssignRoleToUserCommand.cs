@@ -105,7 +105,7 @@ public class AssignRoleToUserHandler(UserManager<User> userManager, ITenantOwner
 
             if (!result.Succeeded)
             {
-                return Result.BadRequest($"{string.Join("; ", result.Errors.Select(e => e.Description))} errors occurred while updating role \"{assignment.RoleName}\".");
+                return Result.InternalServerError($"{string.Join("; ", result.Errors.Select(e => e.Description))} errors occurred while updating role \"{assignment.RoleName}\".");
             }
         }
 

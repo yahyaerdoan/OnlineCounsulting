@@ -2,6 +2,7 @@ using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.HeroSlides.Abstractions;
+using OnlineConsulting.SharedKernel.Media;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -14,7 +15,7 @@ public record UpdateHeroSlideCommand(Guid Id, string Title, string Description, 
     public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Update];
 }
 
-public class UpdateHeroSlideHandler(IHeroSlideRepository repository) : IRequestHandler<UpdateHeroSlideCommand, OperationResult>
+public class UpdateHeroSlideHandler(IHeroSlideRepository repository, IStorageService storageService) : IRequestHandler<UpdateHeroSlideCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(UpdateHeroSlideCommand request, CancellationToken cancellationToken)
     {
@@ -26,7 +27,7 @@ public class UpdateHeroSlideHandler(IHeroSlideRepository repository) : IRequestH
 
         entity.Title = request.Title;
         entity.Description = request.Description;
-        entity.ImageUrl = request.ImageUrl;
+        entity.ImageUrl = storageService.ToStoredUrl(request.ImageUrl);
         entity.DisplayOrder = request.DisplayOrder;
         entity.Metadata = MetadataSerializer.Serialize(request.Metadata);
 

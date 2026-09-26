@@ -13,5 +13,5 @@ public static class WorkOrderBusinessRules
         Result.NotFound(string.Format(SchedulingMessages.WorkOrderNotFoundFormat, workOrderId));
 
     public static OperationResult WorkOrderAlreadyExistsForAppointment() =>
-        Result.BadRequest(SchedulingMessages.WorkOrderAlreadyExistsForAppointment);
+        Result.Conflict(SchedulingMessages.WorkOrderAlreadyExistsForAppointment);
 }

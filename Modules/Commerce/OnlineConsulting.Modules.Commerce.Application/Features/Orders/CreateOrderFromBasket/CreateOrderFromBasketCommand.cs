@@ -45,28 +45,28 @@ public class CreateOrderFromBasketHandler(IBasketRepository basketRepository, IB
 
         if (basket is null)
         {
-            return Result.BadRequest<CreateOrderResult>(BasketMessages.BasketNotFoundOrEmpty);
+            return Result.NotFound<CreateOrderResult>(BasketMessages.BasketNotFoundOrEmpty);
         }
 
         var basketItems = await basketItemRepository.GetListAsync(i => i.BasketId == basket.Id, orderBy: q => q.OrderBy(i => i.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
 
         if (basketItems.Items.Count == 0)
         {
-            return Result.BadRequest<CreateOrderResult>(BasketMessages.BasketNotFoundOrEmpty);
+            return Result.Conflict<CreateOrderResult>(BasketMessages.BasketNotFoundOrEmpty);
         }
 
         var shippingAddress = await userAddressRepository.GetAsync(a => a.UserId == request.UserId && a.IsShippingAddress, enableTracking: false, cancellationToken: cancellationToken);
 
         if (shippingAddress is null)
         {
-            return Result.BadRequest<CreateOrderResult>(AddressMessages.ShippingAddressNotFound);
+            return Result.Conflict<CreateOrderResult>(AddressMessages.ShippingAddressNotFound);
         }
 
         var billingAddress = await userAddressRepository.GetAsync(a => a.UserId == request.UserId && a.IsBillingAddress, enableTracking: false, cancellationToken: cancellationToken);
 
         if (billingAddress is null)
         {
-            return Result.BadRequest<CreateOrderResult>(AddressMessages.BillingAddressNotFound);
+            return Result.Conflict<CreateOrderResult>(AddressMessages.BillingAddressNotFound);
         }
 
         var orderId = SequentialGuidTenantEntity.NewId();
@@ -77,7 +77,7 @@ public class CreateOrderFromBasketHandler(IBasketRepository basketRepository, IB
 
         if (failure is not null || paymentIntent is null)
         {
-            return Result.BadRequest<CreateOrderResult>(failure?.Detail ?? "Could not start payment for your order.");
+            return Result.BadGateway<CreateOrderResult>(failure?.Detail ?? "Could not start payment for your order.");
         }
 
         var order = await CreateOrderWithItemsAsync(orderId, request.UserId, shippingAddress.Id, billingAddress.Id, basketItems.Items, paymentIntent);

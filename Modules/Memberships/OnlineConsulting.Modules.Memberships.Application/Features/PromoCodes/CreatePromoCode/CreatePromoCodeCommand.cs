@@ -27,7 +27,7 @@ public class CreatePromoCodeHandler(IPromoCodeRepository repository) : IRequestH
 
         if (exists)
         {
-            return Result.BadRequest<Guid>(PromoCodeMessages.CodeAlreadyExists);
+            return Result.Conflict<Guid>(PromoCodeMessages.CodeAlreadyExists);
         }
 
         var promoCode = new PromoCode

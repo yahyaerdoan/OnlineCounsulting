@@ -8,11 +8,13 @@ using OnlineConsulting.Modules.Referrals.Application.Common;
 using OnlineConsulting.Modules.Referrals.Application.Features.AccountCredits.Abstractions;
 using OnlineConsulting.Modules.Referrals.Application.Features.ReferralCodes.Abstractions;
 using OnlineConsulting.Modules.Referrals.Application.Features.Referrals.Abstractions;
+using OnlineConsulting.Modules.Referrals.Infrastructure.Ledger;
 using OnlineConsulting.Modules.Referrals.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Referrals.Infrastructure.Pipelines;
 using OnlineConsulting.Modules.Referrals.Infrastructure.Repositories;
 using OnlineConsulting.SharedKernel.Auditing;
 using OnlineConsulting.SharedKernel.Authorization;
+using OnlineConsulting.SharedKernel.Referrals;
 using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Referrals.Infrastructure;
@@ -32,6 +34,7 @@ public static class ReferralsModule
         _ = services.AddScoped<IReferralCodeRepository, ReferralCodeRepository>();
         _ = services.AddScoped<IReferralRepository, ReferralRepository>();
         _ = services.AddScoped<IAccountCreditRepository, AccountCreditRepository>();
+        _ = services.AddScoped<IAccountCreditLedger, AccountCreditLedger>();
 
         _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
         _ = services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);

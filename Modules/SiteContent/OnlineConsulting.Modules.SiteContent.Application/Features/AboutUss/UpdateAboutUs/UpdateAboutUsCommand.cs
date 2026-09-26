@@ -2,6 +2,7 @@ using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.AboutUss.Abstractions;
+using OnlineConsulting.SharedKernel.Media;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -15,7 +16,7 @@ public record UpdateAboutUsCommand(Guid Id, string Title, string Description, st
     public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Update];
 }
 
-public class UpdateAboutUsHandler(IAboutUsRepository repository) : IRequestHandler<UpdateAboutUsCommand, OperationResult>
+public class UpdateAboutUsHandler(IAboutUsRepository repository, IStorageService storageService) : IRequestHandler<UpdateAboutUsCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(UpdateAboutUsCommand request, CancellationToken cancellationToken)
     {
@@ -27,7 +28,7 @@ public class UpdateAboutUsHandler(IAboutUsRepository repository) : IRequestHandl
 
         entity.Title = request.Title;
         entity.Description = request.Description;
-        entity.CoverImage = request.CoverImage;
+        entity.CoverImage = storageService.ToStoredUrl(request.CoverImage);
         entity.VideoUrl = request.VideoUrl;
         entity.DisplayOrder = request.DisplayOrder;
         entity.Metadata = MetadataSerializer.Serialize(request.Metadata);

@@ -2,6 +2,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
+using OnlineConsulting.Modules.Identity.Application.Common;
 using OnlineConsulting.Modules.Identity.Application.Common.Templates;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
@@ -33,13 +34,13 @@ public class RegisterHandler(UserManager<User> userManager, IEmailOutboxWriter<I
         var createResult = await userManager.CreateAsync(user, request.Password);
         if (!createResult.Succeeded)
         {
-            return Result.Invalid([.. createResult.Errors.Select(e => e.Description)]);
+            return OperationResult.Failure(createResult.ToFieldErrors(passwordField: nameof(request.Password), userNameField: nameof(request.UserName), emailField: nameof(request.Email)));
         }
 
         var roleResult = await userManager.AddToRoleAsync(user, GlobalOperationClaims.User);
         if (!roleResult.Succeeded)
         {
-            return Result.Invalid([.. roleResult.Errors.Select(e => e.Description)]);
+            return Result.InternalServerError();
         }
 
         var token = await userManager.GenerateEmailConfirmationTokenAsync(user);

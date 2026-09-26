@@ -1,10 +1,13 @@
-﻿namespace OnlineConsulting.Api.Common;
+﻿using ResultHandler.AspNetCore.Extensions;
+
+namespace OnlineConsulting.Api.Common;
 
 public static class EndpointExtensions
 {
-    /// <summary>Auto-registers every <see cref="IEndpoint"/> in this assembly; skips <see cref="IDevOnlyEndpoint"/> outside Development.</summary>
+    /// <summary>Auto-registers every <see cref="IEndpoint"/> in this assembly, documenting their Problem Details responses; skips <see cref="IDevOnlyEndpoint"/> outside Development.</summary>
     public static WebApplication MapEndpoints(this WebApplication app)
     {
+        var endpoints = app.MapGroup(string.Empty).ProducesResultProblems();
         var endpointTypes = typeof(IEndpoint).Assembly.GetTypes().Where(type => type is { IsClass: true, IsAbstract: false } && typeof(IEndpoint).IsAssignableFrom(type));
 
         foreach (var endpointType in endpointTypes)
@@ -16,7 +19,7 @@ public static class EndpointExtensions
                 continue;
             }
 
-            endpoint.MapEndpoint(app);
+            endpoint.MapEndpoint(endpoints);
         }
 
         return app;

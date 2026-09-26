@@ -10,13 +10,13 @@ public static class TenantSubscriptionItemBusinessRules
         Result.Forbidden(TenantSubscriptionItemMessages.NotAuthorizedForTenant);
 
     public static OperationResult NoActiveSubscription() =>
-        Result.BadRequest(TenantSubscriptionItemMessages.NoActiveSubscription);
+        Result.Conflict(TenantSubscriptionItemMessages.NoActiveSubscription);
 
     public static OperationResult TenantNotFound() =>
         Result.NotFound(TenantSubscriptionItemMessages.TenantNotFound);
 
     public static OperationResult ModuleNotFound() =>
-        Result.BadRequest(TenantSubscriptionItemMessages.ModuleNotFound);
+        Result.NotFound(TenantSubscriptionItemMessages.ModuleNotFound);
 
     public static OperationResult ModuleAlreadyAdded() =>
         Result.Conflict(TenantSubscriptionItemMessages.ModuleAlreadyAdded);
@@ -25,8 +25,8 @@ public static class TenantSubscriptionItemBusinessRules
         Result.NotFound(TenantSubscriptionItemMessages.ModuleNotActive);
 
     public static OperationResult CannotRemoveLastModule() =>
-        Result.BadRequest(TenantSubscriptionItemMessages.CannotRemoveLastModule);
+        Result.Conflict(TenantSubscriptionItemMessages.CannotRemoveLastModule);
 
     public static OperationResult MultipleModulesNotSupportedByProvider() =>
-        Result.BadRequest(TenantSubscriptionItemMessages.MultipleModulesNotSupportedByProvider);
+        Result.UnprocessableContent(TenantSubscriptionItemMessages.MultipleModulesNotSupportedByProvider);
 }

@@ -45,7 +45,7 @@ public class CreateInviteHandler(IInviteRepository inviteRepository, RoleManager
         var role = await roleManager.FindByNameAsync(requestedRoleName);
         if (role is null)
         {
-            return Result.BadRequest(InviteMessages.RoleNotFound);
+            return Result.UnprocessableContent(InviteMessages.RoleNotFound);
         }
 
         var tenantId = tenantProvider.TenantId;

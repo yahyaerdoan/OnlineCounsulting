@@ -26,12 +26,12 @@ public class UpdateUserImageHandler(UserManager<User> userManager, IUserImageSto
 
         if (request.Image is null || request.Image.Length == 0)
         {
-            return Result.BadRequest("No image was provided. Please select a valid image file to update the photo.");
+            return Result.UnprocessableContent("No image was provided. Please select a valid image file to update the photo.");
         }
 
         if (!AllowedMimeTypes.Contains(request.Image.ContentType))
         {
-            return Result.BadRequest("Invalid image format. Please upload an image in JPEG, JPG, PNG, or GIF format.");
+            return Result.UnprocessableContent("Invalid image format. Please upload an image in JPEG, JPG, PNG, or GIF format.");
         }
 
         if (!string.IsNullOrEmpty(user.ImageUrl) && user.ImageUrl != DefaultImageUrl)
