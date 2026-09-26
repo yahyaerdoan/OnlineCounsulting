@@ -3,10 +3,10 @@ using ResultHandler.Facade;
 
 namespace OnlineConsulting.SharedKernel.Payments;
 
-/// <summary>Runs an IPaymentGateway or ISubscriptionGateway call, converting any exception into a BadRequest OperationResult so callers don't repeat try/catch.</summary>
+/// <summary>Runs an IPaymentGateway or ISubscriptionGateway call, converting any exception into a 502 Bad Gateway OperationResult so callers don't repeat try/catch.</summary>
 public static class PaymentGatewayCall
 {
-    /// <summary>Null on success, or a BadRequest result the caller should return immediately.</summary>
+    /// <summary>Null on success, or a Bad Gateway result the caller should return immediately.</summary>
     public static async Task<OperationResult?> RunAsync(Func<Task> action, string failureMessage)
     {
         try
@@ -16,7 +16,7 @@ public static class PaymentGatewayCall
         }
         catch (Exception)
         {
-            return Result.BadRequest(failureMessage);
+            return Result.BadGateway(failureMessage);
         }
     }
 
@@ -29,7 +29,7 @@ public static class PaymentGatewayCall
         }
         catch (Exception)
         {
-            return (Result.BadRequest(failureMessage), default);
+            return (Result.BadGateway(failureMessage), default);
         }
     }
 }

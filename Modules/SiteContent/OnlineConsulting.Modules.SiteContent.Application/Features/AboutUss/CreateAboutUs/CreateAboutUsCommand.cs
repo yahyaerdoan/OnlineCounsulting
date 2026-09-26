@@ -3,6 +3,7 @@ using MediatR;
 using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.AboutUss.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Domain;
+using OnlineConsulting.SharedKernel.Media;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -15,7 +16,7 @@ public record CreateAboutUsCommand(string Title, string Description, string? Cov
     public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Add];
 }
 
-public class CreateAboutUsHandler(IAboutUsRepository repository) : IRequestHandler<CreateAboutUsCommand, OperationDataResult<Guid>>
+public class CreateAboutUsHandler(IAboutUsRepository repository, IStorageService storageService) : IRequestHandler<CreateAboutUsCommand, OperationDataResult<Guid>>
 {
     public async Task<OperationDataResult<Guid>> Handle(CreateAboutUsCommand request, CancellationToken cancellationToken)
     {
@@ -23,7 +24,7 @@ public class CreateAboutUsHandler(IAboutUsRepository repository) : IRequestHandl
         {
             Title = request.Title,
             Description = request.Description,
-            CoverImage = request.CoverImage,
+            CoverImage = storageService.ToStoredUrl(request.CoverImage),
             VideoUrl = request.VideoUrl,
             DisplayOrder = request.DisplayOrder,
             Metadata = MetadataSerializer.Serialize(request.Metadata),

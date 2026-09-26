@@ -5,6 +5,7 @@ using OnlineConsulting.Api.Configurations.Extensions;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
 using OnlineConsulting.Modules.Referrals.Application.Features.Referrals.RedeemReferralCode;
 using ResultHandler.AspNetCore.Extensions;
+using ResultHandler.Functional;
 
 namespace OnlineConsulting.Api.Features.Referrals;
 
@@ -21,14 +22,7 @@ public class RedeemReferralCode : IEndpoint
     }
 
     private static async Task<IResult> Handle([FromBody] RedeemReferralCodeCommand command, ISender sender, HttpContext httpContext)
-    {
-        var currentUser = await sender.Send(new GetCurrentUserQuery());
-        if (!currentUser.IsSuccessful || currentUser.Data is null)
-        {
-            return currentUser.ToEnvelopedResult(httpContext);
-        }
-
-        var result = await sender.Send(command with { ReferredUserId = currentUser.Data.Id });
-        return result.ToEnvelopedResult(httpContext);
-    }
+        => (await sender.Send(new GetCurrentUserQuery())
+                .BindAsync(user => sender.Send(command with { ReferredUserId = user.Id })))
+            .ToEnvelopedResult(httpContext);
 }

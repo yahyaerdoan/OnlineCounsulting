@@ -3,6 +3,7 @@ using MediatR;
 using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.Testimonials.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Domain;
+using OnlineConsulting.SharedKernel.Media;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -16,7 +17,7 @@ public record CreateTestimonialCommand(string FirstName, string LastName, string
     public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Add];
 }
 
-public class CreateTestimonialHandler(ITestimonialRepository repository) : IRequestHandler<CreateTestimonialCommand, OperationDataResult<Guid>>
+public class CreateTestimonialHandler(ITestimonialRepository repository, IStorageService storageService) : IRequestHandler<CreateTestimonialCommand, OperationDataResult<Guid>>
 {
     public async Task<OperationDataResult<Guid>> Handle(CreateTestimonialCommand request, CancellationToken cancellationToken)
     {
@@ -26,7 +27,7 @@ public class CreateTestimonialHandler(ITestimonialRepository repository) : IRequ
             LastName = request.LastName,
             Title = request.Title,
             Description = request.Description,
-            ImageUrl = request.ImageUrl,
+            ImageUrl = storageService.ToStoredUrl(request.ImageUrl),
             DisplayOrder = request.DisplayOrder,
             Metadata = MetadataSerializer.Serialize(request.Metadata),
         };

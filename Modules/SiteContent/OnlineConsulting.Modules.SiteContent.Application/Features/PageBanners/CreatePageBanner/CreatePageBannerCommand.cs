@@ -3,6 +3,7 @@ using MediatR;
 using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.PageBanners.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Domain;
+using OnlineConsulting.SharedKernel.Media;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -15,11 +16,11 @@ public record CreatePageBannerCommand(string Title, string Description, string I
     public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Add];
 }
 
-public class CreatePageBannerHandler(IPageBannerRepository repository) : IRequestHandler<CreatePageBannerCommand, OperationDataResult<Guid>>
+public class CreatePageBannerHandler(IPageBannerRepository repository, IStorageService storageService) : IRequestHandler<CreatePageBannerCommand, OperationDataResult<Guid>>
 {
     public async Task<OperationDataResult<Guid>> Handle(CreatePageBannerCommand request, CancellationToken cancellationToken)
     {
-        var entity = new PageBanner { Title = request.Title, Description = request.Description, ImageUrl = request.ImageUrl, DisplayOrder = request.DisplayOrder, Metadata = MetadataSerializer.Serialize(request.Metadata) };
+        var entity = new PageBanner { Title = request.Title, Description = request.Description, ImageUrl = storageService.ToStoredUrl(request.ImageUrl), DisplayOrder = request.DisplayOrder, Metadata = MetadataSerializer.Serialize(request.Metadata) };
 
         _ = await repository.AddAsync(entity);
 

@@ -2,6 +2,7 @@ using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.PageBanners.Abstractions;
+using OnlineConsulting.SharedKernel.Media;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -14,7 +15,7 @@ public record UpdatePageBannerCommand(Guid Id, string Title, string Description,
     public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Update];
 }
 
-public class UpdatePageBannerHandler(IPageBannerRepository repository) : IRequestHandler<UpdatePageBannerCommand, OperationResult>
+public class UpdatePageBannerHandler(IPageBannerRepository repository, IStorageService storageService) : IRequestHandler<UpdatePageBannerCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(UpdatePageBannerCommand request, CancellationToken cancellationToken)
     {
@@ -26,7 +27,7 @@ public class UpdatePageBannerHandler(IPageBannerRepository repository) : IReques
 
         entity.Title = request.Title;
         entity.Description = request.Description;
-        entity.ImageUrl = request.ImageUrl;
+        entity.ImageUrl = storageService.ToStoredUrl(request.ImageUrl);
         entity.DisplayOrder = request.DisplayOrder;
         entity.Metadata = MetadataSerializer.Serialize(request.Metadata);
 

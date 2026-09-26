@@ -25,7 +25,7 @@ public class CancelPendingOrderHandler(IOrderRepository orderRepository)
 
         if (order.PaymentStatus != OrderPaymentStatuses.Pending)
         {
-            return Result.BadRequest("Only a pending, unpaid order can be cancelled this way.");
+            return Result.Conflict("Only a pending, unpaid order can be cancelled this way.");
         }
 
         order.PaymentStatus = OrderPaymentStatuses.Cancelled;

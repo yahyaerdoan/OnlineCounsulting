@@ -13,7 +13,7 @@ internal static class BasketOwnerResolver
         if (httpContext.User.Identity?.IsAuthenticated == true)
         {
             var currentUser = await sender.Send(new GetCurrentUserQuery());
-            if (!currentUser.IsSuccessful || currentUser.Data is null)
+            if (!currentUser.IsSuccessful)
             {
                 return (null, null, currentUser.ToEnvelopedResult(httpContext));
             }

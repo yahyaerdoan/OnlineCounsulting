@@ -31,14 +31,14 @@ public class RedeemReferralCodeHandler(IReferralRepository referralRepository, I
 
         if (referralCode.UserId == request.ReferredUserId)
         {
-            return Result.BadRequest<Guid>(ReferralsMessages.CannotReferSelf);
+            return Result.UnprocessableContent<Guid>(ReferralsMessages.CannotReferSelf);
         }
 
         var alreadyReferred = await referralRepository.AnyAsync(r => r.ReferredUserId == request.ReferredUserId, cancellationToken: cancellationToken);
 
         if (alreadyReferred)
         {
-            return Result.BadRequest<Guid>(ReferralsMessages.AlreadyReferred);
+            return Result.Conflict<Guid>(ReferralsMessages.AlreadyReferred);
         }
 
         var referral = new Referral

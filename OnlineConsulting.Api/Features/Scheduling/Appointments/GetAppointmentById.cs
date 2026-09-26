@@ -3,6 +3,7 @@ using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.GetAppointmentById;
 using ResultHandler.AspNetCore.Extensions;
+using ResultHandler.Functional;
 
 namespace OnlineConsulting.Api.Features.Scheduling.Appointments;
 
@@ -18,14 +19,7 @@ public class GetAppointmentById : IEndpoint
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)
-    {
-        var currentUser = await sender.Send(new GetCurrentUserQuery());
-        if (!currentUser.IsSuccessful || currentUser.Data is null)
-        {
-            return currentUser.ToEnvelopedResult(httpContext);
-        }
-
-        var result = await sender.Send(new GetAppointmentByIdQuery(id, currentUser.Data.Id));
-        return result.ToEnvelopedResult(httpContext);
-    }
+        => (await sender.Send(new GetCurrentUserQuery())
+                .BindAsync(user => sender.Send(new GetAppointmentByIdQuery(id, user.Id))))
+            .ToEnvelopedResult(httpContext);
 }

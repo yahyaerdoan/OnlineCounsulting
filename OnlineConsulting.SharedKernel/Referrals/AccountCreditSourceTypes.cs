@@ -1,4 +1,4 @@
-namespace OnlineConsulting.Modules.Referrals.Application.Features.AccountCredits.Constants;
+namespace OnlineConsulting.SharedKernel.Referrals;
 
 public static class AccountCreditSourceTypes
 {

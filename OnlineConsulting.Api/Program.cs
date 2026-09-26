@@ -68,25 +68,18 @@ var builder = WebApplication.CreateBuilder(args);
 
 // The ASP.NET Core dev cert's SAN list has no entry for the Android emulator's host alias
 // (10.0.2.2), so https to it fails TLS hostname verification for anything a WebView loads
-// directly (img/iframe src) - unlike the app's own HttpClient, which bypasses that in Debug
-// builds (see OnlineConsulting.Maui's ConfigureApiClient) and so never hit this. Swaps in a
-// local dev-only cert (see DevCerts/README) whose SAN covers 10.0.2.2 when one is present;
-// falls back to the normal ASP.NET Core dev cert (untouched) otherwise, so a fresh clone
-// without that gitignored file still starts fine.
-var devCertPath = Path.Combine(builder.Environment.ContentRootPath, "DevCerts", "onlineconsulting-dev.pfx");
-if (builder.Environment.IsDevelopment() && File.Exists(devCertPath))
-{
-    builder.WebHost.ConfigureKestrel(options => options.ConfigureHttpsDefaults(https =>
-        https.ServerCertificate = new System.Security.Cryptography.X509Certificates.X509Certificate2(devCertPath, "devcert123")));
-}
+// directly (img/iframe src). Connections by IP (the emulator; no SNI hostname) get the DevCerts
+// cert whose SAN covers 10.0.2.2; connections by name (localhost: browsers, Aspire, maui-web)
+// keep the trusted ASP.NET Core dev cert. See DevCerts/README.
+builder.UseEmulatorCertificateWhenPresent();
 
 builder.AddServiceDefaults();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ITenantProvider, TenantProvider>();
-builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationAddingBehavior<,>));
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(AuthorizationAddingBehavior<,>));
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TenantStatusCheckBehavior<,>));
+builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationAddingBehavior<,>));
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LogResultAddingBehavior<,>));
 
 var redisConnection = builder.Configuration.GetConnectionString("Redis");
@@ -190,7 +183,9 @@ if (app.Environment.IsDevelopment())
     _ = app.MapScalarApiReference();
 }
 
-app.UseHttpsRedirection();
+app.UseWhen(
+    context => !context.Request.Path.StartsWithSegments("/health") && !context.Request.Path.StartsWithSegments("/alive"),
+    branch => branch.UseHttpsRedirection());
 app.UseStaticFiles();
 app.UseCors();
 app.UseAuthentication();

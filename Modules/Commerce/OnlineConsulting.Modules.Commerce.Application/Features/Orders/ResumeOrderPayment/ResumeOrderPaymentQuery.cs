@@ -33,19 +33,19 @@ public class ResumeOrderPaymentHandler(IOrderRepository orderRepository, IPaymen
 
         if (order.PaymentStatus == OrderPaymentStatuses.Cancelled)
         {
-            return Result.BadRequest<CreateOrderResult>($"Order {order.OrderNumber} was cancelled and can no longer be paid.");
+            return Result.Conflict<CreateOrderResult>($"Order {order.OrderNumber} was cancelled and can no longer be paid.");
         }
 
         if (order.ProviderPaymentId is null)
         {
-            return Result.BadRequest<CreateOrderResult>("This order has no payment to resume.");
+            return Result.Conflict<CreateOrderResult>("This order has no payment to resume.");
         }
 
         var (failure, status) = await PaymentGatewayCall.RunWithResultAsync(() =>
         paymentGateway.GetStatusAsync(order.ProviderPaymentId, cancellationToken), $"Could not retrieve payment status for order {order.OrderNumber}. Please try again.");
 
         return failure is not null || status is null
-            ? Result.BadRequest<CreateOrderResult>(failure?.Detail ?? "Could not retrieve payment status.")
+            ? Result.BadGateway<CreateOrderResult>(failure?.Detail ?? "Could not retrieve payment status.")
             : Result.Success(new CreateOrderResult(order.Id, status.ClientSecret, order.OrderNumber), "Payment resumed.");
     }
 }

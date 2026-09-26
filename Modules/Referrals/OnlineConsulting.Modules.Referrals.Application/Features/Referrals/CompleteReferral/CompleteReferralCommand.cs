@@ -3,11 +3,11 @@ using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Referrals.Application.Common;
 using OnlineConsulting.Modules.Referrals.Application.Features.AccountCredits.Abstractions;
-using OnlineConsulting.Modules.Referrals.Application.Features.AccountCredits.Constants;
 using OnlineConsulting.Modules.Referrals.Application.Features.Referrals.Abstractions;
 using OnlineConsulting.Modules.Referrals.Application.Features.Referrals.Constants;
 using OnlineConsulting.Modules.Referrals.Domain;
 using OnlineConsulting.SharedKernel.Notifications;
+using OnlineConsulting.SharedKernel.Referrals;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -34,7 +34,7 @@ public class CompleteReferralHandler(IReferralRepository referralRepository, IAc
 
         if (referral.Status == ReferralStatuses.Rewarded)
         {
-            return Result.BadRequest(ReferralsMessages.AlreadyRewarded);
+            return Result.Conflict(ReferralsMessages.AlreadyRewarded);
         }
 
         referral.Status = ReferralStatuses.Rewarded;

@@ -36,7 +36,7 @@ public class CancelInviteHandler(IInviteRepository inviteRepository, ITenantProv
 
         if (invite.Status != InviteStatuses.Pending)
         {
-            return Result.BadRequest(InviteMessages.InviteNotCancellable);
+            return Result.Conflict(InviteMessages.InviteNotCancellable);
         }
 
         invite.Status = InviteStatuses.Revoked;

@@ -30,7 +30,7 @@ public class CancelAppointmentHandler(IAppointmentRepository repository, IPushNo
 
         if (appointment.Status is not (AppointmentStatuses.Pending or AppointmentStatuses.Confirmed))
         {
-            return Result.BadRequest(SchedulingMessages.OnlyPendingOrConfirmedCanBeCancelled);
+            return Result.Conflict(SchedulingMessages.OnlyPendingOrConfirmedCanBeCancelled);
         }
 
         appointment.Status = AppointmentStatuses.Cancelled;

@@ -3,6 +3,7 @@ using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Equipment.Application.Features.EquipmentItems.GetMyEquipment;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
 using ResultHandler.AspNetCore.Extensions;
+using ResultHandler.Functional;
 
 namespace OnlineConsulting.Api.Features.Equipment;
 
@@ -18,14 +19,7 @@ public class GetMyEquipment : IEndpoint
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext)
-    {
-        var currentUser = await sender.Send(new GetCurrentUserQuery());
-        if (!currentUser.IsSuccessful || currentUser.Data is null)
-        {
-            return currentUser.ToEnvelopedResult(httpContext);
-        }
-
-        var result = await sender.Send(new GetMyEquipmentQuery(currentUser.Data.Id));
-        return result.ToEnvelopedResult(httpContext);
-    }
+        => (await sender.Send(new GetCurrentUserQuery())
+                .BindAsync(user => sender.Send(new GetMyEquipmentQuery(user.Id))))
+            .ToEnvelopedResult(httpContext);
 }

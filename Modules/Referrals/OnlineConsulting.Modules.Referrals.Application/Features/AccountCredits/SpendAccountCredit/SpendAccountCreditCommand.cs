@@ -27,7 +27,7 @@ public class SpendAccountCreditHandler(IAccountCreditRepository creditRepository
 
         if (request.Amount > balance)
         {
-            return Result.BadRequest<Guid>(ReferralsMessages.InsufficientCredit);
+            return Result.Conflict<Guid>(ReferralsMessages.InsufficientCredit);
         }
 
         var entry = new AccountCredit

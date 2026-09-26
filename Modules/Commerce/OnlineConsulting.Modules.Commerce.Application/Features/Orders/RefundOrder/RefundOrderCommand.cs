@@ -32,19 +32,19 @@ public class RefundOrderHandler(IOrderRepository orderRepository, IServiceProvid
 
         if (order.PaymentStatus != OrderPaymentStatuses.Paid)
         {
-            return Result.BadRequest($"Order {request.OrderId} cannot be refunded from payment status '{order.PaymentStatus}' - only a paid order can be refunded.");
+            return Result.Conflict($"Order {request.OrderId} cannot be refunded from payment status '{order.PaymentStatus}' - only a paid order can be refunded.");
         }
 
         if (order.PaymentProvider is null || order.ProviderPaymentId is null)
         {
-            return Result.BadRequest($"Order {request.OrderId} has no recorded payment to refund.");
+            return Result.Conflict($"Order {request.OrderId} has no recorded payment to refund.");
         }
 
         var gateway = serviceProvider.GetKeyedService<IPaymentGateway>(order.PaymentProvider);
 
         if (gateway is null)
         {
-            return Result.BadRequest($"Unknown payment provider '{order.PaymentProvider}' - cannot route the refund.");
+            return Result.InternalServerError($"Unknown payment provider '{order.PaymentProvider}' - cannot route the refund.");
         }
 
         var failure = await PaymentGatewayCall.RunAsync(() =>

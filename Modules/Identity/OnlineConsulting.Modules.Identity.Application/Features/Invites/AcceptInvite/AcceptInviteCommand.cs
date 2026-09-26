@@ -1,6 +1,7 @@
 ﻿using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
+using OnlineConsulting.Modules.Identity.Application.Common;
 using OnlineConsulting.Modules.Identity.Application.Features.Invites.Abstractions;
 using OnlineConsulting.Modules.Identity.Application.Features.Invites.Constants;
 using OnlineConsulting.Modules.Identity.Domain;
@@ -28,7 +29,7 @@ public class AcceptInviteHandler(IInviteRepository inviteRepository, UserManager
 
         if (invite.Status != InviteStatuses.Pending)
         {
-            return Result.BadRequest(InviteMessages.InviteNotUsable);
+            return Result.Conflict(InviteMessages.InviteNotUsable);
         }
 
         if (invite.ExpiresAt < DateTime.UtcNow)
@@ -37,7 +38,7 @@ public class AcceptInviteHandler(IInviteRepository inviteRepository, UserManager
 
             _ = await inviteRepository.UpdateAsync(invite);
 
-            return Result.BadRequest(InviteMessages.InviteExpired);
+            return Result.Gone(InviteMessages.InviteExpired);
         }
 
         if (await userManager.FindByEmailAsync(invite.Email) is not null)
@@ -63,13 +64,13 @@ public class AcceptInviteHandler(IInviteRepository inviteRepository, UserManager
         var createResult = await userManager.CreateAsync(user, request.Password);
         if (!createResult.Succeeded)
         {
-            return Result.Invalid([.. createResult.Errors.Select(e => e.Description)]);
+            return OperationResult.Failure(createResult.ToFieldErrors(passwordField: nameof(request.Password)));
         }
 
         var roleResult = await userManager.AddToRoleAsync(user, invite.RoleName);
         if (!roleResult.Succeeded)
         {
-            return Result.Invalid([.. roleResult.Errors.Select(e => e.Description)]);
+            return Result.InternalServerError();
         }
 
         invite.Status = InviteStatuses.Accepted;

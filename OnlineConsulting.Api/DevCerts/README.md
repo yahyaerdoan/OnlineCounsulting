@@ -1,8 +1,15 @@
 # Dev HTTPS certificate
 
-`onlineconsulting-dev.pfx` (gitignored via `*.pfx`, not committed) replaces the normal ASP.NET Core
-dev cert **only in Development**, only because its Subject Alternative Name list includes
-`10.0.2.2` - the Android emulator's alias for the host machine. The stock `dotnet dev-certs https`
+`onlineconsulting-dev.pfx` (gitignored via `*.pfx`, not committed) is served **only in Development**
+and **only to connections made by IP address** (no TLS SNI hostname), i.e. the Android emulator
+calling `https://10.0.2.2:7012`, because its Subject Alternative Name list includes `10.0.2.2` - the
+emulator's alias for the host machine. Connections made by name (`https://localhost`: browsers,
+Aspire health checks, maui-web) keep getting the normal ASP.NET Core dev cert, so they stay trusted
+as long as `dotnet dev-certs https --trust` has been run once on the machine. Selection lives in
+`Configurations/Extensions/DevelopmentCertificates.cs`.
+
+This file is self-signed and deliberately **not** trusted on Windows; only the Android app trusts it
+(for `10.0.2.2` only). Serving it to every client made Windows reject HTTPS to the API. The stock `dotnet dev-certs https`
 certificate only covers `localhost`/`127.0.0.1`, so a native Android WebView loading an image or
 iframe directly against `https://10.0.2.2:7012/...` fails TLS hostname verification (the app's own
 HttpClient doesn't hit this because it bypasses cert validation in Debug builds).

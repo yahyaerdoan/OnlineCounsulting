@@ -2,6 +2,7 @@ using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.FooterInfos.Abstractions;
+using OnlineConsulting.SharedKernel.Media;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -14,7 +15,7 @@ public record UpdateFooterInfoCommand(Guid Id, string ImageUrl, string Descripti
     public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Update];
 }
 
-public class UpdateFooterInfoHandler(IFooterInfoRepository repository) : IRequestHandler<UpdateFooterInfoCommand, OperationResult>
+public class UpdateFooterInfoHandler(IFooterInfoRepository repository, IStorageService storageService) : IRequestHandler<UpdateFooterInfoCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(UpdateFooterInfoCommand request, CancellationToken cancellationToken)
     {
@@ -24,7 +25,7 @@ public class UpdateFooterInfoHandler(IFooterInfoRepository repository) : IReques
             return SiteContentBusinessRules.NotFound("Footer info", request.Id);
         }
 
-        entity.ImageUrl = request.ImageUrl;
+        entity.ImageUrl = storageService.ToStoredUrl(request.ImageUrl);
         entity.Description = request.Description;
         entity.DisplayOrder = request.DisplayOrder;
         entity.Metadata = MetadataSerializer.Serialize(request.Metadata);

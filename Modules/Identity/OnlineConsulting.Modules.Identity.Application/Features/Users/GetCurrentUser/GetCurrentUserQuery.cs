@@ -34,7 +34,7 @@ public class GetCurrentUserHandler(IHttpContextAccessor httpContextAccessor, Use
         var user = await userManager.FindByNameAsync(username);
         if (user is null)
         {
-            return Result.BadRequest<UserResponse>(UserMessages.UserNotFoundOrInvalidData);
+            return Result.NotFound<UserResponse>(UserMessages.UserNotFoundOrInvalidData);
         }
 
         var roles = await userManager.GetRolesAsync(user);

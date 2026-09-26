@@ -31,7 +31,7 @@ public class AdminCancelMembershipHandler(ICustomerMembershipRepository reposito
 
         if (membership.Status == CustomerMembershipStatuses.Cancelled)
         {
-            return Result.BadRequest(CustomerMembershipMessages.AlreadyCancelled);
+            return Result.Conflict(CustomerMembershipMessages.AlreadyCancelled);
         }
 
         if (membership.ProviderSubscriptionId is not null)

@@ -7,6 +7,7 @@ using OnlineConsulting.Modules.Memberships.Application.Features.PromoCodes.Abstr
 using OnlineConsulting.Modules.Memberships.Application.Features.PromoCodes.Common;
 using OnlineConsulting.Modules.Memberships.Domain;
 using OnlineConsulting.SharedKernel.Payments;
+using OnlineConsulting.SharedKernel.Referrals;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -21,8 +22,8 @@ public record SubscribeToMembershipCommand(Guid UserId, string Email, Guid Membe
     public string[] Roles => [];
 }
 
-/// <summary>Deliberately not ITransactionAddRequest - a real card charge happens partway through, so each repository call saves immediately instead of rolling back and losing the charge's trace.</summary>
-public class SubscribeToMembershipHandler(ICustomerMembershipRepository membershipRepository, IMembershipPlanRepository planRepository, IPromoCodeRepository promoCodeRepository, ISubscriptionGateway subscriptionGateway)
+/// <summary>Deliberately not ITransactionAddRequest - a real card charge happens partway through, so each repository call saves immediately instead of rolling back and losing the charge's trace. Account credit is reserved before the charge and reversed if the charge fails.</summary>
+public class SubscribeToMembershipHandler(ICustomerMembershipRepository membershipRepository, IMembershipPlanRepository planRepository, IPromoCodeRepository promoCodeRepository, ISubscriptionGateway subscriptionGateway, IAccountCreditLedger creditLedger)
     : IRequestHandler<SubscribeToMembershipCommand, OperationDataResult<SubscribeToMembershipResult>>
 {
     /// <summary>Creates or resumes a pending subscription attempt; a Failed status is only stale here since ProviderSubscriptionId is set only after CreateSubscriptionAsync genuinely succeeds.</summary>
@@ -47,7 +48,7 @@ public class SubscribeToMembershipHandler(ICustomerMembershipRepository membersh
             var (isValid, error, amount) = PromoCodeEvaluator.Evaluate(promo, plan, alreadyRedeemed);
             if (!isValid)
             {
-                return Result.BadRequest<SubscribeToMembershipResult>(error!);
+                return Result.UnprocessableContent<SubscribeToMembershipResult>(error!);
             }
 
             promoDiscountAmount = amount;
@@ -65,7 +66,7 @@ public class SubscribeToMembershipHandler(ICustomerMembershipRepository membersh
             {
                 if (stalePlanMembership.ProviderSubscriptionId is not null)
                 {
-                    return Result.BadRequest<SubscribeToMembershipResult>(CustomerMembershipMessages.PreviousAttemptNeedsSupport);
+                    return Result.Conflict<SubscribeToMembershipResult>(CustomerMembershipMessages.PreviousAttemptNeedsSupport);
                 }
 
                 stalePlanMembership.MembershipPlanId = request.MembershipPlanId;
@@ -83,15 +84,9 @@ public class SubscribeToMembershipHandler(ICustomerMembershipRepository membersh
 
             if (hasActiveMembership)
             {
-                return Result.BadRequest<SubscribeToMembershipResult>(CustomerMembershipMessages.AlreadyHasActiveMembership);
+                return Result.Conflict<SubscribeToMembershipResult>(CustomerMembershipMessages.AlreadyHasActiveMembership);
             }
         }
-
-        var appliedCreditAmount = request.CreditToApplyAmount is > 0
-            ? Math.Min(request.CreditToApplyAmount.Value, plan.Price)
-            : (decimal?)null;
-
-        var totalDiscountAmount = Math.Min((appliedCreditAmount ?? 0) + promoDiscountAmount, plan.Price);
 
         if (membership is null)
         {
@@ -107,6 +102,8 @@ public class SubscribeToMembershipHandler(ICustomerMembershipRepository membersh
         }
 
         string? clientSecret;
+        decimal? appliedCreditAmount;
+        var creditReserved = false;
         try
         {
             string providerCustomerId;
@@ -127,10 +124,20 @@ public class SubscribeToMembershipHandler(ICustomerMembershipRepository membersh
 
             if (membership.ProviderSubscriptionId is null)
             {
+                var creditToApply = await ResolveCreditToApplyAsync(request, membership.Id, plan.Price - promoDiscountAmount, cancellationToken);
+                if (!await creditLedger.TryDebitAsync(request.UserId, creditToApply, CustomerMembershipMessages.CreditAppliedReason, AccountCreditSourceTypes.MembershipDiscount, membership.Id, cancellationToken))
+                {
+                    return Result.Conflict<SubscribeToMembershipResult>(CustomerMembershipMessages.InsufficientCredit);
+                }
+
+                creditReserved = creditToApply > 0;
+                var totalDiscountAmount = Math.Min(creditToApply + promoDiscountAmount, plan.Price);
+
                 var subscription = await subscriptionGateway
                     .CreateSubscriptionAsync(new CreateSubscriptionRequest(providerCustomerId, plan.ProviderPriceId, request.PaymentMethodId, membership.Id.ToString(),
                     totalDiscountAmount is > 0 ? totalDiscountAmount : null, plan.TrialDays), idempotencyKey: $"membership-signup-subscription:{membership.Id}", cancellationToken: cancellationToken);
 
+                creditReserved = false;
                 membership.ProviderSubscriptionId = subscription.ProviderSubscriptionId;
                 membership.RenewalDate = subscription.CurrentPeriodEnd;
                 membership.TrialEndDate = plan.TrialDays is > 0 ? DateTimeOffset.UtcNow.AddDays(plan.TrialDays.Value) : null;
@@ -153,6 +160,7 @@ public class SubscribeToMembershipHandler(ICustomerMembershipRepository membersh
                 _ = await membershipRepository.UpdateAsync(membership);
 
                 clientSecret = subscription.ClientSecret;
+                appliedCreditAmount = creditToApply > 0 ? creditToApply : null;
             }
             else
             {
@@ -164,6 +172,8 @@ public class SubscribeToMembershipHandler(ICustomerMembershipRepository membersh
                 }
 
                 clientSecret = null;
+                var debited = await creditLedger.GetDebitedAsync(request.UserId, AccountCreditSourceTypes.MembershipDiscount, membership.Id, cancellationToken);
+                appliedCreditAmount = debited > 0 ? debited : null;
             }
         }
         catch (Exception)
@@ -172,9 +182,27 @@ public class SubscribeToMembershipHandler(ICustomerMembershipRepository membersh
 
             _ = await membershipRepository.UpdateAsync(membership);
 
-            return Result.BadRequest<SubscribeToMembershipResult>(CustomerMembershipMessages.PaymentSetupFailed);
+            if (creditReserved)
+            {
+                await creditLedger.ReverseAsync(request.UserId, CustomerMembershipMessages.CreditReturnedReason, AccountCreditSourceTypes.MembershipDiscount, membership.Id, cancellationToken);
+            }
+
+            return Result.BadGateway<SubscribeToMembershipResult>(CustomerMembershipMessages.PaymentSetupFailed);
         }
 
         return Result.Created(new SubscribeToMembershipResult(membership.Id, clientSecret, appliedCreditAmount, promo is not null ? promoDiscountAmount : null), "Subscribed to membership plan successfully.");
+    }
+
+    private async Task<decimal> ResolveCreditToApplyAsync(SubscribeToMembershipCommand request, Guid membershipId, decimal payableAmount, CancellationToken cancellationToken)
+    {
+        if (request.CreditToApplyAmount is not > 0 || payableAmount <= 0)
+        {
+            return 0;
+        }
+
+        var available = await creditLedger.GetBalanceAsync(request.UserId, cancellationToken)
+            + await creditLedger.GetDebitedAsync(request.UserId, AccountCreditSourceTypes.MembershipDiscount, membershipId, cancellationToken);
+
+        return Math.Max(0, Math.Min(request.CreditToApplyAmount.Value, Math.Min(payableAmount, available)));
     }
 }

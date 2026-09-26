@@ -14,5 +14,8 @@ public static class CustomerMembershipMessages
     public const string PauseFailed = "We couldn't pause your membership with the payment provider. Please try again in a few minutes.";
     public const string ResumeFailed = "We couldn't resume your membership with the payment provider. Please try again in a few minutes.";
     public const string PreviousAttemptNeedsSupport = "Your previous subscription attempt is in an inconsistent state and needs manual attention. Please contact support before trying again.";
+    public const string CreditAppliedReason = "Applied to membership subscription";
+    public const string CreditReturnedReason = "Returned: membership payment setup failed";
+    public const string InsufficientCredit = "Your account credit balance changed and no longer covers the requested amount. Please review it and try again.";
     public const string PaymentSetupFailed = "We couldn't complete payment setup for your membership. Please try again in a few minutes, or contact support if the problem persists.";
 }

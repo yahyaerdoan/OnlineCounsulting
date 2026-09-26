@@ -31,7 +31,7 @@ public class ChangeMembershipPlanHandler(ICustomerMembershipRepository membershi
 
         if (membership.MembershipPlanId == request.NewMembershipPlanId)
         {
-            return Result.BadRequest(CustomerMembershipMessages.AlreadyOnThisPlan);
+            return Result.Conflict(CustomerMembershipMessages.AlreadyOnThisPlan);
         }
 
         var newPlan = await planRepository.GetAsync(p => p.Id == request.NewMembershipPlanId, cancellationToken: cancellationToken);

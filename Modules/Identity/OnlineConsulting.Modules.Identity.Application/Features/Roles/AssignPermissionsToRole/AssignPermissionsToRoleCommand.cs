@@ -50,7 +50,7 @@ public class AssignPermissionsToRoleHandler(RoleManager<Role> roleManager, IHttp
 
         if (unknownPermissions.Count > 0)
         {
-            return Result.BadRequest($"Unknown permission(s): {string.Join(", ", unknownPermissions)}.");
+            return Result.UnprocessableContent($"Unknown permission(s): {string.Join(", ", unknownPermissions)}.");
         }
 
         var role = await roleManager.FindByIdAsync(request.RoleId.ToString());
@@ -67,7 +67,7 @@ public class AssignPermissionsToRoleHandler(RoleManager<Role> roleManager, IHttp
             var removeResult = await roleManager.RemoveClaimAsync(role, claim);
             if (!removeResult.Succeeded)
             {
-                return Result.BadRequest($"{string.Join("; ", removeResult.Errors.Select(e => e.Description))} errors occurred while updating permissions.");
+                return Result.InternalServerError($"{string.Join("; ", removeResult.Errors.Select(e => e.Description))} errors occurred while updating permissions.");
             }
         }
 
@@ -76,7 +76,7 @@ public class AssignPermissionsToRoleHandler(RoleManager<Role> roleManager, IHttp
             var addResult = await roleManager.AddClaimAsync(role, new Claim(PermissionClaimTypes.Type, permission));
             if (!addResult.Succeeded)
             {
-                return Result.BadRequest($"{string.Join("; ", addResult.Errors.Select(e => e.Description))} errors occurred while updating permissions.");
+                return Result.InternalServerError($"{string.Join("; ", addResult.Errors.Select(e => e.Description))} errors occurred while updating permissions.");
             }
         }
 

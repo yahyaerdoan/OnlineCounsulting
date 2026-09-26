@@ -29,7 +29,7 @@ public class PauseMembershipHandler(ICustomerMembershipRepository repository, IS
 
         if (membership.Status != CustomerMembershipStatuses.Active)
         {
-            return Result.BadRequest(CustomerMembershipMessages.NotPausable);
+            return Result.Conflict(CustomerMembershipMessages.NotPausable);
         }
 
         if (membership.ProviderSubscriptionId is { } subscriptionId)

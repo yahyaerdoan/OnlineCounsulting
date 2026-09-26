@@ -31,7 +31,7 @@ public class AssignTechnicianHandler(IAppointmentRepository repository, ITechnic
 
         if (appointment.Status is AppointmentStatuses.Cancelled or AppointmentStatuses.Completed)
         {
-            return Result.BadRequest(SchedulingMessages.CannotAssignTechnicianToClosedAppointment);
+            return Result.Conflict(SchedulingMessages.CannotAssignTechnicianToClosedAppointment);
         }
 
         appointment.AssignedTechnicianUserId = request.TechnicianUserId;

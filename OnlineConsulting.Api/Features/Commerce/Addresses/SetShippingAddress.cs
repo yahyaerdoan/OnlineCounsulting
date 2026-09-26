@@ -3,6 +3,7 @@ using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.SetShippingAddress;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
 using ResultHandler.AspNetCore.Extensions;
+using ResultHandler.Functional;
 
 namespace OnlineConsulting.Api.Features.Commerce.Addresses;
 
@@ -18,14 +19,7 @@ public class SetShippingAddress : IEndpoint
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)
-    {
-        var currentUser = await sender.Send(new GetCurrentUserQuery());
-        if (!currentUser.IsSuccessful || currentUser.Data is null)
-        {
-            return currentUser.ToEnvelopedResult(httpContext);
-        }
-
-        var result = await sender.Send(new SetShippingAddressCommand(currentUser.Data.Id, id));
-        return result.ToEnvelopedResult(httpContext);
-    }
+        => (await sender.Send(new GetCurrentUserQuery())
+                .BindAsync(user => sender.Send(new SetShippingAddressCommand(user.Id, id))))
+            .ToEnvelopedResult(httpContext);
 }

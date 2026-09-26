@@ -7,5 +7,5 @@ namespace OnlineConsulting.Modules.FeatureFlags.Application.Features.Rules;
 public static class FeatureFlagBusinessRules
 {
     public static OperationResult UnknownKey(string key) =>
-        Result.BadRequest(string.Format(FeatureFlagMessages.UnknownKeyFormat, key));
+        Result.NotFound(string.Format(FeatureFlagMessages.UnknownKeyFormat, key));
 }

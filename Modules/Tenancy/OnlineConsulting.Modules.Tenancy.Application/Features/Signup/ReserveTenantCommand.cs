@@ -28,7 +28,7 @@ public class ReserveTenantHandler(ITenantRepository tenantRepository, ITenantSub
 
         if (requestedKeys.Count > 1 && !subscriptionGateway.SupportsMultipleItems)
         {
-            return Result.BadRequest<ReserveTenantResult>(SignupMessages.MultipleModulesNotSupportedByProvider);
+            return Result.UnprocessableContent<ReserveTenantResult>(SignupMessages.MultipleModulesNotSupportedByProvider);
         }
 
         var offerings = await moduleOfferingRepository.GetListAsync(predicate: m => requestedKeys.Contains(m.Key) && m.IsPubliclyVisible, orderBy: q => q.OrderBy(m => m.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
@@ -39,7 +39,7 @@ public class ReserveTenantHandler(ITenantRepository tenantRepository, ITenantSub
 
         if (missingKeys.Count > 0)
         {
-            return Result.BadRequest<ReserveTenantResult>(string.Format(SignupMessages.UnknownOrUnavailableModuleKeysFormat, string.Join(", ", missingKeys)));
+            return Result.UnprocessableContent<ReserveTenantResult>(string.Format(SignupMessages.UnknownOrUnavailableModuleKeysFormat, string.Join(", ", missingKeys)));
         }
 
         var selectedOfferings = requestedKeys.Select(k => offeringsByKey[k]).ToList();
@@ -47,7 +47,7 @@ public class ReserveTenantHandler(ITenantRepository tenantRepository, ITenantSub
 
         if (invalidOffering is not null)
         {
-            return Result.BadRequest<ReserveTenantResult>(string.Format(SignupMessages.UnknownOrUnavailableModuleKeysFormat, invalidOffering.Key));
+            return Result.UnprocessableContent<ReserveTenantResult>(string.Format(SignupMessages.UnknownOrUnavailableModuleKeysFormat, invalidOffering.Key));
         }
 
         var tenant = await tenantRepository
@@ -68,7 +68,7 @@ public class ReserveTenantHandler(ITenantRepository tenantRepository, ITenantSub
 
             if (slugAlreadyTaken)
             {
-                return Result.BadRequest<ReserveTenantResult>(SignupMessages.SlugAlreadyTaken);
+                return Result.Conflict<ReserveTenantResult>(SignupMessages.SlugAlreadyTaken);
             }
 
             tenant = new Tenant

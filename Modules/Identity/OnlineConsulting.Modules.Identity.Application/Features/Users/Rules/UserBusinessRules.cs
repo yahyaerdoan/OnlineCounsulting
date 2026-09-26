@@ -8,7 +8,7 @@ public static class UserBusinessRules
 {
     public static OperationResult UserNotFound() => Result.NotFound(UserMessages.UserNotFound);
 
-    public static OperationResult UserNotFoundOrInvalidData() => Result.BadRequest(UserMessages.UserNotFoundOrInvalidData);
+    public static OperationResult UserNotFoundOrInvalidData() => Result.NotFound(UserMessages.UserNotFoundOrInvalidData);
 
     public static OperationResult NoUserDataFound() => Result.NotFound(UserMessages.NoUserDataFound);
 

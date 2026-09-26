@@ -107,9 +107,9 @@ public class ApiClient(HttpClient httpClient, IAccessTokenProvider? tokenProvide
 
     private static async Task<ApiEnvelope<T>> ReadEnvelopeAsync<T>(HttpResponseMessage response, CancellationToken cancellationToken)
     {
-        if (response.Content.Headers.ContentLength is 0 or null)
+        if (!HasBody(response))
         {
-            return new ApiEnvelope<T>(default, false, (int)response.StatusCode, response.ReasonPhrase, null);
+            return new ApiEnvelope<T>(default, response.IsSuccessStatusCode, (int)response.StatusCode, response.ReasonPhrase, null);
         }
 
         if (response.IsSuccessStatusCode)
@@ -124,9 +124,9 @@ public class ApiClient(HttpClient httpClient, IAccessTokenProvider? tokenProvide
 
     private static async Task<ApiEnvelope> ReadEnvelopeAsync(HttpResponseMessage response, CancellationToken cancellationToken)
     {
-        if (response.Content.Headers.ContentLength is 0 or null)
+        if (!HasBody(response))
         {
-            return new ApiEnvelope(false, (int)response.StatusCode, response.ReasonPhrase, null);
+            return new ApiEnvelope(response.IsSuccessStatusCode, (int)response.StatusCode, response.ReasonPhrase, null);
         }
 
         if (response.IsSuccessStatusCode)
@@ -138,6 +138,9 @@ public class ApiClient(HttpClient httpClient, IAccessTokenProvider? tokenProvide
         var (Message, Errors, FieldErrors) = await ReadProblemDetailsAsync(response, cancellationToken);
         return new ApiEnvelope(false, (int)response.StatusCode, Message, Errors, FieldErrors);
     }
+
+    private static bool HasBody(HttpResponseMessage response)
+        => response.StatusCode != HttpStatusCode.NoContent && response.Content.Headers.ContentLength is not 0;
 
     private static async Task<(string? Message, List<string>? Errors, Dictionary<string, List<string>>? FieldErrors)> ReadProblemDetailsAsync(HttpResponseMessage response, CancellationToken cancellationToken)
     {

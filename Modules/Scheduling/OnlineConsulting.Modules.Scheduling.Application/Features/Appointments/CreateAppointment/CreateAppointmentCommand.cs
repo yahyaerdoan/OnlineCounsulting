@@ -29,14 +29,14 @@ public class CreateAppointmentHandler(IAppointmentRepository repository, IEmailO
     {
         if (request.ScheduledEnd <= request.ScheduledStart)
         {
-            return Result.BadRequest<Guid>(SchedulingMessages.InvalidTimeRange);
+            return Result.UnprocessableContent<Guid>(SchedulingMessages.InvalidTimeRange);
         }
 
         var overlaps = await repository.AnyAsync(a => a.Status != AppointmentStatuses.Cancelled && a.ScheduledStart < request.ScheduledEnd && a.ScheduledEnd > request.ScheduledStart, cancellationToken: cancellationToken);
 
         if (overlaps)
         {
-            return Result.BadRequest<Guid>(SchedulingMessages.SlotNoLongerAvailable);
+            return Result.Conflict<Guid>(SchedulingMessages.SlotNoLongerAvailable);
         }
 
         var appointment = new Appointment

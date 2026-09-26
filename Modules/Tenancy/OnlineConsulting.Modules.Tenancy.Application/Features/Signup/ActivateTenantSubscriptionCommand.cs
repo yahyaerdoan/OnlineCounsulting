@@ -89,7 +89,7 @@ public class ActivateTenantSubscriptionHandler(ITenantRepository tenantRepositor
                     tenantSubscription.Status = TenantSubscriptionStatuses.Failed;
                     _ = await tenantRepository.UpdateAsync(tenant);
                     _ = await tenantSubscriptionRepository.UpdateAsync(tenantSubscription);
-                    return Result.BadRequest<ActivateTenantSubscriptionResult>(SignupMessages.PaymentSetupFailed);
+                    return Result.BadGateway<ActivateTenantSubscriptionResult>(SignupMessages.PaymentSetupFailed);
                 }
 
                 tenantSubscription.ProviderSubscriptionId = subscription.ProviderSubscriptionId;
@@ -137,7 +137,7 @@ public class ActivateTenantSubscriptionHandler(ITenantRepository tenantRepositor
             tenantSubscription.Status = TenantSubscriptionStatuses.Failed;
             _ = await tenantRepository.UpdateAsync(tenant);
             _ = await tenantSubscriptionRepository.UpdateAsync(tenantSubscription);
-            return Result.BadRequest<ActivateTenantSubscriptionResult>(SignupMessages.PaymentSetupFailed);
+            return Result.BadGateway<ActivateTenantSubscriptionResult>(SignupMessages.PaymentSetupFailed);
         }
 
         tenant.Status = tenantSubscription.Status switch

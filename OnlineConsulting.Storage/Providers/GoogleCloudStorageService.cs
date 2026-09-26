@@ -3,6 +3,7 @@ using Google.Cloud.Storage.V1;
 using Microsoft.Extensions.Options;
 using OnlineConsulting.SharedKernel.Media;
 using OnlineConsulting.Storage.Common;
+using System.Diagnostics.CodeAnalysis;
 
 namespace OnlineConsulting.Storage.Providers;
 
@@ -41,6 +42,9 @@ public class GoogleCloudStorageService : IStorageService
 
         return new UploadResult(url, buffer.Length, width, height);
     }
+
+    [return: NotNullIfNotNull(nameof(url))]
+    public string? ToStoredUrl(string? url) => url;
 
     public async Task DeleteAsync(string url, CancellationToken cancellationToken = default)
     {
