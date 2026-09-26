@@ -11,7 +11,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\OnlineConsulting.Api\OnlineConsulting.Api.csproj" />
-    <ProjectReference Include="..\OnlineConsulting.UserInterface\OnlineConsulting.UserInterface.csproj" />
     <ProjectReference Include="..\OnlineConsulting.Maui.Web\OnlineConsulting.Maui.Web.csproj" />
   </ItemGroup>
 

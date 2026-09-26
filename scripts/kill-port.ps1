@@ -7,7 +7,7 @@
     ./scripts/kill-port.ps1                          # list all listening ports
     ./scripts/kill-port.ps1 -Port 7012
     ./scripts/kill-port.ps1 -Port 7012,5095,7196
-    ./scripts/kill-port.ps1 -Name OnlineConsulting*   # wildcard, matches Api/AppHost/UserInterface
+    ./scripts/kill-port.ps1 -Name OnlineConsulting*   # wildcard, matches Api/AppHost/Maui.Web
     ./scripts/kill-port.ps1 -Aspire                   # kills all known Aspire-related processes
 #>
 param(

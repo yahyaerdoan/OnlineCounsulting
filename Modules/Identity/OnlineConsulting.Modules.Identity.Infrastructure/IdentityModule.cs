@@ -37,7 +37,7 @@ namespace OnlineConsulting.Modules.Identity.Infrastructure;
 public static class IdentityModule
 {
     /// <summary>
-    /// Host-agnostic wiring, used by both Api and UserInterface. Leaves auth scheme as cookie (Identity's
+    /// Host-agnostic wiring (the Api is the only host today). Leaves auth scheme as cookie (Identity's
     /// default) - call <see cref="AddIdentityModuleJwtBearer"/> too for JWT bearer hosts. ASP.NET Identity's
     /// own password floor is deliberately loose; the real policy lives in FluentValidation validators
     /// (e.g. RegisterValidator). Registers default Admin permissions per-module (Users, Invites) rather than

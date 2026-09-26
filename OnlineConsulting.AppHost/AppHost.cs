@@ -6,6 +6,4 @@ var mauiWeb = builder.AddProject<Projects.OnlineConsulting_Maui_Web>("maui-web")
 
 api.WithEnvironment("Auth__ClientOrigin", mauiWeb.GetEndpoint("https"));
 
-builder.AddProject<Projects.OnlineConsulting_UserInterface>("userinterface").WithHttpHealthCheck("/health").WithReference(api).WaitFor(api);
-
 builder.Build().Run();
