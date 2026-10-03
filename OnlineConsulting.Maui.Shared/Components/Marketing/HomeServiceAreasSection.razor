@@ -1,30 +1,94 @@
-@* Coverage list - entity-backed (ServiceArea). No area detail page exists yet, so these render
-   as plain text, not links (no fabricated navigation). Hidden entirely when there are no areas. *@
+@* "Where We Work" as a service-area finder: a search box and state chips filter the area cards and the map pins together, a card or
+   pin highlights its partner, each card leads to booking, and a "don't see your city?" note points to Contact when nothing matches.
+   Everything interactive lives in marketing.js (initAreaFinder / initAreaMaps) through delegated handlers, so it works on the statically
+   rendered home page too. The map only appears when areas have coordinates; the section is hidden entirely when there are no areas. *@
+@using System.Globalization
 @using OnlineConsulting.Maui.Shared.Infrastructure.Api
 @inject IApiClient ApiClient
 
 @if (_areas.Count > 0)
 {
-    <div class="marketing-dark-section">
+    <section class="areas-band">
         <MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
-            <MudStack Spacing="1" AlignItems="AlignItems.Center" Class="mb-2">
-                <MudIcon Icon="@Icons.Material.Filled.LocationOn" Color="Color.Primary" Size="Size.Small" />
-                <MudText Typo="Typo.subtitle1" Color="Color.Primary" Class="text-strong">Where We Work</MudText>
-            </MudStack>
-            <MudText Typo="Typo.h5" Align="Align.Center" Class="marketing-display text-strong mb-4">Service Areas</MudText>
+            <div class="areas" data-area-finder>
+                <SectionHeading Eyebrow="Where We Work" Title="Service Areas">
+                    Proudly serving @_areas.Count @(_areas.Count == 1 ? "community" : "communities") across @States.Count @(States.Count == 1 ? "state" : "states").
+                    Find yours below.
+                </SectionHeading>
 
-            <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="2" Justify="Justify.Center">
-                @foreach (var area in _areas)
-                {
-                    <MudChip T="string" Variant="Variant.Text" Color="Color.Default" Size="Size.Small">@area.Name, @area.State</MudChip>
-                }
-            </MudStack>
+                <div class="areas-controls">
+                    <div class="area-search">
+                        <MudIcon Icon="@Icons.Material.Outlined.Search" Class="area-search-icon" />
+                        <input id="area-search" class="area-search-input" type="search" placeholder=" " autocomplete="off" data-area-search aria-describedby="area-count" />
+                        <label for="area-search" class="area-search-label">Check if we serve your city</label>
+                        <button type="button" class="area-search-clear" data-area-clear hidden aria-label="Clear search">
+                            <MudIcon Icon="@Icons.Material.Filled.Close" Size="Size.Small" />
+                        </button>
+                    </div>
+
+                    @if (States.Count > 1)
+                    {
+                        <div class="area-states" role="group" aria-label="Filter by state">
+                            <button type="button" class="area-state active" data-area-state="" aria-pressed="true">All <span>@_areas.Count</span></button>
+                            @foreach (var (state, count) in States)
+                            {
+                                <button type="button" class="area-state" data-area-state="@state" aria-pressed="false">@state <span>@count</span></button>
+                            }
+                        </div>
+                    }
+
+                    <span id="area-count" class="area-count" aria-live="polite" data-area-count>@_areas.Count areas</span>
+                </div>
+
+                <div class="@($"areas-body {(HasMap ? "" : "no-map")}")">
+                    @if (HasMap)
+                    {
+                        <div class="areas-map" data-area-map role="region" aria-label="Map of our service areas"></div>
+                    }
+
+                    <div class="areas-results">
+                        <div class="area-grid">
+                            @foreach (var (area, index) in _areas.Select((a, i) => (a, i)))
+                            {
+                                <a href="/appointment" class="area-card @AccentTone.At(index)" data-area-card data-area-id="@area.Id" data-state="@area.State"
+                                   data-name="@($"{area.Name}, {area.State}")" data-search="@($"{area.Name} {area.State}".ToLowerInvariant())"
+                                   data-lat="@area.Latitude?.ToString(CultureInfo.InvariantCulture)" data-lng="@area.Longitude?.ToString(CultureInfo.InvariantCulture)"
+                                   aria-label="@($"Book a visit in {area.Name}, {area.State}")">
+                                    <span class="tone-bubble tone-bubble-sm @AccentTone.At(index)"><MudIcon Icon="@Icons.Material.Outlined.LocationCity" Size="Size.Small" /></span>
+                                    <span class="area-card-body">
+                                        <span class="area-card-name">@area.Name</span>
+                                        <span class="area-card-state">@area.State</span>
+                                        @if (!string.IsNullOrWhiteSpace(area.IntroText))
+                                        {
+                                            <span class="area-card-intro">@area.IntroText</span>
+                                        }
+                                    </span>
+                                    <span class="area-card-cta">Book<MudIcon Icon="@Icons.Material.Filled.ArrowForward" Size="Size.Small" /></span>
+                                </a>
+                            }
+                        </div>
+
+                        <div class="area-empty" data-area-empty hidden>
+                            <span class="tone-bubble @AccentTone.Orange"><MudIcon Icon="@Icons.Material.Outlined.WrongLocation" /></span>
+                            <span class="area-empty-text">
+                                <span class="area-empty-title">We don't list "<span data-area-query></span>" yet</span>
+                                <span>We may still be able to help. Tell us where you are and we'll let you know.</span>
+                            </span>
+                            <a href="/contact" class="area-empty-cta">Contact us<MudIcon Icon="@Icons.Material.Filled.ArrowForward" Size="Size.Small" /></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </MudContainer>
-    </div>
+    </section>
 }
 
 @code {
     private List<ServiceAreaResponse> _areas = [];
+
+    private List<(string State, int Count)> States => [.. _areas.GroupBy(a => a.State).OrderBy(g => g.Key).Select(g => (g.Key, g.Count()))];
+
+    private bool HasMap => _areas.Any(a => a.Latitude is not null && a.Longitude is not null);
 
     protected override async Task OnInitializedAsync()
     {

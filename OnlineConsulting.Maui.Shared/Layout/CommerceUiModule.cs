@@ -12,6 +12,7 @@ public class CommerceUiModule : IUiModule
         new NavSection("Commerce", Icons.Material.Outlined.ShoppingCart, Color.Primary,
         [
             new NavItem("Orders", $"{AdminPrefix}/commerce/orders", Icons.Material.Outlined.Receipt),
+            new NavItem("Invoices", $"{AdminPrefix}/commerce/invoices", Icons.Material.Outlined.RequestQuote),
         ]),
     ];
 }

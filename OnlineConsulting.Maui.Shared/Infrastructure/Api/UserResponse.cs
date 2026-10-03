@@ -2,7 +2,7 @@
 
 /// <summary>Mirrors GET /api/users' response shape.</summary>
 public record UserResponse(Guid Id, Guid TenantId, string UserName, string FirstName, string LastName, string Email, string? ImageUrl, bool IsActive,
-    IReadOnlyList<string> Roles, IReadOnlyList<string> Permissions, bool IsSuperAdmin) : IQueryableFields
+    IReadOnlyList<string> Roles, IReadOnlyList<string> Permissions, bool IsSuperAdmin, DateTimeOffset? CreatedDate = null) : IQueryableFields
 {
     public static string[] SearchFields => [nameof(FirstName), nameof(LastName), nameof(Email)];
 }

@@ -1,94 +1,199 @@
-@* Own appointments as cards with a progress track - service names resolved once per distinct service via
-   GetAsync(Services.ById(...)) in parallel. CanCancel mirrors the legacy MVC rule exactly: Status is Pending or Confirmed. *@
+@* The customer's visits, laid out like My Orders: the next visit and counts up top, search and status pills, then one card per visit
+   (service, date and place, a status badge, the Requested / Confirmed / Technician / Completed progress line, Directions and Cancel).
+   Service names are resolved once per distinct service, in parallel. A visit can be cancelled while it is Pending or Confirmed. *@
 @page "/user/appointments"
 @attribute [Authorize(Roles = AppRoles.User)]
 @layout OnlineConsulting.Maui.Shared.Layout.DashboardLayout
 @inject IApiClient ApiClient
+@inject DataChangeNotifier Notifier
+@implements IDisposable
+@inject IDialogService DialogService
 @inject ISnackbar Snackbar
 
 <PageTitle>My Appointments</PageTitle>
 
-<MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
-        <MudText Typo="Typo.h6">My Appointments</MudText>
-        <MudButton Href="/appointment" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Outlined.Add">Book New</MudButton>
-    </MudStack>
-
-    <ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
-
-    @if (_loading)
+<DashboardPageHeading Text="My Appointments">
+    @if (_appointments.Count > 0)
     {
-        <ListSkeleton Rows="4" />
+        <MudButton Href="/appointment" Variant="Variant.Filled" Class="sell-btn" StartIcon="@Icons.Material.Outlined.Add">Book a Visit</MudButton>
     }
-    else if (_appointments.Count == 0)
-    {
-        <EmptyState Icon="@Icons.Material.Outlined.CalendarMonth" Title="No appointments yet"
-                    Text="Book a visit and it will show up here with its status." ActionText="Book a visit" ActionHref="/appointment" />
-    }
-    else
-    {
-        <div class="appointment-list">
-            @foreach (var appointment in _appointments)
+</DashboardPageHeading>
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+@if (_loading)
+{
+    <ListSkeleton Rows="4" />
+}
+else if (_appointments.Count == 0)
+{
+    <div class="cart-empty">
+        <span class="tone-bubble tone-bubble-lg tone-blue"><MudIcon Icon="@Icons.Material.Outlined.CalendarMonth" /></span>
+        <MudText Typo="Typo.h6" Class="text-strong">No Appointments Yet</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">Book a visit and it will show up here with its status.</MudText>
+        <div class="cart-empty-actions">
+            <MudButton Href="/appointment" Variant="Variant.Filled" Class="sell-btn" EndIcon="@Icons.Material.Filled.ArrowForward">Book a Visit</MudButton>
+        </div>
+    </div>
+}
+else
+{
+    <div class="orders-stats">
+        @if (NextVisit is { } next)
+        {
+            <button type="button" class="orders-stat orders-stat-alert" @onclick="@(() => _filter = FilterUpcoming)">
+                <span class="orders-stat-value">@DateTimeFormat.FormatShortDate(next.ScheduledStart)</span>
+                <span class="orders-stat-label">next visit</span>
+            </button>
+        }
+        <div class="orders-stat">
+            <span class="orders-stat-value">@_appointments.Count(a => Matches(a, FilterUpcoming))</span>
+            <span class="orders-stat-label">upcoming</span>
+        </div>
+        <div class="orders-stat">
+            <span class="orders-stat-value">@_appointments.Count(a => a.Status == Completed)</span>
+            <span class="orders-stat-label">completed</span>
+        </div>
+    </div>
+
+    <div class="orders-toolbar">
+        <div class="area-search orders-search">
+            <MudIcon Icon="@Icons.Material.Outlined.Search" Class="area-search-icon" />
+            <input id="appointments-search" class="area-search-input" type="search" placeholder=" " autocomplete="off"
+                   @bind="_query" @bind:event="oninput" />
+            <label for="appointments-search" class="area-search-label">Search service or address</label>
+        </div>
+        <div class="list-tabs orders-filters" role="tablist" aria-label="Filter by status">
+            @foreach (var (key, label) in Filters)
             {
-                <MudPaper Outlined="true" Class="appointment-card">
-                    <div class="appointment-card-header">
-                        <div class="min-w-0">
-                            <MudText Typo="Typo.subtitle1" Class="text-strong">@ServiceName(appointment)</MudText>
-                            <MudText Typo="Typo.body2" Color="Color.Secondary">@DateTimeFormat.FormatDateTime(appointment.ScheduledStart)</MudText>
-                        </div>
-                        <MudChip T="string" Size="Size.Small" Color="@StatusColor(appointment.Status)">@StatusLabel(appointment.Status)</MudChip>
-                    </div>
-
-                    @if (appointment.Status == "Cancelled")
-                    {
-                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-3">This visit was cancelled.</MudText>
-                    }
-                    else
-                    {
-                        <ol class="appointment-progress" aria-label="Visit progress">
-                            @foreach (var (label, done) in Progress(appointment))
-                            {
-                                <li class="@(done ? "done" : null)">
-                                    <span class="appointment-progress-dot"></span>
-                                    <span class="appointment-progress-label">@label</span>
-                                </li>
-                            }
-                        </ol>
-                    }
-
-                    @if (!string.IsNullOrWhiteSpace(appointment.NavigationUrl) || CanCancel(appointment))
-                    {
-                        <div class="appointment-card-actions">
-                            @if (!string.IsNullOrWhiteSpace(appointment.NavigationUrl))
-                            {
-                                <MudButton Href="@appointment.NavigationUrl" Target="_blank" Size="Size.Small" Variant="Variant.Text"
-                                           StartIcon="@Icons.Material.Outlined.LocationOn">Directions</MudButton>
-                            }
-                            @if (CanCancel(appointment))
-                            {
-                                <MudButton Size="Size.Small" Variant="Variant.Text" Color="Color.Error" StartIcon="@Icons.Material.Outlined.Cancel"
-                                           OnClick="@(() => CancelAsync(appointment))">Cancel visit</MudButton>
-                            }
-                        </div>
-                    }
-                </MudPaper>
+                var count = _appointments.Count(a => Matches(a, key));
+                if (count == 0)
+                {
+                    continue;
+                }
+                var isActive = _filter == key;
+                <button type="button" role="tab" aria-selected="@(isActive ? "true" : "false")" class="@($"list-tab {(isActive ? "active" : "")}")"
+                        @onclick="@(() => _filter = key)">
+                    @label <span class="gallery-chip-count">@count</span>
+                </button>
             }
         </div>
+    </div>
+
+    @if (Visible.Count == 0)
+    {
+        <MudText Color="Color.Secondary" Class="py-6" Align="Align.Center">No visits match. Try another search or filter.</MudText>
     }
 
+    <div class="equipment-cards" role="list">
+        @foreach (var appointment in Visible)
+        {
+            <article class="@($"equipment-card {Tone(appointment.Status)}")" role="listitem">
+                <div class="equipment-card-top">
+                    <span class="order-card-icon"><MudIcon Icon="@(appointment.IsOnline ? Icons.Material.Outlined.VideoCall : Icons.Material.Outlined.HomeRepairService)" /></span>
+                    <div class="equipment-card-title">
+                        <span class="order-hero-label">@DateTimeFormat.FormatDateTime(appointment.ScheduledStart)</span>
+                        <span class="equipment-card-name">@ServiceName(appointment)</span>
+                    </div>
+                    <span class="order-card-badges">
+                        <StatusBadge Label="@StatusLabel(appointment.Status)" Kind="@StatusKind(appointment.Status)" />
+                    </span>
+                </div>
+
+                <span class="appointment-where">
+                    <MudIcon Icon="@(appointment.IsOnline ? Icons.Material.Outlined.VideoCall : Icons.Material.Outlined.LocationOn)" Size="Size.Small" />
+                    <span>@(appointment.IsOnline ? $"Online meeting: {appointment.Topic}" : appointment.ServiceAddress ?? "Address to be confirmed")</span>
+                </span>
+
+                @if (appointment.Status == Cancelled)
+                {
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">This visit was cancelled.</MudText>
+                }
+                else
+                {
+                    <ol class="order-progress order-progress-4" aria-label="Visit progress">
+                        @foreach (var (label, state) in Progress(appointment))
+                        {
+                            <li class="@state">
+                                <span class="order-progress-dot">
+                                    @if (state == "done")
+                                    {
+                                        <MudIcon Icon="@Icons.Material.Filled.Check" Size="Size.Small" />
+                                    }
+                                </span>
+                                @label
+                            </li>
+                        }
+                    </ol>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(appointment.NavigationUrl) || CanCancel(appointment))
+                {
+                    <div class="equipment-actions">
+                        @if (!string.IsNullOrWhiteSpace(appointment.NavigationUrl))
+                        {
+                            <MudButton Href="@appointment.NavigationUrl" Target="_blank" Variant="Variant.Outlined" Color="Color.Primary" Class="svc-action"
+                                       StartIcon="@Icons.Material.Outlined.Directions">Directions</MudButton>
+                        }
+                        @if (CanCancel(appointment))
+                        {
+                            <MudButton Variant="Variant.Text" Color="Color.Error" StartIcon="@Icons.Material.Outlined.EventBusy" Disabled="@_busy"
+                                       OnClick="@(() => CancelAsync(appointment))">Cancel Visit</MudButton>
+                        }
+                    </div>
+                }
+            </article>
+        }
+    </div>
+}
+
 @code {
+    private const string Pending = "Pending";
+    private const string Confirmed = "Confirmed";
+    private const string Completed = "Completed";
+    private const string Cancelled = "Cancelled";
+    private const string FilterUpcoming = "Upcoming";
+
+    private static readonly (string Key, string Label)[] Filters =
+    [
+        ("", "All"),
+        (FilterUpcoming, "Upcoming"),
+        (Completed, "Completed"),
+        (Cancelled, "Cancelled"),
+    ];
+
     private List<AppointmentResponse> _appointments = [];
     private Dictionary<Guid, string> _serviceNames = [];
+    private string? _query;
+    private string _filter = string.Empty;
+    private bool _busy;
     private bool _loading = true;
     private string? _loadError;
 
-    protected override Task OnInitializedAsync() => ReloadAsync();
+    private IDisposable? _liveUpdates;
+
+    private AppointmentResponse? NextVisit =>
+        _appointments.Where(a => Matches(a, FilterUpcoming)).OrderBy(a => a.ScheduledStart).FirstOrDefault();
+
+    private List<AppointmentResponse> Visible =>
+    [
+        .. _appointments
+            .Where(a => Matches(a, _filter))
+            .Where(a => string.IsNullOrWhiteSpace(_query)
+                || ServiceName(a).Contains(_query.Trim(), StringComparison.OrdinalIgnoreCase)
+                || (a.ServiceAddress ?? "").Contains(_query.Trim(), StringComparison.OrdinalIgnoreCase)),
+    ];
+
+    protected override Task OnInitializedAsync()
+    {
+        _liveUpdates = Notifier.Subscribe(() => InvokeAsync(async () => { await ReloadAsync(); StateHasChanged(); }), DataTopic.Appointments);
+        return ReloadAsync();
+    }
 
     private async Task ReloadAsync()
     {
-        _loading = true;
         _loadError = null;
 
-        // Capped at 100, no pagination UI yet - revisit if a customer's appointment history grows past this.
         var result = await ApiClient.GetAsync<PaginatedResponse<AppointmentResponse>>(ApiRoutes.Paged(ApiRoutes.Operations.Appointments.Mine, 0, 100));
         if (!result.IsSuccessful || result.ResultData is null)
         {
@@ -118,47 +223,76 @@
     }
 
     private string ServiceName(AppointmentResponse appointment) =>
-        appointment.ServiceId is Guid serviceId && _serviceNames.TryGetValue(serviceId, out var name) ? name : "General meeting";
+        appointment.ServiceId is Guid serviceId && _serviceNames.TryGetValue(serviceId, out var name) ? name : "General Meeting";
 
-    private static bool CanCancel(AppointmentResponse appointment) => appointment.Status is "Pending" or "Confirmed";
+    private static bool Matches(AppointmentResponse appointment, string filter) => filter switch
+    {
+        "" => true,
+        FilterUpcoming => appointment.Status is not (Completed or Cancelled) && appointment.ScheduledEnd >= DateTimeOffset.UtcNow,
+        _ => appointment.Status == filter,
+    };
+
+    private static bool CanCancel(AppointmentResponse appointment) => appointment.Status is Pending or Confirmed;
 
     private static string StatusLabel(string status) => status switch
     {
-        "Pending" => "Requested",
-        "PendingPayment" => "Awaiting payment",
+        Pending => "Requested",
+        "PendingPayment" => "Awaiting Payment",
         _ => status,
     };
 
-    private static IEnumerable<(string Label, bool Done)> Progress(AppointmentResponse appointment)
+    private static string StatusKind(string status) => status switch
     {
-        var completed = appointment.Status == "Completed";
-        var confirmed = completed || appointment.Status == "Confirmed";
-
-        yield return ("Requested", true);
-        yield return ("Confirmed", confirmed);
-        yield return ("Technician assigned", completed || appointment.AssignedTechnicianUserId is not null);
-        yield return ("Completed", completed);
-    }
-
-    private static Color StatusColor(string status) => status switch
-    {
-        "Pending" => Color.Warning,
-        "Confirmed" => Color.Info,
-        "Completed" => Color.Success,
-        "Cancelled" => Color.Error,
-        _ => Color.Default,
+        Completed => StatusKinds.Success,
+        Confirmed => StatusKinds.Info,
+        Cancelled => StatusKinds.Neutral,
+        _ => StatusKinds.Warning,
     };
+
+    private static string Tone(string status) => status switch
+    {
+        Completed => AccentTone.Green,
+        Confirmed => AccentTone.Blue,
+        Cancelled => AccentTone.Cornflower,
+        _ => AccentTone.Orange,
+    };
+
+    private static IEnumerable<(string Label, string State)> Progress(AppointmentResponse appointment)
+    {
+        var completed = appointment.Status == Completed;
+        var confirmed = completed || appointment.Status == Confirmed;
+        var assigned = completed || appointment.AssignedTechnicianUserId is not null;
+        var steps = new[] { ("Requested", true), ("Confirmed", confirmed), ("Technician", assigned), ("Completed", completed) };
+        var current = Array.FindIndex(steps, s => !s.Item2);
+
+        return steps.Select((step, index) => (step.Item1, step.Item2 ? "done" : index == current ? "current" : ""));
+    }
 
     private async Task CancelAsync(AppointmentResponse appointment)
     {
-        var result = await ApiClient.PostAsync(ApiRoutes.Operations.Appointments.Cancel(appointment.Id), new { });
-        if (!result.IsSuccessful)
+        if (_busy || !await DialogService.ConfirmAsync("Cancel visit", $"Cancel your {ServiceName(appointment)} visit on {DateTimeFormat.FormatDateTime(appointment.ScheduledStart)}?"))
         {
-            Snackbar.ShowError(result.DisplayMessage);
             return;
         }
 
-        Snackbar.ShowSuccess(result.DisplayMessage);
-        await ReloadAsync();
+        _busy = true;
+        try
+        {
+            var result = await ApiClient.PostAsync(ApiRoutes.Operations.Appointments.Cancel(appointment.Id), new { });
+            if (!result.IsSuccessful)
+            {
+                Snackbar.ShowError(result.DisplayMessage);
+                return;
+            }
+
+            Snackbar.ShowSuccess(result.DisplayMessage);
+            await ReloadAsync();
+        }
+        finally
+        {
+            _busy = false;
+        }
     }
+
+    public void Dispose() => _liveUpdates?.Dispose();
 }

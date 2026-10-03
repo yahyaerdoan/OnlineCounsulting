@@ -1,0 +1,42 @@
+﻿@* First column of people lists: photo or colored initials, the name, and a muted second line (usually the email). *@
+@namespace OnlineConsulting.Maui.Shared.Components.Common
+@inject IApiClient ApiClient
+
+<span class="person-cell">
+    @if (MediaUrlResolver.Resolve(ApiClient, ImageUrl) is { } src)
+    {
+        <img class="person-avatar" src="@src" alt="" loading="lazy" />
+    }
+    else
+    {
+        <span class="@($"person-avatar person-initials {AccentTone.At(Name.Sum(c => c))}")" aria-hidden="true">@Initials</span>
+    }
+    <span class="person-text">
+        <span class="person-name">@(string.IsNullOrWhiteSpace(Name) ? "Unknown" : Name)</span>
+        @if (!string.IsNullOrWhiteSpace(Secondary))
+        {
+            <span class="person-sub">@Secondary</span>
+        }
+    </span>
+</span>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Name { get; set; } = string.Empty;
+
+    [Parameter]
+    public string? Secondary { get; set; }
+
+    [Parameter]
+    public string? ImageUrl { get; set; }
+
+    private string Initials
+    {
+        get
+        {
+            var letters = Name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(part => char.ToUpperInvariant(part[0]));
+            var initials = string.Concat(letters);
+            return initials.Length == 0 ? "?" : initials;
+        }
+    }
+}

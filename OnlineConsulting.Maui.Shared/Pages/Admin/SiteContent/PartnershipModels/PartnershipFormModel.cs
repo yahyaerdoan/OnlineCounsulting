@@ -1,8 +1,14 @@
+using OnlineConsulting.Maui.Shared.Infrastructure.Api;
+
 namespace OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent.PartnershipModels;
 
 /// <summary>Shared by CreatePartnershipDialog and EditPartnershipDialog. Social links are managed separately, only in EditPartnershipDialog.</summary>
 public class PartnershipFormModel
 {
+    public string Kind { get; set; } = PartnershipKinds.Partner;
+
+    public bool IsTeam => Kind == PartnershipKinds.Team;
+
     public string FirstName { get; set; } = string.Empty;
 
     public string LastName { get; set; } = string.Empty;

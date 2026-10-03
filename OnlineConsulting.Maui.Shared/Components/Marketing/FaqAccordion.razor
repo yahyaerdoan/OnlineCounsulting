@@ -1,0 +1,19 @@
+@* One-card question list with a rotating chevron (Pricing FAQs). *@
+
+<div class="faq-accordion">
+    @foreach (var (question, answer) in Items)
+    {
+        <details class="faq-accordion-item">
+            <summary>
+                <span class="faq-accordion-question">@question</span>
+                <MudIcon Icon="@Icons.Material.Filled.ExpandMore" Class="faq-accordion-chevron" />
+            </summary>
+            <p class="faq-accordion-answer">@answer</p>
+        </details>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public IEnumerable<(string Question, string Answer)> Items { get; set; } = [];
+}

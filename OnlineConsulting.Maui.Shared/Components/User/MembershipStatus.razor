@@ -1,6 +1,11 @@
-@* Caller's own membership status - GetMyMembership returns 404 for "not currently a member", not an error. *@
+@* The caller's own membership as a header card (plan, status, price, renewal or end date, perks) with only the actions that apply
+   right now: one filled main action, outlined secondary ones, and cancel as a quiet red text button last. Every action shares one busy
+   state, so nothing can be clicked twice. GetMyMembership returns 404 for "not currently a member", not an error; a former member is
+   offered their old plan back. Phones stack the facts and give each button the full width. *@
 @namespace OnlineConsulting.Maui.Shared.Components.User
 @inject IApiClient ApiClient
+@inject DataChangeNotifier Notifier
+@implements IDisposable
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 
@@ -10,86 +15,199 @@
 {
     <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
 }
+else if (_membership is null && _previous is not null)
+{
+    <section class="@($"order-hero member-hero {AccentTone.Gold}")">
+        <div class="order-hero-top">
+            <span class="order-card-icon"><MudIcon Icon="@Icons.Material.Outlined.WorkspacePremium" /></span>
+            <div class="order-hero-title">
+                <span class="order-hero-label">We'd Love to Have You Back</span>
+                <span class="order-hero-number">@(_previous.PlanName ?? "Membership")</span>
+                <span class="member-hero-note">
+                    Ended@(_previous.RenewalDate is { } ended ? $" {DateTimeFormat.FormatDate(ended)}" : ""). Rejoin to get your member discounts and priority visits again.
+                </span>
+            </div>
+        </div>
+        <div class="order-hero-actions">
+            @if (_previous.PlanIsActive == true)
+            {
+                <MudButton Href="@($"/user/membership/subscribe/{_previous.MembershipPlanId}")" Variant="Variant.Filled" Class="sell-btn"
+                           StartIcon="@Icons.Material.Outlined.Replay">Rejoin @(_previous.PlanName)</MudButton>
+                <MudButton Href="/membership" Variant="Variant.Outlined" Color="Color.Primary" Class="svc-action">Compare plans</MudButton>
+            }
+            else
+            {
+                <MudButton Href="/membership" Variant="Variant.Filled" Class="sell-btn" EndIcon="@Icons.Material.Filled.ArrowForward">View membership plans</MudButton>
+            }
+        </div>
+    </section>
+}
 else if (_membership is null)
 {
-    <MudText Typo="Typo.body1" Color="Color.Secondary">No active membership.</MudText>
-    <MudButton Href="/membership" Variant="Variant.Filled" Color="Color.Primary" Class="mt-4">View Membership Plans</MudButton>
+    <div class="cart-empty">
+        <span class="tone-bubble tone-bubble-lg tone-gold"><MudIcon Icon="@Icons.Material.Outlined.WorkspacePremium" /></span>
+        <MudText Typo="Typo.h6" Class="text-strong">You're not a member yet</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">Members get yearly visits included, discounts on every service and priority booking.</MudText>
+        <div class="cart-empty-actions">
+            <MudButton Href="/membership" Variant="Variant.Filled" Class="sell-btn" EndIcon="@Icons.Material.Filled.ArrowForward">View membership plans</MudButton>
+        </div>
+    </div>
 }
 else
 {
-    <MudSimpleTable Dense="true">
-        <tbody>
-            <tr><td>Plan</td><td>@(_planName ?? _membership.MembershipPlanId.ToString())</td></tr>
-            <tr><td>Status</td><td>@_membership.Status</td></tr>
-            <tr><td>Started</td><td>@DateTimeFormat.FormatDateTime(_membership.StartDate)</td></tr>
-            <tr><td>Renews</td><td>@(_membership.RenewalDate is { } renewal ? DateTimeFormat.FormatDateTime(renewal) : "-")</td></tr>
-        </tbody>
-    </MudSimpleTable>
+    var membership = _membership;
+    var status = membership.IsEnding ? Ending : membership.Status;
 
-    @if (_membership.CancelAtPeriodEnd && _membership.Status != "Cancelled")
-    {
-        <MudAlert Severity="Severity.Info" Class="mt-3" Dense="true">
-            Your membership won't renew and will end on @(_membership.RenewalDate is { } end ? DateTimeFormat.FormatDateTime(end) : "your next renewal date").
-        </MudAlert>
-    }
+    <section class="@($"order-hero member-hero {Tone(status)}")">
+        <div class="order-hero-top">
+            <span class="order-card-icon"><MudIcon Icon="@Icons.Material.Outlined.WorkspacePremium" /></span>
+            <div class="order-hero-title">
+                <span class="order-hero-label">Your Plan</span>
+                <span class="order-hero-number">@(membership.PlanName ?? _plan?.Name ?? "Membership")</span>
+                <span class="order-hero-date">Member since @DateTimeFormat.FormatDate(membership.StartDate)</span>
+            </div>
+            <span class="order-card-badges">
+                <StatusBadge Label="@StatusLabel(status)" Kind="@StatusKind(status)" />
+            </span>
+        </div>
 
-    @if (_membership.TrialEndDate is { } trialEnd && trialEnd > DateTimeOffset.UtcNow)
-    {
-        <MudAlert Severity="Severity.Info" Class="mt-3" Dense="true">
-            Free trial until @DateTimeFormat.FormatDateTime(trialEnd).
-        </MudAlert>
-    }
+        <dl class="member-facts">
+            @if (Price is { } price)
+            {
+                <div class="member-fact">
+                    <dt>Price</dt>
+                    <dd>@CurrencyFormat.Format(price) <span>/ @(Cycle == "Annual" ? "year" : "month")</span></dd>
+                </div>
+            }
+            <div class="member-fact">
+                <dt>@(status is Ending or Cancelled ? "Ends" : status == Paused ? "Billing" : "Renews")</dt>
+                <dd>@(status == Paused ? "Paused" : membership.RenewalDate is { } renewal ? DateTimeFormat.FormatDate(renewal) : "-")</dd>
+            </div>
+            @if (_plan is { IncludedVisitsPerYear: > 0 } visitsPlan)
+            {
+                <div class="member-fact">
+                    <dt>Included Visits</dt>
+                    <dd>@visitsPlan.IncludedVisitsPerYear <span>/ year</span></dd>
+                </div>
+            }
+            @if (_plan is { DiscountPercent: > 0 } discountPlan)
+            {
+                <div class="member-fact">
+                    <dt>Member Discount</dt>
+                    <dd>@discountPlan.DiscountPercent.ToString("0.#")% <span>off services</span></dd>
+                </div>
+            }
+        </dl>
 
-    <MudStack Row="true" Spacing="2" Class="mt-4" Wrap="Wrap.Wrap">
-        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Disabled="@(_membership.Status != "Active" || _membership.CancelAtPeriodEnd)"
-                   OnClick="ChangePlanAsync">Change Plan</MudButton>
-        <MudButton Variant="Variant.Outlined" Color="Color.Error" Disabled="@(_membership.Status == "Cancelled" || _membership.CancelAtPeriodEnd)"
-                   OnClick="CancelAsync">Cancel Membership</MudButton>
-        @if (_membership.Status == "Active")
+        @if (membership.TrialEndDate is { } trialEnd && trialEnd > DateTimeOffset.UtcNow)
         {
-            <MudButton Variant="Variant.Outlined" Color="Color.Warning" Disabled="@_membership.CancelAtPeriodEnd"
-                       OnClick="PauseAsync">Pause Membership</MudButton>
+            <MudAlert Severity="Severity.Info" Dense="true">Free trial until @DateTimeFormat.FormatDate(trialEnd).</MudAlert>
         }
-        else if (_membership.Status == "Paused")
+
+        @if (status == Ending)
         {
-            <MudButton Variant="Variant.Outlined" Color="Color.Success" OnClick="ResumeAsync">Resume Membership</MudButton>
+            <MudAlert Severity="Severity.Warning" Dense="true">
+                Your membership won't renew and ends on @(membership.RenewalDate is { } end ? DateTimeFormat.FormatDate(end) : "your next renewal date").
+                @(membership.Status == Paused
+                    ? "Keep it and nothing changes: no new charge now, it stays paused until you resume."
+                    : "Keep it and nothing changes: no new charge now, it simply renews as before.")
+            </MudAlert>
         }
-    </MudStack>
+        else if (status == Paused)
+        {
+            <MudAlert Severity="Severity.Info" Dense="true">Billing is on hold. Resume anytime to get your member benefits back.</MudAlert>
+        }
+        else if (status is PastDue or PendingPayment)
+        {
+            <MudAlert Severity="Severity.Warning" Dense="true">We couldn't collect your last payment. Contact us and we'll sort it out.</MudAlert>
+        }
+
+        <div class="order-hero-actions">
+            @switch (status)
+            {
+                case Ending:
+                    <MudButton Variant="Variant.Filled" Class="sell-btn" StartIcon="@Icons.Material.Outlined.Replay" Disabled="@_busy"
+                               OnClick="@(() => RunAsync(ApiRoutes.Growth.CustomerMemberships.Reactivate))">Keep my membership</MudButton>
+                    break;
+                case Active:
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" Class="svc-action" StartIcon="@Icons.Material.Outlined.SwapHoriz" Disabled="@_busy"
+                               OnClick="ChangePlanAsync">Change plan</MudButton>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" Class="svc-action" StartIcon="@Icons.Material.Outlined.PauseCircle" Disabled="@_busy"
+                               OnClick="PauseAsync">Pause</MudButton>
+                    break;
+                case Paused:
+                    <MudButton Variant="Variant.Filled" Class="sell-btn" StartIcon="@Icons.Material.Outlined.PlayCircle" Disabled="@_busy"
+                               OnClick="ResumeAsync">Resume membership</MudButton>
+                    break;
+                case PastDue or PendingPayment:
+                    <MudButton Href="/contact" Variant="Variant.Filled" Class="sell-btn" StartIcon="@Icons.Material.Outlined.SupportAgent">Contact us</MudButton>
+                    break;
+                case Cancelled:
+                    <MudButton Href="/membership" Variant="Variant.Filled" Class="sell-btn" EndIcon="@Icons.Material.Filled.ArrowForward">View membership plans</MudButton>
+                    break;
+            }
+            @if (status is not Ending and not Cancelled)
+            {
+                <MudButton Variant="Variant.Text" Color="Color.Error" Class="member-cancel" Disabled="@_busy" OnClick="CancelAsync">Cancel membership</MudButton>
+            }
+        </div>
+    </section>
 }
 
 @code {
+    private const string Active = "Active";
+    private const string Paused = "Paused";
+    private const string Cancelled = "Cancelled";
+    private const string PastDue = "PastDue";
+    private const string PendingPayment = "PendingPayment";
+    private const string Ending = "Ending";
+
     private CustomerMembershipResponse? _membership;
-    private string? _planName;
+    private CustomerMembershipResponse? _previous;
+    private MembershipPlanResponse? _plan;
+    private bool _busy;
     private bool _loading = true;
     private string? _loadError;
 
-    protected override Task OnInitializedAsync() => ReloadAsync();
+    private IDisposable? _liveUpdates;
+
+    private decimal? Price => _membership?.PlanPrice ?? _plan?.Price;
+
+    private string? Cycle => _membership?.PlanBillingCycle ?? _plan?.BillingCycle;
+
+    protected override Task OnInitializedAsync()
+    {
+        _liveUpdates = Notifier.Subscribe(() => InvokeAsync(async () => { await ReloadAsync(); StateHasChanged(); }), DataTopic.Membership);
+        return ReloadAsync();
+    }
 
     private async Task ReloadAsync()
     {
-        _loading = true;
         _loadError = null;
         var result = await ApiClient.GetAsync<CustomerMembershipResponse>(ApiRoutes.Growth.CustomerMemberships.Mine);
 
         if (!result.IsSuccessful)
         {
-            // Not currently a member is expected, not an error - only surface unexpected failures.
             if (result.StatusCode != 404)
             {
                 _loadError = result.DisplayMessage;
             }
 
             _membership = null;
+            _plan = null;
+            var previous = result.StatusCode == 404 ? await ApiClient.GetAsync<CustomerMembershipResponse>(ApiRoutes.Growth.CustomerMemberships.MinePrevious) : null;
+            _previous = previous is { IsSuccessful: true } ? previous.ResultData : null;
             _loading = false;
             return;
         }
 
         _membership = result.ResultData;
+        _previous = null;
 
         if (_membership is not null)
         {
             var planResult = await ApiClient.GetAsync<MembershipPlanResponse>(ApiRoutes.Growth.MembershipPlans.ById(_membership.MembershipPlanId));
-            _planName = planResult.IsSuccessful ? planResult.ResultData?.Name : null;
+            _plan = planResult.IsSuccessful ? planResult.ResultData : null;
         }
 
         _loading = false;
@@ -97,32 +215,42 @@ else
 
     private async Task CancelAsync()
     {
-        if (!await DialogService.ConfirmAsync("Cancel Membership", "Cancel your membership? You'll keep your benefits until the end of the current billing period, then it won't renew."))
+        if (await DialogService.ConfirmAsync("Cancel membership", "Cancel your membership? You'll keep your benefits until the end of the current billing period, then it won't renew."))
         {
-            return;
+            await RunAsync(ApiRoutes.Growth.CustomerMemberships.Cancel);
         }
+    }
 
-        var result = await ApiClient.PostAsync(ApiRoutes.Growth.CustomerMemberships.Cancel, new { });
-        if (!result.IsSuccessful)
+    private async Task PauseAsync()
+    {
+        if (await DialogService.ConfirmAsync("Pause membership", "Pause your membership? Billing stops until you resume."))
         {
-            Snackbar.ShowError(result.DisplayMessage);
-            return;
+            await RunAsync(ApiRoutes.Growth.CustomerMemberships.Pause);
         }
+    }
 
-        Snackbar.ShowSuccess(result.DisplayMessage);
-        await ReloadAsync();
+    private async Task ResumeAsync()
+    {
+        if (await DialogService.ConfirmAsync("Resume membership", "Resume your membership? Billing will continue normally."))
+        {
+            await RunAsync(ApiRoutes.Growth.CustomerMemberships.Resume);
+        }
     }
 
     private async Task ChangePlanAsync()
     {
+        var currentPlanId = _membership?.MembershipPlanId ?? throw new InvalidOperationException("No membership to change.");
+
+        _busy = true;
         var plansResult = await ApiClient.GetAsync<PaginatedResponse<MembershipPlanResponse>>(ApiRoutes.Paged(ApiRoutes.Growth.MembershipPlans.Base, 0, 100));
+        _busy = false;
         if (!plansResult.IsSuccessful || plansResult.ResultData is null)
         {
             Snackbar.ShowError(plansResult.DisplayMessage);
             return;
         }
 
-        var otherPlans = plansResult.ResultData.Items.Where(p => p.Id != _membership!.MembershipPlanId).ToList();
+        var otherPlans = plansResult.ResultData.Items.Where(p => p.Id != currentPlanId && p.IsActive).ToList();
         if (otherPlans.Count == 0)
         {
             Snackbar.ShowError("There are no other plans available to switch to right now.");
@@ -130,57 +258,63 @@ else
         }
 
         var parameters = new DialogParameters<SelectMembershipPlanDialog> { { x => x.Plans, otherPlans } };
-        var dialog = await DialogService.ShowAsync<SelectMembershipPlanDialog>("Change Plan", parameters, DialogServiceExtensions.SmallDialogOptions);
+        var dialog = await DialogService.ShowAsync<SelectMembershipPlanDialog>("Change plan", parameters, DialogServiceExtensions.SmallDialogOptions);
         var dialogResult = await dialog.Result;
-        if (dialogResult is not { Canceled: false, Data: Guid newPlanId })
+        if (dialogResult is { Canceled: false, Data: Guid newPlanId })
         {
-            return;
+            await RunAsync(ApiRoutes.Growth.CustomerMemberships.ChangePlan(newPlanId));
         }
-
-        var result = await ApiClient.PostAsync(ApiRoutes.Growth.CustomerMemberships.ChangePlan(newPlanId), new { });
-        if (!result.IsSuccessful)
-        {
-            Snackbar.ShowError(result.DisplayMessage);
-            return;
-        }
-
-        Snackbar.ShowSuccess(result.DisplayMessage);
-        await ReloadAsync();
     }
 
-    private async Task PauseAsync()
+    private async Task RunAsync(string route)
     {
-        if (!await DialogService.ConfirmAsync("Pause Membership", "Pause your membership? Billing stops until you resume."))
+        if (_busy)
         {
             return;
         }
 
-        var result = await ApiClient.PostAsync(ApiRoutes.Growth.CustomerMemberships.Pause, new { });
-        if (!result.IsSuccessful)
+        _busy = true;
+        try
         {
-            Snackbar.ShowError(result.DisplayMessage);
-            return;
-        }
+            var result = await ApiClient.PostAsync(route, new { });
+            if (!result.IsSuccessful)
+            {
+                Snackbar.ShowError(result.DisplayMessage);
+                return;
+            }
 
-        Snackbar.ShowSuccess(result.DisplayMessage);
-        await ReloadAsync();
+            Snackbar.ShowSuccess(result.DisplayMessage);
+            await ReloadAsync();
+        }
+        finally
+        {
+            _busy = false;
+        }
     }
 
-    private async Task ResumeAsync()
+    private static string StatusLabel(string status) => status switch
     {
-        if (!await DialogService.ConfirmAsync("Resume Membership", "Resume your membership? Billing will continue normally."))
-        {
-            return;
-        }
+        Ending => "Ending",
+        PastDue => "Payment due",
+        PendingPayment => "Awaiting payment",
+        _ => status,
+    };
 
-        var result = await ApiClient.PostAsync(ApiRoutes.Growth.CustomerMemberships.Resume, new { });
-        if (!result.IsSuccessful)
-        {
-            Snackbar.ShowError(result.DisplayMessage);
-            return;
-        }
+    private static string StatusKind(string status) => status switch
+    {
+        Active => StatusKinds.Success,
+        Ending or Paused => StatusKinds.Warning,
+        PastDue or PendingPayment => StatusKinds.Danger,
+        _ => StatusKinds.Neutral,
+    };
 
-        Snackbar.ShowSuccess(result.DisplayMessage);
-        await ReloadAsync();
-    }
+    private static string Tone(string status) => status switch
+    {
+        Active => AccentTone.Green,
+        Ending or Paused => AccentTone.Orange,
+        PastDue or PendingPayment => AccentTone.Red,
+        _ => AccentTone.Cornflower,
+    };
+
+    public void Dispose() => _liveUpdates?.Dispose();
 }

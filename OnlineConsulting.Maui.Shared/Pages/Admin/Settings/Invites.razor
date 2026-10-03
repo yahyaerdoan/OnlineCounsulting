@@ -25,7 +25,7 @@
         <MudTh>Actions</MudTh>
     </HeaderContent>
     <RowTemplate Context="invite">
-        <MudTd DataLabel="Email">@invite.Email</MudTd>
+        <MudTd DataLabel="Email" Class="cell-primary">@invite.Email</MudTd>
         <MudTd DataLabel="Role">@invite.RoleName</MudTd>
         <MudTd DataLabel="Status">
             <MudChip T="string" Size="Size.Small" Color="@InviteStatusColor(invite.Status)">@invite.Status</MudChip>
@@ -34,8 +34,10 @@
         <MudTd DataLabel="Actions">
             @if (invite.Status == "Pending")
             {
-                <MudIconButton Icon="@Icons.Material.Outlined.Cancel" Size="Size.Small" Color="Color.Error" title="Cancel invite"
-                               OnClick="@(() => CancelInviteAsync(invite))" />
+                <MudTooltip Text="Cancel invite">
+                    <MudIconButton aria-label="Cancel invite" Icon="@Icons.Material.Outlined.Cancel" Size="Size.Small" Color="Color.Error"
+                                   OnClick="@(() => CancelInviteAsync(invite))" />
+                </MudTooltip>
             }
         </MudTd>
     </RowTemplate>

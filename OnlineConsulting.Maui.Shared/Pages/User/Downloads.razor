@@ -6,8 +6,13 @@
 
 <PageTitle>Downloads</PageTitle>
 
-<MudStack AlignItems="AlignItems.Center" Class="py-10" Spacing="3">
-    <MudIcon Icon="@Icons.Material.Outlined.Download" Size="Size.Large" Color="Color.Secondary" />
-    <MudText Typo="Typo.h6">Downloads</MudText>
-    <MudText Typo="Typo.body2" Color="Color.Secondary">Coming soon.</MudText>
-</MudStack>
+<DashboardPageHeading Text="Downloads" />
+
+<div class="cart-empty">
+    <span class="tone-bubble tone-bubble-lg tone-cornflower"><MudIcon Icon="@Icons.Material.Outlined.Download" /></span>
+    <MudText Typo="Typo.h6" Class="text-strong">Coming Soon</MudText>
+    <MudText Typo="Typo.body2" Color="Color.Secondary">Manuals, warranty papers and service reports for your units will be available here. Your receipts are under Invoices.</MudText>
+    <div class="cart-empty-actions">
+        <MudButton Href="/user/invoices" Variant="Variant.Filled" Class="sell-btn" StartIcon="@Icons.Material.Outlined.ReceiptLong">View Invoices</MudButton>
+    </div>
+</div>

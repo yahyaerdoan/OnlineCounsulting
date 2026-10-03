@@ -13,6 +13,7 @@
     @if (_successMessage is not null)
     {
         <MudAlert Severity="Severity.Success" Class="mb-4">@_successMessage</MudAlert>
+        <MudButton Href="@LoginHref" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true">Sign in</MudButton>
     }
     else
     {
@@ -41,7 +42,7 @@
         </EditForm>
 
         <MudText Typo="Typo.body2" Class="mt-4" Align="Align.Center">
-            Already have an account? <MudLink Href="/login">Sign in</MudLink>
+            Already have an account? <MudLink Href="@LoginHref">Sign in</MudLink>
         </MudText>
 
         <MudText Typo="Typo.body2" Class="mt-2" Align="Align.Center">
@@ -51,6 +52,11 @@
 </AuthCard>
 
 @code {
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    private string LoginHref => string.IsNullOrEmpty(ReturnUrl) ? "/login" : $"/login?ReturnUrl={Uri.EscapeDataString(ReturnUrl)}";
+
     [SupplyParameterFromForm]
     private RegisterModel _model
     {

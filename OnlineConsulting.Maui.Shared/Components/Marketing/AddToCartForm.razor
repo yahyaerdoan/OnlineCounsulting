@@ -18,13 +18,6 @@
     [Parameter, EditorRequired]
     public Guid ServiceId { get; set; }
 
-    /// <summary>Unit price to charge - pass the service's DiscountedPrice, not its list Price.</summary>
-    [Parameter, EditorRequired]
-    public decimal Price { get; set; }
-
-    [Parameter, EditorRequired]
-    public int TaxRate { get; set; }
-
     [Parameter]
     public int Quantity { get; set; } = 1;
 
@@ -51,7 +44,7 @@
         _isBusy = true;
 
         var result = await ApiClient.PostAsync(ApiRoutes.Commerce.Baskets.Items,
-            new { serviceId = ServiceId, quantity = Quantity, price = Price, taxRate = TaxRate });
+            new { serviceId = ServiceId, quantity = Quantity });
 
         _isBusy = false;
 

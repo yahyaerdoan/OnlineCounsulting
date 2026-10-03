@@ -1,55 +1,181 @@
-﻿@* Shows the first slide (by DisplayOrder) as a static banner - no carousel rotation. On phones the text sits at the
-   bottom over a darkening gradient with one full-width booking button; the finder and call actions are left to
-   HomeQuickStart right below, which already offers both. *@
+﻿@* The first slide (by DisplayOrder) as the home hero. The photo drifts slowly behind a deep brand gradient with a warm glow;
+   the copy fades up in sequence: a pill with the business's own service categories, the headline with its last words in gold,
+   the first paragraph, a glowing booking button and glass secondary actions. Below, live proof from the data (services offered,
+   areas served, customer reviews), and on wide screens a glass card with the next open visit time from the booking calendar.
+   Nothing here is made up: every number and time comes from the API and is hidden when missing. Phones keep the text at the
+   bottom over the photo with one full-width booking button, the next open time as a pill above it. *@
 @using OnlineConsulting.Maui.Shared.Infrastructure.Api
 @inject IApiClient ApiClient
 
 @if (_slide is not null)
 {
-    <div class="marketing-hero" style="background-image:url('@MediaUrlResolver.Resolve(ApiClient, _slide.ImageUrl)')">
+    <section class="marketing-hero hero-wow">
+        <div class="hero-wow-bg" style="@($"background-image:url('{MediaUrlResolver.Resolve(ApiClient, _slide.ImageUrl)}')")" aria-hidden="true"></div>
+        <div class="hero-wow-glow" aria-hidden="true"></div>
         <div class="marketing-hero-overlay">
-            <MudContainer MaxWidth="MaxWidth.Large">
-                <MudText Typo="Typo.h3" Class="marketing-hero-title">@_slide.Title</MudText>
-                <MudText Typo="Typo.body1" Class="marketing-hero-subtitle">@_summary</MudText>
-                @if (_hasMoreToRead)
-                {
-                    <MudLink Href="/about" Class="marketing-hero-learn-more">Learn more about us &rarr;</MudLink>
-                }
-                <MudStack Row="true" Spacing="3" Class="mt-4 marketing-hero-actions" Wrap="Wrap.Wrap">
-                    <MudButton Href="/appointment" Variant="Variant.Filled" Color="Color.Primary" Class="marketing-hero-primary-cta">Schedule Service</MudButton>
-                    <MudButton Href="/service-finder" Variant="Variant.Outlined" Class="marketing-hero-secondary-cta hide-on-phone"
-                               EndIcon="@Icons.Material.Filled.ArrowForward">Not sure what you need?</MudButton>
-                    @if (!string.IsNullOrWhiteSpace(_phone))
+            <MudContainer MaxWidth="MaxWidth.Large" Class="hero-wow-grid">
+                <div class="hero-wow-copy">
+                    @if (_categoryLine is not null)
                     {
-                        <MudButton Href="@($"tel:{_phone}")" Variant="Variant.Text" Class="marketing-hero-secondary-cta hide-on-phone"
-                                   StartIcon="@Icons.Material.Filled.Phone">Call @_phone</MudButton>
+                        <span class="hero-wow-pill hero-wow-in" style="--delay:0ms"><MudIcon Icon="@Icons.Material.Filled.AutoAwesome" Size="Size.Small" />@_categoryLine</span>
                     }
-                </MudStack>
+                    <h1 class="marketing-hero-title hero-wow-in" style="--delay:80ms">
+                        @_titleLead<span class="hero-wow-accent">@_titleAccent</span>
+                    </h1>
+                    <p class="marketing-hero-subtitle hero-wow-in" style="--delay:160ms">@_summary</p>
+                    @if (_hasMoreToRead)
+                    {
+                        <MudLink Href="/about" Class="marketing-hero-learn-more hero-wow-in">Learn more about us &rarr;</MudLink>
+                    }
+
+                    @if (_nextSlot is { } phoneSlot)
+                    {
+                        <a href="/appointment" class="hero-wow-next-pill mobile-only">
+                            <span class="hero-wow-live-dot" aria-hidden="true"></span>Next open visit: @SlotText(phoneSlot)
+                        </a>
+                    }
+
+                    <div class="marketing-hero-actions hero-wow-actions hero-wow-in" style="--delay:240ms">
+                        <MudButton Href="/appointment" Variant="Variant.Filled" Class="sell-btn marketing-hero-primary-cta hero-wow-cta"
+                                   EndIcon="@Icons.Material.Filled.ArrowForward">Schedule Service</MudButton>
+                        <MudButton Href="/service-finder" Variant="Variant.Outlined" Class="marketing-hero-secondary-cta hero-wow-glass hide-on-phone"
+                                   StartIcon="@Icons.Material.Outlined.AutoAwesome">Not sure what you need?</MudButton>
+                        @if (!string.IsNullOrWhiteSpace(_phone))
+                        {
+                            <MudButton Href="@($"tel:{_phone}")" Variant="Variant.Text" Class="marketing-hero-secondary-cta hero-wow-glass hide-on-phone"
+                                       StartIcon="@Icons.Material.Filled.Phone">Call @_phone</MudButton>
+                        }
+                    </div>
+
+                    @if (_stats.Count > 0)
+                    {
+                        <ul class="hero-wow-stats hero-wow-in" style="--delay:320ms">
+                            @foreach (var (value, label, icon) in _stats)
+                            {
+                                <li class="hero-wow-stat">
+                                    <MudIcon Icon="@icon" Size="Size.Small" />
+                                    <span class="hero-wow-stat-value">@value</span>
+                                    <span class="hero-wow-stat-label">@label</span>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+
+                @if (_nextSlot is { } slot)
+                {
+                    <aside class="hero-wow-card hide-on-phone hero-wow-in" style="--delay:400ms" aria-label="Next open visit">
+                        <span class="hero-wow-card-eyebrow"><span class="hero-wow-live-dot" aria-hidden="true"></span>Booking Live</span>
+                        <span class="hero-wow-card-label">Next open visit</span>
+                        <span class="hero-wow-card-day">@slot.Start.ToString("dddd, MMM d")</span>
+                        <span class="hero-wow-card-time">@slot.Start.ToString("h:mm tt")</span>
+                        @if (_openThatDay > 1)
+                        {
+                            <span class="hero-wow-card-note">@(_openThatDay - 1) more open @(_openThatDay == 2 ? "time" : "times") that day</span>
+                        }
+                        <MudButton Href="/appointment" Variant="Variant.Filled" Class="sell-btn hero-wow-card-cta" FullWidth="true"
+                                   EndIcon="@Icons.Material.Filled.ArrowForward">Grab this slot</MudButton>
+                        <span class="hero-wow-card-foot"><MudIcon Icon="@Icons.Material.Outlined.Timer" Size="Size.Small" />Takes about 2 minutes online</span>
+                    </aside>
+                }
             </MudContainer>
         </div>
-    </div>
+    </section>
 }
 
 @code {
+    private const int DaysToSearch = 5;
+
     private HeroSlideResponse? _slide;
     private string? _phone;
-
-    /// <summary>Just the slide's first paragraph - a hero is for a scannable headline, not a full
-    /// pitch. The rest of a multi-paragraph CMS description surfaces via the "Learn more" link.</summary>
     private string? _summary;
     private bool _hasMoreToRead;
+    private string _titleLead = string.Empty;
+    private string _titleAccent = string.Empty;
+    private string? _categoryLine;
+    private AvailableSlotResponse? _nextSlot;
+    private int _openThatDay;
+    private readonly List<(string Value, string Label, string Icon)> _stats = [];
 
     protected override async Task OnInitializedAsync()
     {
-        var slidesResult = await ApiClient.GetAsync<List<HeroSlideResponse>>(ApiRoutes.SiteContent.HeroSlide.Base);
-        _slide = slidesResult.IsSuccessful ? slidesResult.ResultData?.OrderBy(s => s.DisplayOrder).FirstOrDefault() : null;
+        var slidesTask = ApiClient.GetAsync<List<HeroSlideResponse>>(ApiRoutes.SiteContent.HeroSlide.Base);
+        var contactTask = ApiClient.GetAsync<CompanyContactResponse>(ApiRoutes.Inquiries.Contact.Get);
+        var categoriesTask = CategoryLookupHelper.GetAllAsync(ApiClient);
+        var servicesTask = ApiClient.GetAsync<PaginatedResponse<ServiceResponse>>(ApiRoutes.Paged(ApiRoutes.Services.Base, 0, 1));
+        var areasTask = ApiClient.GetAsync<List<ServiceAreaResponse>>(ApiRoutes.SiteContent.ServiceArea.Base);
+        var reviewsTask = ApiClient.GetAsync<List<TestimonialResponse>>(ApiRoutes.SiteContent.Testimonial.Base);
+        var slotTask = FindNextSlotAsync();
 
-        var paragraphs = _slide?.Description
-            .Split("\n\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [];
+        await Task.WhenAll(slidesTask, contactTask, categoriesTask, servicesTask, areasTask, reviewsTask, slotTask);
+
+        var slides = await slidesTask;
+        _slide = slides.IsSuccessful ? slides.ResultData?.OrderBy(s => s.DisplayOrder).FirstOrDefault() : null;
+        if (_slide is null)
+        {
+            return;
+        }
+
+        var paragraphs = _slide.Description.Split("\n\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         _summary = paragraphs.FirstOrDefault();
         _hasMoreToRead = paragraphs.Length > 1;
+        (_titleLead, _titleAccent) = SplitTitle(_slide.Title);
 
-        var contactResult = await ApiClient.GetAsync<CompanyContactResponse>(ApiRoutes.Inquiries.Contact.Get);
-        _phone = contactResult.IsSuccessful ? contactResult.ResultData?.Phone : null;
+        var contact = await contactTask;
+        _phone = contact.IsSuccessful ? contact.ResultData?.Phone : null;
+
+        var categories = await categoriesTask;
+        _categoryLine = categories.Count > 0 ? string.Join(" · ", categories.Take(3).Select(c => c.Title)) : null;
+
+        var services = await servicesTask;
+        if (services is { IsSuccessful: true, ResultData.Count: > 0 } && services.ResultData is { } servicePage)
+        {
+            _stats.Add((servicePage.Count.ToString(), servicePage.Count == 1 ? "service" : "services", Icons.Material.Outlined.HomeRepairService));
+        }
+
+        var areas = await areasTask;
+        if (areas is { IsSuccessful: true, ResultData.Count: > 0 } && areas.ResultData is { } areaList)
+        {
+            _stats.Add((areaList.Count.ToString(), areaList.Count == 1 ? "area served" : "areas served", Icons.Material.Outlined.LocationOn));
+        }
+
+        var reviews = await reviewsTask;
+        if (reviews is { IsSuccessful: true, ResultData.Count: > 0 } && reviews.ResultData is { } reviewList)
+        {
+            _stats.Add((reviewList.Count.ToString(), reviewList.Count == 1 ? "customer review" : "customer reviews", Icons.Material.Outlined.Reviews));
+        }
+
+        (_nextSlot, _openThatDay) = await slotTask;
     }
+
+    /// <summary>Earliest open booking time over the next few days, with how many slots are open that day; (null, 0) when none.</summary>
+    private async Task<(AvailableSlotResponse? Slot, int OpenThatDay)> FindNextSlotAsync()
+    {
+        for (var offset = 1; offset <= DaysToSearch; offset++)
+        {
+            var date = DateOnly.FromDateTime(DateTime.Today.AddDays(offset));
+            var result = await ApiClient.GetAsync<List<AvailableSlotResponse>>($"{ApiRoutes.Scheduling.Availability.Base}?date={date:yyyy-MM-dd}");
+            if (result.IsSuccessful && result.ResultData is { Count: > 0 } slots)
+            {
+                return (slots.OrderBy(s => s.Start).First(), slots.Count);
+            }
+        }
+
+        return (null, 0);
+    }
+
+    /// <summary>The last two words get the gold accent ("... Keep <accent>Things Moving</accent>"); a short title is accented whole.</summary>
+    private static (string Lead, string Accent) SplitTitle(string title)
+    {
+        var words = title.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (words.Length <= 2)
+        {
+            return (string.Empty, title.Trim());
+        }
+
+        return (string.Join(' ', words[..^2]) + " ", string.Join(' ', words[^2..]));
+    }
+
+    private static string SlotText(AvailableSlotResponse slot) =>
+        slot.Start.Date == DateTime.Today.AddDays(1) ? $"Tomorrow {slot.Start:h:mm tt}" : $"{slot.Start:ddd, MMM d} {slot.Start:h:mm tt}";
 }

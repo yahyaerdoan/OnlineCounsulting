@@ -5,6 +5,8 @@
 @attribute [Authorize(Roles = AppRoles.User)]
 @layout OnlineConsulting.Maui.Shared.Layout.DashboardLayout
 @inject IApiClient ApiClient
+@inject DataChangeNotifier Notifier
+@implements IDisposable
 
 <PageTitle>Dashboard</PageTitle>
 
@@ -75,8 +77,17 @@
     private int _cancelledOrders => _orders.Count(o => o.OrderStatus == "Cancelled");
     private decimal _totalSpent => _orders.Where(o => o.PaymentStatus == "Paid").Sum(o => o.TotalPrice);
 
-    protected override async Task OnInitializedAsync()
+    private IDisposable? _liveUpdates;
+
+    protected override Task OnInitializedAsync()
     {
+        _liveUpdates = Notifier.Subscribe(() => InvokeAsync(async () => { await LoadOrdersAsync(); StateHasChanged(); }), DataTopic.Orders);
+        return LoadOrdersAsync();
+    }
+
+    private async Task LoadOrdersAsync()
+    {
+        _loadError = null;
         var result = await ApiClient.GetAsync<List<OrderResponse>>(ApiRoutes.Commerce.Orders.Mine);
         if (!result.IsSuccessful || result.ResultData is null)
         {
@@ -90,4 +101,6 @@
 
         _loading = false;
     }
+
+    public void Dispose() => _liveUpdates?.Dispose();
 }

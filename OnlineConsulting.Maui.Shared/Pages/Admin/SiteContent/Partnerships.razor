@@ -7,7 +7,7 @@
 
 <PageTitle>Partnerships</PageTitle>
 
-<PageHeroBanner Title="Partnerships" Subtitle="Manage the partnership showcase entries shown on the public site.">
+<PageHeroBanner Title="Partnerships" Subtitle="Your team and brand partners, shown on the About page.">
     <ActionContent>
         <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.Add"
                    OnClick="CreateAsync">New Partnership</MudButton>
@@ -20,23 +20,29 @@
                  SearchPlaceholder="Search name or company" OnLoadError="@(message => _loadError = message)">
     <HeaderContent>
         <MudTh><MudTableSortLabel SortLabel="@nameof(PartnershipResponse.FirstName)" T="PartnershipResponse">Name</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortLabel="@nameof(PartnershipResponse.Kind)" T="PartnershipResponse">Type</MudTableSortLabel></MudTh>
         <MudTh>Company</MudTh>
         <MudTh>Email</MudTh>
-        <MudTh>Social links</MudTh>
+        <MudTh>Social Links</MudTh>
         <MudTh>Actions</MudTh>
     </HeaderContent>
     <RowTemplate Context="partnership">
-        <MudTd DataLabel="Name">@partnership.FirstName @partnership.LastName</MudTd>
-        <MudTd DataLabel="Company">@partnership.CompanyName</MudTd>
+        <MudTd DataLabel="Name" Class="cell-primary">@partnership.FirstName @partnership.LastName</MudTd>
+        <MudTd DataLabel="Type"><StatusBadge Label="@(partnership.IsTeam ? "Team member" : "Brand partner")" Kind="@(partnership.IsTeam ? StatusKinds.Info : StatusKinds.Neutral)" /></MudTd>
+        <MudTd DataLabel="Company">@(string.IsNullOrWhiteSpace(partnership.CompanyName) ? "-" : partnership.CompanyName)</MudTd>
         <MudTd DataLabel="Email">@partnership.Email</MudTd>
-        <MudTd DataLabel="Social links">@partnership.SocialLinks.Count</MudTd>
+        <MudTd DataLabel="Social Links">@partnership.SocialLinks.Count</MudTd>
         <MudTd DataLabel="Actions">
             <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
-                <MudIconButton Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" title="Edit"
-                               OnClick="@(() => EditAsync(partnership))" />
+                <MudTooltip Text="Edit">
+                    <MudIconButton aria-label="Edit" Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default"
+                                   OnClick="@(() => EditAsync(partnership))" />
+                </MudTooltip>
 
-                <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" title="Delete"
-                               OnClick="@(() => DeleteAsync(partnership))" />
+                <MudTooltip Text="Delete">
+                    <MudIconButton aria-label="Delete" Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error"
+                                   OnClick="@(() => DeleteAsync(partnership))" />
+                </MudTooltip>
             </MudButtonGroup>
         </MudTd>
     </RowTemplate>

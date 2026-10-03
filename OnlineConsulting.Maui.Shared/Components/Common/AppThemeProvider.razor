@@ -1,7 +1,10 @@
-@* MudThemeProvider that follows ThemeModeState: a fixed light/dark choice, or the OS setting (live) when the user picked System. *@
+@* MudThemeProvider that follows ThemeModeState: a fixed light/dark choice, or the OS setting (live) when the user picked System.
+   In the native app it also restyles the phone's status/navigation bars to match. *@
+@using Microsoft.Extensions.DependencyInjection
 @using OnlineConsulting.Maui.Shared.Theme
 @implements IDisposable
 @inject ThemeModeState ThemeModeState
+@inject IServiceProvider Services
 
 <MudThemeProvider @ref="_provider" Theme="Theme" IsDarkMode="_isDarkMode" />
 
@@ -9,6 +12,7 @@
     private MudThemeProvider? _provider;
     private bool _isDarkMode;
     private bool _systemIsDark;
+    private bool? _barsDarkMode;
 
     [Parameter, EditorRequired]
     public MudTheme Theme { get; set; } = new();
@@ -49,6 +53,12 @@
         {
             _isDarkMode = isDark;
             StateHasChanged();
+        }
+
+        if (isDark != _barsDarkMode && Services.GetService<ISystemBarsStyler>() is { } barsStyler)
+        {
+            _barsDarkMode = isDark;
+            barsStyler.Apply(isDark);
         }
     }
 

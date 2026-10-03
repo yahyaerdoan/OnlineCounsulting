@@ -17,8 +17,4 @@ public static class ServicePriceFormat
     /// <summary>Whether the card should show a struck-through original price next to Display().</summary>
     public static bool HasDiscount(ServiceResponse service) =>
         service.DiscountRate > 0 && service.PriceType is not (ServicePriceTypes.StartingAt or ServicePriceTypes.Range);
-
-    /// <summary>Fixed-price services book straight into the scheduler; quoted ones go to their detail page first.</summary>
-    public static string BookingHref(ServiceResponse service) =>
-        service.PriceType == ServicePriceTypes.Fixed ? $"/appointment?service={service.Id}" : $"/services/{service.Slug}";
 }

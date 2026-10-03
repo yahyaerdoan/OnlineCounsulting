@@ -1,13 +1,15 @@
 ﻿@* Storefront cart - basket ownership is implicit (JWT or guest_id cookie), never passed by the
-   client. Interactive (no [ExcludeFromInteractiveRouting]), so quantity/removal updates live. Wide screens get the
-   line-item table; phones get one card per item with a thumb-sized quantity stepper, then the totals, then
-   "Continue shopping" as a secondary full-width button. *@
+   client. Interactive (no [ExcludeFromInteractiveRouting]), so quantity/removal updates live. One card per item at every
+   width (photo, name, unit price and tax, a quantity stepper, line total, remove); on wide screens the order summary sits
+   beside the list and stays in view while scrolling, on phones it follows the list. *@
 @page "/user/cart"
 @using Microsoft.AspNetCore.Http
 @using OnlineConsulting.Maui.Shared.Components.Marketing
 @using OnlineConsulting.Maui.Shared.Components.User
 @using OnlineConsulting.Maui.Shared.Infrastructure.Commerce
 @inject IApiClient ApiClient
+@inject DataChangeNotifier Notifier
+@implements IDisposable
 @inject ISnackbar Snackbar
 @inject CartState CartState
 
@@ -24,125 +26,101 @@
     }
     else if (_items.Count == 0 && _loadError is null)
     {
-        <MudStack AlignItems="AlignItems.Center" Class="py-10" Spacing="3">
-            <MudIcon Icon="@Icons.Material.Outlined.ShoppingCart" Size="Size.Large" Color="Color.Secondary" />
-            <MudText Typo="Typo.h6">Your cart is empty.</MudText>
-            <MudButton Href="/services" Variant="Variant.Filled" Color="Color.Primary">Browse Services</MudButton>
-        </MudStack>
+        <div class="cart-empty">
+            <span class="tone-bubble tone-bubble-lg tone-blue"><MudIcon Icon="@Icons.Material.Outlined.ShoppingCart" /></span>
+            <MudText Typo="Typo.h6" Class="text-strong">Your cart is empty</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Browse filters, parts and products we ship, or book a technician for a visit.</MudText>
+            <div class="cart-empty-actions">
+                <MudButton Href="/services" Variant="Variant.Filled" Class="sell-btn" EndIcon="@Icons.Material.Filled.ArrowForward">Browse services</MudButton>
+                <MudButton Href="/appointment" Variant="Variant.Outlined" Color="Color.Primary" Class="svc-action" StartIcon="@Icons.Material.Outlined.EventAvailable">Book a visit</MudButton>
+            </div>
+        </div>
     }
     else if (_basket is not null)
     {
-        <div class="cart-item-cards mobile-only" role="list">
-            @foreach (var item in _items)
-            {
-                var info = _serviceInfo.GetValueOrDefault(item.ServiceId);
-                var detailUrl = info is not null ? $"/services/{info.Slug}" : null;
-                <div class="cart-item-card" role="listitem">
-                    <a href="@detailUrl" class="cart-item-thumb" aria-label="@(info?.Title ?? "Service")">
-                        @if (info?.ImageUrl is { Length: > 0 } imageUrl)
-                        {
-                            <img src="@imageUrl" alt="" loading="lazy" />
-                        }
-                        else
-                        {
-                            <MudIcon Icon="@Icons.Material.Outlined.HomeRepairService" />
-                        }
-                    </a>
-                    <div class="cart-item-body">
-                        <div class="cart-item-top">
-                            <a href="@detailUrl" class="cart-item-title">@(info?.Title ?? "Service")</a>
-                            <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" Size="Size.Small"
-                                           Disabled="@_isBusy" OnClick="@(() => RemoveItemAsync(item))" aria-label="Remove from cart" />
-                        </div>
-                        <MudText Typo="Typo.caption" Color="Color.Secondary">@CurrencyFormat.Format(item.Price) each · tax @(item.TaxRate)%</MudText>
-                        <div class="cart-item-bottom">
-                            <div class="cart-qty" role="group" aria-label="Quantity">
-                                <button type="button" class="cart-qty-button" aria-label="Decrease quantity"
-                                        disabled="@(_isBusy || item.Quantity <= 1)" @onclick="@(() => ChangeQuantityAsync(item, item.Quantity - 1))">
-                                    <MudIcon Icon="@Icons.Material.Outlined.Remove" Size="Size.Small" />
-                                </button>
-                                <span class="cart-qty-value" aria-live="polite">@item.Quantity</span>
-                                <button type="button" class="cart-qty-button" aria-label="Increase quantity"
-                                        disabled="@_isBusy" @onclick="@(() => ChangeQuantityAsync(item, item.Quantity + 1))">
-                                    <MudIcon Icon="@Icons.Material.Outlined.Add" Size="Size.Small" />
-                                </button>
-                            </div>
-                            <span class="cart-item-total">@CurrencyFormat.Format(item.TotalPrice)</span>
-                        </div>
-                    </div>
+        <div class="cart-layout">
+            <section class="cart-lines" aria-label="Items in your cart">
+                <div class="cart-head">
+                    <MudText Typo="Typo.h5" Class="marketing-display text-strong">Your cart</MudText>
+                    <span class="cart-head-count">@ItemCount @(ItemCount == 1 ? "item" : "items")</span>
+                    <a href="/services" class="cart-head-continue hide-on-phone"><MudIcon Icon="@Icons.Material.Outlined.ArrowBack" Size="Size.Small" />Continue shopping</a>
                 </div>
-            }
-        </div>
 
-        <MudPaper Class="mb-4 hide-on-phone" Outlined="true">
-            <MudTable Items="@_items" Hover="true" Elevation="0" Class="cart-items-table">
-                <HeaderContent>
-                    <MudTh>#</MudTh>
-                    <MudTh>Service</MudTh>
-                    <MudTh Class="mud-table-cell-align-center">Unit Price</MudTh>
-                    <MudTh Class="mud-table-cell-align-center">Quantity</MudTh>
-                    <MudTh Class="mud-table-cell-align-center">Tax Rate</MudTh>
-                    <MudTh Class="mud-table-cell-align-center">Tax Amount</MudTh>
-                    <MudTh Class="mud-table-cell-align-center">Subtotal</MudTh>
-                    <MudTh Class="mud-table-cell-align-center">Total</MudTh>
-                    <MudTh></MudTh>
-                </HeaderContent>
-                <RowTemplate Context="item">
-                    @{
+                @if (HasBookingItems)
+                {
+                    <MudAlert Severity="Severity.Warning" Class="mb-3">
+                        Some items are services we book as a visit, not sell online. Remove them to check out, then use
+                        <strong>Book a visit</strong> on each one to schedule it.
+                    </MudAlert>
+                }
+
+                <div class="cart-item-cards" role="list">
+                    @foreach (var item in _items)
+                    {
                         var info = _serviceInfo.GetValueOrDefault(item.ServiceId);
+                        var detailUrl = info is not null ? $"/services/{info.Slug}" : null;
+                        var isBooking = info?.Kind == ServiceKinds.Booking;
+                        <div class="@($"cart-item-card {(isBooking ? "cart-item-blocked" : "")}")" role="listitem">
+                            <a href="@detailUrl" class="cart-item-thumb" aria-label="@(info?.Title ?? "Service")">
+                                @if (info?.ImageUrl is { Length: > 0 } imageUrl)
+                                {
+                                    <img src="@imageUrl" alt="" loading="lazy" />
+                                }
+                                else
+                                {
+                                    <MudIcon Icon="@Icons.Material.Outlined.Inventory2" />
+                                }
+                            </a>
+                            <div class="cart-item-body">
+                                <div class="cart-item-top">
+                                    <a href="@detailUrl" class="cart-item-title">@(info?.Title ?? "Service")</a>
+                                    <MudTooltip Text="Remove from cart">
+                                        <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" Size="Size.Small"
+                                                       Disabled="@_isBusy" OnClick="@(() => RemoveItemAsync(item))" aria-label="Remove from cart" />
+                                    </MudTooltip>
+                                </div>
+                                <span class="cart-item-meta">@CurrencyFormat.Format(item.Price) each · tax @(item.TaxRate)% (@CurrencyFormat.Format(item.TaxAmount))</span>
+                                @if (isBooking)
+                                {
+                                    <MudLink Href="@($"/appointment?service={item.ServiceId}")" Typo="Typo.caption" Color="Color.Warning" Class="text-strong">Booked as a visit · Book instead</MudLink>
+                                }
+                                <div class="cart-item-bottom">
+                                    <div class="cart-qty" role="group" aria-label="Quantity">
+                                        <button type="button" class="cart-qty-button" aria-label="Decrease quantity"
+                                                disabled="@(_isBusy || item.Quantity <= 1)" @onclick="@(() => ChangeQuantityAsync(item, item.Quantity - 1))">
+                                            <MudIcon Icon="@Icons.Material.Outlined.Remove" Size="Size.Small" />
+                                        </button>
+                                        <span class="cart-qty-value" aria-live="polite">@item.Quantity</span>
+                                        <button type="button" class="cart-qty-button" aria-label="Increase quantity"
+                                                disabled="@_isBusy" @onclick="@(() => ChangeQuantityAsync(item, item.Quantity + 1))">
+                                            <MudIcon Icon="@Icons.Material.Outlined.Add" Size="Size.Small" />
+                                        </button>
+                                    </div>
+                                    <span class="cart-item-total">@CurrencyFormat.Format(item.TotalPrice)</span>
+                                </div>
+                            </div>
+                        </div>
                     }
-                    <MudTd DataLabel="#">@(_items.IndexOf(item) + 1)</MudTd>
-                    <MudTd DataLabel="Service">
-                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
-                            @if (info?.ImageUrl is not null)
-                            {
-                                <MudImage Src="@info.ImageUrl" ObjectFit="ObjectFit.Cover" Height="48" Width="48" Class="rounded" />
-                            }
-                            else
-                            {
-                                <MudIcon Icon="@Icons.Material.Outlined.Image" Color="Color.Secondary" />
-                            }
-                            <MudLink Href="@(info is not null ? $"/services/{info.Slug}" : null)" Typo="Typo.body1">@(info?.Title ?? "Service")</MudLink>
-                        </MudStack>
-                    </MudTd>
-                    <MudTd DataLabel="Unit Price" Class="mud-table-cell-align-center">@CurrencyFormat.Format(item.Price)</MudTd>
-                    <MudTd DataLabel="Quantity" Class="text-center">
-                        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1">
-                            <MudIconButton Icon="@Icons.Material.Outlined.Remove" Size="Size.Small"
-                                           Disabled="@(_isBusy || item.Quantity <= 1)" OnClick="@(() => ChangeQuantityAsync(item, item.Quantity - 1))" />
-                            <MudText>@item.Quantity</MudText>
-                            <MudIconButton Icon="@Icons.Material.Outlined.Add" Size="Size.Small"
-                                           Disabled="@_isBusy" OnClick="@(() => ChangeQuantityAsync(item, item.Quantity + 1))" />
-                        </MudStack>
-                    </MudTd>
-                    <MudTd DataLabel="Tax Rate" Class="mud-table-cell-align-center">@(item.TaxRate)%</MudTd>
-                    <MudTd DataLabel="Tax Amount" Class="mud-table-cell-align-center">@CurrencyFormat.Format(item.TaxAmount)</MudTd>
-                    <MudTd DataLabel="Subtotal" Class="mud-table-cell-align-center">@CurrencyFormat.Format(item.SubTotalPrice)</MudTd>
-                    <MudTd DataLabel="Total" Class="mud-table-cell-align-center text-strong">@CurrencyFormat.Format(item.TotalPrice)</MudTd>
-                    <MudTd DataLabel="Remove">
-                        <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" Size="Size.Small"
-                                       Disabled="@_isBusy" OnClick="@(() => RemoveItemAsync(item))" title="Remove" />
-                    </MudTd>
-                </RowTemplate>
-            </MudTable>
-        </MudPaper>
+                </div>
+            </section>
 
-        <MudGrid>
-            <MudItem xs="12" md="8" Class="d-flex align-center cart-continue-col">
-                <MudButton Href="/services" Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.ArrowBack"
-                           Class="cart-continue-button">
-                    Continue shopping
-                </MudButton>
-            </MudItem>
-            <MudItem xs="12" md="4" Class="cart-summary-col">
-                <CartSummary SubTotal="@_basket.SubTotalPrice" TaxTotal="@_taxTotal" Total="@_basket.TotalPrice" Disabled="@_isBusy" />
-            </MudItem>
-        </MudGrid>
+            <aside class="cart-summary-col" aria-label="Order summary">
+                <div class="cart-summary-sticky">
+                    <CartSummary SubTotal="@_basket.SubTotalPrice" TaxTotal="@_taxTotal" Total="@_basket.TotalPrice" Disabled="@(_isBusy || HasBookingItems)" />
+                    <ul class="cart-assurance">
+                        <li><MudIcon Icon="@Icons.Material.Outlined.Lock" Size="Size.Small" />Secure payment by Stripe</li>
+                        <li><MudIcon Icon="@Icons.Material.Outlined.ReceiptLong" Size="Size.Small" />Tax is included in your total</li>
+                    </ul>
+                    <MudButton Href="/services" Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.ArrowBack"
+                               FullWidth="true" Class="svc-action cart-continue-button mobile-only">Continue shopping</MudButton>
+                </div>
+            </aside>
+        </div>
     }
 </MudContainer>
 
 @code {
-    private sealed record ServiceLineInfo(string Title, string Slug, string? ImageUrl);
+    private sealed record ServiceLineInfo(string Title, string Slug, string? ImageUrl, string Kind);
 
     private BasketResponse? _basket;
     private List<BasketItemResponse> _items = [];
@@ -153,8 +131,24 @@
 
     private decimal _taxTotal => _items.Sum(i => i.TaxAmount);
 
+    private int ItemCount => _items.Sum(i => i.Quantity);
+
+    /// <summary>Booking services can't be checked out (the Api rejects them) - flag them and block checkout until removed.</summary>
+    private bool HasBookingItems => _items.Any(i => _serviceInfo.GetValueOrDefault(i.ServiceId)?.Kind == ServiceKinds.Booking);
+
+    private IDisposable? _liveUpdates;
+
     protected override async Task OnInitializedAsync()
     {
+        _liveUpdates = Notifier.Subscribe(() => InvokeAsync(async () =>
+        {
+            if (!_isBusy)
+            {
+                await LoadBasketAsync();
+                StateHasChanged();
+            }
+        }), DataTopic.Basket);
+
         await LoadBasketAsync();
         _loading = false;
     }
@@ -201,7 +195,7 @@
                 ? await MediaUploadHelper.GetUrlAsync(ApiClient, coverId)
                 : null;
 
-            return (item.ServiceId, Info: (ServiceLineInfo?)new ServiceLineInfo(service.Title, service.Slug, imageUrl));
+            return (item.ServiceId, Info: (ServiceLineInfo?)new ServiceLineInfo(service.Title, service.Slug, imageUrl, service.Kind));
         }));
 
         foreach (var (serviceId, info) in lookups)
@@ -251,4 +245,6 @@
 
         _isBusy = false;
     }
+
+    public void Dispose() => _liveUpdates?.Dispose();
 }

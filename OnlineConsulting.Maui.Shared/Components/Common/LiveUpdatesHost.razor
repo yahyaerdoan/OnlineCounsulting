@@ -1,0 +1,99 @@
+@* Invisible host that turns app-level events into DataChangeNotifier topics: app resumed / tab visible again and
+   pull-to-refresh reload everything on screen, a navigation refreshes the small always-visible counters. The custom
+   pull gesture is only enabled in the native app - mobile browsers already reload the page on pull-down. While signed
+   in it also holds the live Api connection that pushes "your data changed" signals from other devices and staff, and
+   registers this device for push notifications (native app with a push provider only). *@
+@using Microsoft.Extensions.DependencyInjection
+@using OnlineConsulting.Maui.Shared.Infrastructure.LiveUpdates
+@implements IAsyncDisposable
+@inject DataChangeNotifier Notifier
+@inject NavigationManager Navigation
+@inject IJSRuntime JsRuntime
+@inject IServiceProvider Services
+@inject IPlatformInfo PlatformInfo
+@inject AuthenticationStateProvider AuthStateProvider
+@inject LiveUpdatesConnection LiveConnection
+@inject PushRegistration PushRegistration
+
+@code {
+    private DotNetObjectReference<LiveUpdatesHost>? _selfReference;
+    private IAppResumeSource? _resumeSource;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Navigation.LocationChanged += OnLocationChanged;
+        AuthStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
+
+        _resumeSource = Services.GetService<IAppResumeSource>();
+        if (_resumeSource is not null)
+        {
+            _resumeSource.Resumed += OnNativeResumed;
+        }
+
+        await SyncConnectionAsync(await AuthStateProvider.GetAuthenticationStateAsync());
+    }
+
+    /// <summary>Connected only while signed in; a sign-out drops the connection so the next user gets their own.</summary>
+    private async Task SyncConnectionAsync(AuthenticationState state)
+    {
+        if (state.User.Identity?.IsAuthenticated is true)
+        {
+            await LiveConnection.StartAsync();
+            await PushRegistration.RegisterAsync();
+        }
+        else
+        {
+            await LiveConnection.StopAsync();
+        }
+    }
+
+    private void OnAuthenticationStateChanged(Task<AuthenticationState> stateTask) =>
+        _ = InvokeAsync(async () => await SyncConnectionAsync(await stateTask));
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        _selfReference = DotNetObjectReference.Create(this);
+        await JsRuntime.InvokeVoidAsync("comfortProLiveUpdates.init", _selfReference, PlatformInfo.IsNativeMobile);
+    }
+
+    /// <summary>Called by marketing.js when the page becomes visible again (tab switch, app back from background).</summary>
+    [JSInvokable]
+    public Task OnPageVisible() => Notifier.NotifyAsync(DataTopic.All);
+
+    /// <summary>Called by marketing.js when the user pulls down past the threshold at the top of the page; JS keeps the
+    /// spinner up until this completes.</summary>
+    [JSInvokable]
+    public Task OnPullToRefresh() => Notifier.NotifyAsync(DataTopic.All);
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e) => _ = InvokeAsync(() => Notifier.NotifyAsync(DataTopic.Summary));
+
+    private void OnNativeResumed() => _ = InvokeAsync(() => Notifier.NotifyAsync(DataTopic.All));
+
+    public async ValueTask DisposeAsync()
+    {
+        Navigation.LocationChanged -= OnLocationChanged;
+        AuthStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;
+        if (_resumeSource is not null)
+        {
+            _resumeSource.Resumed -= OnNativeResumed;
+        }
+
+        if (_selfReference is not null)
+        {
+            try
+            {
+                await JsRuntime.InvokeVoidAsync("comfortProLiveUpdates.dispose");
+            }
+            catch (JSDisconnectedException)
+            {
+            }
+
+            _selfReference.Dispose();
+        }
+    }
+}

@@ -1,7 +1,8 @@
 @* Booking flow in three steps (service, time, details); browsing is public and the sign-in prompt replaces the
    confirm button for anonymous visitors - same browse-then-sign-in pattern as Cart/Checkout. ?service={id} preselects
    a service and starts at the time step. The time step is a month calendar; picking a day loads its open times,
-   grouped by part of day, beside the calendar on wide screens and below it (scrolled into view) on phones. *@
+   grouped by part of day, beside the calendar on wide screens and below it (scrolled into view) on phones. Going to sign in or
+   register saves the picks as a draft on the device (localStorage, 24 hours) and coming back restores them at the details step. *@
 @page "/appointment"
 @using OnlineConsulting.Maui.Shared.Infrastructure.Forms
 @layout OnlineConsulting.Maui.Shared.Layout.MarketingLayout
@@ -9,6 +10,7 @@
 @inject ISnackbar Snackbar
 @inject IJSRuntime JsRuntime
 @inject FormState<AppointmentModel> Form
+@inject NavigationManager Navigation
 
 <PageTitle>Book an Appointment</PageTitle>
 
@@ -24,7 +26,7 @@
             <MudIcon Icon="@Icons.Material.Outlined.CheckCircle" Color="Color.Success" Style="font-size: 3rem;" />
             <MudText Typo="Typo.h5" Class="mt-2">You're booked</MudText>
             <MudText Color="Color.Secondary" Class="mb-4">
-                @SelectedServiceTitle on @DateTimeFormat.FormatDateTime(_confirmedSlot.Start). We've sent a confirmation email.
+                @SelectedServiceTitle on @DateTimeFormat.FormatDateTime(_confirmedSlot.Start)@(_model.IsOnline ? " (online meeting)" : ""). We've sent a confirmation email.
             </MudText>
             <MudButton Href="/user/appointments" Variant="Variant.Filled" Color="Color.Primary">View my appointments</MudButton>
         </div>
@@ -131,32 +133,136 @@
         else if (_selectedSlot is { } selected)
         {
             <MudPaper Outlined="true" Class="pa-4 mb-4">
-                <MudText Typo="Typo.overline" Color="Color.Secondary">Your visit</MudText>
+                <MudText Typo="Typo.overline" Color="Color.Secondary">Your Visit</MudText>
                 <MudText Typo="Typo.subtitle1">@SelectedServiceTitle</MudText>
                 <MudText Color="Color.Secondary">@selected.Start.ToString("dddd, MMM d") at @selected.Start.ToString("h:mm tt")</MudText>
             </MudPaper>
 
+            <MudText Typo="Typo.subtitle1" Class="mb-2">How would you like to meet?</MudText>
+            <div class="address-picker meeting-picker" role="radiogroup" aria-label="Meeting type">
+                @foreach (var (type, title, text, icon, tone) in MeetingOptions)
+                {
+                    var isChosen = _model.MeetingType == type;
+                    <button type="button" class="address-card @(isChosen ? "selected" : null)" role="radio" aria-checked="@isChosen"
+                            @onclick="@(() => _model.MeetingType = type)">
+                        <span class="tone-bubble @tone"><MudIcon Icon="@icon" /></span>
+                        <span class="address-card-body">
+                            <span class="address-card-name">@title</span>
+                            <span class="address-card-line">@text</span>
+                        </span>
+                        <span class="address-card-check" aria-hidden="true">
+                            <MudIcon Icon="@(isChosen ? Icons.Material.Filled.CheckCircle : Icons.Material.Outlined.Circle)" />
+                        </span>
+                    </button>
+                }
+            </div>
+
             <EditForm EditContext="@Form.EditContext">
-                <MudTextField @bind-Value="_model.ServiceAddress" For="@(() => _model.ServiceAddress)" Label="Service address (optional)" Variant="Variant.Outlined" Margin="Margin.Dense"
-                              Lines="1" Sizing="InputSizing.Auto" autocomplete="street-address" />
-                <MudTextField @bind-Value="_model.CustomerNote" For="@(() => _model.CustomerNote)" Label="Anything we should know? (optional)" Variant="Variant.Outlined" Margin="Margin.Dense"
-                              Lines="2" Sizing="InputSizing.Auto" Class="mt-2" />
+                @if (_model.IsOnline)
+                {
+                    <MudTextField @bind-Value="_model.Topic" For="@(() => _model.Topic)" Label="What would you like to discuss?" Variant="Variant.Outlined"
+                                  Immediate="true" MaxLength="200" Counter="200" Class="mt-2" />
+                }
+                else
+                {
+                    <MudText Typo="Typo.subtitle2" Class="mt-4 mb-2">Where should we come?</MudText>
+                    @if (_savedAddresses.Count > 0)
+                    {
+                        <div class="address-picker" role="radiogroup" aria-label="Service address">
+                            @foreach (var (address, index) in _savedAddresses.Select((a, i) => (a, i)))
+                            {
+                                var id = address.Id;
+                                var selected = _selectedAddressId == id;
+                                <button type="button" class="address-card @(selected ? "selected" : null)" role="radio" aria-checked="@selected"
+                                        @onclick="@(() => _selectedAddressId = id)">
+                                    <span class="tone-bubble @AccentTone.At(index)"><MudIcon Icon="@AddressIcon(address.AddressName)" /></span>
+                                    <span class="address-card-body">
+                                        <span class="address-card-name">
+                                            @address.AddressName
+                                            @if (address.IsShippingAddress)
+                                            {
+                                                <span class="address-card-badge">Default</span>
+                                            }
+                                        </span>
+                                        <span class="address-card-line">@address.AddressLine</span>
+                                        <span class="address-card-line">@address.City, @address.State @address.Zipcode</span>
+                                    </span>
+                                    <span class="address-card-check" aria-hidden="true">
+                                        <MudIcon Icon="@(selected ? Icons.Material.Filled.CheckCircle : Icons.Material.Outlined.Circle)" />
+                                    </span>
+                                </button>
+                            }
+                            <button type="button" class="address-card address-card-add @(_selectedAddressId is null ? "selected" : null)" role="radio" aria-checked="@(_selectedAddressId is null)"
+                                    @onclick="@(() => _selectedAddressId = null)">
+                                <span class="tone-bubble @AccentTone.Blue"><MudIcon Icon="@Icons.Material.Outlined.AddLocationAlt" /></span>
+                                <span class="address-card-body">
+                                    <span class="address-card-name">Use a different address</span>
+                                    <span class="address-card-line">Type it in, we'll suggest matches</span>
+                                </span>
+                                <span class="address-card-check" aria-hidden="true">
+                                    <MudIcon Icon="@(_selectedAddressId is null ? Icons.Material.Filled.CheckCircle : Icons.Material.Outlined.Circle)" />
+                                </span>
+                            </button>
+                        </div>
+                    }
+
+                    @if (_selectedAddressId is null)
+                    {
+                        <div class="booking-new-address">
+                            <div class="new-address-head">
+                                <span class="tone-bubble tone-bubble-sm @AccentTone.Blue"><MudIcon Icon="@Icons.Material.Outlined.AddLocationAlt" Size="Size.Small" /></span>
+                                <span class="new-address-head-text">
+                                    <span class="new-address-title">New address</span>
+                                    <span class="new-address-hint">Start typing the street and pick a suggestion to fill in the rest.</span>
+                                </span>
+                            </div>
+                            <UsAddressFields Model="_model" Changed="StateHasChanged" />
+                            <AuthorizeView Context="saveContext">
+                                <Authorized>
+                                    <div class="new-address-save">
+                                        <MudSwitch T="bool" @bind-Value="_model.SaveAddress" Color="Color.Primary" Label="Save to my addresses" />
+                                        @if (_model.SaveAddress)
+                                        {
+                                            <div class="new-address-labels" role="radiogroup" aria-label="Address label">
+                                                @foreach (var (label, icon) in AddressLabels)
+                                                {
+                                                    <button type="button" role="radio" aria-checked="@(_model.AddressLabel == label)"
+                                                            class="new-address-label @(_model.AddressLabel == label ? "selected" : null)" @onclick="@(() => _model.AddressLabel = label)">
+                                                        <MudIcon Icon="@icon" Size="Size.Small" />@label
+                                                    </button>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                </Authorized>
+                            </AuthorizeView>
+                        </div>
+                    }
+                    <ValidationMessage For="@(() => _model.ServiceAddress)" class="booking-validation" />
+                }
+
+                <MudTextField @bind-Value="_model.CustomerNote" For="@(() => _model.CustomerNote)" Label="@NoteLabel"
+                              Variant="Variant.Outlined" Lines="2" Sizing="InputSizing.Auto" Class="mt-3" />
 
                 <AuthorizeView Context="authContext">
                     <Authorized>
                         <div class="booking-actions">
                             <MudButton Variant="Variant.Text" OnClick="@(() => _step = 1)">Back</MudButton>
-                            <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@_submitting" OnClick="@(() => SubmitAsync(selected))">
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(_submitting || MissingDetails is not null)" OnClick="@(() => SubmitAsync(selected))">
                                 @(_submitting ? "Booking..." : "Confirm booking")
                             </MudButton>
                         </div>
+                        @if (MissingDetails is { } missing)
+                        {
+                            <MudText Typo="Typo.caption" Color="Color.Secondary" Align="Align.Right" Class="d-block mt-1">@missing</MudText>
+                        }
                     </Authorized>
                     <NotAuthorized>
                         <MudAlert Severity="Severity.Info" Class="mt-4">
                             Sign in to confirm this booking.
                             <div class="mt-2">
-                                <MudButton Href="/login?ReturnUrl=/appointment" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small">Sign In</MudButton>
-                                <MudButton Href="/register" Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" Class="ml-2">Register</MudButton>
+                                <MudButton OnClick="@(() => SaveDraftAndGoAsync("/login"))" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small">Sign In</MudButton>
+                                <MudButton OnClick="@(() => SaveDraftAndGoAsync("/register"))" Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" Class="ml-2">Register</MudButton>
                             </div>
                         </MudAlert>
                     </NotAuthorized>
@@ -181,6 +287,51 @@
     private bool _scrollToTimes;
     private bool _submitting;
     private string? _loadError;
+    private bool _initialized;
+    private bool _draftChecked;
+    private List<UserAddressResponse> _savedAddresses = [];
+
+    private const string DraftKey = "comfortpro-booking-draft";
+    private static readonly TimeSpan DraftLifetime = TimeSpan.FromHours(24);
+    private Guid? _selectedAddressId;
+
+    private static class MeetingTypes
+    {
+        public const string InPerson = "InPerson";
+        public const string Online = "Online";
+    }
+
+    private static readonly System.Text.RegularExpressions.Regex UsZip = new(@"^\d{5}(-\d{4})?$");
+
+    private static readonly (string Type, string Title, string Text, string Icon, string Tone)[] MeetingOptions =
+    [
+        (MeetingTypes.InPerson, "At my place", "A technician comes to your address.", Icons.Material.Outlined.Home, AccentTone.Green),
+        (MeetingTypes.Online, "Online meeting", "Talk it through with an expert on a video call.", Icons.Material.Outlined.VideoCall, AccentTone.Blue),
+    ];
+
+    private static readonly (string Label, string Icon)[] AddressLabels =
+    [
+        ("Home", Icons.Material.Outlined.Home),
+        ("Work", Icons.Material.Outlined.Business),
+        ("Other", Icons.Material.Outlined.LocationOn),
+    ];
+
+    private static string AddressIcon(string name) => AddressIcons.For(name);
+
+    private UserAddressResponse? SelectedSavedAddress => _savedAddresses.FirstOrDefault(a => a.Id == _selectedAddressId);
+
+    private string NoteLabel => _model.IsOnline ? "Anything else we should know? (optional)" : "Anything we should know? Gate code, parking, pets (optional)";
+
+    private string? MissingDetails => true switch
+    {
+        _ when _model.IsOnline && string.IsNullOrWhiteSpace(_model.Topic) => "Tell us what the meeting is about.",
+        _ when !_model.IsOnline && SelectedSavedAddress is null && !IsNewAddressComplete => "Add the street, city, state and ZIP of the visit address.",
+        _ => null,
+    };
+
+    private bool IsNewAddressComplete =>
+        !string.IsNullOrWhiteSpace(_model.AddressLine) && !string.IsNullOrWhiteSpace(_model.City) &&
+        !string.IsNullOrWhiteSpace(_model.State) && UsZip.IsMatch(_model.Zipcode.Trim());
 
     private static DateTime FirstBookableDay => DateTime.Today.AddDays(1);
 
@@ -200,13 +351,19 @@
         Form.Bind(_model);
 
         var result = await ApiClient.GetAsync<PaginatedResponse<ServiceResponse>>($"{ApiRoutes.Services.Base}?size=100");
-        _services = result.IsSuccessful && result.ResultData is not null ? result.ResultData.Items : [];
+        _services = result.IsSuccessful && result.ResultData is not null ? [.. result.ResultData.Items.Where(s => s.Kind == ServiceKinds.Booking)] : [];
+
+        var addressesResult = await ApiClient.GetAsync<List<UserAddressResponse>>(ApiRoutes.Addresses.Base);
+        _savedAddresses = addressesResult.IsSuccessful ? addressesResult.ResultData ?? [] : [];
+        _selectedAddressId = (_savedAddresses.FirstOrDefault(a => a.IsShippingAddress) ?? _savedAddresses.FirstOrDefault())?.Id;
 
         if (PreselectedServiceId is { } preselected && _services.Any(s => s.Id == preselected))
         {
             _serviceId = preselected;
             _step = 1;
         }
+
+        _initialized = true;
     }
 
     private async Task OnDateChangedAsync(DateTime? newDate)
@@ -243,6 +400,12 @@
     /// <summary>Scrolls only after the times have rendered - scrolling from the load handler ran before the new list existed.</summary>
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (_initialized && !_draftChecked)
+        {
+            _draftChecked = true;
+            await RestoreDraftAsync();
+        }
+
         if (_scrollToTimes)
         {
             _scrollToTimes = false;
@@ -254,6 +417,17 @@
     {
         _submitting = true;
 
+        _model.ServiceAddress = _model.IsOnline
+            ? null
+            : SelectedSavedAddress is { } saved
+                ? $"{saved.AddressLine}, {saved.City}, {saved.State} {saved.Zipcode}"
+                : UsStates.OneLine(_model);
+
+        if (!_model.IsOnline && SelectedSavedAddress is null && _model.SaveAddress)
+        {
+            await SaveNewAddressAsync();
+        }
+
         var body = new
         {
             serviceId = _serviceId,
@@ -261,6 +435,8 @@
             scheduledEnd = slot.End,
             customerNote = _model.CustomerNote,
             serviceAddress = _model.ServiceAddress,
+            meetingType = _model.MeetingType,
+            topic = _model.IsOnline ? _model.Topic : null,
         };
 
         var result = await ApiClient.PostAsync<Guid>(ApiRoutes.Operations.Appointments.Base, body);
@@ -281,9 +457,128 @@
         _confirmedSlot = slot;
     }
 
-    private sealed class AppointmentModel
+    private async Task SaveDraftAndGoAsync(string authPage)
     {
+        var draft = new BookingDraft(_serviceId, _date is { } day ? DateOnly.FromDateTime(day) : null, _selectedSlot?.Start, _model.MeetingType, _model.Topic,
+            _model.CustomerNote, _model.AddressLine, _model.City, _model.State, _model.Zipcode, _model.AddressLabel, _model.SaveAddress, DateTimeOffset.UtcNow);
+
+        try
+        {
+            await JsRuntime.InvokeVoidAsync("localStorage.setItem", DraftKey, System.Text.Json.JsonSerializer.Serialize(draft));
+        }
+        catch (JSException)
+        {
+        }
+
+        Navigation.NavigateTo($"{authPage}?ReturnUrl={Uri.EscapeDataString("/appointment")}", forceLoad: true);
+    }
+
+    private async Task RestoreDraftAsync()
+    {
+        BookingDraft? draft;
+        try
+        {
+            var json = await JsRuntime.InvokeAsync<string?>("localStorage.getItem", DraftKey);
+            if (string.IsNullOrEmpty(json))
+            {
+                return;
+            }
+
+            await JsRuntime.InvokeVoidAsync("localStorage.removeItem", DraftKey);
+            draft = System.Text.Json.JsonSerializer.Deserialize<BookingDraft>(json);
+        }
+        catch (Exception exception) when (exception is JSException or System.Text.Json.JsonException)
+        {
+            return;
+        }
+
+        if (draft is null || DateTimeOffset.UtcNow - draft.SavedAt > DraftLifetime || _confirmedSlot is not null)
+        {
+            return;
+        }
+
+        _serviceId = draft.ServiceId is { } serviceId && _services.Any(s => s.Id == serviceId) ? serviceId : _serviceId;
+        _model.MeetingType = draft.MeetingType ?? _model.MeetingType;
+        _model.Topic = draft.Topic;
+        _model.CustomerNote = draft.CustomerNote;
+        _model.AddressLine = draft.AddressLine ?? "";
+        _model.City = draft.City ?? "";
+        _model.State = draft.State ?? "";
+        _model.Zipcode = draft.Zipcode ?? "";
+        _model.AddressLabel = draft.AddressLabel ?? _model.AddressLabel;
+        _model.SaveAddress = draft.SaveAddress;
+        if (!string.IsNullOrWhiteSpace(_model.AddressLine))
+        {
+            _selectedAddressId = null;
+        }
+
+        if (draft.Date is not { } day || day.ToDateTime(TimeOnly.MinValue) < FirstBookableDay)
+        {
+            _step = 1;
+            _ = Snackbar.Add("Welcome back! Pick a time to finish your booking.", Severity.Info);
+            StateHasChanged();
+            return;
+        }
+
+        await OnDateChangedAsync(day.ToDateTime(TimeOnly.MinValue));
+        _selectedSlot = _slots.FirstOrDefault(slot => slot.Start == draft.SlotStart);
+        _step = _selectedSlot is null ? 1 : 2;
+        _scrollToTimes = false;
+
+        if (_selectedSlot is null)
+        {
+            _ = Snackbar.Add("Welcome back! The time you picked was just taken, please choose another.", Severity.Info);
+        }
+        else
+        {
+            Snackbar.ShowSuccess("Welcome back! We kept your booking details, just confirm below.");
+        }
+
+        StateHasChanged();
+    }
+
+    private sealed record BookingDraft(Guid? ServiceId, DateOnly? Date, DateTimeOffset? SlotStart, string? MeetingType, string? Topic, string? CustomerNote,
+        string? AddressLine, string? City, string? State, string? Zipcode, string? AddressLabel, bool SaveAddress, DateTimeOffset SavedAt);
+
+    /// <summary>Saving is a convenience, so a failure is reported but doesn't block the booking itself.</summary>
+    private async Task SaveNewAddressAsync()
+    {
+        var result = await ApiClient.PostAsync<Guid>(ApiRoutes.Addresses.Base, new
+        {
+            addressName = _model.AddressLabel == "Other" ? $"Address {_savedAddresses.Count + 1}" : _model.AddressLabel,
+            companyName = (string?)null,
+            country = "United States",
+            addressLine = _model.AddressLine.Trim(),
+            city = _model.City.Trim(),
+            state = _model.State,
+            zipcode = _model.Zipcode.Trim(),
+            notes = (string?)null,
+            isShippingAddress = _savedAddresses.Count == 0,
+            isBillingAddress = false,
+        });
+
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError($"We couldn't save the address to your account: {result.DisplayMessage}");
+            return;
+        }
+
+        _model.SaveAddress = false;
+    }
+
+    private sealed class AppointmentModel : IUsAddress
+    {
+        public string MeetingType { get; set; } = MeetingTypes.InPerson;
+        public string? Topic { get; set; }
         public string? CustomerNote { get; set; }
         public string? ServiceAddress { get; set; }
+        public string AddressLine { get; set; } = "";
+        public string City { get; set; } = "";
+        public string State { get; set; } = "";
+        public string Zipcode { get; set; } = "";
+        public bool SaveAddress { get; set; } = true;
+        public string AddressLabel { get; set; } = "Home";
+
+        public bool IsOnline => MeetingType == MeetingTypes.Online;
     }
 }

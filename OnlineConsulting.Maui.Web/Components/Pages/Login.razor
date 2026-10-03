@@ -39,7 +39,7 @@
     </EditForm>
 
     <MudText Typo="Typo.body2" Class="mt-4" Align="Align.Center">
-        New here? <MudLink Href="/register">Create an account</MudLink>
+        New here? <MudLink Href="@RegisterHref">Create an account</MudLink>
     </MudText>
 
     <MudText Typo="Typo.body2" Class="mt-2" Align="Align.Center">
@@ -48,8 +48,14 @@
 </AuthCard>
 
 @code {
+    /// <summary>The guest basket's cookie. The login call carries it so the Api folds the guest cart into the user's cart; once signed
+    /// in, the browser's copy is dropped since the basket now belongs to the account.</summary>
+    private const string GuestIdCookie = "guest_id";
+
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
+
+    private string RegisterHref => string.IsNullOrEmpty(ReturnUrl) ? "/register" : $"/register?ReturnUrl={Uri.EscapeDataString(ReturnUrl)}";
 
     [SupplyParameterFromQuery]
     private string? Goodbye { get; set; }
@@ -80,6 +86,14 @@
         }
 
         var anonymousClient = HttpClientFactory.CreateClient(ApiHttpClientNames.Anonymous);
+        var guestId = httpContext.Request.Cookies.TryGetValue(GuestIdCookie, out var guestCookie) && Guid.TryParse(guestCookie, out var parsedGuestId)
+            ? parsedGuestId
+            : (Guid?)null;
+        if (guestId is { } guest)
+        {
+            anonymousClient.DefaultRequestHeaders.Add("Cookie", $"{GuestIdCookie}={guest}");
+        }
+
         var loginApi = new ApiClient(anonymousClient);
 
         var tokenResult = await loginApi.PostAsync<AuthTokensResponse>(ApiRoutes.Auth.Login,
@@ -119,6 +133,11 @@
         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
         await httpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity),
             new AuthenticationProperties { IsPersistent = _model.RememberMe });
+
+        if (guestId is not null)
+        {
+            httpContext.Response.Cookies.Delete(GuestIdCookie);
+        }
 
         var target = SignInRedirect.Target(userResult.ResultData.Roles, ReturnUrl);
         Navigation.NavigateTo(target.Contains('?') ? $"{target}&welcome=true" : $"{target}?welcome=true", forceLoad: true);

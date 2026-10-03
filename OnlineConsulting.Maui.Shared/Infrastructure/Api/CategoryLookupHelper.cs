@@ -1,3 +1,4 @@
+
 namespace OnlineConsulting.Maui.Shared.Infrastructure.Api;
 
 /// <summary>Fetches every category for a dropdown or id-to-title lookup - shared by any page that

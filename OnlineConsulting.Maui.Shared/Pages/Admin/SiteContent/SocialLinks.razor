@@ -27,15 +27,19 @@
     </HeaderContent>
     <RowTemplate Context="link">
         <MudTd DataLabel="Icon"><MudIcon Icon="@IconCatalog.Resolve(link.Icon)" Style="@IconCatalog.ColorStyle(link.IconColor)" Size="Size.Small" /></MudTd>
-        <MudTd DataLabel="Name">@link.Name</MudTd>
+        <MudTd DataLabel="Name" Class="cell-primary">@link.Name</MudTd>
         <MudTd DataLabel="URL">@link.Url</MudTd>
         <MudTd DataLabel="Actions">
             <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
-                <MudIconButton Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" title="Edit"
-                               OnClick="@(() => EditAsync(link))" />
+                <MudTooltip Text="Edit">
+                    <MudIconButton aria-label="Edit" Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default"
+                                   OnClick="@(() => EditAsync(link))" />
+                </MudTooltip>
 
-                <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" title="Delete"
-                               OnClick="@(() => DeleteAsync(link))" />
+                <MudTooltip Text="Delete">
+                    <MudIconButton aria-label="Delete" Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error"
+                                   OnClick="@(() => DeleteAsync(link))" />
+                </MudTooltip>
             </MudButtonGroup>
         </MudTd>
     </RowTemplate>

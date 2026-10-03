@@ -1,8 +1,12 @@
-@* Own equipment + lazily-loaded service history per item (only fetched when a panel first expands). *@
+@* The customer's units, laid out like My Orders: a count of units and their warranty state up top, then one card per unit (an icon from
+   its type, brand and model, a warranty badge, serial / install / warranty / age facts and notes). Service history opens inside the card
+   and is only fetched the first time it opens. Facts sit in a row on wide screens and two per row on phones. *@
 @page "/user/equipment"
 @attribute [Authorize(Roles = AppRoles.User)]
 @layout OnlineConsulting.Maui.Shared.Layout.DashboardLayout
 @inject IApiClient ApiClient
+@inject DataChangeNotifier Notifier
+@implements IDisposable
 
 <PageTitle>My Equipment</PageTitle>
 
@@ -10,79 +14,154 @@
 
 <ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
 
-    @if (_loading)
-    {
-        <ListSkeleton Rows="3" />
-    }
-    else if (_equipment.Count == 0)
-    {
-        <EmptyState Icon="@Icons.Material.Outlined.AcUnit" Title="No equipment on file yet"
-                    Text="Our technicians add your units during a service visit." ActionText="Book a visit" ActionHref="/appointment" />
-    }
-    else
-    {
-        <MudExpansionPanels>
-            @foreach (var item in _equipment)
-            {
-                <MudExpansionPanel Text="@($"{item.Type} - {item.Brand} {item.Model}")"
-                                    ExpandedChanged="@(expanded => OnPanelExpandedChanged(item.Id, expanded))">
-                    <MudSimpleTable Dense="true">
-                        <tbody>
-                            <tr><td>Serial Number</td><td>@(item.SerialNumber ?? "-")</td></tr>
-                            <tr><td>Installed</td><td>@(item.InstallDate is { } installed ? DateTimeFormat.FormatDateTime(installed) : "-")</td></tr>
-                            <tr><td>Warranty Until</td><td>@(item.WarrantyExpiresAt is { } warranty ? DateTimeFormat.FormatDateTime(warranty) : "-")</td></tr>
-                        </tbody>
-                    </MudSimpleTable>
+@if (_loading)
+{
+    <ListSkeleton Rows="3" />
+}
+else if (_equipment.Count == 0)
+{
+    <div class="cart-empty">
+        <span class="tone-bubble tone-bubble-lg tone-blue"><MudIcon Icon="@Icons.Material.Outlined.AcUnit" /></span>
+        <MudText Typo="Typo.h6" Class="text-strong">No Equipment on File Yet</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">Our technicians add your units during a service visit, with their warranty and service history.</MudText>
+        <div class="cart-empty-actions">
+            <MudButton Href="/appointment" Variant="Variant.Filled" Class="sell-btn" EndIcon="@Icons.Material.Filled.ArrowForward">Book a visit</MudButton>
+        </div>
+    </div>
+}
+else
+{
+    <div class="orders-stats">
+        <div class="orders-stat">
+            <span class="orders-stat-value">@_equipment.Count</span>
+            <span class="orders-stat-label">@(_equipment.Count == 1 ? "unit" : "units") on file</span>
+        </div>
+        <div class="orders-stat">
+            <span class="orders-stat-value">@_equipment.Count(e => Warranty(e) is WarrantyState.Covered or WarrantyState.EndingSoon)</span>
+            <span class="orders-stat-label">under warranty</span>
+        </div>
+        @if (_equipment.Count(e => Warranty(e) == WarrantyState.EndingSoon) is > 0 and var endingSoon)
+        {
+            <div class="orders-stat orders-stat-alert">
+                <span class="orders-stat-value">@endingSoon</span>
+                <span class="orders-stat-label">warranty ending within 90 days</span>
+            </div>
+        }
+    </div>
 
-                    @if (!string.IsNullOrWhiteSpace(item.Notes))
-                    {
-                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">@item.Notes</MudText>
-                    }
+    <div class="equipment-cards" role="list">
+        @foreach (var item in _equipment)
+        {
+            var warranty = Warranty(item);
+            var isOpen = _open.Contains(item.Id);
+            <article class="@($"equipment-card {WarrantyTone(warranty)}")" role="listitem">
+                <div class="equipment-card-top">
+                    <span class="order-card-icon"><MudIcon Icon="@TypeIcon(item.Type)" /></span>
+                    <div class="equipment-card-title">
+                        <span class="order-hero-label">@item.Type</span>
+                        <span class="equipment-card-name">@Name(item)</span>
+                    </div>
+                    <span class="order-card-badges">
+                        <StatusBadge Label="@WarrantyLabel(warranty)" Kind="@WarrantyKind(warranty)" />
+                    </span>
+                </div>
 
-                    <MudText Typo="Typo.subtitle2" Class="mt-4 mb-2">Service History</MudText>
-                    @if (!_workOrders.TryGetValue(item.Id, out var history))
-                    {
-                        <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
-                    }
-                    else if (history.Count == 0)
-                    {
-                        <MudText Typo="Typo.body2" Color="Color.Secondary">No service visits recorded for this equipment yet.</MudText>
-                    }
-                    else
-                    {
-                        @foreach (var workOrder in history)
+                <dl class="member-facts equipment-facts">
+                    <div class="member-fact">
+                        <dt>Serial Number</dt>
+                        <dd class="equipment-serial">@(item.SerialNumber ?? "-")</dd>
+                    </div>
+                    <div class="member-fact">
+                        <dt>Installed</dt>
+                        <dd>@(item.InstallDate is { } installed ? DateTimeFormat.FormatDate(installed) : "-")</dd>
+                    </div>
+                    <div class="member-fact">
+                        <dt>Warranty Until</dt>
+                        <dd>@(item.WarrantyExpiresAt is { } warrantyEnd ? DateTimeFormat.FormatDate(warrantyEnd) : "-")</dd>
+                    </div>
+                    <div class="member-fact">
+                        <dt>Age</dt>
+                        <dd>@Age(item)</dd>
+                    </div>
+                </dl>
+
+                @if (!string.IsNullOrWhiteSpace(item.Notes))
+                {
+                    <p class="equipment-notes"><MudIcon Icon="@Icons.Material.Outlined.StickyNote2" Size="Size.Small" />@item.Notes</p>
+                }
+
+                <div class="equipment-actions">
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" Class="svc-action"
+                               StartIcon="@Icons.Material.Outlined.History" EndIcon="@(isOpen ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)"
+                               aria-expanded="@(isOpen ? "true" : "false")" OnClick="@(() => ToggleHistoryAsync(item.Id))">
+                        Service History
+                    </MudButton>
+                    <MudButton Href="/appointment" Variant="Variant.Text" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.EventAvailable">Book Service</MudButton>
+                </div>
+
+                @if (isOpen)
+                {
+                    <div class="equipment-history">
+                        @if (!_workOrders.TryGetValue(item.Id, out var history))
                         {
-                            <MudPaper Class="pa-2 mb-2" Outlined="true">
-                                <MudText Typo="Typo.body2" Class="text-strong">@(workOrder.CompletedAt is { } completed ? DateTimeFormat.FormatDateTime(completed) : "In progress")</MudText>
-                                @if (!string.IsNullOrWhiteSpace(workOrder.TechnicianNotes))
-                                {
-                                    <MudText Typo="Typo.body2" Color="Color.Secondary">@workOrder.TechnicianNotes</MudText>
-                                }
-                                @if (!string.IsNullOrWhiteSpace(workOrder.PartsUsed))
-                                {
-                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Parts used: @workOrder.PartsUsed</MudText>
-                                }
-                                @if (_photos.GetValueOrDefault(workOrder.Id) is { Before: { } before, After: { } after })
-                                {
-                                    <BeforeAfterSlider BeforeUrl="@before" AfterUrl="@after" Class="mt-2" />
-                                }
-                            </MudPaper>
+                            <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
                         }
-                    }
-                </MudExpansionPanel>
-            }
-        </MudExpansionPanels>
-    }
+                        else if (history.Count == 0)
+                        {
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">No service visits recorded for this unit yet.</MudText>
+                        }
+                        else
+                        {
+                            <ol class="equipment-timeline">
+                                @foreach (var workOrder in history)
+                                {
+                                    <li class="@(workOrder.CompletedAt is null ? "current" : "")">
+                                        <span class="equipment-timeline-date">@(workOrder.CompletedAt is { } completed ? DateTimeFormat.FormatDate(completed) : "In Progress")</span>
+                                        @if (!string.IsNullOrWhiteSpace(workOrder.TechnicianNotes))
+                                        {
+                                            <span class="equipment-timeline-text">@workOrder.TechnicianNotes</span>
+                                        }
+                                        @if (!string.IsNullOrWhiteSpace(workOrder.PartsUsed))
+                                        {
+                                            <span class="equipment-timeline-parts"><MudIcon Icon="@Icons.Material.Outlined.Build" Size="Size.Small" />Parts used: @workOrder.PartsUsed</span>
+                                        }
+                                        @if (_photos.GetValueOrDefault(workOrder.Id) is { Before: { } before, After: { } after })
+                                        {
+                                            <BeforeAfterSlider BeforeUrl="@before" AfterUrl="@after" Class="mt-2" />
+                                        }
+                                    </li>
+                                }
+                            </ol>
+                        }
+                    </div>
+                }
+            </article>
+        }
+    </div>
+}
 
 @code {
+    private enum WarrantyState { Unknown, Covered, EndingSoon, Expired }
+
     private List<EquipmentItemResponse> _equipment = [];
     private readonly Dictionary<Guid, List<WorkOrderResponse>> _workOrders = [];
     private readonly Dictionary<Guid, WorkOrderPhotoUrls> _photos = [];
+    private readonly HashSet<Guid> _open = [];
     private bool _loading = true;
     private string? _loadError;
 
-    protected override async Task OnInitializedAsync()
+    private IDisposable? _liveUpdates;
+
+    protected override Task OnInitializedAsync()
     {
+        _liveUpdates = Notifier.Subscribe(() => InvokeAsync(async () => { await LoadEquipmentAsync(); StateHasChanged(); }), DataTopic.Equipment);
+        return LoadEquipmentAsync();
+    }
+
+    private async Task LoadEquipmentAsync()
+    {
+        _loadError = null;
+        _workOrders.Clear();
         var result = await ApiClient.GetAsync<List<EquipmentItemResponse>>(ApiRoutes.Operations.Equipment.Mine);
         if (!result.IsSuccessful || result.ResultData is null)
         {
@@ -94,18 +173,34 @@
             _equipment = result.ResultData;
         }
 
+        foreach (var id in _open.ToList())
+        {
+            await LoadHistoryAsync(id);
+        }
+
         _loading = false;
     }
 
-    private async Task OnPanelExpandedChanged(Guid equipmentId, bool expanded)
+    private async Task ToggleHistoryAsync(Guid equipmentId)
     {
-        if (!expanded || _workOrders.ContainsKey(equipmentId))
+        if (!_open.Add(equipmentId))
         {
+            _open.Remove(equipmentId);
             return;
         }
 
+        if (!_workOrders.ContainsKey(equipmentId))
+        {
+            await LoadHistoryAsync(equipmentId);
+        }
+    }
+
+    private async Task LoadHistoryAsync(Guid equipmentId)
+    {
         var result = await ApiClient.GetAsync<List<WorkOrderResponse>>(ApiRoutes.Operations.WorkOrders.ByEquipmentId(equipmentId));
-        _workOrders[equipmentId] = result.IsSuccessful && result.ResultData is not null ? result.ResultData : [];
+        _workOrders[equipmentId] = result.IsSuccessful && result.ResultData is not null
+            ? [.. result.ResultData.OrderByDescending(w => w.CompletedAt ?? DateTimeOffset.MaxValue)]
+            : [];
         StateHasChanged();
 
         foreach (var workOrder in _workOrders[equipmentId].Where(w => w.MediaItems.Count > 1))
@@ -115,4 +210,67 @@
 
         StateHasChanged();
     }
+
+    private static string Name(EquipmentItemResponse item) =>
+        $"{item.Brand} {item.Model}".Trim() is { Length: > 0 } name ? name : item.Type;
+
+    private static WarrantyState Warranty(EquipmentItemResponse item) => item.WarrantyExpiresAt switch
+    {
+        null => WarrantyState.Unknown,
+        { } end when end < DateTimeOffset.UtcNow => WarrantyState.Expired,
+        { } end when end < DateTimeOffset.UtcNow.AddDays(90) => WarrantyState.EndingSoon,
+        _ => WarrantyState.Covered,
+    };
+
+    private static string WarrantyLabel(WarrantyState state) => state switch
+    {
+        WarrantyState.Covered => "Under Warranty",
+        WarrantyState.EndingSoon => "Warranty Ending Soon",
+        WarrantyState.Expired => "Warranty Expired",
+        _ => "No Warranty Info",
+    };
+
+    private static string WarrantyKind(WarrantyState state) => state switch
+    {
+        WarrantyState.Covered => StatusKinds.Success,
+        WarrantyState.EndingSoon => StatusKinds.Warning,
+        WarrantyState.Expired => StatusKinds.Danger,
+        _ => StatusKinds.Neutral,
+    };
+
+    private static string WarrantyTone(WarrantyState state) => state switch
+    {
+        WarrantyState.Covered => AccentTone.Green,
+        WarrantyState.EndingSoon => AccentTone.Orange,
+        WarrantyState.Expired => AccentTone.Red,
+        _ => AccentTone.Blue,
+    };
+
+    private static string Age(EquipmentItemResponse item)
+    {
+        if (item.InstallDate is not { } installed)
+        {
+            return "-";
+        }
+
+        var months = (DateTimeOffset.UtcNow.Year - installed.Year) * 12 + DateTimeOffset.UtcNow.Month - installed.Month;
+        return months switch
+        {
+            < 1 => "New",
+            < 12 => $"{months} mo",
+            _ => $"{months / 12} yr{(months / 12 == 1 ? "" : "s")}",
+        };
+    }
+
+    private static string TypeIcon(string type) => type.ToLowerInvariant() switch
+    {
+        var t when t.Contains("furnace") || t.Contains("boiler") || t.Contains("heater") => Icons.Material.Outlined.LocalFireDepartment,
+        var t when t.Contains("thermostat") => Icons.Material.Outlined.Thermostat,
+        var t when t.Contains("water") => Icons.Material.Outlined.WaterDrop,
+        var t when t.Contains("duct") || t.Contains("air purifier") || t.Contains("filter") => Icons.Material.Outlined.Air,
+        var t when t.Contains("heat pump") => Icons.Material.Outlined.HeatPump,
+        _ => Icons.Material.Outlined.AcUnit,
+    };
+
+    public void Dispose() => _liveUpdates?.Dispose();
 }

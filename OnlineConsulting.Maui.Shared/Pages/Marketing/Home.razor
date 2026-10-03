@@ -1,5 +1,5 @@
 @* Landing page - only entity-backed sections; Promotions/ServiceAreas hide themselves when empty. Services are shown once: category tabs
-   on wide screens, swipeable rails per category on phones. The promotions section replaces the top strip on wide screens; phones keep the strip instead. *@
+   on wide screens, swipeable rails per category on phones. The promotions section replaces the top strip at every width. *@
 @page "/"
 @layout OnlineConsulting.Maui.Shared.Layout.MarketingLayout
 @using OnlineConsulting.Maui.Shared.Components.Marketing
@@ -14,8 +14,6 @@
 </div>
 <HomeFeatureHighlightsSection />
 <HomeProcessSection />
-<div class="hide-on-phone">
-    <HomePromotionsSection />
-</div>
+<HomePromotionsSection />
 <HomeServiceAreasSection />
 <HomeTestimonialsSection />

@@ -1,4 +1,4 @@
-@* Compact service card for the phone home rails: image with an offer or 24/7 badge, name, price and a Book action. *@
+@* Compact service card for the phone home rails: image with an offer or 24/7 badge, name, price and its kind's action (Book or Add to cart). *@
 
 @if (Service is { } service)
 {
@@ -30,9 +30,8 @@
                     <span class="service-rail-price-old">@CurrencyFormat.Format(service.Price)</span>
                 }
             </div>
-            <MudButton Href="@ServicePriceFormat.BookingHref(service)" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" FullWidth="true" Class="mt-2">
-                @(service.PriceType == ServicePriceTypes.Fixed ? "Book" : "Get a quote")
-            </MudButton>
+            <ServicePrimaryAction ServiceId="@service.Id" Kind="@service.Kind" BookText="Book a visit" ShowIcon="true" FullWidth="true"
+                                  Class="mt-2 svc-card-cta" />
         </div>
     </div>
 }

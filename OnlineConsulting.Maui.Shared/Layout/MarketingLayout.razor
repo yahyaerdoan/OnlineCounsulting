@@ -16,10 +16,6 @@
 <MudDialogProvider />
 
 <MudLayout Class="marketing-app-layout has-bottom-nav">
-    @if (PlatformInfo.IsNativeMobile)
-    {
-        <div class="status-bar-safe-area"></div>
-    }
     <PromotionBanner />
 
     <div class="marketing-sticky-header">
@@ -43,19 +39,11 @@
                     </MudTooltip>
                 }
                 <ThemeModeMenu Class="hide-on-phone" />
+                <NotificationBell />
                 <CartBadge Class="mx-2" />
                 <AuthorizeView>
                     <Authorized>
-                        <MudMenu Icon="@Icons.Material.Outlined.AccountCircle" Color="Color.Inherit" AnchorOrigin="Origin.BottomRight"
-                                 TransformOrigin="Origin.TopRight" aria-label="Your account" Class="mr-3 hide-on-phone">
-                            <MudText Typo="Typo.subtitle2" Class="px-4 pt-2 pb-2">@DisplayName(context.User)</MudText>
-                            <MudDivider />
-                            <MudMenuItem Href="/user/dashboard" Icon="@Icons.Material.Outlined.Dashboard">Dashboard</MudMenuItem>
-                            <MudMenuItem Href="/user/appointments" Icon="@Icons.Material.Outlined.CalendarMonth">My visits</MudMenuItem>
-                            <MudMenuItem Href="/user/profile" Icon="@Icons.Material.Outlined.ManageAccounts">Profile</MudMenuItem>
-                            <MudDivider />
-                            <MudMenuItem OnClick="@(() => AuthSession.SignOutAsync())" Icon="@Icons.Material.Outlined.Logout" IconColor="Color.Error">Sign out</MudMenuItem>
-                        </MudMenu>
+                        <MarketingAccountMenu User="context.User" Class="mr-3 hide-on-phone" />
                     </Authorized>
                     <NotAuthorized>
                         <NavLink href="/login" class="marketing-nav-link mr-4 hide-on-phone">Sign in</NavLink>
@@ -77,6 +65,7 @@
     }
 
     <MobileBottomNav />
+    <LiveUpdatesHost />
 </MudLayout>
 
 @code {
@@ -92,6 +81,4 @@
     protected override async Task OnAfterRenderAsync(bool firstRender) =>
         await JsRuntime.InvokeVoidAsync("initMarketingNav");
 
-    private static string DisplayName(ClaimsPrincipal user) =>
-        user.FindFirst(ClaimTypes.GivenName)?.Value is { Length: > 0 } firstName ? firstName : user.Identity?.Name ?? "Your account";
 }

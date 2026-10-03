@@ -1,3 +1,5 @@
+@* Team and customer accounts. The role tabs come from the tenant's own roles, so a custom role such as "Technician" gets its own
+   tab and list once the admin creates it. *@
 @page "/admin/settings/users"
 @attribute [Authorize(Roles = "Admin,Super Admin,Member")]
 @inject IApiClient ApiClient
@@ -11,60 +13,98 @@
 
 <ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
 
-<ServerDataTable TItem="UserResponse" @ref="_table" ApiBasePath="@ApiRoutes.Users.All"
+@if (_roleTabs.Count > 1)
+{
+    <ListFilterTabs Options="_roleTabs" Selected="@_role" SelectedChanged="OnRoleChanged" Label="Filter by role" />
+}
+
+<ServerDataTable TItem="UserResponse" @ref="_table" ApiBasePath="@ApiRoutes.Users.All" ExtraQuery="RoleQuery"
                  SearchPlaceholder="Search name or email" OnLoadError="@(message => _loadError = message)">
     <HeaderContent>
-        <MudTh><MudTableSortLabel SortLabel="@nameof(UserResponse.LastName)" T="UserResponse">Name</MudTableSortLabel></MudTh>
-        <MudTh><MudTableSortLabel SortLabel="@nameof(UserResponse.Email)" T="UserResponse">Email</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortLabel="@nameof(UserResponse.LastName)" T="UserResponse">User</MudTableSortLabel></MudTh>
         <MudTh>Roles</MudTh>
         <MudTh><MudTableSortLabel SortLabel="@nameof(UserResponse.IsActive)" T="UserResponse">Status</MudTableSortLabel></MudTh>
-        <MudTh>Actions</MudTh>
+        <MudTh><MudTableSortLabel SortLabel="@nameof(UserResponse.CreatedDate)" T="UserResponse">Joined</MudTableSortLabel></MudTh>
+        <MudTh Class="cell-actions">Actions</MudTh>
     </HeaderContent>
     <RowTemplate Context="user">
-        <MudTd DataLabel="Name">@user.FirstName @user.LastName</MudTd>
-        <MudTd DataLabel="Email">@user.Email</MudTd>
+        <MudTd Class="cell-primary">
+            <PersonCell Name="@($"{user.FirstName} {user.LastName}")" Secondary="@user.Email" ImageUrl="@user.ImageUrl" />
+        </MudTd>
         <MudTd DataLabel="Roles">
-            @foreach (var role in user.Roles)
-            {
-                <MudChip T="string" Size="Size.Small" Color="Color.Default" Variant="Variant.Text" Class="mr-1">@role</MudChip>
-            }
+            <span class="cell-chips">
+                @if (user.Roles.Count == 0)
+                {
+                    <span class="cell-muted">No role</span>
+                }
+                @foreach (var role in user.Roles)
+                {
+                    <span class="role-chip">@role</span>
+                }
+            </span>
         </MudTd>
         <MudTd DataLabel="Status">
-            <MudChip T="string" Size="Size.Small" Color="@(user.IsActive ? Color.Success : Color.Default)">
-                @(user.IsActive ? "Active" : "Inactive")
-            </MudChip>
+            <StatusBadge Label="@(user.IsActive ? "Active" : "Inactive")" Kind="@(user.IsActive ? StatusKinds.Success : StatusKinds.Neutral)" />
         </MudTd>
-        <MudTd DataLabel="Actions">
-            <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
-                <MudIconButton Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" title="Edit"
+        <MudTd DataLabel="Joined">@(user.CreatedDate is { } joined ? DateTimeFormat.FormatDate(joined) : "-")</MudTd>
+        <MudTd DataLabel="Actions" Class="cell-actions">
+            <MudTooltip Text="Edit">
+                <MudIconButton Icon="@Icons.Material.Outlined.EditNote" Size="Size.Small" aria-label="Edit"
                                OnClick="@(() => EditAsync(user))" />
-
-                <MudIconButton Icon="@Icons.Material.Outlined.ManageAccounts" Color="Color.Default" title="Manage roles"
+            </MudTooltip>
+            <MudTooltip Text="Manage roles">
+                <MudIconButton Icon="@Icons.Material.Outlined.ManageAccounts" Size="Size.Small" aria-label="Manage roles"
                                OnClick="@(() => ManageRolesAsync(user))" />
-
-                <MudIconButton Icon="@Icons.Material.Outlined.Tune" Color="Color.Default" title="Narrow permissions"
+            </MudTooltip>
+            <MudTooltip Text="Narrow permissions">
+                <MudIconButton Icon="@Icons.Material.Outlined.Tune" Size="Size.Small" aria-label="Narrow permissions"
                                OnClick="@(() => Navigation.NavigateTo($"{AppRoutes.AdminHome}/settings/users/{user.Id}/permissions"))" />
-
-                <MudToggleIconButton Toggled="user.IsActive" ToggledChanged="@(_ => ToggleActiveAsync(user))"
-                                      Icon="@Icons.Material.Outlined.PersonAddAlt1" Color="Color.Success" title="Activate/Deactivate"
-                                      ToggledIcon="@Icons.Material.Outlined.PersonOff" ToggledColor="Color.Warning" />
-
-                <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" title="Delete"
+            </MudTooltip>
+            <MudTooltip Text="@(user.IsActive ? "Deactivate" : "Activate")">
+                <MudIconButton Icon="@(user.IsActive ? Icons.Material.Outlined.PersonOff : Icons.Material.Outlined.PersonAddAlt1)" Size="Size.Small"
+                               Color="@(user.IsActive ? Color.Warning : Color.Success)"
+                               aria-label="@(user.IsActive ? "Deactivate" : "Activate")" OnClick="@(() => ToggleActiveAsync(user))" />
+            </MudTooltip>
+            <MudTooltip Text="Delete">
+                <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" Size="Size.Small" aria-label="Delete"
                                OnClick="@(() => DeleteAsync(user))" />
-            </MudButtonGroup>
+            </MudTooltip>
         </MudTd>
     </RowTemplate>
+    <NoRecordsContent>
+        <MudText Color="Color.Secondary">@(_role.Length == 0 ? "No users found." : $"No users with the {_role} role.")</MudText>
+    </NoRecordsContent>
 </ServerDataTable>
 
 @code {
-    private ServerDataTable<UserResponse> _table = default!;
+    private ServerDataTable<UserResponse>? _table;
     private string? _loadError;
+    private string _role = string.Empty;
+    private List<ListFilterOption> _roleTabs = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var roles = await ApiClient.GetAsync<List<RoleResponse>>(ApiRoutes.Roles.Base);
+        var names = roles.IsSuccessful && roles.ResultData is not null ? roles.ResultData.Select(r => r.Name).Order().ToList() : [];
+        _roleTabs = [new(string.Empty, "Everyone", Icons.Material.Outlined.Groups), .. names.Select(name => new ListFilterOption(name, name))];
+    }
+
+    private string? RoleQuery() => _role.Length == 0 ? null : $"&role={Uri.EscapeDataString(_role)}";
+
+    private async Task OnRoleChanged(string role)
+    {
+        _role = role;
+        await ReloadAsync(refilter: true);
+    }
+
+    private Task ReloadAsync(bool refilter = false) =>
+        _table is null ? Task.CompletedTask : refilter ? _table.RefilterAsync() : _table.ReloadAsync();
 
     private Task EditAsync(UserResponse user) =>
-        DialogService.ShowAndReloadAsync("Edit User", new DialogParameters<EditUserDialog> { { x => x.User, user } }, _table.ReloadAsync);
+        DialogService.ShowAndReloadAsync("Edit User", new DialogParameters<EditUserDialog> { { x => x.User, user } }, () => ReloadAsync());
 
     private Task ManageRolesAsync(UserResponse user) =>
-        DialogService.ShowAndReloadAsync("Edit Roles", new DialogParameters<UserRolesDialog> { { x => x.User, user } }, _table.ReloadAsync);
+        DialogService.ShowAndReloadAsync("Edit Roles", new DialogParameters<UserRolesDialog> { { x => x.User, user } }, () => ReloadAsync());
 
     private async Task ToggleActiveAsync(UserResponse user)
     {
@@ -78,7 +118,7 @@
         }
 
         Snackbar.ShowSuccess(result.DisplayMessage);
-        await _table.ReloadAsync();
+        await ReloadAsync();
     }
 
     private async Task DeleteAsync(UserResponse user)
@@ -96,6 +136,6 @@
         }
 
         Snackbar.ShowSuccess(result.DisplayMessage);
-        await _table.ReloadAsync();
+        await ReloadAsync();
     }
 }

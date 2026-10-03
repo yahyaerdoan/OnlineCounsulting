@@ -1,0 +1,37 @@
+@* The one next step for a catalog service, by its kind: a Product is added to the cart (gold), a Booking service is scheduled
+   as a visit (brand blue), both as pills. Every service card/row/detail uses this, so the two flows never mix and every page
+   colors them the same way. *@
+
+@if (Kind == ServiceKinds.Product)
+{
+    <AddToCartForm ServiceId="@ServiceId" ButtonText="Add to cart" Variant="Variant.Filled" FullWidth="@FullWidth" ShowIcon="@ShowIcon"
+                   ButtonClass="@($"svc-action sell-btn {Class}")" />
+}
+else
+{
+    <MudButton Href="@($"/appointment?service={ServiceId}")" Variant="@Variant" Color="Color.Primary" Size="Size.Small" FullWidth="@FullWidth"
+               StartIcon="@(ShowIcon ? Icons.Material.Outlined.EventAvailable : null)" Class="@($"svc-action {Class}")">@BookText</MudButton>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public Guid ServiceId { get; set; }
+
+    [Parameter, EditorRequired]
+    public string Kind { get; set; } = ServiceKinds.Booking;
+
+    [Parameter]
+    public string BookText { get; set; } = "Book";
+
+    [Parameter]
+    public Variant Variant { get; set; } = Variant.Filled;
+
+    [Parameter]
+    public bool FullWidth { get; set; }
+
+    [Parameter]
+    public bool ShowIcon { get; set; }
+
+    [Parameter]
+    public string? Class { get; set; }
+}

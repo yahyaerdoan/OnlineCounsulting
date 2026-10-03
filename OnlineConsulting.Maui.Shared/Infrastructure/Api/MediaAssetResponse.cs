@@ -1,3 +1,4 @@
+
 namespace OnlineConsulting.Maui.Shared.Infrastructure.Api;
 
 /// <summary>Mirrors GET /api/media/{id}'s response shape.</summary>

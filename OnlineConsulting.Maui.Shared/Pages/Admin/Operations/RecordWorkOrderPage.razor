@@ -80,6 +80,44 @@ else
                     <MudTextField @bind-Value="_model.TechnicianNotes" Label="Technician notes" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="1" MaxLines="5" Sizing="InputSizing.Auto" />
                 </MudItem>
 
+                <MudItem xs="12">
+                    <div class="charges">
+                        <div class="charges-head">
+                            <div>
+                                <MudText Typo="Typo.subtitle1" Class="text-strong">Charges for the invoice</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">The customer gets an invoice with these lines and can pay online. Remove every line for warranty or no-charge visits.</MudText>
+                            </div>
+                        </div>
+
+                        @foreach (var charge in _charges)
+                        {
+                            <div class="charge-row" @key="charge">
+                                <MudTextField @bind-Value="charge.Description" Label="Description" Variant="Variant.Outlined" Margin="Margin.Dense" Immediate="true" Class="charge-desc" />
+                                <MudNumericField T="decimal" @bind-Value="charge.Quantity" Label="Qty" Variant="Variant.Outlined" Margin="Margin.Dense" Min="0" Step="1" Immediate="true" Class="charge-qty" />
+                                <MudNumericField T="decimal" @bind-Value="charge.UnitPrice" Label="Unit price" Variant="Variant.Outlined" Margin="Margin.Dense" Min="0" Immediate="true"
+                                                 Adornment="Adornment.Start" AdornmentText="$" Class="charge-price" />
+                                <MudNumericField T="int" @bind-Value="charge.TaxRate" Label="Tax %" Variant="Variant.Outlined" Margin="Margin.Dense" Min="0" Max="100" Immediate="true" Class="charge-tax" />
+                                <span class="charge-total">@CurrencyFormat.Format(charge.Quantity * charge.UnitPrice)</span>
+                                <MudTooltip Text="Remove line">
+                                    <MudIconButton aria-label="Remove line" Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" Size="Size.Small" OnClick="@(() => _charges.Remove(charge))" />
+                                </MudTooltip>
+                            </div>
+                        }
+
+                        <div class="charges-foot">
+                            <MudButton Variant="Variant.Text" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Add" OnClick="AddCharge">Add line</MudButton>
+                            @if (_charges.Count > 0)
+                            {
+                                <span class="charges-estimate">Estimate: <strong>@CurrencyFormat.Format(ChargesEstimate)</strong> incl. tax, before any member discount</span>
+                            }
+                            else
+                            {
+                                <span class="charges-estimate">No invoice will be sent for this visit.</span>
+                            }
+                        </div>
+                    </div>
+                </MudItem>
+
                 <MudItem xs="12" md="6">
                     <MudText Typo="Typo.subtitle2" Class="mb-1">Before photo</MudText>
                     @if (_beforePhotoUrl is not null)
@@ -136,6 +174,20 @@ else
     private string? _afterPhotoUrl;
     private bool _isUploadingBeforePhoto;
     private bool _isUploadingAfterPhoto;
+    private readonly List<ChargeRow> _charges = [];
+    private int _defaultTaxRate;
+
+    private sealed class ChargeRow
+    {
+        public string Description { get; set; } = "";
+        public decimal Quantity { get; set; } = 1;
+        public decimal UnitPrice { get; set; }
+        public int TaxRate { get; set; }
+    }
+
+    private decimal ChargesEstimate => _charges.Sum(c => c.Quantity * c.UnitPrice * (1 + c.TaxRate / 100m));
+
+    private void AddCharge() => _charges.Add(new ChargeRow { TaxRate = _defaultTaxRate });
 
     protected override async Task OnInitializedAsync()
     {
@@ -152,6 +204,16 @@ else
 
         var appointment = appointmentResult.ResultData;
         _customerUserId = appointment.UserId;
+
+        if (appointment.ServiceId is { } serviceId)
+        {
+            var serviceResult = await ApiClient.GetAsync<ServiceDetailResponse>(ApiRoutes.Services.ById(serviceId));
+            if (serviceResult.IsSuccessful && serviceResult.ResultData is { } service)
+            {
+                _defaultTaxRate = service.TaxRate;
+                _charges.Add(new ChargeRow { Description = service.Title, Quantity = 1, UnitPrice = service.DiscountedPrice, TaxRate = service.TaxRate });
+            }
+        }
         if (appointment.AssignedTechnicianUserId is { } technicianId)
         {
             _model.TechnicianUserId = technicianId;
@@ -237,6 +299,10 @@ else
                     notes = (string?)null,
                 }
                 : null,
+            charges = _charges
+                .Where(c => !string.IsNullOrWhiteSpace(c.Description) && c.Quantity > 0)
+                .Select(c => new { description = c.Description.Trim(), quantity = c.Quantity, unitPrice = c.UnitPrice, taxRate = c.TaxRate })
+                .ToList(),
         };
 
         var createResult = await ApiClient.PostAsync<Guid>(ApiRoutes.Operations.WorkOrders.Base, body);

@@ -1,3 +1,4 @@
+
 namespace OnlineConsulting.Maui.Shared.Infrastructure.Api;
 
 /// <summary>Mirrors GET /api/referrals/my-credit's response shape.</summary>

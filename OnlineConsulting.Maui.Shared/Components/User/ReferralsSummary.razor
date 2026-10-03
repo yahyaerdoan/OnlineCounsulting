@@ -1,7 +1,9 @@
-@* Caller's own referral code, referred-people list and account-credit balance. ReferredUserId is a
-   raw guid with no name/email on this DTO - displayed by code/date/status/reward, not by name. *@
+@* The caller's referral code (with copy), credit balance and the people they referred, laid out like My Orders: the code and balance
+   up top, then one card per referral (name or email, status badge, reward and when it was paid). *@
 @namespace OnlineConsulting.Maui.Shared.Components.User
 @inject IApiClient ApiClient
+@inject DataChangeNotifier Notifier
+@implements IDisposable
 @inject IJSRuntime JsRuntime
 @inject ISnackbar Snackbar
 
@@ -9,55 +11,71 @@
 
 @if (_loading)
 {
-    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+    <ListSkeleton Rows="3" />
 }
 else
 {
-    <MudGrid Class="mb-4">
-        <MudItem xs="12" sm="6">
-            <MudPaper Class="pa-4" Outlined="true">
-                <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Your Referral Code</MudText>
-                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mt-1">
-                    <MudText Typo="Typo.h5">@_referralCode</MudText>
-                    <MudIconButton Icon="@(_copied ? Icons.Material.Outlined.Check : Icons.Material.Outlined.ContentCopy)" Size="Size.Small" title="Copy" OnClick="CopyCodeAsync" />
-                </MudStack>
-            </MudPaper>
-        </MudItem>
-        <MudItem xs="12" sm="6">
-            <MudPaper Class="pa-4" Outlined="true">
-                <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Account Credit Balance</MudText>
-                <MudText Typo="Typo.h5" Class="mt-1">@CurrencyFormat.Format(_creditBalance)</MudText>
-            </MudPaper>
-        </MudItem>
-    </MudGrid>
+    <div class="orders-stats">
+        <button type="button" class="orders-stat orders-stat-alert referral-code-stat" @onclick="CopyCodeAsync" aria-label="Copy referral code">
+            <span class="orders-stat-value">
+                @_referralCode
+                <MudIcon Icon="@(_copied ? Icons.Material.Outlined.Check : Icons.Material.Outlined.ContentCopy)" Size="Size.Small" />
+            </span>
+            <span class="orders-stat-label">@(_copied ? "copied" : "your code, tap to copy")</span>
+        </button>
+        <div class="orders-stat">
+            <span class="orders-stat-value">@CurrencyFormat.Format(_creditBalance)</span>
+            <span class="orders-stat-label">account credit</span>
+        </div>
+        <div class="orders-stat">
+            <span class="orders-stat-value">@_referrals.Count</span>
+            <span class="orders-stat-label">@(_referrals.Count == 1 ? "referral" : "referrals")</span>
+        </div>
+    </div>
 
-    <SearchableTable TItem="ReferralResponse" Items="_referrals" Filter="@((referral, text) => referral.Code.Contains(text, StringComparison.OrdinalIgnoreCase))"
-                      SearchPlaceholder="Search code">
-        <HeaderContent>
-            <MudTh>Code</MudTh>
-            <MudTh>Status</MudTh>
-            <MudTh Class="mud-table-cell-align-right">Reward</MudTh>
-            <MudTh>Rewarded</MudTh>
-        </HeaderContent>
-        <RowTemplate Context="referral">
-            <MudTd DataLabel="Code">@referral.Code</MudTd>
-            <MudTd DataLabel="Status">@referral.Status</MudTd>
-            <MudTd DataLabel="Reward" Class="mud-table-cell-align-right">@(referral.RewardAmount is { } amount ? CurrencyFormat.Format(amount) : "-")</MudTd>
-            <MudTd DataLabel="Rewarded">@(referral.RewardedAt is { } rewardedAt ? DateTimeFormat.FormatDateTime(rewardedAt) : "-")</MudTd>
-        </RowTemplate>
-        <NoRecordsContent>
-            <MudText>No referrals yet - share your code to start earning rewards.</MudText>
-        </NoRecordsContent>
-    </SearchableTable>
+    @if (_referrals.Count == 0)
+    {
+        <div class="cart-empty">
+            <span class="tone-bubble tone-bubble-lg tone-berry"><MudIcon Icon="@Icons.Material.Outlined.Redeem" /></span>
+            <MudText Typo="Typo.h6" Class="text-strong">No Referrals Yet</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Share your code with friends. When they book their first service, you both earn credit.</MudText>
+            <div class="cart-empty-actions">
+                <MudButton Variant="Variant.Filled" Class="sell-btn" StartIcon="@Icons.Material.Outlined.ContentCopy" OnClick="CopyCodeAsync">Copy My Code</MudButton>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="order-cards" role="list">
+            @foreach (var referral in _referrals)
+            {
+                var rewarded = referral.Status == Rewarded;
+                <div class="@($"order-card {(rewarded ? AccentTone.Green : AccentTone.Orange)}")" role="listitem">
+                    <span class="order-card-icon"><MudIcon Icon="@(rewarded ? Icons.Material.Outlined.Redeem : Icons.Material.Outlined.HourglassTop)" /></span>
+                    <span class="order-card-main">
+                        <span class="order-card-number">@(referral.ReferredName ?? referral.ReferredEmail ?? "A friend")</span>
+                        <span class="order-card-date">@(rewarded && referral.RewardedAt is { } at ? $"Rewarded {DateTimeFormat.FormatDate(at)}" : "Waiting for their first service")</span>
+                    </span>
+                    <span class="order-card-badges">
+                        <StatusBadge Label="@referral.Status" Kind="@(rewarded ? StatusKinds.Success : StatusKinds.Warning)" />
+                    </span>
+                    <span class="order-card-total">@(referral.RewardAmount is { } amount ? CurrencyFormat.Format(amount) : "-")</span>
+                </div>
+            }
+        </div>
+    }
 }
 
 @code {
+    private const string Rewarded = "Rewarded";
+
     private string _referralCode = "-";
     private decimal _creditBalance;
     private List<ReferralResponse> _referrals = [];
     private bool _loading = true;
     private bool _copied;
     private string? _loadError;
+    private IDisposable? _liveUpdates;
 
     protected override async Task OnInitializedAsync()
     {
@@ -71,13 +89,20 @@ else
 
         _referralCode = codeResult.ResultData;
 
+        await LoadReferralsAsync();
+        _liveUpdates = Notifier.Subscribe(() => InvokeAsync(async () => { await LoadReferralsAsync(); StateHasChanged(); }), DataTopic.Referrals);
+        _loading = false;
+    }
+
+    private async Task LoadReferralsAsync()
+    {
         var referralsResult = await ApiClient.GetAsync<List<ReferralResponse>>(ApiRoutes.Growth.Referrals.Mine);
-        _referrals = referralsResult.IsSuccessful && referralsResult.ResultData is not null ? referralsResult.ResultData : [];
+        _referrals = referralsResult.IsSuccessful && referralsResult.ResultData is not null
+            ? [.. referralsResult.ResultData.OrderByDescending(r => r.RewardedAt ?? DateTimeOffset.MaxValue)]
+            : [];
 
         var creditResult = await ApiClient.GetAsync<AccountCreditSummaryResponse>(ApiRoutes.Growth.Referrals.MyCredit);
         _creditBalance = creditResult.IsSuccessful && creditResult.ResultData is not null ? creditResult.ResultData.Balance : 0m;
-
-        _loading = false;
     }
 
     private async Task CopyCodeAsync()
@@ -94,4 +119,6 @@ else
         await Task.Delay(1500);
         _copied = false;
     }
+
+    public void Dispose() => _liveUpdates?.Dispose();
 }

@@ -1,0 +1,99 @@
+﻿@* Signed-in account menu in the marketing nav bar: the button shows the person's initials and first name; the popup opens with
+   their full name and email, then colored shortcuts to their own pages, an admin link for staff, and sign out. *@
+@using System.Security.Claims
+@using OnlineConsulting.Maui.Shared.Infrastructure.Auth
+@inject IAuthSession AuthSession
+
+<MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" PopoverClass="account-menu-popover" Class="@Class"
+         aria-label="Your account">
+    <ActivatorContent Context="menu">
+        <button type="button" class="account-trigger" aria-label="@($"Account menu for {FullName}")" @onclick="menu.ToggleAsync">
+            <span class="account-avatar">@Initials</span>
+            <span class="account-trigger-name">@FirstName</span>
+            <MudIcon Icon="@Icons.Material.Filled.ExpandMore" Size="Size.Small" Class="account-trigger-chevron" />
+        </button>
+    </ActivatorContent>
+    <ChildContent>
+        <div class="account-card">
+            <span class="account-avatar account-avatar-lg">@Initials</span>
+            <span class="account-card-text">
+                <span class="account-card-name">@FullName</span>
+                @if (!string.IsNullOrWhiteSpace(Email))
+                {
+                    <span class="account-card-email">@Email</span>
+                }
+                @if (IsStaff)
+                {
+                    <span class="account-card-badge"><MudIcon Icon="@Icons.Material.Filled.VerifiedUser" Size="Size.Small" />Staff</span>
+                }
+            </span>
+        </div>
+
+        <div class="account-links">
+            @foreach (var link in Links)
+            {
+                <MudMenuItem Href="@link.Href" Class="account-link">
+                    <span class="@($"account-link-icon {link.Tone}")"><MudIcon Icon="@link.Icon" Size="Size.Small" /></span>
+                    <span>@link.Label</span>
+                </MudMenuItem>
+            }
+            @if (IsStaff)
+            {
+                <MudMenuItem Href="@AppRoutes.AdminHome" Class="account-link">
+                    <span class="account-link-icon tone-berry"><MudIcon Icon="@Icons.Material.Outlined.AdminPanelSettings" Size="Size.Small" /></span>
+                    <span>Admin dashboard</span>
+                </MudMenuItem>
+            }
+        </div>
+
+        <MudDivider />
+        <MudMenuItem OnClick="@(() => AuthSession.SignOutAsync())" Class="account-link account-signout">
+            <span class="account-link-icon tone-red"><MudIcon Icon="@Icons.Material.Outlined.Logout" Size="Size.Small" /></span>
+            <span>Sign out</span>
+        </MudMenuItem>
+    </ChildContent>
+</MudMenu>
+
+@code {
+    private static readonly string[] StaffRoles = ["Admin", "Super Admin", "Member"];
+
+    private static readonly (string Href, string Label, string Icon, string Tone)[] Links =
+    [
+        ("/user/dashboard", "Dashboard", Icons.Material.Outlined.SpaceDashboard, AccentTone.Blue),
+        ("/user/appointments", "My visits", Icons.Material.Outlined.CalendarMonth, AccentTone.Green),
+        ("/user/membership", "Membership", Icons.Material.Outlined.WorkspacePremium, AccentTone.Gold),
+        ("/user/invoices", "Invoices", Icons.Material.Outlined.ReceiptLong, AccentTone.Teal),
+        ("/user/profile", "Profile", Icons.Material.Outlined.ManageAccounts, AccentTone.Cornflower),
+    ];
+
+    [Parameter, EditorRequired]
+    public ClaimsPrincipal User { get; set; } = new();
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    private string FirstName => User.FindFirst(ClaimTypes.GivenName)?.Value is { Length: > 0 } first ? first : User.Identity?.Name ?? "Account";
+
+    private string FullName
+    {
+        get
+        {
+            var full = $"{User.FindFirst(ClaimTypes.GivenName)?.Value} {User.FindFirst(ClaimTypes.Surname)?.Value}".Trim();
+            return full.Length > 0 ? full : User.Identity?.Name ?? "Your account";
+        }
+    }
+
+    private string? Email => User.FindFirst(ClaimTypes.Email)?.Value;
+
+    private bool IsStaff => User.FindAll(ClaimTypes.Role).Any(role => StaffRoles.Contains(role.Value, StringComparer.OrdinalIgnoreCase));
+
+    private string Initials
+    {
+        get
+        {
+            var letters = FullName.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(part => char.ToUpperInvariant(part[0]));
+            var initials = string.Concat(letters);
+            return initials.Length == 0 ? "?" : initials;
+        }
+    }
+}

@@ -1,7 +1,11 @@
 @* Dashboard header card - who you are (avatar, greeting, membership state) and the three things customers reach for
    most (book a visit, basket, support). Actions sit on the right on wide screens and as a shortcut row on phones. *@
 @namespace OnlineConsulting.Maui.Shared.Components.User
+@using OnlineConsulting.Maui.Shared.Infrastructure.Commerce
+@implements IDisposable
 @inject IApiClient ApiClient
+@inject CartState CartState
+@inject DataChangeNotifier Notifier
 
 <MudPaper Class="dashboard-upper-info mb-4" Outlined="true">
     <div class="dashboard-upper-identity">
@@ -44,9 +48,9 @@
         <a href="/user/cart" class="dashboard-upper-action">
             <span class="tone-bubble tone-bubble-sm @AccentTone.Orange dashboard-upper-cart">
                 <MudIcon Icon="@Icons.Material.Outlined.ShoppingCart" Size="Size.Small" />
-                @if (_cartItemCount > 0)
+                @if (CartState.Count > 0)
                 {
-                    <span class="dashboard-upper-count" aria-label="@($"{_cartItemCount} items")">@_cartItemCount</span>
+                    <span class="dashboard-upper-count" aria-label="@($"{CartState.Count} items")">@CartState.Count</span>
                 }
             </span>
             <span>Basket</span>
@@ -65,9 +69,9 @@
     public EventCallback OnToggleSidebar { get; set; }
 
     private CurrentUserResponse? _user;
-    private int _cartItemCount;
     private CustomerMembershipResponse? _membership;
     private bool _loading = true;
+    private IDisposable? _liveUpdates;
 
     private string Initials =>
         $"{_user?.FirstName.FirstOrDefault()}{_user?.LastName.FirstOrDefault()}".Trim('\0').ToUpperInvariant() is { Length: > 0 } initials ? initials : "?";
@@ -75,7 +79,7 @@
     /// <summary>Null when there is no live membership (none, cancelled or failed) - the card then offers the plans instead.</summary>
     private MembershipBadge? Membership => _membership switch
     {
-        { Status: "Active", CancelAtPeriodEnd: true } => new("Member · ends soon", Color.Warning, Icons.Material.Outlined.WorkspacePremium),
+        { IsEnding: true } => new("Membership ending", Color.Warning, Icons.Material.Outlined.EventBusy),
         { Status: "Active" } => new("Active member", Color.Success, Icons.Material.Outlined.WorkspacePremium),
         { Status: "Paused" } => new("Membership paused", Color.Default, Icons.Material.Outlined.PauseCircle),
         { Status: "PastDue" } => new("Payment due", Color.Error, Icons.Material.Outlined.ErrorOutline),
@@ -85,15 +89,38 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var userResult = await ApiClient.GetAsync<CurrentUserResponse>(ApiRoutes.Users.Me);
-        _user = userResult.IsSuccessful ? userResult.ResultData : null;
+        CartState.Changed += OnCartChanged;
+        _liveUpdates = Notifier.Subscribe(() => InvokeAsync(async () => { await LoadAsync(); StateHasChanged(); }),
+            DataTopic.Membership, DataTopic.Profile, DataTopic.Summary);
 
-        var countResult = await ApiClient.GetAsync<int>(ApiRoutes.Commerce.Baskets.Count);
-        _cartItemCount = countResult.IsSuccessful ? countResult.ResultData : 0;
+        await CartState.EnsureLoadedAsync();
+        await LoadAsync();
+        _loading = false;
+    }
+
+    /// <summary>Name and membership state; the basket count comes from the shared, self-refreshing CartState.</summary>
+    private async Task LoadAsync()
+    {
+        var userResult = await ApiClient.GetAsync<CurrentUserResponse>(ApiRoutes.Users.Me);
+        if (userResult.IsSuccessful)
+        {
+            _user = userResult.ResultData;
+        }
 
         var membershipResult = await ApiClient.GetAsync<CustomerMembershipResponse>(ApiRoutes.Growth.CustomerMemberships.Mine);
-        _membership = membershipResult.IsSuccessful ? membershipResult.ResultData : null;
+        _membership = membershipResult switch
+        {
+            { IsSuccessful: true } => membershipResult.ResultData,
+            { StatusCode: 404 } => null,
+            _ => _membership,
+        };
+    }
 
-        _loading = false;
+    private void OnCartChanged() => _ = InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        CartState.Changed -= OnCartChanged;
+        _liveUpdates?.Dispose();
     }
 }

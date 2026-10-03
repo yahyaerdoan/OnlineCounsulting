@@ -1,3 +1,4 @@
+
 namespace OnlineConsulting.Maui.Shared.Infrastructure.Api;
 
 /// <summary>Mirrors Modules.Services.Application.Features.Constants.ServicePriceTypes.</summary>

@@ -1,6 +1,6 @@
 namespace OnlineConsulting.Maui.Shared.Pages.User.AccountModels;
 
-public class AddressFormModel
+public class AddressFormModel : OnlineConsulting.Maui.Shared.Infrastructure.IUsAddress
 {
     public string AddressName { get; set; } = string.Empty;
 

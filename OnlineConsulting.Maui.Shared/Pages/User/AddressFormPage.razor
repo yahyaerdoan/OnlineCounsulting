@@ -28,53 +28,39 @@
     else
     {
         <EditForm EditContext="@Form.EditContext">
-            <MudGrid>
-                <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="_model.AddressName" For="@(() => _model.AddressName)" Label="Address name" Variant="Variant.Outlined" Margin="Margin.Dense" />
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="_model.CompanyName" For="@(() => _model.CompanyName)" Label="Company name" Variant="Variant.Outlined" Margin="Margin.Dense" />
-                </MudItem>
-                <MudItem xs="12">
-                    <MudTextField @bind-Value="_model.AddressLine" For="@(() => _model.AddressLine)" Label="Address line" Variant="Variant.Outlined" Margin="Margin.Dense" />
-                </MudItem>
-                <MudItem xs="12" sm="4">
-                    <MudTextField @bind-Value="_model.City" For="@(() => _model.City)" Label="City" Variant="Variant.Outlined" Margin="Margin.Dense" />
-                </MudItem>
-                <MudItem xs="12" sm="4">
-                    <MudTextField @bind-Value="_model.State" For="@(() => _model.State)" Label="State" Variant="Variant.Outlined" Margin="Margin.Dense" />
-                </MudItem>
-                <MudItem xs="12" sm="4">
-                    <MudTextField @bind-Value="_model.Zipcode" For="@(() => _model.Zipcode)" Label="Zip code" Variant="Variant.Outlined" Margin="Margin.Dense" />
-                </MudItem>
-                <MudItem xs="12">
-                    <MudTextField @bind-Value="_model.Country" For="@(() => _model.Country)" Label="Country" Variant="Variant.Outlined" Margin="Margin.Dense" />
-                </MudItem>
-                <MudItem xs="12">
-                    <MudTextField @bind-Value="_model.Notes" For="@(() => _model.Notes)" Label="Notes" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="2" />
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudCheckBox @bind-Value="_model.IsShippingAddress" Label="Use as shipping address" Color="Color.Primary" Dense="true" />
-                </MudItem>
-                <MudItem xs="12" sm="6">
-                    <MudCheckBox @bind-Value="_model.IsBillingAddress" Label="Use as billing address" Color="Color.Primary" Dense="true" />
-                </MudItem>
-            </MudGrid>
+            <div class="form-grid">
+                <MudTextField @bind-Value="_model.AddressName" For="@(() => _model.AddressName)" Label="Address name" Variant="Variant.Outlined" />
+                <MudTextField @bind-Value="_model.CompanyName" For="@(() => _model.CompanyName)" Label="Company name" Variant="Variant.Outlined" />
+                <div class="form-grid-full">
+                    <UsAddressFields Model="_model" />
+                </div>
+                <MudTextField @bind-Value="_model.Notes" For="@(() => _model.Notes)" Label="Notes" Variant="Variant.Outlined" Lines="2" Class="form-grid-full" />
+                <MudCheckBox @bind-Value="_model.IsShippingAddress" Label="Use as shipping address" Color="Color.Primary" Dense="true" />
+                <MudCheckBox @bind-Value="_model.IsBillingAddress" Label="Use as billing address" Color="Color.Primary" Dense="true" />
+            </div>
 
             <MudDivider Class="my-4" />
 
             <MudStack Row="true" Justify="Justify.FlexEnd" Spacing="2">
-                <MudButton Variant="Variant.Text" OnClick="@(() => Navigation.NavigateTo("/user/addresses"))">Cancel</MudButton>
+                <MudButton Variant="Variant.Text" OnClick="@(() => Navigation.NavigateTo(DoneUrl))">Cancel</MudButton>
                 <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAsync" Disabled="@Form.IsBusy">@(IsEdit ? "Save" : "Create")</MudButton>
             </MudStack>
         </EditForm>
     }
 
 @code {
+    /// <summary>Where to go after saving or cancelling, e.g. back to checkout; only a local path is honored.</summary>
+    [SupplyParameterFromQuery(Name = "returnUrl")]
+    private string? ReturnUrl { get; set; }
+
+    private string DoneUrl => ReturnUrl is { Length: > 1 } url && url[0] == '/' && url[1] is not '/' and not '\\' ? url : "/user/addresses";
+
     [Parameter]
     public Guid? Id { get; set; }
 
     private bool IsEdit => Id.HasValue;
+
+    private const string UnitedStates = "United States";
 
     private readonly AddressFormModel _model = new();
     private bool _loading;
@@ -130,7 +116,7 @@
         {
             addressName = _model.AddressName,
             companyName = _model.CompanyName,
-            country = _model.Country,
+            country = string.IsNullOrWhiteSpace(_model.Country) ? UnitedStates : _model.Country,
             addressLine = _model.AddressLine,
             city = _model.City,
             state = _model.State,
@@ -142,7 +128,12 @@
 
         if (IsEdit)
         {
-            var updateResult = await ApiClient.PutAsync(ApiRoutes.Addresses.ById(Id!.Value), body);
+            if (Id is not { } id)
+            {
+                return;
+            }
+
+            var updateResult = await ApiClient.PutAsync(ApiRoutes.Addresses.ById(id), body);
             if (!updateResult.IsSuccessful)
             {
                 Form.DisplayErrors(updateResult, Snackbar);
@@ -163,6 +154,6 @@
             Snackbar.ShowSuccess(createResult.DisplayMessage);
         }
 
-        Navigation.NavigateTo("/user/addresses");
+        Navigation.NavigateTo(DoneUrl);
     });
 }

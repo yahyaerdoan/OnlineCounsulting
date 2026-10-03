@@ -2,14 +2,12 @@
    and one CartState instance - with every add-to-cart button on the static-SSR marketing page,
    letting a successful add update the header count without a full page reload. *@
 @implements IDisposable
-@using OnlineConsulting.Maui.Shared.Infrastructure.Api
 @using OnlineConsulting.Maui.Shared.Infrastructure.Commerce
-@inject IApiClient ApiClient
 @inject CartState CartState
 
 @if (IconOnly)
 {
-    <MudBadge Content="@CartState.Count" Color="Color.Primary" Overlap="true" Visible="@(CartState.Count > 0)" Class="@Class">
+    <MudBadge Content="@BadgeText" Color="Color.Error" Overlap="true" Visible="@(CartState.Count > 0)" Class="@($"header-badge {Class}")">
         <MudIconButton Href="/user/cart" Icon="@Icons.Material.Outlined.ShoppingCart" Color="Color.Inherit" aria-label="Cart" />
     </MudBadge>
 }
@@ -25,15 +23,13 @@ else
     [Parameter]
     public string? Class { get; set; }
 
+    private string BadgeText => CartState.Count > 99 ? "99+" : CartState.Count.ToString();
+
     protected override async Task OnInitializedAsync()
     {
         CartState.Changed += OnCartStateChanged;
 
-        await CartState.EnsureLoadedAsync(async () =>
-        {
-            var result = await ApiClient.GetAsync<int>(ApiRoutes.Commerce.Baskets.Count);
-            return result.IsSuccessful ? result.ResultData : 0;
-        });
+        await CartState.EnsureLoadedAsync();
     }
 
     private void OnCartStateChanged() => InvokeAsync(StateHasChanged);

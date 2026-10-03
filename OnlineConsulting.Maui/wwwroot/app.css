@@ -1,7 +1,0 @@
-﻿/* Fixed height (not env(safe-area-inset-top) - too inconsistent across iOS/Android) to push the AppBar below the status bar. */
-.status-bar-safe-area {
-    display: block;
-    height: 24px;
-    background-color: #f7f7f7;
-    width: 100%;
-}

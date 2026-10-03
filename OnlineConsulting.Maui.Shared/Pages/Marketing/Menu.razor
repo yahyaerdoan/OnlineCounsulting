@@ -80,7 +80,8 @@
         <div class="menu-social">
             @foreach (var link in _socialLinks)
             {
-                <a href="@link.Url" target="_blank" rel="noopener" aria-label="@link.Name" class="tone-bubble @AccentTone.At(_socialLinks.IndexOf(link))"><MudIcon Icon="@link.Icon" /></a>
+                <a href="@link.Url" target="_blank" rel="noopener" aria-label="@link.Name" class="@($"tone-bubble social-brand social-brand-filled {SocialBrand.ClassFor(link)}")"
+                   style="@SocialBrand.StyleFor(link)"><MudIcon Icon="@link.Icon" /></a>
             }
         </div>
     }
@@ -88,6 +89,15 @@
     <MudText Typo="Typo.subtitle2" Class="menu-heading">Newsletter</MudText>
     <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-2">Seasonal maintenance tips and offers, straight to your inbox.</MudText>
     <NewsletterForm FormName="menu-newsletter" />
+
+    <a href="/pricing" class="business-promo">
+        <span class="business-promo-icon"><MudIcon Icon="@Icons.Material.Filled.RocketLaunch" /></span>
+        <span class="business-promo-text">
+            <span class="business-promo-eyebrow">For Businesses</span>
+            <span class="business-promo-title">Run a service business? Get your own booking app.</span>
+            <span class="business-promo-cta">See plans and pricing<MudIcon Icon="@Icons.Material.Filled.ArrowForward" Size="Size.Small" /></span>
+        </span>
+    </a>
 
     <AuthorizeView>
         <Authorized>
@@ -97,7 +107,6 @@
     </AuthorizeView>
 
     <div class="menu-fineprint">
-        <a href="/pricing">For businesses</a>
         <span>&copy; @DateTime.UtcNow.Year ComfortPro</span>
     </div>
 </MudContainer>
@@ -108,7 +117,9 @@
     private static readonly MenuTile[] AccountTiles =
     [
         new("Visits", "/user/appointments", Icons.Material.Outlined.CalendarMonth, AccentTone.Blue),
+        new("Notifications", "/notifications", Icons.Material.Outlined.Notifications, AccentTone.Red),
         new("Orders", "/user/orders", Icons.Material.Outlined.ReceiptLong, AccentTone.Orange),
+        new("Invoices", "/user/invoices", Icons.Material.Outlined.RequestQuote, AccentTone.Green),
         new("Membership", "/user/membership", Icons.Material.Outlined.WorkspacePremium, AccentTone.Gold),
         new("Equipment", "/user/equipment", Icons.Material.Outlined.AcUnit, AccentTone.Teal),
         new("Addresses", "/user/addresses", Icons.Material.Outlined.Home, AccentTone.Green),

@@ -15,6 +15,9 @@ public class ServiceFormModel
 
     public decimal Price { get; set; }
 
+    /// <summary>ServiceKinds.Booking (scheduled as a visit) or ServiceKinds.Product (bought through the cart).</summary>
+    public string Kind { get; set; } = ServiceKinds.Booking;
+
     public string PriceType { get; set; } = ServicePriceTypes.Fixed;
 
     public decimal? PriceMax { get; set; }

@@ -1,29 +1,64 @@
-@* Pick a saved address for the Shipping/Billing card on Checkout - a radio list instead of a
-   dropdown so the full address is visible while choosing. *@
+@* Pick a saved address for the Shipping or Billing step on Checkout: one card per address (icon from its name, full address,
+   default badges, a check on the current one). Tapping a card picks it and closes; the last card adds a new address and comes
+   back to checkout. One column on phones, two on wide screens. *@
 @namespace OnlineConsulting.Maui.Shared.Components.User
 
-<MudDialog>
+<MudDialog Class="address-dialog">
     <TitleContent>
-        <MudText Typo="Typo.h6">Select @Title</MudText>
+        <div class="address-dialog-head">
+            <span class="@($"tone-bubble {(IsBilling ? AccentTone.Blue : AccentTone.Green)}")">
+                <MudIcon Icon="@(IsBilling ? Icons.Material.Outlined.Receipt : Icons.Material.Outlined.LocalShipping)" />
+            </span>
+            <span class="address-dialog-title">
+                <MudText Typo="Typo.h6" Class="text-strong">Select @Title</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">Tap an address to use it.</MudText>
+            </span>
+        </div>
     </TitleContent>
     <DialogContent>
-        <MudRadioGroup T="Guid" @bind-Value="_selectedId">
-            @foreach (var address in Addresses)
+        <div class="address-picker address-dialog-list" role="radiogroup" aria-label="@Title">
+            @for (var i = 0; i < Addresses.Count; i++)
             {
-                <MudPaper Outlined="true" Class="pa-3 mb-2 rounded-lg">
-                    <MudRadio T="Guid" Value="@address.Id" Color="Color.Primary">
-                        <MudStack Spacing="0">
-                            <MudText Typo="Typo.body1">@address.AddressName</MudText>
-                            <MudText Typo="Typo.body2" Color="Color.Secondary">@AddressFormat.FullLine(address)</MudText>
-                        </MudStack>
-                    </MudRadio>
-                </MudPaper>
+                var address = Addresses[i];
+                var isChosen = address.Id == SelectedId;
+                <button type="button" role="radio" aria-checked="@(isChosen ? "true" : "false")"
+                        class="@($"address-card {(isChosen ? "selected" : "")}")" @onclick="@(() => Pick(address.Id))">
+                    <span class="@($"tone-bubble {AccentTone.At(i)}")"><MudIcon Icon="@AddressIcons.For(address.AddressName)" /></span>
+                    <span class="address-card-body">
+                        <span class="address-card-name">
+                            @address.AddressName
+                            @if (address.IsShippingAddress)
+                            {
+                                <span class="address-card-badge">Default shipping</span>
+                            }
+                            @if (address.IsBillingAddress)
+                            {
+                                <span class="address-card-badge">Default billing</span>
+                            }
+                        </span>
+                        @if (!string.IsNullOrWhiteSpace(address.CompanyName))
+                        {
+                            <span class="address-card-line">@address.CompanyName</span>
+                        }
+                        <span class="address-card-line">@address.AddressLine</span>
+                        <span class="address-card-line">@address.City, @address.State @address.Zipcode</span>
+                    </span>
+                    <span class="address-card-check" aria-hidden="true">
+                        <MudIcon Icon="@(isChosen ? Icons.Material.Filled.CheckCircle : Icons.Material.Outlined.Circle)" />
+                    </span>
+                </button>
             }
-        </MudRadioGroup>
-        <MudLink Href="/user/addresses/new" Class="d-inline-block mt-2">+ Add Another Address</MudLink>
+            <a href="@AddAddressUrl" class="address-card address-card-add">
+                <span class="tone-bubble tone-blue"><MudIcon Icon="@Icons.Material.Outlined.AddLocationAlt" /></span>
+                <span class="address-card-body">
+                    <span class="address-card-name">Add a new address</span>
+                    <span class="address-card-line">You'll come right back to checkout.</span>
+                </span>
+            </a>
+        </div>
     </DialogContent>
     <DialogActions>
-        <DialogActionButtons OnOk="Select" OkText="Select" />
+        <MudButton Variant="Variant.Text" OnClick="@(() => MudDialog.Cancel())">Cancel</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -32,17 +67,17 @@
     private IMudDialogInstance MudDialog { get; set; } = default!;
 
     [Parameter, EditorRequired]
-    public string Title { get; set; } = default!;
+    public string Title { get; set; } = string.Empty;
 
     [Parameter, EditorRequired]
-    public List<UserAddressResponse> Addresses { get; set; } = default!;
+    public List<UserAddressResponse> Addresses { get; set; } = [];
 
     [Parameter, EditorRequired]
     public Guid SelectedId { get; set; }
 
-    private Guid _selectedId;
+    private bool IsBilling => Title.Contains("Billing", StringComparison.OrdinalIgnoreCase);
 
-    protected override void OnInitialized() => _selectedId = SelectedId;
+    private static string AddAddressUrl => $"/user/addresses/new?returnUrl={Uri.EscapeDataString("/user/checkout")}";
 
-    private void Select() => MudDialog.Close(DialogResult.Ok(_selectedId));
+    private void Pick(Guid id) => MudDialog.Close(DialogResult.Ok(id));
 }

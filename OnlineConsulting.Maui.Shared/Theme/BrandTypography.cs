@@ -2,7 +2,7 @@ using MudBlazor;
 
 namespace OnlineConsulting.Maui.Shared.Theme;
 
-/// <summary>Shared type scale for both themes: one font stack, semibold headings and sentence-case buttons.</summary>
+/// <summary>Shared type scale for both themes: one font stack, semibold headings, no all-caps text.</summary>
 public static class BrandTypography
 {
     public static Typography Create()
@@ -23,6 +23,7 @@ public static class BrandTypography
             H6 = new H6Typography { FontFamily = font, FontWeight = "600" },
             Subtitle1 = new Subtitle1Typography { FontFamily = font, FontWeight = "600" },
             Subtitle2 = new Subtitle2Typography { FontFamily = font, FontWeight = "600" },
+            Overline = new OverlineTypography { FontFamily = font, TextTransform = "none", FontWeight = "600", LetterSpacing = "normal" },
         };
     }
 }

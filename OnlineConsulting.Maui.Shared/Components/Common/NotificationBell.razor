@@ -1,0 +1,120 @@
+@* Bell with the unread count (signed-in users only). Wide screens open a dropdown with the latest notifications; phones
+   go straight to the full /notifications page, the usual mobile pattern. Opening an item marks it read and follows its link. *@
+@implements IDisposable
+@inject NotificationState NotificationState
+@inject IApiClient ApiClient
+@inject NavigationManager Navigation
+
+<AuthorizeView>
+    <Authorized>
+        <span class="notification-bell-phone mobile-only">
+            <MudBadge Content="@BadgeText" Visible="@(NotificationState.UnreadCount > 0)" Color="Color.Error" Overlap="true" Class="header-badge">
+                <MudIconButton Href="/notifications" Icon="@Icons.Material.Outlined.Notifications" Color="Color.Inherit" aria-label="@AriaLabel" />
+            </MudBadge>
+        </span>
+
+        <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" Class="@($"hide-on-phone {Class}")" OpenChanged="OnOpenChangedAsync"
+                 PopoverClass="notification-popover">
+            <ActivatorContent Context="activator">
+                <MudBadge Content="@BadgeText" Visible="@(NotificationState.UnreadCount > 0)" Color="Color.Error" Overlap="true" Class="header-badge">
+                    <MudIconButton Icon="@Icons.Material.Outlined.Notifications" Color="Color.Inherit" aria-label="@AriaLabel" OnClick="activator.ToggleAsync" />
+                </MudBadge>
+            </ActivatorContent>
+            <ChildContent>
+                <div class="notification-panel" @onclick:stopPropagation="true">
+                    <div class="notification-panel-header">
+                        <MudText Typo="Typo.subtitle1" Class="text-strong">Notifications</MudText>
+                        @if (NotificationState.UnreadCount > 0)
+                        {
+                            <MudButton Variant="Variant.Text" Color="Color.Primary" Size="Size.Small" OnClick="MarkAllReadAsync">Mark all read</MudButton>
+                        }
+                    </div>
+                    @if (_loading)
+                    {
+                        <div class="pa-3"><MudProgressLinear Indeterminate="true" Color="Color.Primary" /></div>
+                    }
+                    else if (_latest.Count == 0)
+                    {
+                        <div class="notification-empty">
+                            <MudIcon Icon="@Icons.Material.Outlined.NotificationsNone" />
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">You're all caught up.</MudText>
+                        </div>
+                    }
+                    else
+                    {
+                        @foreach (var notification in _latest)
+                        {
+                            <NotificationItem Notification="@notification" OnOpen="OpenAsync" />
+                        }
+                    }
+                    <a href="/notifications" class="notification-panel-footer">See all notifications</a>
+                </div>
+            </ChildContent>
+        </MudMenu>
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    private const int LatestCount = 8;
+
+    private List<UserNotificationResponse> _latest = [];
+    private bool _loading;
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    [CascadingParameter]
+    private Task<AuthenticationState>? AuthState { get; set; }
+
+    private string BadgeText => NotificationState.UnreadCount > 99 ? "99+" : NotificationState.UnreadCount.ToString();
+
+    private string AriaLabel => NotificationState.UnreadCount > 0 ? $"Notifications, {NotificationState.UnreadCount} unread" : "Notifications";
+
+    protected override async Task OnInitializedAsync()
+    {
+        NotificationState.Changed += OnStateChanged;
+        await NotificationState.EnsureLoadedAsync();
+    }
+
+    private async Task OnOpenChangedAsync(bool open)
+    {
+        if (!open)
+        {
+            return;
+        }
+
+        _loading = true;
+        var result = await ApiClient.GetAsync<PaginatedResponse<UserNotificationResponse>>(ApiRoutes.Paged(ApiRoutes.Notifications.Base, 0, LatestCount));
+        _latest = result.IsSuccessful ? result.ResultData?.Items ?? [] : [];
+        _loading = false;
+    }
+
+    private async Task OpenAsync(UserNotificationResponse notification)
+    {
+        if (!notification.IsRead)
+        {
+            _ = await ApiClient.PostAsync(ApiRoutes.Notifications.Read(notification.Id), null);
+            NotificationState.SetCount(NotificationState.UnreadCount - 1);
+            _latest = [.. _latest.Select(n => n.Id == notification.Id ? n with { IsRead = true } : n)];
+        }
+
+        if (AuthState is not null && NotificationState.LinkFor(notification, (await AuthState).User) is { } link)
+        {
+            Navigation.NavigateTo(link);
+        }
+    }
+
+    private async Task MarkAllReadAsync()
+    {
+        var result = await ApiClient.PostAsync(ApiRoutes.Notifications.ReadAll, null);
+        if (result.IsSuccessful)
+        {
+            NotificationState.SetCount(0);
+            _latest = [.. _latest.Select(n => n with { IsRead = true })];
+        }
+    }
+
+    private void OnStateChanged() => _ = InvokeAsync(StateHasChanged);
+
+    public void Dispose() => NotificationState.Changed -= OnStateChanged;
+}

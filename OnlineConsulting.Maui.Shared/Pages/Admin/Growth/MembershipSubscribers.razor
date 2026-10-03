@@ -1,3 +1,5 @@
+@* Who is enrolled in which plan: member, plan and price, state (including "ends on" for pending cancellations), dates and actions.
+   Tabs narrow by state; search matches member name or email, plan or status on the server. A pending cancellation can be undone here. *@
 @page "/admin/growth/membership-subscribers"
 @attribute [Authorize(Roles = "Admin,Super Admin,Member")]
 @inject NavigationManager Navigation
@@ -14,43 +16,134 @@
     </ActionContent>
 </PageHeroBanner>
 
-<ApiErrorAlert Message="@_subscriberLoadError" Severity="Severity.Warning" />
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
 
-<ServerDataTable TItem="CustomerMembershipResponse" @ref="_subscriberTable" ApiBasePath="@ApiRoutes.Growth.CustomerMemberships.All"
-                 SearchPlaceholder="Search status" OnLoadError="@(message => _subscriberLoadError = message)">
+<ListFilterTabs Options="ViewTabs" Selected="@_view" SelectedChanged="OnViewChanged" Label="Filter by membership state" />
+
+<ServerDataTable TItem="CustomerMembershipResponse" @ref="_table" ApiBasePath="@ApiRoutes.Growth.CustomerMemberships.All" ServerSearch="true"
+                 ExtraQuery="ViewQuery" SearchPlaceholder="Search member, email or plan" OnLoadError="@(message => _loadError = message)">
     <HeaderContent>
-        <MudTh><MudTableSortLabel SortLabel="@nameof(CustomerMembershipResponse.StartDate)" T="CustomerMembershipResponse">Started</MudTableSortLabel></MudTh>
+        <MudTh>Member</MudTh>
+        <MudTh>Plan</MudTh>
         <MudTh>Status</MudTh>
-        <MudTh>Renews</MudTh>
-        <MudTh>Actions</MudTh>
+        <MudTh><MudTableSortLabel SortLabel="@nameof(CustomerMembershipResponse.StartDate)" T="CustomerMembershipResponse">Member Since</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortLabel="@nameof(CustomerMembershipResponse.RenewalDate)" T="CustomerMembershipResponse">Renews / Ends</MudTableSortLabel></MudTh>
+        <MudTh Class="cell-actions">Actions</MudTh>
     </HeaderContent>
-    <RowTemplate Context="subscription">
-        <MudTd DataLabel="Started">@DateTimeFormat.FormatDateTime(subscription.StartDate)</MudTd>
-        <MudTd DataLabel="Status">@subscription.Status</MudTd>
-        <MudTd DataLabel="Renews">@(subscription.RenewalDate is { } renewal ? DateTimeFormat.FormatDateTime(renewal) : "-")</MudTd>
-        <MudTd DataLabel="Actions">
-            <MudIconButton Icon="@Icons.Material.Outlined.Cancel" Color="Color.Error" Size="Size.Small" title="Cancel"
-                           Disabled="@(subscription.Status == "Cancelled")" OnClick="@(() => CancelAsync(subscription))" />
+    <RowTemplate Context="membership">
+        <MudTd Class="cell-primary">
+            <PersonCell Name="@(membership.MemberName ?? "Deleted user")" Secondary="@membership.MemberEmail" />
+        </MudTd>
+        <MudTd DataLabel="Plan">
+            <span class="cell-stack">
+                <span class="cell-strong">@(membership.PlanName ?? "Unknown plan")</span>
+                @if (membership.PlanPrice is { } price)
+                {
+                    <span class="cell-muted">@CurrencyFormat.Format(price)@CycleSuffix(membership.PlanBillingCycle)</span>
+                }
+            </span>
+        </MudTd>
+        <MudTd DataLabel="Status"><StatusBadge Label="@StatusLabel(membership)" Kind="@StatusKind(membership)" /></MudTd>
+        <MudTd DataLabel="Member Since">@DateTimeFormat.FormatDate(membership.StartDate)</MudTd>
+        <MudTd DataLabel="@(membership.IsEnding || membership.Status == "Cancelled" ? "Ends" : "Renews")">
+            @(membership.RenewalDate is { } renewal ? DateTimeFormat.FormatDate(renewal) : "-")
+        </MudTd>
+        <MudTd DataLabel="Actions" Class="cell-actions">
+            @if (membership.IsEnding)
+            {
+                <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Success" StartIcon="@Icons.Material.Outlined.Replay"
+                           OnClick="@(() => ReactivateAsync(membership))">Keep active</MudButton>
+            }
+            <MudTooltip Text="Cancel now">
+                <MudIconButton Icon="@Icons.Material.Outlined.Cancel" Color="Color.Error" Size="Size.Small" aria-label="Cancel now"
+                               Disabled="@(membership.Status == "Cancelled")" OnClick="@(() => CancelAsync(membership))" />
+            </MudTooltip>
         </MudTd>
     </RowTemplate>
+    <NoRecordsContent>
+        <MudText Color="Color.Secondary">No memberships match this view.</MudText>
+    </NoRecordsContent>
 </ServerDataTable>
 
 @code {
-    private ServerDataTable<CustomerMembershipResponse> _subscriberTable = default!;
-    private string? _subscriberLoadError;
+    private static readonly List<ListFilterOption> ViewTabs =
+    [
+        new(string.Empty, "All", Icons.Material.Outlined.WorkspacePremium),
+        new("Active", "Active"),
+        new("Ending", "Ending soon"),
+        new("NeedsAttention", "Needs attention"),
+        new("Paused", "Paused"),
+        new("Cancelled", "Cancelled"),
+    ];
 
-    private async Task CancelAsync(CustomerMembershipResponse subscription)
+    private ServerDataTable<CustomerMembershipResponse>? _table;
+    private string? _loadError;
+    private string _view = string.Empty;
+
+    private string? ViewQuery() => _view.Length == 0 ? null : $"&view={Uri.EscapeDataString(_view)}";
+
+    private async Task OnViewChanged(string view)
     {
-        var confirmed = await DialogService.ConfirmAsync(
-            "Cancel Membership",
-            "Cancel this customer's membership immediately? This cannot be undone.");
+        _view = view;
+        await ReloadAsync(refilter: true);
+    }
 
-        if (!confirmed)
+    private Task ReloadAsync(bool refilter = false) =>
+        _table is null ? Task.CompletedTask : refilter ? _table.RefilterAsync() : _table.ReloadAsync();
+
+    private static string CycleSuffix(string? cycle) => cycle switch
+    {
+        "Monthly" => "/mo",
+        "Annual" => "/yr",
+        _ => string.Empty,
+    };
+
+    private static string StatusLabel(CustomerMembershipResponse membership) => membership switch
+    {
+        { IsEnding: true } => "Ending",
+        { Status: "Active", TrialEndDate: { } trialEnd } when trialEnd > DateTimeOffset.UtcNow => "Free trial",
+        { Status: "PastDue" } => "Payment due",
+        { Status: "PendingPayment" } => "Pending payment",
+        { Status: "Failed" } => "Setup failed",
+        _ => membership.Status,
+    };
+
+    private static string StatusKind(CustomerMembershipResponse membership) => membership switch
+    {
+        { IsEnding: true } => StatusKinds.Warning,
+        { Status: "Active", TrialEndDate: { } trialEnd } when trialEnd > DateTimeOffset.UtcNow => StatusKinds.Info,
+        { Status: "Active" } => StatusKinds.Success,
+        { Status: "Paused" } => StatusKinds.Info,
+        { Status: "PastDue" or "Failed" } => StatusKinds.Danger,
+        { Status: "PendingPayment" } => StatusKinds.Warning,
+        _ => StatusKinds.Neutral,
+    };
+
+    private async Task ReactivateAsync(CustomerMembershipResponse membership)
+    {
+        var who = membership.MemberName ?? "this customer";
+        if (!await DialogService.ConfirmAsync("Keep Membership Active", $"Undo {who}'s cancellation? The membership will renew as usual on its next billing date."))
         {
             return;
         }
 
-        var result = await ApiClient.PostAsync(ApiRoutes.Growth.CustomerMemberships.AdminCancel(subscription.Id), new { });
+        await RunAsync(ApiRoutes.Growth.CustomerMemberships.AdminReactivate(membership.Id));
+    }
+
+    private async Task CancelAsync(CustomerMembershipResponse membership)
+    {
+        var who = membership.MemberName ?? "this customer";
+        if (!await DialogService.ConfirmAsync("Cancel Membership", $"Cancel {who}'s membership immediately? Billing stops now and this can't be undone; they would need to subscribe again."))
+        {
+            return;
+        }
+
+        await RunAsync(ApiRoutes.Growth.CustomerMemberships.AdminCancel(membership.Id));
+    }
+
+    private async Task RunAsync(string route)
+    {
+        var result = await ApiClient.PostAsync(route, new { });
         if (!result.IsSuccessful)
         {
             Snackbar.ShowError(result.DisplayMessage);
@@ -58,6 +151,6 @@
         }
 
         Snackbar.ShowSuccess(result.DisplayMessage);
-        await _subscriberTable.ReloadAsync();
+        await ReloadAsync();
     }
 }

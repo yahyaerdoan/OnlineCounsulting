@@ -15,4 +15,7 @@ public static class AccentTone
     private static readonly string[] Rotation = [Blue, Green, Orange, Teal, Berry, Gold, Cornflower, Red];
 
     public static string At(int index) => Rotation[Math.Abs(index) % Rotation.Length];
+
+    /// <summary>A stable tone per id (e.g. a category), so the same category keeps its color on every page.</summary>
+    public static string For(Guid id) => At(id.GetHashCode());
 }

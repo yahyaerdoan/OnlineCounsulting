@@ -29,17 +29,19 @@ else
             <MudTh>Day</MudTh>
             <MudTh>Start</MudTh>
             <MudTh>End</MudTh>
-            <MudTh>Slot length</MudTh>
+            <MudTh>Slot Length</MudTh>
             <MudTh>Actions</MudTh>
         </HeaderContent>
         <RowTemplate Context="rule">
-            <MudTd DataLabel="Day">@rule.DayOfWeek</MudTd>
+            <MudTd DataLabel="Day" Class="cell-primary">@rule.DayOfWeek</MudTd>
             <MudTd DataLabel="Start">@DateTimeFormat.FormatTime(rule.StartTime)</MudTd>
             <MudTd DataLabel="End">@DateTimeFormat.FormatTime(rule.EndTime)</MudTd>
-            <MudTd DataLabel="Slot length">@rule.SlotDurationMinutes min</MudTd>
+            <MudTd DataLabel="Slot Length">@rule.SlotDurationMinutes min</MudTd>
             <MudTd DataLabel="Actions">
-                <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" Size="Size.Small" title="Delete"
-                               OnClick="@(() => DeleteAsync(rule))" />
+                <MudTooltip Text="Delete">
+                    <MudIconButton aria-label="Delete" Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" Size="Size.Small"
+                                   OnClick="@(() => DeleteAsync(rule))" />
+                </MudTooltip>
             </MudTd>
         </RowTemplate>
         <NoRecordsContent>
