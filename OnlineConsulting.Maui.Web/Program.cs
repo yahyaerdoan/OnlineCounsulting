@@ -57,6 +57,11 @@ builder.Services.AddScoped<IAuthSession, WebAuthSession>();
 builder.Services.AddScoped<CookiePrincipalRefresher>();
 
 var apiBaseUrl = builder.Configuration["Api:BaseUrl"] ?? "https+http://api";
+if (Uri.TryCreate(builder.Configuration["Api:PublicBaseUrl"], UriKind.Absolute, out var publicApiUrl))
+{
+    builder.Services.AddSingleton(new PublicApiOrigin(publicApiUrl));
+}
+
 builder.Services.AddHttpClient(ApiHttpClientNames.Anonymous, client => client.BaseAddress = new Uri(apiBaseUrl));
 builder.Services.AddTransient<GuestIdHandler>();
 builder.Services.AddHttpClient<IApiClient, ApiClient>(client => client.BaseAddress = new Uri(apiBaseUrl))

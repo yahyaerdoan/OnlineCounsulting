@@ -64,6 +64,20 @@ public static class SiteContentModule
         _ = services.AddScoped<IServiceOfferingRepository, ServiceOfferingRepository>();
         _ = services.AddScoped<ISocialLinkRepository, SocialLinkRepository>();
         _ = services.AddScoped<IServiceAreaRepository, ServiceAreaRepository>();
+        _ = services.AddMemoryCache();
+        _ = services.AddHttpClient(Geocoding.CityGeocoder.GeoapifyClient, client =>
+        {
+            client.BaseAddress = new Uri("https://api.geoapify.com/");
+            client.Timeout = TimeSpan.FromSeconds(8);
+        });
+        _ = services.AddHttpClient(Geocoding.CityGeocoder.NominatimClient, client =>
+        {
+            client.BaseAddress = new Uri("https://nominatim.openstreetmap.org/");
+            client.Timeout = TimeSpan.FromSeconds(8);
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("ComfortPro-ServiceAreas/1.0 (+https://comfortpro.example)");
+        });
+        _ = services.AddScoped<ICityGeocoder, Geocoding.CityGeocoder>();
+        _ = services.AddHostedService<Geocoding.ServiceAreaCoordinatesBackfill>();
         _ = services.AddScoped<IFaqItemRepository, FaqItemRepository>();
         _ = services.AddScoped<IPromotionRepository, PromotionRepository>();
 

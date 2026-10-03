@@ -23,15 +23,19 @@
         <MudTh>Actions</MudTh>
     </HeaderContent>
     <RowTemplate Context="role">
-        <MudTd DataLabel="Name">@role.Name</MudTd>
+        <MudTd DataLabel="Name" Class="cell-primary">@role.Name</MudTd>
         <MudTd DataLabel="Description">@role.Description</MudTd>
         <MudTd DataLabel="Actions">
             <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
-                <MudIconButton Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" title="Edit"
-                               OnClick="@(() => EditAsync(role))" />
+                <MudTooltip Text="Edit">
+                    <MudIconButton aria-label="Edit" Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default"
+                                   OnClick="@(() => EditAsync(role))" />
+                </MudTooltip>
 
-                <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" title="Delete"
-                               OnClick="@(() => DeleteAsync(role))" />
+                <MudTooltip Text="Delete">
+                    <MudIconButton aria-label="Delete" Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error"
+                                   OnClick="@(() => DeleteAsync(role))" />
+                </MudTooltip>
             </MudButtonGroup>
         </MudTd>
     </RowTemplate>

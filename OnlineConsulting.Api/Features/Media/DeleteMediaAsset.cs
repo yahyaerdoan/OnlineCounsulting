@@ -1,6 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
-using OnlineConsulting.Modules.Media.Application.Features.DeleteMediaAsset;
+using OnlineConsulting.Modules.Media.Application.Features.MediaAssets.DeleteMediaAsset;
 using ResultHandler.AspNetCore.Extensions;
 
 namespace OnlineConsulting.Api.Features.Media;

@@ -97,6 +97,14 @@ public class PayPalSubscriptionGateway(IHttpClientFactory httpClientFactory, IOp
     }
 
     /// <summary>atPeriodEnd is ignored - PayPal has no deferred-cancellation concept, so this always cancels immediately.</summary>
+    /// <summary>PayPal emails its own payment receipts, so there's no invoice document to relay.</summary>
+    public Task<SubscriptionInvoice?> GetLatestInvoiceAsync(string providerSubscriptionId, CancellationToken cancellationToken = default) =>
+        Task.FromResult<SubscriptionInvoice?>(null);
+
+    /// <summary>PayPal has no refund-by-customer call in the Subscriptions API, so this only cancels; the first payment is refunded from the PayPal dashboard.</summary>
+    public async Task CancelAndRefundAsync(string providerCustomerId, string providerSubscriptionId, CancellationToken cancellationToken = default) =>
+        _ = await CancelSubscriptionAsync(providerSubscriptionId, cancellationToken: cancellationToken);
+
     public async Task<SubscriptionResult> CancelSubscriptionAsync(string providerSubscriptionId, bool atPeriodEnd = false, CancellationToken cancellationToken = default)
     {
         var accessToken = await GetAccessTokenAsync(cancellationToken);
@@ -150,6 +158,9 @@ public class PayPalSubscriptionGateway(IHttpClientFactory httpClientFactory, IOp
     }
 
     /// <summary>PayPal has no in-place plan-change endpoint - would require cancel-and-recreate, out of scope while PayPal isn't the active provider.</summary>
+    public Task<SubscriptionResult> ReactivateSubscriptionAsync(string providerSubscriptionId, CancellationToken cancellationToken = default) =>
+        throw new NotSupportedException("PayPal cancels subscriptions immediately, so there is no pending cancellation to undo.");
+
     public Task<SubscriptionResult> UpdateSubscriptionPriceAsync(string providerSubscriptionId, string newProviderPriceId, CancellationToken cancellationToken = default) =>
         throw new NotSupportedException("PayPal subscriptions do not support in-place plan changes.");
 

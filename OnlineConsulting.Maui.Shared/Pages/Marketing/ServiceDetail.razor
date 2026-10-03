@@ -1,10 +1,13 @@
 @* Public service detail - eduhas's shop/product-details rows folded together: gallery, description,
-   price, add-to-cart, plus a related-services grid pulled from the same category. Static SSR. *@
+   price, add-to-cart, plus a related-services grid pulled from the same category. Static SSR. Phones get a
+   ratio-sized image, a sticky bar above the tab bar with the service's action (Add to cart for products, Book a visit
+   for bookable services) and a swipeable related-services rail. *@
 @page "/services/{Slug}"
 @layout OnlineConsulting.Maui.Shared.Layout.MarketingLayout
 @using Microsoft.AspNetCore.Http
 @using OnlineConsulting.Maui.Shared.Components.Marketing
 @inject IApiClient ApiClient
+@inject IJSRuntime JsRuntime
 
 <PageTitle>@(_service?.Title ?? "Service")</PageTitle>
 
@@ -21,14 +24,14 @@
 
         @if (_service is not null)
         {
-            <MudGrid>
+            <MudGrid Class="service-detail-grid">
                 <MudItem xs="12" md="6">
                     @if (_galleryUrls.Count > 0)
                     {
                         <MudImage id="service-gallery-main" Src="@_galleryUrls[0]" ObjectFit="ObjectFit.Cover" Height="360" Class="rounded mb-2 service-detail-image" />
                         @if (_galleryUrls.Count > 1)
                         {
-                            <MudGrid Spacing="1">
+                            <MudGrid Spacing="1" Class="service-gallery-strip">
                                 @foreach (var url in _galleryUrls.Skip(1))
                                 {
                                     <MudItem xs="4">
@@ -49,7 +52,7 @@
                         <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Text">@_categoryTitle</MudChip>
                     }
 
-                    <MudText Typo="Typo.h4" Class="mb-2">@_service.Title</MudText>
+                    <MudText Typo="Typo.h4" Class="mb-2 service-detail-title">@_service.Title</MudText>
                     <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-4">@_service.Description</MudText>
 
                     @if (_service.DiscountRate > 0)
@@ -64,15 +67,11 @@
                         <MudText Typo="Typo.h5" Color="Color.Primary" Class="mb-4">@FormattedPrice(_service)</MudText>
                     }
 
-                    @if (_service.PriceType == ServicePriceTypes.Fixed)
-                    {
-                        <AddToCartForm ServiceId="@_service.Id" Price="@_service.DiscountedPrice" TaxRate="@_service.TaxRate" />
-                    }
-                    else
-                    {
+                    <div class="hide-on-phone service-detail-actions">
+                        <ServicePrimaryAction ServiceId="@_service.Id" Kind="@_service.Kind" BookText="Book a visit" ShowIcon="true" />
                         @* Label, not <a href="#...">, so enhanced nav doesn't hijack the fragment. *@
-                        <label for="service-tab-ask" class="header-book-now-btn service-quote-cta">Get a Quote</label>
-                    }
+                        <label for="service-tab-ask" class="service-detail-ask">Have a question? Ask us</label>
+                    </div>
                 </MudItem>
             </MudGrid>
 
@@ -83,8 +82,8 @@
                 <input type="radio" name="service-tabs" id="service-tab-ask" class="marketing-tabs-radio" />
 
                 <div class="marketing-tabs-nav d-flex gap-2 mb-5">
-                    <label for="service-tab-details" class="marketing-tabs-btn">Detailed Descriptions</label>
-                    <label for="service-tab-ask" class="marketing-tabs-btn">Ask Your Questions</label>
+                    <label for="service-tab-details" class="marketing-tabs-btn">Details</label>
+                    <label for="service-tab-ask" class="marketing-tabs-btn">Ask a question</label>
                 </div>
 
                 <div class="marketing-tabs-panel" id="service-panel-details">
@@ -105,8 +104,16 @@
 
             @if (_relatedServices.Count > 0)
             {
-                <MudText Typo="Typo.h5" Class="mt-10 mb-4">Related Services</MudText>
-                <MudGrid>
+                <MudText Typo="Typo.h5" Class="mt-10 mb-4 service-detail-related-heading">Related Services</MudText>
+                <div class="service-rail service-detail-related-rail mobile-only" role="list">
+                    @foreach (var related in _relatedServices)
+                    {
+                        <div role="listitem" class="service-rail-item">
+                            <ServiceRailCard Service="@related" ImageUrl="@_relatedImageUrls.GetValueOrDefault(related.Id)" />
+                        </div>
+                    }
+                </div>
+                <MudGrid Class="hide-on-phone">
                     @foreach (var related in _relatedServices)
                     {
                         <MudItem xs="12" sm="6" md="4">
@@ -117,6 +124,12 @@
                     }
                 </MudGrid>
             }
+
+            <div class="service-detail-mobile-bar mobile-only">
+                <div class="service-detail-mobile-book">
+                    <ServicePrimaryAction ServiceId="@_service.Id" Kind="@_service.Kind" BookText="Book a visit" ShowIcon="true" FullWidth="true" Class="service-detail-bar-button" />
+                </div>
+            </div>
         }
     }
 </MudContainer>
@@ -133,9 +146,29 @@
     private string? _categoryTitle;
     private string? _loadError;
     private bool _notFound;
+    private string? _loadedSlug;
+    private bool _scrollToTop;
 
-    protected override async Task OnInitializedAsync()
+    /// <summary>Loads on every slug change, not just the first render: with interactive routing a related-service link keeps this
+    /// page mounted and only swaps its Slug, so loading in OnInitializedAsync alone left the previous service on screen.</summary>
+    protected override async Task OnParametersSetAsync()
     {
+        if (Slug == _loadedSlug)
+        {
+            return;
+        }
+
+        _scrollToTop = _loadedSlug is not null;
+        _loadedSlug = Slug;
+        _service = null;
+        _relatedServices = [];
+        _relatedImageUrls = [];
+        _galleryUrls = [];
+        _coverUrl = null;
+        _categoryTitle = null;
+        _loadError = null;
+        _notFound = false;
+
         var result = await ApiClient.GetAsync<ServiceDetailResponse>(ApiRoutes.Services.BySlug(Slug));
         if (!result.IsSuccessful || result.ResultData is null)
         {
@@ -169,6 +202,15 @@
         }
 
         await LoadRelatedServicesAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_scrollToTop && _service is not null)
+        {
+            _scrollToTop = false;
+            await JsRuntime.InvokeVoidAsync("window.scrollTo", 0, 0);
+        }
     }
 
     private async Task LoadRelatedServicesAsync()

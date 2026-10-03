@@ -9,6 +9,12 @@ using OnlineConsulting.Modules.Commerce.Application.Common.Templates;
 using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.Abstractions;
 using OnlineConsulting.Modules.Commerce.Application.Features.Baskets.Abstractions;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Abstractions;
+using OnlineConsulting.Modules.Commerce.Application.Features.Orders;
+using OnlineConsulting.Modules.Commerce.Application.Features.Invoices;
+using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.Abstractions;
+using OnlineConsulting.Modules.Commerce.Infrastructure.Addresses;
+using OnlineConsulting.Modules.Commerce.Infrastructure.Invoices;
+using OnlineConsulting.Modules.Commerce.Infrastructure.LiveUpdates;
 using OnlineConsulting.Modules.Commerce.Infrastructure.Cleanup;
 using OnlineConsulting.Modules.Commerce.Infrastructure.Notifications;
 using OnlineConsulting.Modules.Commerce.Infrastructure.Persistence;
@@ -16,6 +22,8 @@ using OnlineConsulting.Modules.Commerce.Infrastructure.Pipelines;
 using OnlineConsulting.Modules.Commerce.Infrastructure.Repositories;
 using OnlineConsulting.SharedKernel.Auditing;
 using OnlineConsulting.SharedKernel.Authorization;
+using OnlineConsulting.SharedKernel.Billing;
+using OnlineConsulting.SharedKernel.LiveUpdates;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
 using OnlineConsulting.SharedKernel.Tenancy;
@@ -31,10 +39,20 @@ public static class CommerceModule
         _ = services.AddScoped<TenantSaveChangesInterceptor>();
         _ = services.AddScoped<AuditSaveChangesInterceptor>();
 
+        _ = services.AddUserDataChangeRules(CommerceUserDataChangeRules.Configure);
         _ = services.AddDbContext<CommerceDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
-            .AddInterceptors(serviceProvider.GetRequiredService<TenantSaveChangesInterceptor>(), serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>()));
+            .AddInterceptors(serviceProvider.GetRequiredService<TenantSaveChangesInterceptor>(), serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>())
+            .AddUserDataChangeInterceptors(serviceProvider));
 
         _ = services.AddScoped<IUserAddressRepository, UserAddressRepository>();
+        _ = services.Configure<GeoapifyOptions>(configuration.GetSection(GeoapifyOptions.SectionName));
+        _ = services.AddMemoryCache();
+        _ = services.AddHttpClient(GeoapifyAddressSuggestionProvider.HttpClientName, client =>
+        {
+            client.BaseAddress = new Uri("https://api.geoapify.com/");
+            client.Timeout = TimeSpan.FromSeconds(5);
+        });
+        _ = services.AddScoped<IAddressSuggestionProvider, GeoapifyAddressSuggestionProvider>();
         _ = services.AddScoped<IBasketRepository, BasketRepository>();
         _ = services.AddScoped<IBasketItemRepository, BasketItemRepository>();
         _ = services.AddScoped<IOrderRepository, OrderRepository>();
@@ -43,6 +61,19 @@ public static class CommerceModule
         _ = services.AddScoped<IEmailTemplate<OrderConfirmationEmailModel>, OrderConfirmationTemplate>();
         _ = services.AddScoped<IEmailTemplate<OrderPaymentFailedEmailModel>, OrderPaymentFailedTemplate>();
         _ = services.AddScoped<IEmailTemplate<OrderAbandonedEmailModel>, OrderAbandonedTemplate>();
+        _ = services.AddScoped<IEmailTemplate<OrderRefundedEmailModel>, OrderRefundedTemplate>();
+        _ = services.AddScoped<IOrderNotifier, OrderNotifier>();
+        _ = services.AddScoped<IOrderFulfillment, OrderFulfillment>();
+        _ = services.AddScoped<IEmailTemplate<InvoiceEmailModel>, InvoiceEmailTemplate>();
+        _ = services.AddScoped<IInvoiceRepository, InvoiceRepository>();
+        _ = services.AddScoped<IInvoiceLineRepository, InvoiceLineRepository>();
+        _ = services.AddScoped<InvoiceService>();
+        _ = services.AddScoped<IInvoiceService>(sp => sp.GetRequiredService<InvoiceService>());
+        _ = services.AddScoped<IServiceInvoiceIssuer>(sp => sp.GetRequiredService<InvoiceService>());
+        _ = services.AddSingleton<IInvoicePdfRenderer, MigraDocInvoicePdfRenderer>();
+        var business = configuration.GetSection(InvoiceBusinessInfo.SectionName).Get<InvoiceBusinessInfo>() ?? new InvoiceBusinessInfo();
+        business.ClientOrigin = string.IsNullOrWhiteSpace(business.ClientOrigin) ? configuration["Auth:ClientOrigin"] : business.ClientOrigin;
+        _ = services.AddSingleton(business);
 
         _ = services.Configure<PendingOrderCleanupOptions>(configuration.GetSection("Commerce:PendingOrderCleanup"));
         _ = services.AddHostedService<PendingOrderCleanupService>();

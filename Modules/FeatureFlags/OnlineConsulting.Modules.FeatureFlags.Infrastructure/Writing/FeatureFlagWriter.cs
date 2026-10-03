@@ -1,4 +1,4 @@
-﻿using OnlineConsulting.Modules.FeatureFlags.Application.Features.SetFeatureFlag;
+﻿using OnlineConsulting.Modules.FeatureFlags.Application.Features.FeatureFlags;
 using OnlineConsulting.SharedKernel.FeatureFlags;
 using OnlineConsulting.SharedKernel.Tenancy;
 

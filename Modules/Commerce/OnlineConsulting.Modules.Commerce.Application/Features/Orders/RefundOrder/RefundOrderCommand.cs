@@ -8,7 +8,7 @@ using OnlineConsulting.SharedKernel.Payments;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
-using OrderPaymentStatuses = OnlineConsulting.Modules.Commerce.Application.Features.Orders.Contracts.PaymentStatuses;
+using OrderPaymentStatuses = OnlineConsulting.Modules.Commerce.Application.Features.Orders.Constants.PaymentStatuses;
 
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Orders.RefundOrder;
 
@@ -19,7 +19,8 @@ public record RefundOrderCommand(Guid OrderId, decimal? Amount = null) : IReques
     public string[] Roles => [CommerceOperationClaims.Admin, CommerceOperationClaims.Write, GlobalOperationClaims.SuperAdmin];
 }
 
-public class RefundOrderHandler(IOrderRepository orderRepository, IServiceProvider serviceProvider) : IRequestHandler<RefundOrderCommand, OperationResult>
+/// <summary>Also emails and notifies the customer that the refund is on its way.</summary>
+public class RefundOrderHandler(IOrderRepository orderRepository, IServiceProvider serviceProvider, IOrderNotifier notifier) : IRequestHandler<RefundOrderCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(RefundOrderCommand request, CancellationToken cancellationToken)
     {
@@ -58,6 +59,8 @@ public class RefundOrderHandler(IOrderRepository orderRepository, IServiceProvid
         order.PaymentStatus = OrderPaymentStatuses.Refunded;
 
         _ = await orderRepository.UpdateAsync(order);
+
+        await notifier.RefundedAsync(order, request.Amount, cancellationToken);
 
         return Result.Success("Order refunded successfully.");
     }

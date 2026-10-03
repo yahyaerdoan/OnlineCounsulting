@@ -1,73 +1,164 @@
-@* Membership landing page - hero, plans, testimonials, FAQ, CTA repeated top and bottom. Static SSR, same shape as Services.razor. *@
+﻿@* Membership sales page: value proposition, benefits, plans (billing toggle when both cycles exist, the signed-in member's
+   own plan marked), member vs pay-as-you-go comparison, how it works, testimonials, FAQs and a closing call to action.
+   Every number shown comes from the plans themselves. *@
 @page "/membership"
 @layout OnlineConsulting.Maui.Shared.Layout.MarketingLayout
 @using OnlineConsulting.Maui.Shared.Components.Marketing
 @inject IApiClient ApiClient
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IJSRuntime JsRuntime
 
 <PageTitle>Membership</PageTitle>
 
-<MarketingPageBanner Title="Membership Plans" SubPage="Membership" />
+<section class="sales-intro">
+    <MudContainer MaxWidth="MaxWidth.Medium">
+        <MudText Typo="Typo.subtitle2" Color="Color.Primary" Align="Align.Center" Class="text-strong">ComfortPro Membership</MudText>
+        <MudText Typo="Typo.h3" Align="Align.Center" Class="marketing-display text-strong mt-1">Worry-free comfort, all year round</MudText>
+        <MudText Typo="Typo.body1" Color="Color.Secondary" Align="Align.Center" Class="mt-3 sales-intro-lead">
+            Your heating and cooling looked after by the same team, every season: included tune-ups, priority booking
+            @(MaxDiscount > 0 ? $"and {MaxDiscount:0.##}% off every repair" : "and member-only pricing"). Fewer surprises, lower bills.
+        </MudText>
+        <div class="sales-intro-actions">
+            <MudButton OnClick="@(() => ScrollToAsync("plans"))" Variant="Variant.Filled" Size="Size.Large" EndIcon="@Icons.Material.Filled.ArrowDownward" Class="sell-btn">See plans</MudButton>
+            <MudButton OnClick="@(() => ScrollToAsync("benefits"))" Variant="Variant.Filled" Size="Size.Large" StartIcon="@Icons.Material.Outlined.AutoAwesome" Class="sell-btn-soft">Why join?</MudButton>
+        </div>
+        <div class="sales-trust">
+            @foreach (var (icon, label) in TrustPoints)
+            {
+                <span class="sales-trust-item"><MudIcon Icon="@icon" Size="Size.Small" />@label</span>
+            }
+        </div>
+    </MudContainer>
+</section>
 
-<MudContainer MaxWidth="MaxWidth.Medium" Class="marketing-section-tight">
-    <MudText Typo="Typo.subtitle1" Color="Color.Primary" Align="Align.Center" Class="text-strong">Join the family</MudText>
-    <MudText Typo="Typo.h4" Align="Align.Center" Class="marketing-display text-strong mb-2">Priority service, every time - for less</MudText>
-    <MudText Typo="Typo.body1" Color="Color.Secondary" Align="Align.Center" Class="marketing-section-intro-text mb-4">
-        Members get included visits, discounted rates on every job, and front-of-line scheduling - no surprises, cancel anytime.
-    </MudText>
-    <div class="d-flex justify-center">
-        <MudButton Href="#plans" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large">View Plans</MudButton>
+<MudContainer id="benefits" MaxWidth="MaxWidth.Large" Class="marketing-section-tight section-anchor">
+    <MudText Typo="Typo.h5" Align="Align.Center" Class="marketing-display text-strong">What members get</MudText>
+    <MudText Typo="Typo.body2" Color="Color.Secondary" Align="Align.Center" Class="mt-1 mb-6">A small monthly amount that protects the most expensive system in your home.</MudText>
+    <div class="membership-benefit-grid">
+        @foreach (var (benefit, index) in Benefits.Select((b, i) => (b, i)))
+        {
+            <div class="membership-benefit">
+                <span class="tone-bubble tone-bubble-lg @AccentTone.At(index)"><MudIcon Icon="@benefit.Icon" /></span>
+                <MudText Typo="Typo.subtitle1" Class="text-strong">@benefit.Title</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">@benefit.Text</MudText>
+            </div>
+        }
     </div>
 </MudContainer>
 
-<MudContainer id="plans" MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
+<section class="marketing-dark-section">
+<MudContainer id="plans" MaxWidth="MaxWidth.Large" Class="marketing-section-tight section-anchor">
+    <MudText Typo="Typo.h5" Align="Align.Center" Class="marketing-display text-strong mb-6">Choose your plan</MudText>
     <ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
 
-    @if (_plans.Count == 0 && _loadError is null)
+    @if (_loading)
     {
-        <MudAlert Severity="Severity.Info">No membership plans are available right now.</MudAlert>
-    }
-    else
-    {
-        <MudGrid Justify="Justify.Center">
-            @foreach (var plan in _plans)
+        <MudGrid Justify="Justify.Center" Class="plan-carousel">
+            @for (var i = 0; i < 3; i++)
             {
-                var featured = IsFeaturedPlan(plan);
-                <MudItem xs="12" sm="6" md="4">
+                <MudItem xs="12" sm="6" md="4" Class="plan-carousel-item"><MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="360px" Class="rounded-lg" /></MudItem>
+            }
+        </MudGrid>
+    }
+    else if (_plans.Count == 0 && _loadError is null)
+    {
+        <EmptyState Icon="@Icons.Material.Outlined.WorkspacePremium" Title="No plans available right now"
+                    Text="Check back soon, or contact us and we'll help you find the right service." ActionText="Contact us" ActionHref="/contact" />
+    }
+    else if (_plans.Count > 0)
+    {
+        @if (HasBothCycles)
+        {
+            <div class="membership-cycle-toggle" role="radiogroup" aria-label="Billing cycle">
+                <button type="button" role="radio" aria-checked="@(!_showAnnual)" class="@(!_showAnnual ? "selected" : null)" @onclick="@(() => _showAnnual = false)">Monthly</button>
+                <button type="button" role="radio" aria-checked="@_showAnnual" class="@(_showAnnual ? "selected" : null)" @onclick="@(() => _showAnnual = true)">
+                    Yearly
+                    @if (MaxYearlySavingsPercent > 0)
+                    {
+                        <span class="plan-save-pill">Save @MaxYearlySavingsPercent%</span>
+                    }
+                </button>
+            </div>
+        }
+
+        var visiblePlans = VisiblePlans;
+        Guid? featuredPlanId = visiblePlans.Count >= 3 ? visiblePlans[visiblePlans.Count / 2].Id : null;
+
+        <MudGrid Justify="Justify.Center" Class="plan-carousel">
+            @foreach (var (plan, index) in visiblePlans.Select((p, i) => (p, i)))
+            {
+                var featured = plan.Id == featuredPlanId;
+                var yearlySavings = YearlySavings(plan);
+                var isCurrent = plan.Id == _currentPlanId;
+                <MudItem xs="12" sm="6" md="4" Class="@(featured ? "plan-carousel-item plan-featured" : "plan-carousel-item")">
                     <div class="position-relative" style="height:100%;">
-                        @if (featured)
+                        @if (isCurrent)
                         {
-                            <span class="marketing-pricing-badge">Most Popular</span>
+                            <span class="marketing-pricing-badge membership-badge-current">Your Plan</span>
                         }
-                        <MudCard Outlined="true" Class="@($"d-flex flex-column marketing-pricing-card {(featured ? "marketing-pricing-card-featured" : "")}")" Style="height:100%;">
-                            <MudCardContent Class="d-flex flex-column flex-grow-1">
-                                <MudText Typo="Typo.h6">@plan.Name</MudText>
-                                <MudStack Row="true" AlignItems="AlignItems.Baseline" Spacing="1" Class="my-3">
-                                    <MudText Typo="Typo.h4">@plan.Price.ToString("C")</MudText>
-                                    <MudText Typo="Typo.body2" Color="Color.Secondary">/ @(plan.BillingCycle == "Annual" ? "year" : "month")</MudText>
-                                </MudStack>
+                        else if (featured)
+                        {
+                            <span class="marketing-pricing-badge plan-badge-hot"><MudIcon Icon="@Icons.Material.Filled.LocalFireDepartment" Size="Size.Small" />Most Popular</span>
+                        }
+                        <MudCard Outlined="true" Class="@($"d-flex flex-column marketing-pricing-card plan-card {(featured || isCurrent ? "marketing-pricing-card-featured" : "")}")" Style="height:100%;">
+                            <div class="plan-card-top @AccentTone.At(index)"></div>
+                            <MudCardContent Class="d-flex flex-column flex-grow-1 pa-6 plan-card-body">
+                                <div class="d-flex align-center gap-3">
+                                    <span class="tone-bubble @AccentTone.At(index)"><MudIcon Icon="@PlanIcon(index)" /></span>
+                                    <div>
+                                        <MudText Typo="Typo.h6" Class="text-strong">@plan.Name</MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">@plan.IncludedVisitsPerYear @(plan.IncludedVisitsPerYear == 1 ? "visit" : "visits") a year included</MudText>
+                                    </div>
+                                </div>
+                                <div class="membership-price">
+                                    <span class="membership-price-amount">@CurrencyFormat.Format(IsAnnual(plan) ? Math.Round(plan.Price / 12, 2) : plan.Price)</span>
+                                    <span class="membership-price-cycle">/ month</span>
+                                </div>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">@PriceNote(plan)</MudText>
+                                @if (yearlySavings > 0)
+                                {
+                                    <span class="plan-savings-chip"><MudIcon Icon="@Icons.Material.Filled.Savings" Size="Size.Small" />Save @CurrencyFormat.Format(yearlySavings) vs. monthly</span>
+                                }
                                 @if (plan.TrialDays is > 0)
                                 {
-                                    <MudChip T="string" Size="Size.Small" Color="Color.Success" Class="mb-3">@plan.TrialDays-day free trial</MudChip>
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Success" Variant="Variant.Text" Icon="@Icons.Material.Outlined.Celebration"
+                                             Class="ml-0 mt-3 align-self-start">@plan.TrialDays-day free trial</MudChip>
                                 }
-                                <MudList T="string" Dense="true" Class="flex-grow-1">
-                                    <MudListItem T="string" Icon="@Icons.Material.Outlined.Check" IconColor="Color.Primary">
-                                        @plan.IncludedVisitsPerYear included visits per year
-                                    </MudListItem>
+                                <ul class="membership-benefits">
+                                    <li><MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" Color="Color.Primary" /><span><strong>@plan.IncludedVisitsPerYear</strong> included @(plan.IncludedVisitsPerYear == 1 ? "visit" : "visits") per year</span></li>
                                     @if (plan.DiscountPercent > 0)
                                     {
-                                        <MudListItem T="string" Icon="@Icons.Material.Outlined.Check" IconColor="Color.Primary">
-                                            @plan.DiscountPercent% off additional services
-                                        </MudListItem>
+                                        <li><MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" Color="Color.Primary" /><span><strong>@plan.DiscountPercent.ToString("0.##")% off</strong> every additional service</span></li>
+                                    }
+                                    @if (plan.CreditAmount > 0)
+                                    {
+                                        <li><MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" Color="Color.Primary" /><span><strong>@CurrencyFormat.Format(plan.CreditAmount)</strong> account credit</span></li>
                                     }
                                     @foreach (var benefit in BenefitLines(plan.Benefits))
                                     {
-                                        <MudListItem T="string" Icon="@Icons.Material.Outlined.Check" IconColor="Color.Primary">@benefit</MudListItem>
+                                        <li><MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" Color="Color.Primary" /><span>@benefit</span></li>
                                     }
-                                </MudList>
+                                </ul>
                             </MudCardContent>
-                            <MudCardActions Class="pa-4 pt-0">
-                                <MudButton Href="@($"/user/membership/subscribe/{plan.Id}")" Variant="Variant.Filled"
-                                           Color="@(featured ? Color.Primary : Color.Default)" FullWidth="true">Subscribe</MudButton>
+                            <MudCardActions Class="pa-6 pt-0 plan-card-actions d-flex flex-column">
+                                @if (isCurrent)
+                                {
+                                    <MudButton Href="/user/membership" Variant="Variant.Outlined" Color="Color.Primary" FullWidth="true" Size="Size.Large">Manage membership</MudButton>
+                                }
+                                else if (_currentPlanId is not null)
+                                {
+                                    <MudButton Href="/user/membership" Variant="Variant.Outlined" Color="Color.Primary" FullWidth="true" Size="Size.Large">Switch to this plan</MudButton>
+                                }
+                                else
+                                {
+                                    var highlighted = featured || featuredPlanId is null;
+                                    <MudButton Href="@($"/user/membership/subscribe/{plan.Id}")" Variant="@(highlighted ? Variant.Filled : Variant.Outlined)"
+                                               Color="Color.Primary" FullWidth="true" Size="Size.Large" EndIcon="@Icons.Material.Filled.ArrowForward"
+                                               Class="@(highlighted ? "sell-btn" : "plan-outline-btn")">
+                                        @(plan.TrialDays is > 0 ? "Start free trial" : $"Choose {plan.Name}")
+                                    </MudButton>
+                                    <span class="plan-reassure"><MudIcon Icon="@Icons.Material.Outlined.Verified" Size="Size.Small" />Cancel anytime, no long-term contract</span>
+                                }
                             </MudCardActions>
                         </MudCard>
                     </div>
@@ -76,43 +167,138 @@
         </MudGrid>
     }
 </MudContainer>
-
-<HomeTestimonialsSection />
-
-@if (_faqItems.Count > 0)
-{
-    <MudContainer MaxWidth="MaxWidth.Medium" Class="marketing-section-tight">
-        <MudText Typo="Typo.h5" Align="Align.Center" Class="marketing-display text-strong mb-4">Membership FAQs</MudText>
-
-        <MudStack Spacing="2">
-            @foreach (var item in _faqItems)
-            {
-                <details class="marketing-promo-card">
-                    <summary><span class="marketing-promo-title text-strong">@item.Question</span></summary>
-                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">@item.Answer</MudText>
-                </details>
-            }
-        </MudStack>
-    </MudContainer>
-}
+</section>
 
 @if (_plans.Count > 0)
 {
-    <MudContainer MaxWidth="MaxWidth.Medium" Class="marketing-section-tight">
-        <MudPaper Outlined="true" Class="rounded-lg pa-8 d-flex flex-column align-center text-center">
-            <MudText Typo="Typo.h5" Class="marketing-display text-strong">Ready to become a member?</MudText>
-            <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mt-2 mb-4">Pick a plan above and start enjoying member pricing today.</MudText>
-            <MudButton Href="#plans" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large">View Plans</MudButton>
-        </MudPaper>
+    <MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
+        <SectionHeading Eyebrow="Compare" Title="Member vs. Pay As You Go" Lead="Same technicians, same quality. Members just pay less and get in sooner." />
+
+        <div class="vs" role="table" aria-label="Member compared with pay as you go">
+            <div class="vs-row vs-head" role="row">
+                <span role="columnheader" class="vs-feature-head">What you get</span>
+                <span role="columnheader" class="vs-guest"><MudIcon Icon="@Icons.Material.Outlined.Receipt" Size="Size.Small" />Pay as you go</span>
+                <span role="columnheader" class="vs-member">
+                    <span class="vs-ribbon">Best Value</span>
+                    <MudIcon Icon="@Icons.Material.Filled.WorkspacePremium" Size="Size.Small" />Member
+                </span>
+            </div>
+            @foreach (var row in ComparisonRows)
+            {
+                <div class="vs-row" role="row">
+                    <span role="rowheader" class="vs-feature">@row.Feature</span>
+                    <span role="cell" class="vs-guest" data-label="Pay As You Go">
+                        <MudIcon Icon="@Icons.Material.Outlined.RemoveCircleOutline" Size="Size.Small" /><span>@row.Guest</span>
+                    </span>
+                    <span role="cell" class="vs-member" data-label="Member">
+                        <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" /><span>@row.Member</span>
+                    </span>
+                </div>
+            }
+        </div>
     </MudContainer>
 }
 
+<section class="marketing-dark-section">
+    <MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
+        <SectionHeading Eyebrow="Getting Started" Title="How Membership Works" Lead="Three steps from sign-up to savings." />
+        <ol class="how-steps how-steps-row" style="@($"--how-count:{Steps.Length};")">
+            @for (var i = 0; i < Steps.Length; i++)
+            {
+                var step = Steps[i];
+                var number = (i + 1).ToString("00");
+                <li class="@($"how-step {AccentTone.At(i + 1)}")">
+                    <div class="how-step-marker" aria-hidden="true">
+                        <span class="how-step-icon"><MudIcon Icon="@step.Icon" /></span>
+                    </div>
+                    <div class="how-step-card">
+                        <span class="how-step-label">Step @number</span>
+                        <h3 class="how-step-title">@step.Title</h3>
+                        <p class="how-step-text">@step.Text</p>
+                    </div>
+                </li>
+            }
+        </ol>
+        @if (_plans.Count > 0)
+        {
+            <div class="membership-how-action">
+                <MudButton OnClick="@(() => ScrollToAsync("plans"))" Variant="Variant.Filled" Class="sell-btn" EndIcon="@Icons.Material.Filled.ArrowUpward">Start with step 1: pick your plan</MudButton>
+            </div>
+        }
+    </MudContainer>
+</section>
+
+<HomeTestimonialsSection />
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="marketing-section-tight">
+    <MudText Typo="Typo.h5" Align="Align.Center" Class="marketing-display text-strong mb-4">Membership questions</MudText>
+    <MudStack Spacing="2">
+        @foreach (var (question, answer) in Faqs)
+        {
+            <details class="marketing-promo-card">
+                <summary><span class="marketing-promo-title text-strong">@question</span></summary>
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">@answer</MudText>
+            </details>
+        }
+    </MudStack>
+
+</MudContainer>
+
+<section class="membership-cta">
+    <MudContainer MaxWidth="MaxWidth.Medium" Class="d-flex flex-column align-center text-center">
+        <MudText Typo="Typo.h4" Class="marketing-display text-strong">Ready for worry-free comfort?</MudText>
+        <MudText Typo="Typo.body1" Class="mt-2 membership-cta-lead">
+            Join today and your first included visit is ready to book. @(_plans.Any(p => p.TrialDays is > 0) ? "Try it free, cancel anytime." : "Cancel anytime.")
+        </MudText>
+        <div class="sales-intro-actions sales-cta-actions">
+            <MudButton OnClick="@(() => ScrollToAsync("plans"))" Variant="Variant.Filled" Size="Size.Large" EndIcon="@Icons.Material.Filled.ArrowForward" Class="sell-btn">Become a member</MudButton>
+            <MudButton Href="/contact" Variant="Variant.Outlined" Size="Size.Large" Class="membership-cta-secondary">Talk to us first</MudButton>
+        </div>
+    </MudContainer>
+</section>
+
 @code {
+    private sealed record Step(string Icon, string Title, string Text);
+
+    private sealed record Benefit(string Icon, string Title, string Text);
+
+    private sealed record ComparisonRow(string Feature, string Guest, string Member);
+
+    private static readonly (string Icon, string Label)[] TrustPoints =
+    [
+        (Icons.Material.Outlined.EventRepeat, "Cancel anytime"),
+        (Icons.Material.Outlined.PauseCircle, "Pause or switch plans"),
+        (Icons.Material.Outlined.Lock, "Secure card payment"),
+    ];
+
+    private static readonly Step[] Steps =
+    [
+        new(Icons.Material.Outlined.WorkspacePremium, "Pick a plan", "Choose the plan that fits your home and sign up in a couple of minutes."),
+        new(Icons.Material.Outlined.EventAvailable, "Book your included visits", "Schedule maintenance whenever it suits you, with priority time slots."),
+        new(Icons.Material.Outlined.Savings, "Save on every job", "Your member discount applies to any extra service you book."),
+    ];
+
+    private static readonly (string Question, string Answer)[] Faqs =
+    [
+        ("Can I cancel anytime?", "Yes. Cancel from your account whenever you like; your membership stays active until the end of the period you've already paid for."),
+        ("Can I pause or change my plan?", "Yes. You can pause and resume your membership, or switch to another plan, from the Membership page in your account."),
+        ("How do included visits work?", "Each plan includes a set number of visits per year. Book them like any other visit; anything beyond those gets your member discount."),
+        ("Is there a free trial?", "Plans marked with a free trial don't charge your card until the trial ends, and you can cancel before then at no cost."),
+        ("Is my payment information safe?", "Card details are handled by our payment provider, Stripe. We never see or store your full card number."),
+    ];
+
     private List<MembershipPlanResponse> _plans = [];
-    private List<FaqItemResponse> _faqItems = [];
+    private Guid? _currentPlanId;
+    private bool _showAnnual;
+    private bool _loading = true;
     private string? _loadError;
 
     private const int PageSize = 24;
+
+    private bool HasBothCycles => _plans.Any(IsAnnual) && _plans.Any(p => !IsAnnual(p));
+
+    private List<MembershipPlanResponse> VisiblePlans =>
+        HasBothCycles ? [.. _plans.Where(p => IsAnnual(p) == _showAnnual)] : _plans;
 
     protected override async Task OnInitializedAsync()
     {
@@ -121,19 +307,119 @@
         if (!result.IsSuccessful)
         {
             _loadError = result.DisplayMessage;
+            _loading = false;
             return;
         }
 
-        _plans = result.ResultData?.Items ?? [];
-
-        var faqResult = await ApiClient.GetAsync<List<FaqItemResponse>>(ApiRoutes.SiteContent.FaqItems.Base);
-        _faqItems = faqResult.IsSuccessful ? faqResult.ResultData?.OrderBy(f => f.DisplayOrder).ToList() ?? [] : [];
+        _plans = [.. (result.ResultData?.Items ?? []).Where(p => p.IsActive).OrderBy(p => p.Price)];
+        await LoadCurrentPlanAsync();
+        _loading = false;
     }
+
+    /// <summary>Marks the signed-in customer's plan and opens the toggle on its billing cycle; a 404 just means not a member.</summary>
+    private async Task LoadCurrentPlanAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated is not true)
+        {
+            return;
+        }
+
+        var result = await ApiClient.GetAsync<CustomerMembershipResponse>(ApiRoutes.Growth.CustomerMemberships.Mine);
+        if (result is { IsSuccessful: true, ResultData: { Status: not ("Cancelled" or "Failed") } membership })
+        {
+            _currentPlanId = membership.MembershipPlanId;
+            _showAnnual = _plans.FirstOrDefault(p => p.Id == membership.MembershipPlanId) is { } plan && IsAnnual(plan);
+        }
+    }
+
+    private static bool IsAnnual(MembershipPlanResponse plan) => plan.BillingCycle == "Annual";
+
+    private decimal MaxDiscount => _plans.Count > 0 ? _plans.Max(p => p.DiscountPercent) : 0;
+
+    private int MaxIncludedVisits => _plans.Count > 0 ? _plans.Max(p => p.IncludedVisitsPerYear) : 0;
+
+    private decimal MaxCredit => _plans.Count > 0 ? _plans.Max(p => p.CreditAmount) : 0;
+
+    private IEnumerable<Benefit> Benefits
+    {
+        get
+        {
+            yield return new(Icons.Material.Outlined.Bolt, "Priority scheduling",
+                "Members get first pick of time slots, even at the peak of summer and winter when everyone needs help at once.");
+            yield return new(Icons.Material.Outlined.Build, "Included tune-ups",
+                MaxIncludedVisits > 0
+                    ? $"Up to {MaxIncludedVisits} maintenance {(MaxIncludedVisits == 1 ? "visit" : "visits")} a year come with your plan, so you never skip one."
+                    : "Seasonal maintenance visits come with your plan, so you never skip one.");
+            if (MaxDiscount > 0)
+            {
+                yield return new(Icons.Material.Outlined.Sell, $"{MaxDiscount:0.##}% off repairs",
+                    "Your member discount applies to repairs and every additional service you book.");
+            }
+            if (MaxCredit > 0)
+            {
+                yield return new(Icons.Material.Outlined.AccountBalanceWallet, "Account credit",
+                    $"Plans include up to {CurrencyFormat.Format(MaxCredit)} in credit toward your services.");
+            }
+            yield return new(Icons.Material.Outlined.EnergySavingsLeaf, "Lower energy bills",
+                "A clean, tuned system works less to heat and cool your home, and that shows up on your utility bill.");
+            yield return new(Icons.Material.Outlined.Shield, "Fewer breakdowns",
+                "Regular check-ups catch small problems early, before they turn into costly emergency repairs.");
+            yield return new(Icons.Material.Outlined.History, "Longer equipment life",
+                "Well-maintained furnaces and AC units last longer, putting off the cost of a replacement.");
+            yield return new(Icons.Material.Outlined.Tune, "Total flexibility",
+                "Pause, switch plans or cancel from your account. No long-term contract.");
+        }
+    }
+
+    private IEnumerable<ComparisonRow> ComparisonRows
+    {
+        get
+        {
+            yield return new("Maintenance visits", "Paid per visit",
+                MaxIncludedVisits > 0 ? $"Up to {MaxIncludedVisits} included a year" : "Included");
+            if (MaxDiscount > 0)
+            {
+                yield return new("Repairs and extra services", "Standard pricing", $"Up to {MaxDiscount:0.##}% off");
+            }
+            yield return new("Scheduling", "Next available slot", "Priority time slots");
+            if (MaxCredit > 0)
+            {
+                yield return new("Account credit", "None", $"Up to {CurrencyFormat.Format(MaxCredit)}");
+            }
+            yield return new("Commitment", "None", "Cancel anytime");
+        }
+    }
+
+    private static string PriceNote(MembershipPlanResponse plan) =>
+        IsAnnual(plan) ? $"{CurrencyFormat.Format(plan.Price)} billed yearly" : "Billed monthly";
+
+    private static readonly string[] PlanIcons =
+    [
+        Icons.Material.Outlined.Shield,
+        Icons.Material.Outlined.Star,
+        Icons.Material.Outlined.Diamond,
+        Icons.Material.Outlined.WorkspacePremium,
+    ];
+
+    private static string PlanIcon(int index) => PlanIcons[index % PlanIcons.Length];
+
+    /// <summary>What a yearly plan saves against twelve months of the monthly plan with the same name; 0 when there's no monthly twin.</summary>
+    private decimal YearlySavings(MembershipPlanResponse plan) =>
+        IsAnnual(plan) && _plans.FirstOrDefault(p => !IsAnnual(p) && string.Equals(p.Name, plan.Name, StringComparison.OrdinalIgnoreCase)) is { } monthly
+            ? Math.Max(0, monthly.Price * 12 - plan.Price)
+            : 0;
+
+    private int MaxYearlySavingsPercent =>
+        _plans.Where(IsAnnual)
+            .Select(plan => (plan, monthly: _plans.FirstOrDefault(p => !IsAnnual(p) && string.Equals(p.Name, plan.Name, StringComparison.OrdinalIgnoreCase))))
+            .Where(pair => pair.monthly is { Price: > 0 })
+            .Select(pair => (int)Math.Floor((1 - pair.plan.Price / ((pair.monthly?.Price ?? 1) * 12)) * 100))
+            .DefaultIfEmpty(0)
+            .Max();
 
     private static IEnumerable<string> BenefitLines(string? benefits) =>
         benefits?.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [];
 
-    /// <summary>No "featured" flag on MembershipPlan - just spotlights the middle-priced one.</summary>
-    private bool IsFeaturedPlan(MembershipPlanResponse plan) =>
-        _plans.Count >= 3 && plan.Id == _plans.OrderBy(p => p.Price).ElementAt(_plans.Count / 2).Id;
+    private async Task ScrollToAsync(string sectionId) => await JsRuntime.InvokeVoidAsync("comfortProScrollToSection", sectionId);
 }

@@ -21,6 +21,10 @@ public interface ISubscriptionGateway
     /// <summary>atPeriodEnd=true keeps billing until period end (PayPal ignores this and cancels immediately regardless).</summary>
     Task<SubscriptionResult> CancelSubscriptionAsync(string providerSubscriptionId, bool atPeriodEnd = false, CancellationToken cancellationToken = default);
 
+    /// <summary>Undoes a CancelSubscriptionAsync(atPeriodEnd: true) before the period ends, so the subscription renews again. Not supported
+    /// by providers that cancel immediately (PayPal).</summary>
+    Task<SubscriptionResult> ReactivateSubscriptionAsync(string providerSubscriptionId, CancellationToken cancellationToken = default);
+
     /// <summary>Plan upgrade/downgrade: swaps the subscription's price, prorating for the remainder of the period. Not supported by every provider (PayPal).</summary>
     Task<SubscriptionResult> UpdateSubscriptionPriceAsync(string providerSubscriptionId, string newProviderPriceId, CancellationToken cancellationToken = default);
 
@@ -35,6 +39,14 @@ public interface ISubscriptionGateway
 
     /// <summary>Removes one line item, prorated refund/credit for the remainder of the period. Not supported by every provider (PayPal).</summary>
     Task RemoveSubscriptionItemAsync(string providerSubscriptionItemId, CancellationToken cancellationToken = default);
+
+    /// <summary>Undoes a signup that couldn't finish after it was paid: cancels the subscription now and refunds what the customer paid on it.
+    /// The customer must be one created for this signup only, since every charge on it is refunded. Safe to call again (already
+    /// cancelled or refunded is fine).</summary>
+    Task CancelAndRefundAsync(string providerCustomerId, string providerSubscriptionId, CancellationToken cancellationToken = default);
+
+    /// <summary>The subscription's most recent invoice as the provider issued it (number, amount, links); null when the provider has none to show (Mock, PayPal).</summary>
+    Task<SubscriptionInvoice?> GetLatestInvoiceAsync(string providerSubscriptionId, CancellationToken cancellationToken = default);
 
     /// <summary>Verifies the webhook signature and normalizes the payload; null if it's not a subscription-lifecycle event.</summary>
     Task<SubscriptionWebhookEvent?> VerifyAndParseWebhookAsync(string rawBody, string? signatureHeader, CancellationToken cancellationToken = default);
@@ -55,7 +67,19 @@ public record CreateSubscriptionRequest(string ProviderCustomerId, string Provid
 public record SubscriptionResult(string ProviderSubscriptionId, string Status, DateTimeOffset CurrentPeriodEnd, string? ClientSecret = null, string? FirstItemProviderId = null);
 
 /// <summary>ReferenceId round-trips CreateSubscriptionRequest.ReferenceId so the webhook handler can map back without querying the provider; NewRenewalDate is set only when EventKind is Renewed.</summary>
-public record SubscriptionWebhookEvent(string ProviderSubscriptionId, string ReferenceId, string EventKind, DateTimeOffset? NewRenewalDate = null);
+public record SubscriptionWebhookEvent(string ProviderSubscriptionId, string ReferenceId, string EventKind, DateTimeOffset? NewRenewalDate = null, SubscriptionInvoice? Invoice = null);
+
+public sealed record SubscriptionInvoiceLine(string Description, decimal Amount);
+
+/// <summary>A provider-issued subscription invoice. The provider stays the system of record (its numbering, PDF and hosted page); we only relay it.
+/// BillingReason "subscription_create" marks the first invoice, already receipted at signup.</summary>
+public sealed record SubscriptionInvoice(string ProviderInvoiceId, string? Number, decimal AmountPaid, string Currency, string Status,
+    string? HostedUrl, string? PdfUrl, DateTimeOffset? PeriodStart, DateTimeOffset? PeriodEnd, string? BillingReason, IReadOnlyList<SubscriptionInvoiceLine> Lines)
+{
+    public const string FirstInvoiceReason = "subscription_create";
+
+    public bool IsPaid => Status == "paid";
+}
 
 /// <summary>SubscriptionWebhookEvent.EventKind values.</summary>
 public static class SubscriptionEventKinds

@@ -3,7 +3,11 @@
 @page "/user/profile"
 @attribute [Authorize(Roles = AppRoles.User)]
 @layout OnlineConsulting.Maui.Shared.Layout.DashboardLayout
+@using OnlineConsulting.Maui.Shared.Theme
+@implements IDisposable
 @inject IApiClient ApiClient
+@inject DataChangeNotifier Notifier
+@inject IAuthSession AuthSession
 
 <PageTitle>Profile</PageTitle>
 
@@ -11,29 +15,108 @@
 
 <ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
 
-    @if (_loading)
-    {
-        <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
-    }
-    else if (_user is not null)
-    {
-        <MudSimpleTable Dense="true">
-            <tbody>
-                <tr><td>Name</td><td>@_user.FirstName @_user.LastName</td></tr>
-                <tr><td>Email</td><td>@_user.Email</td></tr>
-                <tr><td>Username</td><td>@_user.UserName</td></tr>
-            </tbody>
-        </MudSimpleTable>
-        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-2">Editing your name or email isn't available yet.</MudText>
-    }
+@if (_loading)
+{
+    <ListSkeleton Rows="4" />
+}
+else if (_user is not null)
+{
+    <div class="profile-page">
+        <section class="profile-hero">
+            @if (string.IsNullOrWhiteSpace(_user.ImageUrl))
+            {
+                <MudAvatar Size="Size.Large" Class="profile-hero-avatar">@Initials</MudAvatar>
+            }
+            else
+            {
+                <MudAvatar Size="Size.Large" Class="profile-hero-avatar"><MudImage Src="@_user.ImageUrl" Alt="@FullName" /></MudAvatar>
+            }
+            <div class="profile-hero-text">
+                <span class="profile-hero-name">@FullName</span>
+                <span class="profile-hero-sub">@@@_user.UserName</span>
+            </div>
+        </section>
+
+        <MudText Typo="Typo.subtitle2" Class="profile-heading">Personal information</MudText>
+        <div class="profile-list">
+            @foreach (var (label, value, icon) in InfoRows)
+            {
+                <div class="profile-row">
+                    <span class="tone-bubble tone-bubble-sm @AccentTone.Blue"><MudIcon Icon="@icon" Size="Size.Small" /></span>
+                    <span class="profile-row-text">
+                        <span class="profile-row-label">@label</span>
+                        <span class="profile-row-value">@value</span>
+                    </span>
+                </div>
+            }
+        </div>
+        <MudText Typo="Typo.caption" Class="profile-note">
+            Need to change your name or email? <a href="/contact">Contact us</a> and we'll update it for you.
+        </MudText>
+
+        <MudText Typo="Typo.subtitle2" Class="profile-heading">Account</MudText>
+        <div class="profile-list">
+            @foreach (var link in AccountLinks)
+            {
+                <a href="@link.Href" class="profile-row profile-row-link">
+                    <span class="tone-bubble tone-bubble-sm @link.Tone"><MudIcon Icon="@link.Icon" Size="Size.Small" /></span>
+                    <span class="profile-row-text">
+                        <span class="profile-row-value">@link.Label</span>
+                        <span class="profile-row-label">@link.Hint</span>
+                    </span>
+                    <MudIcon Icon="@Icons.Material.Filled.ChevronRight" Class="profile-row-chevron" />
+                </a>
+            }
+        </div>
+
+        <MudButton OnClick="@(() => AuthSession.SignOutAsync())" Variant="Variant.Outlined" Color="Color.Error"
+                   StartIcon="@Icons.Material.Outlined.Logout" Class="profile-signout">Sign out</MudButton>
+    </div>
+}
 
 @code {
+    private sealed record AccountLink(string Label, string Hint, string Href, string Icon, string Tone);
+
+    private static readonly AccountLink[] AccountLinks =
+    [
+        new("Addresses", "Where we come to service", "/user/addresses", Icons.Material.Outlined.Home, AccentTone.Green),
+        new("Membership", "Plan, perks and renewals", "/user/membership", Icons.Material.Outlined.WorkspacePremium, AccentTone.Gold),
+        new("Equipment", "Your HVAC units and history", "/user/equipment", Icons.Material.Outlined.AcUnit, AccentTone.Teal),
+        new("Notifications", "Updates on visits and orders", "/notifications", Icons.Material.Outlined.Notifications, AccentTone.Red),
+        new("Referrals", "Invite friends, earn rewards", "/user/referrals", Icons.Material.Outlined.CardGiftcard, AccentTone.Berry),
+    ];
+
     private CurrentUserResponse? _user;
     private bool _loading = true;
     private string? _loadError;
+    private IDisposable? _liveUpdates;
 
-    protected override async Task OnInitializedAsync()
+    private string FullName => _user is null ? "" : $"{_user.FirstName} {_user.LastName}".Trim();
+
+    private string Initials =>
+        string.Concat(new[] { _user?.FirstName, _user?.LastName }.Where(part => !string.IsNullOrEmpty(part)).Select(part => char.ToUpperInvariant(part?[0] ?? ' '))) is { Length: > 0 } initials
+            ? initials
+            : "?";
+
+    private (string Label, string Value, string Icon)[] InfoRows => _user is null
+        ? []
+        :
+        [
+            ("Full name", FullName, Icons.Material.Outlined.Badge),
+            ("Email", _user.Email, Icons.Material.Outlined.Email),
+            ("Username", _user.UserName, Icons.Material.Outlined.AccountCircle),
+        ];
+
+    protected override Task OnInitializedAsync()
     {
+        _liveUpdates = Notifier.Subscribe(() => InvokeAsync(async () => { await ReloadAsync(); StateHasChanged(); }), DataTopic.Profile);
+        return ReloadAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
+        _loadError = null;
+
         var userResult = await ApiClient.GetAsync<CurrentUserResponse>(ApiRoutes.Users.Me);
         if (!userResult.IsSuccessful || userResult.ResultData is null)
         {
@@ -47,4 +130,6 @@
 
         _loading = false;
     }
+
+    public void Dispose() => _liveUpdates?.Dispose();
 }

@@ -11,6 +11,7 @@ using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Abst
 using OnlineConsulting.Modules.Scheduling.Application.Features.Availability.Abstractions;
 using OnlineConsulting.Modules.Scheduling.Application.Features.TechnicianTracking.Abstractions;
 using OnlineConsulting.Modules.Scheduling.Application.Features.WorkOrders.Abstractions;
+using OnlineConsulting.Modules.Scheduling.Infrastructure.LiveUpdates;
 using OnlineConsulting.Modules.Scheduling.Infrastructure.Hubs;
 using OnlineConsulting.Modules.Scheduling.Infrastructure.Notifications;
 using OnlineConsulting.Modules.Scheduling.Infrastructure.Persistence;
@@ -18,6 +19,7 @@ using OnlineConsulting.Modules.Scheduling.Infrastructure.Pipelines;
 using OnlineConsulting.Modules.Scheduling.Infrastructure.Repositories;
 using OnlineConsulting.SharedKernel.Auditing;
 using OnlineConsulting.SharedKernel.Authorization;
+using OnlineConsulting.SharedKernel.LiveUpdates;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
 using OnlineConsulting.SharedKernel.Tenancy;
@@ -33,8 +35,10 @@ public static class SchedulingModule
         _ = services.AddScoped<TenantSaveChangesInterceptor>();
         _ = services.AddScoped<AuditSaveChangesInterceptor>();
 
+        _ = services.AddUserDataChangeRules(SchedulingUserDataChangeRules.Configure);
         _ = services.AddDbContext<SchedulingDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
-            .AddInterceptors(serviceProvider.GetRequiredService<TenantSaveChangesInterceptor>(), serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>()));
+            .AddInterceptors(serviceProvider.GetRequiredService<TenantSaveChangesInterceptor>(), serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>())
+            .AddUserDataChangeInterceptors(serviceProvider));
 
         _ = services.AddScoped<IAppointmentRepository, AppointmentRepository>();
         _ = services.AddScoped<IAvailabilityRuleRepository, AvailabilityRuleRepository>();
@@ -42,7 +46,8 @@ public static class SchedulingModule
         _ = services.AddScoped<IWorkOrderMediaItemRepository, WorkOrderMediaItemRepository>();
         _ = services.AddScoped<IAppointmentMediaItemRepository, AppointmentMediaItemRepository>();
         _ = services.AddScoped<IEmailOutboxWriter<ISchedulingOutboxModule>, EmailOutboxWriter>();
-        _ = services.AddScoped<IEmailTemplate<AppointmentConfirmationEmailModel>, AppointmentConfirmationTemplate>();
+        _ = services.AddScoped<IEmailTemplate<AppointmentUpdateEmailModel>, AppointmentUpdateTemplate>();
+        _ = services.AddScoped<IAppointmentNotifier, AppointmentNotifier>();
         _ = services.AddScoped<ITechnicianTrackingHubService, TechnicianTrackingHubService>();
 
         var redisConnection = configuration.GetConnectionString("Redis");

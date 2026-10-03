@@ -1,0 +1,99 @@
+@page "/register"
+@using Microsoft.AspNetCore.Components.Authorization
+@using OnlineConsulting.Maui.Shared.Components.Common
+@using OnlineConsulting.Maui.Shared.Infrastructure.Api
+@using OnlineConsulting.Maui.Shared.Infrastructure.Auth
+@using OnlineConsulting.Maui.Shared.Infrastructure.Forms
+@inject IApiClient ApiClient
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+@inject FormState<RegisterModel> Form
+
+<PageTitle>Create account</PageTitle>
+
+<AuthCard Icon="@Icons.Material.Outlined.PersonAdd" Title="Create your account" Subtitle="Book services, track your visits and manage your membership.">
+    @if (_successMessage is not null)
+    {
+        <MudStack AlignItems="AlignItems.Center" Spacing="3" Class="py-2">
+            <span class="tone-bubble tone-bubble-lg tone-green"><MudIcon Icon="@Icons.Material.Outlined.MarkEmailRead" /></span>
+            <MudText Typo="Typo.body1" Align="Align.Center">@_successMessage</MudText>
+            <MudButton Href="@LoginHref" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Class="auth-submit">Go to sign in</MudButton>
+        </MudStack>
+    }
+    else
+    {
+        <EditForm EditContext="@Form.EditContext" OnValidSubmit="SubmitAsync" autocomplete="off">
+            <div class="auth-name-row">
+                <MudTextField @bind-Value="_model.FirstName" For="@(() => _model.FirstName)" Label="First name" Variant="Variant.Outlined" Class="mb-4" autocomplete="given-name" />
+                <MudTextField @bind-Value="_model.LastName" For="@(() => _model.LastName)" Label="Last name" Variant="Variant.Outlined" Class="mb-4" autocomplete="family-name" />
+            </div>
+            <MudTextField @bind-Value="_model.UserName" For="@(() => _model.UserName)" Label="Username" Variant="Variant.Outlined"
+                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Outlined.AlternateEmail" Class="mb-4" autocomplete="username" />
+            <MudTextField @bind-Value="_model.Email" For="@(() => _model.Email)" Label="Email" InputType="InputType.Email" Variant="Variant.Outlined"
+                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Outlined.Mail" Class="mb-4" autocomplete="email" />
+            <MudTextField @bind-Value="_model.Password" For="@(() => _model.Password)" Label="Password" InputType="@(_showPassword ? InputType.Text : InputType.Password)"
+                          Variant="Variant.Outlined" Adornment="Adornment.End" AdornmentIcon="@(_showPassword ? Icons.Material.Outlined.VisibilityOff : Icons.Material.Outlined.Visibility)"
+                          OnAdornmentClick="@(() => _showPassword = !_showPassword)" AdornmentAriaLabel="Show password" Class="mb-5" autocomplete="new-password" />
+
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Class="auth-submit" Disabled="Form.IsBusy">
+                @(Form.IsBusy ? "Creating account..." : "Create account")
+            </MudButton>
+        </EditForm>
+
+        <MudText Typo="Typo.body2" Class="mt-5" Align="Align.Center">
+            Already have an account? <MudLink Href="@LoginHref" Class="text-strong">Sign in</MudLink>
+        </MudText>
+    }
+</AuthCard>
+
+@code {
+    private readonly RegisterModel _model = new();
+    private bool _showPassword;
+    private string? _successMessage;
+
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    private string LoginHref => string.IsNullOrEmpty(ReturnUrl) ? "/login" : $"/login?ReturnUrl={Uri.EscapeDataString(ReturnUrl)}";
+
+    protected override async Task OnInitializedAsync()
+    {
+        Form.Bind(_model);
+
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated is true)
+        {
+            Navigation.NavigateTo(SignInRedirect.Target(authState.User, ReturnUrl), replace: true);
+        }
+    }
+
+    private Task SubmitAsync() => Form.SubmitAsync(async () =>
+    {
+        var result = await ApiClient.PostAsync(ApiRoutes.Auth.Register, new
+        {
+            firstName = _model.FirstName,
+            lastName = _model.LastName,
+            userName = _model.UserName,
+            email = _model.Email,
+            password = _model.Password,
+        });
+
+        if (!result.IsSuccessful)
+        {
+            Form.DisplayErrors(result, Snackbar);
+            return;
+        }
+
+        _successMessage = result.DisplayMessage;
+    });
+
+    private sealed class RegisterModel
+    {
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        public string UserName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+}

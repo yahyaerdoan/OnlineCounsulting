@@ -25,16 +25,20 @@
         <MudTh>Actions</MudTh>
     </HeaderContent>
     <RowTemplate Context="item">
-        <MudTd DataLabel="Description">@item.Description</MudTd>
+        <MudTd DataLabel="Description" Class="cell-primary">@item.Description</MudTd>
         <MudTd DataLabel="Categories">@string.Join(", ", item.Categories.Select(c => c.Name))</MudTd>
         <MudTd DataLabel="Order">@item.DisplayOrder</MudTd>
         <MudTd DataLabel="Actions">
             <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
-                <MudIconButton Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" title="Edit"
-                               OnClick="@(() => Navigation.NavigateTo($"{AppRoutes.AdminHome}/site-content/gallery-items/{item.Id}/edit"))" />
+                <MudTooltip Text="Edit">
+                    <MudIconButton aria-label="Edit" Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default"
+                                   OnClick="@(() => Navigation.NavigateTo($"{AppRoutes.AdminHome}/site-content/gallery-items/{item.Id}/edit"))" />
+                </MudTooltip>
 
-                <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" title="Delete"
-                               OnClick="@(() => DeleteAsync(item))" />
+                <MudTooltip Text="Delete">
+                    <MudIconButton aria-label="Delete" Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error"
+                                   OnClick="@(() => DeleteAsync(item))" />
+                </MudTooltip>
             </MudButtonGroup>
         </MudTd>
     </RowTemplate>

@@ -5,8 +5,20 @@ using MimeKit;
 
 namespace OnlineConsulting.Notifications.Sending;
 
+/// <summary>Port 465 uses TLS from the first byte (SslOnConnect); other ports upgrade with STARTTLS. Some networks block or stall
+/// plaintext SMTP on 587, so 465 is the fallback that still works there. A short timeout keeps a stalled server from holding up the outbox.</summary>
 public class MailKitEmailSender(IOptions<EmailOptions> options) : IEmailSender
 {
+    private const int ImplicitTlsPort = 465;
+    private static readonly TimeSpan SmtpTimeout = TimeSpan.FromSeconds(30);
+
+    private static SecureSocketOptions SecurityFor(EmailOptions settings) => settings switch
+    {
+        { UseSsl: false } => SecureSocketOptions.None,
+        { SmtpPort: ImplicitTlsPort } => SecureSocketOptions.SslOnConnect,
+        _ => SecureSocketOptions.StartTls,
+    };
+
     public async Task SendAsync(string to, string subject, string htmlBody, string? cc, CancellationToken cancellationToken)
     {
         var settings = options.Value;
@@ -22,9 +34,8 @@ public class MailKitEmailSender(IOptions<EmailOptions> options) : IEmailSender
         message.Subject = subject;
         message.Body = new BodyBuilder { HtmlBody = htmlBody }.ToMessageBody();
 
-        using var client = new SmtpClient();
-        await client.ConnectAsync(settings.SmtpHost, settings.SmtpPort,
-            settings.UseSsl ? SecureSocketOptions.StartTls : SecureSocketOptions.None, cancellationToken);
+        using var client = new SmtpClient { Timeout = (int)SmtpTimeout.TotalMilliseconds };
+        await client.ConnectAsync(settings.SmtpHost, settings.SmtpPort, SecurityFor(settings), cancellationToken);
         await client.AuthenticateAsync(settings.Username, settings.Password, cancellationToken);
         _ = await client.SendAsync(message, cancellationToken);
         await client.DisconnectAsync(true, cancellationToken);

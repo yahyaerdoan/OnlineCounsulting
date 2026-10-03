@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OnlineConsulting.Modules.Referrals.Domain;
+using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Referrals.Infrastructure.Persistence;
@@ -9,6 +10,7 @@ public class ReferralsDbContext(DbContextOptions<ReferralsDbContext> options, IT
     public DbSet<ReferralCode> ReferralCodes => Set<ReferralCode>();
     public DbSet<Referral> Referrals => Set<Referral>();
     public DbSet<AccountCredit> AccountCredits => Set<AccountCredit>();
+    public DbSet<OutboxEmail> OutboxEmails => Set<OutboxEmail>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -43,6 +45,8 @@ public class ReferralsDbContext(DbContextOptions<ReferralsDbContext> options, IT
             _ = builder.HasIndex(c => c.UserId);
             _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
+
+        modelBuilder.ConfigureOutboxEmail(ownsMigration: false);
 
         base.OnModelCreating(modelBuilder);
     }

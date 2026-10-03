@@ -1,34 +1,73 @@
-@* "What Our Customers Say" - a dedicated quote-card layout (large watermark quote mark, the
-   review text up front, reviewer identity pinned to the card footer) instead of reusing the
-   service-tile card class. *@
+@* "What Our Customers Say" as a swipeable carousel: three cards on wide screens, two on tablets, one with a peek of the next on
+   phones. Arrows, dots and "Read more" are wired by marketing.js (initCarousels) through delegated handlers, so the section works
+   the same whether the page renders statically or interactively. Hidden when there are no testimonials. *@
 @using OnlineConsulting.Maui.Shared.Infrastructure.Api
 @inject IApiClient ApiClient
 
-<MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
-    <MudText Typo="Typo.subtitle1" Color="Color.Primary" Align="Align.Center" Class="text-strong">Testimonials</MudText>
-    <MudText Typo="Typo.h5" Align="Align.Center" Class="marketing-display text-strong mb-4">What Our Customers Say</MudText>
+@if (_testimonials.Count > 0)
+{
+    <section class="testimonials-band">
+        <MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
+            <div class="testimonials" data-carousel>
+                <SectionHeading Eyebrow="Testimonials" Title="What Our Customers Say" Lead="Real stories from homeowners we've helped." />
 
-    <MudGrid Spacing="2">
-        @foreach (var testimonial in _testimonials)
-        {
-            <MudItem xs="12" sm="6" md="4">
-                <div class="marketing-testimonial-card">
-                    <MudIcon Icon="@Icons.Material.Filled.FormatQuote" Class="marketing-testimonial-quote-icon" />
-                    <MudText Typo="Typo.body1" Class="marketing-testimonial-desc">@testimonial.Description</MudText>
-                    <div class="marketing-testimonial-footer">
-                        <MudImage Src="@MediaUrlResolver.Resolve(ApiClient, testimonial.ImageUrl)" ObjectFit="ObjectFit.Cover" Width="48" Height="48" Class="marketing-avatar" />
-                        <div>
-                            <MudText Typo="Typo.subtitle2" Class="text-strong">@testimonial.FirstName @testimonial.LastName</MudText>
-                            <MudText Typo="Typo.body2" Color="Color.Secondary">@testimonial.Title</MudText>
-                        </div>
-                    </div>
+                <div class="testimonials-track" data-carousel-track role="list">
+                    @foreach (var (testimonial, index) in _testimonials.Select((t, i) => (t, i)))
+                    {
+                        var isLong = testimonial.Description.Length > LongQuoteLength;
+                        <article class="testimonial-card @AccentTone.At(index)" data-carousel-card role="listitem">
+                            <span class="tone-bubble @AccentTone.At(index) testimonial-quote"><MudIcon Icon="@Icons.Material.Filled.FormatQuote" /></span>
+                            <p class="@($"testimonial-text {(isLong ? "clamped" : "")}")">@testimonial.Description</p>
+                            @if (isLong)
+                            {
+                                <button type="button" class="testimonial-more" data-carousel-more aria-expanded="false">Read more</button>
+                            }
+                            <footer class="testimonial-author">
+                                @if (string.IsNullOrWhiteSpace(testimonial.ImageUrl))
+                                {
+                                    <span class="testimonial-avatar testimonial-initials @AccentTone.At(index)">@Initials(testimonial)</span>
+                                }
+                                else
+                                {
+                                    <img class="testimonial-avatar" src="@MediaUrlResolver.Resolve(ApiClient, testimonial.ImageUrl)" alt="@($"{testimonial.FirstName} {testimonial.LastName}")" loading="lazy" />
+                                }
+                                <span class="testimonial-who">
+                                    <span class="testimonial-name">@testimonial.FirstName @testimonial.LastName</span>
+                                    @if (!string.IsNullOrWhiteSpace(testimonial.Title))
+                                    {
+                                        <span class="testimonial-title">@testimonial.Title</span>
+                                    }
+                                </span>
+                            </footer>
+                        </article>
+                    }
                 </div>
-            </MudItem>
-        }
-    </MudGrid>
-</MudContainer>
+
+                @if (_testimonials.Count > 1)
+                {
+                    <div class="testimonials-nav">
+                        <button type="button" class="testimonials-arrow hide-on-phone" data-carousel-prev aria-label="Previous reviews" disabled>
+                            <MudIcon Icon="@Icons.Material.Filled.ChevronLeft" />
+                        </button>
+                        <div class="testimonials-dots" aria-label="Reviews">
+                            @for (var i = 0; i < _testimonials.Count; i++)
+                            {
+                                <button type="button" class="@(i == 0 ? "active" : null)" data-carousel-dot="@i" aria-label="@($"Go to review {i + 1}")" aria-current="@(i == 0 ? "true" : "false")"></button>
+                            }
+                        </div>
+                        <button type="button" class="testimonials-arrow hide-on-phone" data-carousel-next aria-label="Next reviews">
+                            <MudIcon Icon="@Icons.Material.Filled.ChevronRight" />
+                        </button>
+                    </div>
+                }
+            </div>
+        </MudContainer>
+    </section>
+}
 
 @code {
+    private const int LongQuoteLength = 220;
+
     private List<TestimonialResponse> _testimonials = [];
 
     protected override async Task OnInitializedAsync()
@@ -36,4 +75,7 @@
         var result = await ApiClient.GetAsync<List<TestimonialResponse>>(ApiRoutes.SiteContent.Testimonial.Base);
         _testimonials = result.IsSuccessful ? result.ResultData?.OrderBy(t => t.DisplayOrder).ToList() ?? [] : [];
     }
+
+    private static string Initials(TestimonialResponse testimonial) =>
+        string.Concat(new[] { testimonial.FirstName, testimonial.LastName }.Where(n => !string.IsNullOrWhiteSpace(n)).Select(n => char.ToUpperInvariant(n.Trim()[0])));
 }

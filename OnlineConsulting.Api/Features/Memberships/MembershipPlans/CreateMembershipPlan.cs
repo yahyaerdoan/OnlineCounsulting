@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using Hateoas.AspNetCore;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Memberships.Application.Features.MembershipPlans.CreateMembershipPlan;
@@ -14,6 +15,7 @@ public class CreateMembershipPlan : IEndpoint
             .WithTags("Memberships/Plans")
             .RequireAuthorization()
             .WithName("CreateMembershipPlan")
+            .WithCreatedLocation("GetMembershipPlanById")
             .WithDescription("Creates a membership plan (admin) and its provider-side product/price.");
     }
 

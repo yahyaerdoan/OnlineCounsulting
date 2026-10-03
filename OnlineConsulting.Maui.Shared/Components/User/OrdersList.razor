@@ -1,6 +1,10 @@
-@* Caller's own orders - GetOrders is current-user-scoped server-side, no UserId ever sent from here. *@
+﻿@* Caller's own orders - GetOrders is current-user-scoped server-side, no UserId ever sent from here. One layout at every width:
+   a short summary (orders, total paid, awaiting payment), a search box with payment-status pills (only the ones that have
+   orders), then one tappable card per order - a row on wide screens, stacked on phones. *@
 @namespace OnlineConsulting.Maui.Shared.Components.User
 @inject IApiClient ApiClient
+@inject DataChangeNotifier Notifier
+@implements IDisposable
 
 <ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
 
@@ -8,44 +12,165 @@
 {
     <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
 }
+else if (_orders.Count == 0)
+{
+    <div class="cart-empty">
+        <span class="tone-bubble tone-bubble-lg tone-orange"><MudIcon Icon="@Icons.Material.Outlined.ReceiptLong" /></span>
+        <MudText Typo="Typo.h6" Class="text-strong">No orders yet</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">Products you buy online show up here, with their payment status and receipt.</MudText>
+        <div class="cart-empty-actions">
+            <MudButton Href="/services" Variant="Variant.Filled" Class="sell-btn" EndIcon="@Icons.Material.Filled.ArrowForward">Browse services</MudButton>
+        </div>
+    </div>
+}
 else
 {
-    <SearchableTable TItem="OrderResponse" Items="_orders" Filter="@((order, text) => order.OrderNumber.Contains(text, StringComparison.OrdinalIgnoreCase))"
-                      SearchPlaceholder="Search order number">
-        <HeaderContent>
-            <MudTh>Order #</MudTh>
-            <MudTh>Date</MudTh>
-            <MudTh>Status</MudTh>
-            <MudTh>Payment</MudTh>
-            <MudTh Class="mud-table-cell-align-right">Total</MudTh>
-        </HeaderContent>
-        <RowTemplate Context="order">
-            <MudTd DataLabel="Order #">
-                <MudLink Href="@($"/user/orders/{order.Id}")">@order.OrderNumber</MudLink>
-            </MudTd>
-            <MudTd DataLabel="Date">@DateTimeFormat.FormatDateTime(order.CreatedDate)</MudTd>
-            <MudTd DataLabel="Status">@order.OrderStatus</MudTd>
-            <MudTd DataLabel="Payment">
-                <MudChip T="string" Size="Size.Small" Color="@(order.PaymentStatus == "Paid" ? Color.Success : order.PaymentStatus == "Refunded" ? Color.Default : Color.Warning)">@order.PaymentStatus</MudChip>
-            </MudTd>
-            <MudTd DataLabel="Total" Class="mud-table-cell-align-right">@CurrencyFormat.Format(order.TotalPrice)</MudTd>
-        </RowTemplate>
-        <NoRecordsContent>
-            <MudText>No orders yet.</MudText>
-        </NoRecordsContent>
-    </SearchableTable>
+    <div class="orders-stats">
+        <div class="orders-stat">
+            <span class="orders-stat-value">@_orders.Count</span>
+            <span class="orders-stat-label">@(_orders.Count == 1 ? "order" : "orders")</span>
+        </div>
+        <div class="orders-stat">
+            <span class="orders-stat-value">@CurrencyFormat.Format(_orders.Where(o => o.PaymentStatus == PaidStatus).Sum(o => o.TotalPrice))</span>
+            <span class="orders-stat-label">paid</span>
+        </div>
+        @if (_orders.Count(o => o.PaymentStatus == PendingStatus) is > 0 and var awaiting)
+        {
+            <button type="button" class="orders-stat orders-stat-alert" @onclick="@(() => _filter = PendingStatus)">
+                <span class="orders-stat-value">@awaiting</span>
+                <span class="orders-stat-label">awaiting payment</span>
+            </button>
+        }
+    </div>
+
+    <div class="orders-toolbar">
+        <div class="area-search orders-search">
+            <MudIcon Icon="@Icons.Material.Outlined.Search" Class="area-search-icon" />
+            <input id="orders-search" class="area-search-input" type="search" placeholder=" " autocomplete="off"
+                   @bind="_query" @bind:event="oninput" />
+            <label for="orders-search" class="area-search-label">Search order number</label>
+        </div>
+        <div class="list-tabs orders-filters" role="tablist" aria-label="Filter by payment">
+            @foreach (var (key, label) in Filters)
+            {
+                var count = key.Length == 0 ? _orders.Count : _orders.Count(o => o.PaymentStatus == key);
+                if (count == 0)
+                {
+                    continue;
+                }
+                var isActive = _filter == key;
+                <button type="button" role="tab" aria-selected="@(isActive ? "true" : "false")" class="@($"list-tab {(isActive ? "active" : "")}")"
+                        @onclick="@(() => _filter = key)">
+                    @label <span class="gallery-chip-count">@count</span>
+                </button>
+            }
+        </div>
+    </div>
+
+    @if (VisibleOrders.Count == 0)
+    {
+        <MudText Color="Color.Secondary" Class="py-6" Align="Align.Center">No orders match. Try another number or filter.</MudText>
+    }
+
+    <div class="order-cards" role="list">
+        @foreach (var order in VisibleOrders)
+        {
+            <a href="@($"/user/orders/{order.Id}")" class="@($"order-card {PaymentTone(order.PaymentStatus)}")" role="listitem">
+                <span class="order-card-icon"><MudIcon Icon="@PaymentIcon(order.PaymentStatus)" /></span>
+                <span class="order-card-main">
+                    <span class="order-card-number">Order #@order.OrderNumber</span>
+                    <span class="order-card-date">@DateTimeFormat.FormatDateTime(order.CreatedDate)</span>
+                </span>
+                <span class="order-card-badges">
+                    <StatusBadge Label="@PaymentLabel(order.PaymentStatus)" Kind="@PaymentKind(order.PaymentStatus)" />
+                    @if (order.OrderStatus == "Cancelled" && order.PaymentStatus != "Cancelled")
+                    {
+                        <StatusBadge Label="@order.OrderStatus" Kind="@StatusKinds.Neutral" />
+                    }
+                </span>
+                <span class="order-card-total">@CurrencyFormat.Format(order.TotalPrice)</span>
+                <MudIcon Icon="@Icons.Material.Filled.ChevronRight" Class="order-card-chevron" />
+            </a>
+        }
+    </div>
 }
 
 @code {
+    private const string PaidStatus = "Paid";
+    private const string PendingStatus = "Pending";
+
+    private static readonly (string Key, string Label)[] Filters =
+    [
+        ("", "All"),
+        (PaidStatus, "Paid"),
+        (PendingStatus, "Awaiting payment"),
+        ("Refunded", "Refunded"),
+        ("Cancelled", "Cancelled"),
+    ];
+
     private List<OrderResponse> _orders = [];
+    private string? _query;
+    private string _filter = string.Empty;
+
+    private List<OrderResponse> VisibleOrders =>
+    [
+        .. _orders
+            .Where(o => _filter.Length == 0 || o.PaymentStatus == _filter)
+            .Where(o => string.IsNullOrWhiteSpace(_query) || o.OrderNumber.Contains(_query.Trim(), StringComparison.OrdinalIgnoreCase))
+            .OrderByDescending(o => o.CreatedDate),
+    ];
+
+    private static string PaymentLabel(string status) => status switch
+    {
+        PendingStatus => "Awaiting payment",
+        _ => status,
+    };
+
+    private static string PaymentKind(string status) => status switch
+    {
+        PaidStatus => StatusKinds.Success,
+        PendingStatus => StatusKinds.Warning,
+        "Refunded" => StatusKinds.Info,
+        _ => StatusKinds.Neutral,
+    };
+
+    private static string PaymentTone(string status) => status switch
+    {
+        PaidStatus => AccentTone.Green,
+        PendingStatus => AccentTone.Orange,
+        "Refunded" => AccentTone.Blue,
+        _ => AccentTone.Cornflower,
+    };
+
+    private static string PaymentIcon(string status) => status switch
+    {
+        PaidStatus => Icons.Material.Outlined.TaskAlt,
+        PendingStatus => Icons.Material.Outlined.HourglassTop,
+        "Refunded" => Icons.Material.Outlined.Replay,
+        _ => Icons.Material.Outlined.ReceiptLong,
+    };
+
+    /// <summary>Paid is green, Refunded neutral, anything still open (Pending, Failed...) amber.</summary>
+    public static Color PaymentColor(string paymentStatus) => paymentStatus switch
+    {
+        "Paid" => Color.Success,
+        "Refunded" => Color.Default,
+        _ => Color.Warning,
+    };
     private bool _loading = true;
     private string? _loadError;
 
-    protected override Task OnInitializedAsync() => ReloadAsync();
+    private IDisposable? _liveUpdates;
+
+    protected override Task OnInitializedAsync()
+    {
+        _liveUpdates = Notifier.Subscribe(() => InvokeAsync(async () => { await ReloadAsync(); StateHasChanged(); }), DataTopic.Orders);
+        return ReloadAsync();
+    }
 
     private async Task ReloadAsync()
     {
-        _loading = true;
+        _loadError = null;
         var result = await ApiClient.GetAsync<List<OrderResponse>>(ApiRoutes.Commerce.Orders.Mine);
         if (!result.IsSuccessful || result.ResultData is null)
         {
@@ -59,4 +184,6 @@ else
 
         _loading = false;
     }
+
+    public void Dispose() => _liveUpdates?.Dispose();
 }

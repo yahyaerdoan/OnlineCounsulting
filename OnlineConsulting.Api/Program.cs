@@ -5,11 +5,14 @@ using Core.ApplicationLayer.Pipelines.Loggings.Concretions;
 using Core.ApplicationLayer.Pipelines.Validations.Concretions;
 using Core.CrossCuttingConcernLayer.ExceptionHandlings.Extensions;
 using Core.SecurityLayer.Authorization;
+using Hateoas.AspNetCore;
 using MediatR;
 using Microsoft.AspNetCore.HttpOverrides;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Api.Common.Hateoas;
 using OnlineConsulting.Api.Configurations.Extensions;
-using OnlineConsulting.Modules.Categories.Application.Features.Constants;
+using OnlineConsulting.Api.LiveUpdates;
+using OnlineConsulting.Modules.Categories.Application.Common;
 using OnlineConsulting.Modules.Categories.Infrastructure;
 using OnlineConsulting.Modules.Categories.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Commerce.Application.Common;
@@ -18,7 +21,7 @@ using OnlineConsulting.Modules.Commerce.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Equipment.Application.Common;
 using OnlineConsulting.Modules.Equipment.Infrastructure;
 using OnlineConsulting.Modules.Equipment.Infrastructure.Persistence;
-using OnlineConsulting.Modules.FeatureFlags.Application.Features.Constants;
+using OnlineConsulting.Modules.FeatureFlags.Application.Common;
 using OnlineConsulting.Modules.FeatureFlags.Infrastructure;
 using OnlineConsulting.Modules.FeatureFlags.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Identity.Application.Features.Invites.Constants;
@@ -32,7 +35,7 @@ using OnlineConsulting.Modules.Inquiries.Application.Features.Messages.Constants
 using OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.Constants;
 using OnlineConsulting.Modules.Inquiries.Infrastructure;
 using OnlineConsulting.Modules.Inquiries.Infrastructure.Persistence;
-using OnlineConsulting.Modules.Media.Application.Features.Constants;
+using OnlineConsulting.Modules.Media.Application.Common;
 using OnlineConsulting.Modules.Media.Infrastructure;
 using OnlineConsulting.Modules.Media.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Memberships.Application.Common;
@@ -45,7 +48,7 @@ using OnlineConsulting.Modules.Scheduling.Application.Common;
 using OnlineConsulting.Modules.Scheduling.Infrastructure;
 using OnlineConsulting.Modules.Scheduling.Infrastructure.Hubs;
 using OnlineConsulting.Modules.Scheduling.Infrastructure.Persistence;
-using OnlineConsulting.Modules.Services.Application.Features.Constants;
+using OnlineConsulting.Modules.Services.Application.Common;
 using OnlineConsulting.Modules.Services.Infrastructure;
 using OnlineConsulting.Modules.Services.Infrastructure.Persistence;
 using OnlineConsulting.Modules.SiteContent.Application.Common;
@@ -57,6 +60,7 @@ using OnlineConsulting.Notifications;
 using OnlineConsulting.Notifications.Persistence;
 using OnlineConsulting.Payments;
 using OnlineConsulting.ServiceDefaults;
+using OnlineConsulting.SharedKernel.LiveUpdates;
 using OnlineConsulting.SharedKernel.Tenancy;
 using OnlineConsulting.SharedKernel.Validation;
 using OnlineConsulting.Storage;
@@ -136,6 +140,7 @@ builder.Services.PostConfigure<StorageOptions>(options =>
 });
 
 builder.Services.AddNotificationsInfrastructure(builder.Configuration);
+builder.Services.AddSingleton<IUserDataChangePublisher, SignalRUserDataChangePublisher>();
 builder.Services.AddPaymentsInfrastructure(builder.Configuration);
 
 builder.Services.AddHealthChecks()
@@ -155,6 +160,7 @@ builder.Services.AddHealthChecks()
     .AddDbContextCheck<NotificationsDbContext>();
 
 builder.Services.AddApiServiceRegistration(builder.Environment);
+builder.Services.AddHateoas(options => options.CurieName = Rels.CurieName).AddLinkProvidersFromAssembly(typeof(Program).Assembly);
 
 // KnownNetworks/KnownProxies cleared - proxy IP isn't known ahead of deployment; without this
 // RemoteIpAddress (used for rate-limit partitioning) always resolves to the proxy, not the client.
@@ -194,5 +200,6 @@ app.UseRateLimiter();
 
 app.MapEndpoints();
 app.MapHub<TechnicianTrackingHub>("/hubs/technician-tracking");
+app.MapHub<UserUpdatesHub>(UserUpdatesHub.Path);
 
 app.Run();

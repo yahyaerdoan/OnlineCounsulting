@@ -23,7 +23,7 @@ else
             <MudTh Class="mud-table-cell-align-right">Enabled</MudTh>
         </HeaderContent>
         <RowTemplate Context="flag">
-            <MudTd DataLabel="Feature">
+            <MudTd DataLabel="Feature" Class="cell-primary">
                 @flag.Key
                 @if (!flag.IsPurchased && flag.Price is not null)
                 {

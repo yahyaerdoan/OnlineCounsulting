@@ -1,15 +1,17 @@
-@* Read-only order detail/invoice view - no separate Invoice entity exists in this stack.
-   Full page (not a dialog) - the dialog-to-page threshold applies once content grows past a
-   couple of fields, and this shows a header block plus a full line-item table. *@
+@* Order detail: a header card (number, date, status badges, a Placed / Payment / Done progress line and the next step: finish an
+   unpaid order at checkout, open its receipt, get help), the items as cards with photos, the shipping and billing addresses, and a
+   totals summary. Wide screens put the summary beside the items (sticky); phones stack everything. *@
 @page "/user/orders/{OrderId:guid}"
 @attribute [Authorize(Roles = AppRoles.User)]
 @layout OnlineConsulting.Maui.Shared.Layout.DashboardLayout
 @using OnlineConsulting.Maui.Shared.Components.User
 @inject IApiClient ApiClient
+@inject DataChangeNotifier Notifier
+@implements IDisposable
 
 <PageTitle>Order Detail</PageTitle>
 
-<DashboardPageHeading Text="@(_detail is not null ? $"Order {_detail.Order.OrderNumber}" : "Order Detail")" />
+<a href="/user/orders" class="checkout-back-link order-detail-backlink"><MudIcon Icon="@Icons.Material.Outlined.ArrowBack" Size="Size.Small" />All orders</a>
 
 <ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
 
@@ -19,56 +21,195 @@
 }
 else if (_detail is not null)
 {
-    <MudStack Spacing="1" Class="mb-4">
-        <MudText Typo="Typo.body2">Order #: @_detail.Order.OrderNumber</MudText>
-        <MudText Typo="Typo.body2">Placed: @DateTimeFormat.FormatDateTime(_detail.Order.CreatedDate)</MudText>
-        <MudText Typo="Typo.body2">Status: @_detail.Order.OrderStatus</MudText>
-        <MudText Typo="Typo.body2">Payment: @_detail.Order.PaymentStatus</MudText>
-    </MudStack>
+    var order = _detail.Order;
+    var isPaid = order.PaymentStatus == PaidStatus;
+    var isPending = order.PaymentStatus == PendingStatus;
+    var isClosed = order.PaymentStatus is "Refunded" or "Cancelled" || order.OrderStatus == "Cancelled";
 
-    <MudSimpleTable Dense="true">
-        <thead>
-            <tr>
-                <th>Service</th>
-                <th>Qty</th>
-                <th class="text-right">Unit Price</th>
-                <th class="text-right">Tax</th>
-                <th class="text-right">Total</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in _detail.Items)
+    <section class="@($"order-hero {PaymentTone(order.PaymentStatus)}")">
+        <div class="order-hero-top">
+            <span class="order-card-icon"><MudIcon Icon="@PaymentIcon(order.PaymentStatus)" /></span>
+            <div class="order-hero-title">
+                <span class="order-hero-label">Order</span>
+                <span class="order-hero-number">#@order.OrderNumber</span>
+                <span class="order-hero-date">Placed @DateTimeFormat.FormatDateTime(order.CreatedDate)</span>
+            </div>
+            <span class="order-card-badges">
+                <StatusBadge Label="@PaymentLabel(order.PaymentStatus)" Kind="@PaymentKind(order.PaymentStatus)" />
+                @if (order.OrderStatus == "Cancelled" && order.PaymentStatus != "Cancelled")
+                {
+                    <StatusBadge Label="@order.OrderStatus" Kind="@StatusKinds.Neutral" />
+                }
+            </span>
+        </div>
+
+        <ol class="order-progress" aria-label="Order progress">
+            <li class="done"><span class="order-progress-dot"><MudIcon Icon="@Icons.Material.Filled.Check" Size="Size.Small" /></span>Placed</li>
+            <li class="@(isPaid || isClosed ? "done" : "current")">
+                <span class="order-progress-dot">
+                    @if (isPaid || isClosed)
+                    {
+                        <MudIcon Icon="@Icons.Material.Filled.Check" Size="Size.Small" />
+                    }
+                </span>
+                @(isPaid ? "Paid" : isClosed ? PaymentLabel(order.PaymentStatus) : "Awaiting payment")
+            </li>
+            <li class="@(isPaid || isClosed ? "done" : "")">
+                <span class="order-progress-dot">
+                    @if (isPaid || isClosed)
+                    {
+                        <MudIcon Icon="@Icons.Material.Filled.Check" Size="Size.Small" />
+                    }
+                </span>
+                @(isClosed ? "Closed" : "Complete")
+            </li>
+        </ol>
+
+        <div class="order-hero-actions">
+            @if (isPending && !isClosed)
             {
-                <tr>
-                    <td>@(_serviceNames.GetValueOrDefault(item.ServiceId) ?? item.ServiceId.ToString())</td>
-                    <td>@item.Quantity</td>
-                    <td class="text-right">@CurrencyFormat.Format(item.UnitPrice)</td>
-                    <td class="text-right">@CurrencyFormat.Format(item.TaxAmount)</td>
-                    <td class="text-right">@CurrencyFormat.Format(item.TotalPrice)</td>
-                </tr>
+                <MudButton Href="@($"/user/checkout?orderId={order.Id}")" Variant="Variant.Filled" Class="sell-btn" StartIcon="@Icons.Material.Filled.Lock">
+                    Complete payment · @CurrencyFormat.Format(order.TotalPrice)
+                </MudButton>
             }
-        </tbody>
-    </MudSimpleTable>
+            @if (_invoiceId is { } invoiceId)
+            {
+                <MudButton Href="@($"/user/invoices/{invoiceId}")" Variant="Variant.Outlined" Color="Color.Primary" Class="svc-action" StartIcon="@Icons.Material.Outlined.ReceiptLong">View receipt</MudButton>
+            }
+            <MudButton Href="/contact" Variant="Variant.Text" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.SupportAgent">Need help?</MudButton>
+        </div>
+    </section>
 
-    <MudStack Row="true" Justify="Justify.FlexEnd" Class="mt-3">
-        <MudText Typo="Typo.subtitle1">Total: @CurrencyFormat.Format(_detail.Order.TotalPrice)</MudText>
-    </MudStack>
+    <div class="order-detail-layout">
+        <div class="order-detail-main">
+            <section class="checkout-card">
+                <div class="checkout-card-head">
+                    <MudText Typo="Typo.h6" Class="text-strong">Items</MudText>
+                    <span class="cart-head-count">@_detail.Items.Sum(i => i.Quantity) @(_detail.Items.Sum(i => i.Quantity) == 1 ? "item" : "items")</span>
+                </div>
+                <div class="cart-item-cards" role="list">
+                    @foreach (var item in _detail.Items)
+                    {
+                        var info = _services.GetValueOrDefault(item.ServiceId);
+                        var url = info is null ? null : $"/services/{info.Slug}";
+                        <div class="cart-item-card order-item-card" role="listitem">
+                            <a href="@url" class="cart-item-thumb" aria-label="@(info?.Title ?? "Item")">
+                                @if (info?.ImageUrl is { Length: > 0 } image)
+                                {
+                                    <img src="@image" alt="" loading="lazy" />
+                                }
+                                else
+                                {
+                                    <MudIcon Icon="@Icons.Material.Outlined.Inventory2" />
+                                }
+                            </a>
+                            <div class="cart-item-body">
+                                <a href="@url" class="cart-item-title">@(info?.Title ?? "Item")</a>
+                                <span class="cart-item-meta">@item.Quantity &times; @CurrencyFormat.Format(item.UnitPrice) · tax @(item.TaxRate)% (@CurrencyFormat.Format(item.TaxAmount))</span>
+                                <div class="cart-item-bottom">
+                                    <span class="cart-item-meta">Subtotal @CurrencyFormat.Format(item.SubTotalPrice)</span>
+                                    <span class="cart-item-total">@CurrencyFormat.Format(item.TotalPrice)</span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </section>
 
-    <MudButton Href="/user/orders" Variant="Variant.Outlined" Color="Color.Primary" Class="mt-4">Back to Orders</MudButton>
+            @if (_shipping is not null || _billing is not null)
+            {
+                <section class="checkout-card">
+                    <div class="checkout-card-head">
+                        <MudText Typo="Typo.h6" Class="text-strong">Addresses</MudText>
+                    </div>
+                    <div class="order-address-grid">
+                        @if (_shipping is { } shipping)
+                        {
+                            <div class="checkout-address-row">
+                                <span class="tone-bubble @AccentTone.Green"><MudIcon Icon="@Icons.Material.Outlined.LocalShipping" /></span>
+                                <div class="checkout-address-body">
+                                    <span class="checkout-address-label">Shipping to</span>
+                                    <span class="checkout-address-name">@shipping.AddressName</span>
+                                    <span class="checkout-address-line">@AddressFormat.FullLine(shipping)</span>
+                                </div>
+                            </div>
+                        }
+                        @if (_billing is { } billing)
+                        {
+                            <div class="checkout-address-row">
+                                <span class="tone-bubble @AccentTone.Blue"><MudIcon Icon="@Icons.Material.Outlined.Receipt" /></span>
+                                <div class="checkout-address-body">
+                                    <span class="checkout-address-label">Billing address</span>
+                                    @if (billing.Id == _shipping?.Id)
+                                    {
+                                        <span class="checkout-address-name">Same as shipping</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="checkout-address-name">@billing.AddressName</span>
+                                        <span class="checkout-address-line">@AddressFormat.FullLine(billing)</span>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </section>
+            }
+        </div>
+
+        <aside class="checkout-summary" aria-label="Order total">
+            <div class="checkout-card">
+                <div class="checkout-card-head">
+                    <MudText Typo="Typo.h6" Class="text-strong">Summary</MudText>
+                </div>
+                <ul class="order-totals">
+                    <li><span>Subtotal</span><span>@CurrencyFormat.Format(_detail.Items.Sum(i => i.SubTotalPrice))</span></li>
+                    <li><span>Tax</span><span>@CurrencyFormat.Format(_detail.Items.Sum(i => i.TaxAmount))</span></li>
+                    <li class="order-totals-total"><span>Total</span><span>@CurrencyFormat.Format(order.TotalPrice)</span></li>
+                </ul>
+                <span class="checkout-secure-note mt-3">
+                    <MudIcon Icon="@(isPaid ? Icons.Material.Outlined.TaskAlt : Icons.Material.Outlined.Info)" Size="Size.Small" />
+                    @(isPaid ? "Paid in full." : isPending ? "Not paid yet. Complete payment to confirm this order." : $"This order is {PaymentLabel(order.PaymentStatus).ToLowerInvariant()}.")
+                </span>
+            </div>
+        </aside>
+    </div>
 }
 
 @code {
+    private const string PaidStatus = "Paid";
+    private const string PendingStatus = "Pending";
+
+    private sealed record ItemInfo(string Title, string Slug, string? ImageUrl);
+
     [Parameter]
     public Guid OrderId { get; set; }
 
     private OrderDetailResponse? _detail;
-    private readonly Dictionary<Guid, string> _serviceNames = [];
+    private readonly Dictionary<Guid, ItemInfo> _services = [];
+    private UserAddressResponse? _shipping;
+    private UserAddressResponse? _billing;
+    private Guid? _invoiceId;
     private bool _loading = true;
     private string? _loadError;
 
-    protected override async Task OnInitializedAsync()
+    private IDisposable? _liveUpdates;
+
+    protected override Task OnInitializedAsync()
+    {
+        _liveUpdates = Notifier.Subscribe(() => InvokeAsync(async () => { await LoadAsync(); StateHasChanged(); }), DataTopic.Orders);
+        return LoadAsync();
+    }
+
+    private async Task LoadAsync()
     {
         var result = await ApiClient.GetAsync<OrderDetailResponse>(ApiRoutes.Commerce.Orders.ById(OrderId));
+        if (result.IsSuccessful && result.ResultData is { Order: { PaymentStatus: PendingStatus, OrderStatus: not "Cancelled" } }
+            && await IsPaymentSettledAsync())
+        {
+            result = await ApiClient.GetAsync<OrderDetailResponse>(ApiRoutes.Commerce.Orders.ById(OrderId));
+        }
+
         if (!result.IsSuccessful || result.ResultData is null)
         {
             _loadError = result.DisplayMessage;
@@ -78,15 +219,65 @@ else if (_detail is not null)
 
         _detail = result.ResultData;
 
-        foreach (var serviceId in _detail.Items.Select(i => i.ServiceId).Distinct())
-        {
-            var serviceResult = await ApiClient.GetAsync<ServiceDetailResponse>(ApiRoutes.Services.ById(serviceId));
-            if (serviceResult.IsSuccessful && serviceResult.ResultData is not null)
-            {
-                _serviceNames[serviceId] = serviceResult.ResultData.Title;
-            }
-        }
+        var addressesTask = ApiClient.GetAsync<List<UserAddressResponse>>(ApiRoutes.Addresses.Base);
+        var invoicesTask = ApiClient.GetAsync<List<InvoiceResponse>>(ApiRoutes.Invoices.Mine);
+        var serviceTasks = _detail.Items.Select(i => i.ServiceId).Distinct().Where(id => !_services.ContainsKey(id)).Select(LoadServiceAsync).ToList();
 
+        var addresses = await addressesTask;
+        var addressList = addresses.IsSuccessful ? addresses.ResultData ?? [] : [];
+        _shipping = addressList.FirstOrDefault(a => a.Id == _detail.ShippingAddressId);
+        _billing = addressList.FirstOrDefault(a => a.Id == _detail.InvoiceAddressId);
+
+        var invoices = await invoicesTask;
+        _invoiceId = invoices.IsSuccessful ? invoices.ResultData?.FirstOrDefault(i => i.SourceId == OrderId && i.Status != "Void")?.Id : null;
+
+        await Task.WhenAll(serviceTasks);
         _loading = false;
     }
+
+    private async Task<bool> IsPaymentSettledAsync()
+    {
+        var resume = await ApiClient.GetAsync<CreateOrderResult>(ApiRoutes.Commerce.Orders.ResumePayment(OrderId));
+        return resume.IsSuccessful && resume.ResultData is { PaymentClientSecret: null };
+    }
+
+    private async Task LoadServiceAsync(Guid serviceId)
+    {
+        var serviceResult = await ApiClient.GetAsync<ServiceDetailResponse>(ApiRoutes.Services.ById(serviceId));
+        if (!serviceResult.IsSuccessful || serviceResult.ResultData is not { } service)
+        {
+            return;
+        }
+
+        var imageUrl = service.CoverMediaAssetId is Guid coverId ? await MediaUploadHelper.GetUrlAsync(ApiClient, coverId) : null;
+        _services[serviceId] = new ItemInfo(service.Title, service.Slug, imageUrl);
+    }
+
+    private static string PaymentLabel(string status) => status == PendingStatus ? "Awaiting payment" : status;
+
+    private static string PaymentKind(string status) => status switch
+    {
+        PaidStatus => StatusKinds.Success,
+        PendingStatus => StatusKinds.Warning,
+        "Refunded" => StatusKinds.Info,
+        _ => StatusKinds.Neutral,
+    };
+
+    private static string PaymentTone(string status) => status switch
+    {
+        PaidStatus => AccentTone.Green,
+        PendingStatus => AccentTone.Orange,
+        "Refunded" => AccentTone.Blue,
+        _ => AccentTone.Cornflower,
+    };
+
+    private static string PaymentIcon(string status) => status switch
+    {
+        PaidStatus => Icons.Material.Outlined.TaskAlt,
+        PendingStatus => Icons.Material.Outlined.HourglassTop,
+        "Refunded" => Icons.Material.Outlined.Replay,
+        _ => Icons.Material.Outlined.ReceiptLong,
+    };
+
+    public void Dispose() => _liveUpdates?.Dispose();
 }

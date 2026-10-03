@@ -18,11 +18,13 @@
         <MudTh>Actions</MudTh>
     </HeaderContent>
     <RowTemplate Context="subscriber">
-        <MudTd DataLabel="Email">@subscriber.Email</MudTd>
+        <MudTd DataLabel="Email" Class="cell-primary">@subscriber.Email</MudTd>
         <MudTd DataLabel="Subscribed">@DateTimeFormat.FormatDateTime(subscriber.CreatedDate)</MudTd>
         <MudTd DataLabel="Actions">
-            <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" Size="Size.Small" title="Remove"
-                           OnClick="@(() => RemoveAsync(subscriber))" />
+            <MudTooltip Text="Remove">
+                <MudIconButton aria-label="Remove" Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" Size="Size.Small"
+                               OnClick="@(() => RemoveAsync(subscriber))" />
+            </MudTooltip>
         </MudTd>
     </RowTemplate>
 </ServerDataTable>

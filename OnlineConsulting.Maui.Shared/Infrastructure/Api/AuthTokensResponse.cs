@@ -1,3 +1,4 @@
+
 namespace OnlineConsulting.Maui.Shared.Infrastructure.Api;
 
 /// <summary>Mirrors POST /api/auth/login's response shape.</summary>

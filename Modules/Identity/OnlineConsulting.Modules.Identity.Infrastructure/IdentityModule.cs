@@ -13,10 +13,12 @@ using OnlineConsulting.Modules.Identity.Application.Common.Templates;
 using OnlineConsulting.Modules.Identity.Application.Features.Auth;
 using OnlineConsulting.Modules.Identity.Application.Features.Auth.Abstractions;
 using OnlineConsulting.Modules.Identity.Application.Features.Invites.Abstractions;
+using OnlineConsulting.Modules.Identity.Application.Features.Notifications.Abstractions;
 using OnlineConsulting.Modules.Identity.Application.Features.Invites.Constants;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Abstractions;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Constants;
 using OnlineConsulting.Modules.Identity.Domain;
+using OnlineConsulting.Modules.Identity.Infrastructure.LiveUpdates;
 using OnlineConsulting.Modules.Identity.Infrastructure.Notifications;
 using OnlineConsulting.Modules.Identity.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Identity.Infrastructure.Pipelines;
@@ -27,6 +29,7 @@ using OnlineConsulting.Modules.Identity.Infrastructure.Status;
 using OnlineConsulting.Modules.Identity.Infrastructure.Storage;
 using OnlineConsulting.SharedKernel.Auditing;
 using OnlineConsulting.SharedKernel.Authorization;
+using OnlineConsulting.SharedKernel.LiveUpdates;
 using OnlineConsulting.SharedKernel.Identity;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
@@ -49,8 +52,10 @@ public static class IdentityModule
 
         _ = services.AddScoped<AuditSaveChangesInterceptor>();
 
+        _ = services.AddUserDataChangeRules(IdentityUserDataChangeRules.Configure);
         _ = services.AddDbContext<AppIdentityDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
-            .AddInterceptors(serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>()));
+            .AddInterceptors(serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>())
+            .AddUserDataChangeInterceptors(serviceProvider));
 
         _ = services.AddIdentity<User, Role>(options => options.Password.RequiredLength = 6)
             .AddEntityFrameworkStores<AppIdentityDbContext>()
@@ -64,9 +69,13 @@ public static class IdentityModule
         _ = services.AddScoped<IRefreshTokenService, RefreshTokenService>();
         _ = services.AddScoped<IUserImageStorage, UserImageStorage>();
         _ = services.AddScoped<IDeviceTokenRepository, DeviceTokenRepository>();
+        _ = services.AddScoped<UserNotificationRepository>();
+        _ = services.AddScoped<IUserNotificationRepository>(sp => sp.GetRequiredService<UserNotificationRepository>());
+        _ = services.AddScoped<IUserNotificationInbox>(sp => sp.GetRequiredService<UserNotificationRepository>());
         _ = services.AddScoped<IInviteRepository, InviteRepository>();
         _ = services.AddScoped<IUserExistenceReader, UserExistenceReader>();
         _ = services.AddScoped<IUserContactReader, UserContactReader>();
+        _ = services.AddScoped<IStaffDirectory, StaffDirectory>();
 
         _ = services.AddScoped<IEmailOutboxWriter<IIdentityOutboxModule>, EmailOutboxWriter>();
         _ = services.AddScoped<IEmailTemplate<ConfirmEmailEmailModel>, ConfirmEmailTemplate>();

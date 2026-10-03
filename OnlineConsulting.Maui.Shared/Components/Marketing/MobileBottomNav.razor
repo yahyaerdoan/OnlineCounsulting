@@ -1,0 +1,25 @@
+@* Thumb-reachable tab bar for customer pages on phone-sized screens (web and native); CSS hides it on wide screens.
+   The center tab is the primary action (booking), the last one opens the Menu hub. *@
+
+<nav class="mobile-bottom-nav" aria-label="Main">
+    <NavLink href="/" Match="NavLinkMatch.All" class="mobile-bottom-nav-item">
+        <MudIcon Icon="@Icons.Material.Outlined.Home" />
+        <span>Home</span>
+    </NavLink>
+    <NavLink href="/services" class="mobile-bottom-nav-item">
+        <MudIcon Icon="@Icons.Material.Outlined.HomeRepairService" />
+        <span>Services</span>
+    </NavLink>
+    <NavLink href="/appointment" class="mobile-bottom-nav-item mobile-bottom-nav-primary">
+        <span class="mobile-bottom-nav-primary-icon"><MudIcon Icon="@Icons.Material.Filled.Add" /></span>
+        <span>Book</span>
+    </NavLink>
+    <NavLink href="/user/appointments" class="mobile-bottom-nav-item">
+        <MudIcon Icon="@Icons.Material.Outlined.CalendarMonth" />
+        <span>Visits</span>
+    </NavLink>
+    <NavLink href="/menu" class="mobile-bottom-nav-item">
+        <MudIcon Icon="@Icons.Material.Outlined.Menu" />
+        <span>Menu</span>
+    </NavLink>
+</nav>

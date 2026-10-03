@@ -1,0 +1,42 @@
+﻿@* Pill tabs above an admin list (All / Active / Ending ...). They scroll sideways on phones instead of wrapping. *@
+@namespace OnlineConsulting.Maui.Shared.Components.Common
+
+<div class="list-tabs" role="tablist" aria-label="@Label">
+    @foreach (var option in Options)
+    {
+        var isSelected = option.Key == Selected;
+        <button type="button" role="tab" aria-selected="@(isSelected ? "true" : "false")" class="@($"list-tab {(isSelected ? "active" : "")}")"
+                @onclick="@(() => SelectAsync(option.Key))">
+            @if (option.Icon is not null)
+            {
+                <MudIcon Icon="@option.Icon" Size="Size.Small" />
+            }
+            @option.Label
+        </button>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public IReadOnlyList<ListFilterOption> Options { get; set; } = [];
+
+    [Parameter]
+    public string Selected { get; set; } = string.Empty;
+
+    [Parameter]
+    public EventCallback<string> SelectedChanged { get; set; }
+
+    [Parameter]
+    public string Label { get; set; } = "Filter";
+
+    private async Task SelectAsync(string key)
+    {
+        if (key == Selected)
+        {
+            return;
+        }
+
+        Selected = key;
+        await SelectedChanged.InvokeAsync(key);
+    }
+}

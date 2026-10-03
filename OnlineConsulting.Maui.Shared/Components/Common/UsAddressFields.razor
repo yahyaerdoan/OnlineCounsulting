@@ -1,0 +1,87 @@
+@* US address inputs shared by the booking form and the address book: street type-ahead (our API proxies Geoapify), picking a
+   suggestion fills city, state and ZIP; state is a dropdown of the 50 states + DC. Works as plain inputs when suggestions are off. *@
+@inject IApiClient ApiClient
+
+<div class="us-address">
+    <MudAutocomplete T="string" Value="@Address.AddressLine" ValueChanged="OnStreetChangedAsync" For="@(() => Address.AddressLine)"
+                     SearchFunc="SearchAsync" DebounceInterval="300" MinCharacters="3" CoerceValue="true" CoerceText="false" Strict="false"
+                     ShowProgressIndicator="true" MaxItems="6" Label="Street address" Variant="Variant.Outlined"
+                     AdornmentIcon="@Icons.Material.Outlined.Search" Adornment="Adornment.Start" autocomplete="off" Class="us-address-street">
+        <ItemTemplate Context="formatted">
+            <div class="us-address-option">
+                <MudIcon Icon="@Icons.Material.Outlined.LocationOn" Size="Size.Small" />
+                <span>@formatted</span>
+            </div>
+        </ItemTemplate>
+    </MudAutocomplete>
+
+    <div class="us-address-row">
+        <MudTextField T="string" Value="@Address.City" ValueChanged="@(value => SetAsync(() => Address.City = value))" For="@(() => Address.City)"
+                      Label="City" Variant="Variant.Outlined" autocomplete="address-level2" Class="us-address-city" />
+        <MudSelect T="string" Value="@Address.State" ValueChanged="@(value => SetAsync(() => Address.State = value))" For="@(() => Address.State)"
+                   Label="State" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" Class="us-address-state">
+            @foreach (var (stateCode, stateName) in UsStates.All)
+            {
+                <MudSelectItem T="string" Value="@stateCode">@stateName (@stateCode)</MudSelectItem>
+            }
+        </MudSelect>
+        <MudTextField T="string" Value="@Address.Zipcode" ValueChanged="@(value => SetAsync(() => Address.Zipcode = value))" For="@(() => Address.Zipcode)"
+                      Label="ZIP" Variant="Variant.Outlined" InputMode="InputMode.numeric" MaxLength="10" autocomplete="postal-code" Class="us-address-zip" />
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public IUsAddress? Model { get; set; }
+
+    private IUsAddress Address => Model ?? throw new InvalidOperationException("UsAddressFields needs a Model.");
+
+    [Parameter]
+    public EventCallback Changed { get; set; }
+
+    private readonly Dictionary<string, AddressSuggestionResponse> _suggestions = new(StringComparer.Ordinal);
+
+    private async Task<IEnumerable<string>> SearchAsync(string? text, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(text) || text.Trim().Length < 3)
+        {
+            return [];
+        }
+
+        var result = await ApiClient.GetAsync<List<AddressSuggestionResponse>>(ApiRoutes.Addresses.Suggestions(text.Trim()));
+        if (!result.IsSuccessful || result.ResultData is null)
+        {
+            return [];
+        }
+
+        foreach (var suggestion in result.ResultData)
+        {
+            _suggestions[suggestion.Formatted] = suggestion;
+        }
+
+        return result.ResultData.Select(s => s.Formatted);
+    }
+
+    private async Task OnStreetChangedAsync(string? value)
+    {
+        if (value is not null && _suggestions.TryGetValue(value, out var picked))
+        {
+            Address.AddressLine = picked.AddressLine;
+            Address.City = picked.City;
+            Address.State = UsStates.All.Any(s => s.Code == picked.State) ? picked.State : Address.State;
+            Address.Zipcode = picked.Zipcode;
+        }
+        else
+        {
+            Address.AddressLine = value ?? "";
+        }
+
+        await Changed.InvokeAsync();
+    }
+
+    private async Task SetAsync(Action apply)
+    {
+        apply();
+        await Changed.InvokeAsync();
+    }
+}

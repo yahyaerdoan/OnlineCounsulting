@@ -8,13 +8,15 @@ using System.Text.Json;
 namespace OnlineConsulting.Maui.Shared.Infrastructure.Api;
 
 /// <summary>Optional deps are null for the anonymous pre-auth client (Login, TokenRefresher).</summary>
-public class ApiClient(HttpClient httpClient, IAccessTokenProvider? tokenProvider = null, TokenRefresher? tokenRefresher = null, AuthenticationExpiredNotifier? expiredNotifier = null) : IApiClient
+public class ApiClient(HttpClient httpClient, IAccessTokenProvider? tokenProvider = null, TokenRefresher? tokenRefresher = null, AuthenticationExpiredNotifier? expiredNotifier = null, PublicApiOrigin? publicOrigin = null) : IApiClient
 {
     private const string NetworkErrorMessage = "Could not reach the server. Check your connection and try again.";
     private static readonly TimeSpan RefreshBuffer = TimeSpan.FromSeconds(30);
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
     public Uri? BaseAddress => httpClient.BaseAddress;
+
+    public Uri? PublicBaseAddress => publicOrigin?.BaseAddress ?? httpClient.BaseAddress;
 
     public Task<ApiEnvelope<T>> GetAsync<T>(string path, CancellationToken cancellationToken = default) =>
         SendAsync<T>(HttpMethod.Get, path, null, cancellationToken);
@@ -109,7 +111,7 @@ public class ApiClient(HttpClient httpClient, IAccessTokenProvider? tokenProvide
     {
         if (!HasBody(response))
         {
-            return new ApiEnvelope<T>(default, response.IsSuccessStatusCode, (int)response.StatusCode, response.ReasonPhrase, null);
+            return new ApiEnvelope<T>(default, response.IsSuccessStatusCode, (int)response.StatusCode, response.IsSuccessStatusCode ? response.ReasonPhrase : null, null);
         }
 
         if (response.IsSuccessStatusCode)
@@ -126,7 +128,7 @@ public class ApiClient(HttpClient httpClient, IAccessTokenProvider? tokenProvide
     {
         if (!HasBody(response))
         {
-            return new ApiEnvelope(response.IsSuccessStatusCode, (int)response.StatusCode, response.ReasonPhrase, null);
+            return new ApiEnvelope(response.IsSuccessStatusCode, (int)response.StatusCode, response.IsSuccessStatusCode ? response.ReasonPhrase : null, null);
         }
 
         if (response.IsSuccessStatusCode)

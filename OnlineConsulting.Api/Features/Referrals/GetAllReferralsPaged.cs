@@ -1,4 +1,5 @@
 ﻿using Core.PersistenceLayer.Dynamics.Dynamic;
+using Hateoas;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
@@ -11,7 +12,7 @@ using PageRequest = Core.ApplicationLayer.Requests.Page.PageRequest;
 namespace OnlineConsulting.Api.Features.Referrals;
 
 /// <summary>Adds referrer/referred display names on top of the paged Application-layer response - same enrichment shape GetAllOrdersAdminPaged.cs uses for the identical need.</summary>
-public record AdminReferralResponse(Guid Id, string Code, string Status, decimal? RewardAmount, DateTimeOffset? RewardedAt, Guid ReferrerUserId, string? ReferrerEmail, string? ReferrerName, Guid ReferredUserId, string? ReferredEmail, string? ReferredName);
+public record AdminReferralResponse(Guid Id, string Code, string Status, decimal? RewardAmount, DateTimeOffset? RewardedAt, Guid ReferrerUserId, string? ReferrerEmail, string? ReferrerName, Guid ReferredUserId, string? ReferredEmail, string? ReferredName) : LinkedRecord;
 
 public class GetAllReferralsPaged : IEndpoint
 {

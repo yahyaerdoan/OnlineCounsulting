@@ -1,106 +1,214 @@
-﻿@* Mirrors the legacy footer (UserInterface's LayoutFooterTopArea* ViewComponents) - newsletter form
-   posts for real to Inquiries.Newsletter.Subscribe, unlike the legacy action="#". *@
+@* Wide-screen footer; hidden on phones, where the Menu page carries the social links, newsletter and "For businesses" card.
+   Opens with one entry card per audience (homeowners, businesses, technicians/staff), then link columns grouped the same way. *@
 @using OnlineConsulting.Maui.Shared.Infrastructure.Api
+@using OnlineConsulting.Maui.Shared.Layout
 @inject IApiClient ApiClient
-@inject ISnackbar Snackbar
 
-<MudContainer MaxWidth="MaxWidth.False" Class="marketing-footer pa-0">
+<footer class="marketing-footer">
+    <MudContainer MaxWidth="MaxWidth.Large" Class="pt-8">
+        <div class="footer-audiences">
+            <a href="/appointment" class="footer-audience footer-audience-home">
+                <span class="footer-audience-icon"><MudIcon Icon="@Icons.Material.Outlined.Home" /></span>
+                <span class="footer-audience-text">
+                    <span class="footer-audience-eyebrow">For Homeowners</span>
+                    <span class="footer-audience-title">Book a visit in a few taps</span>
+                    <span class="footer-audience-cta">Book now<MudIcon Icon="@Icons.Material.Filled.ArrowForward" Size="Size.Small" /></span>
+                </span>
+            </a>
+            <a href="/pricing" class="footer-audience footer-audience-business">
+                <span class="footer-audience-icon"><MudIcon Icon="@Icons.Material.Outlined.RocketLaunch" /></span>
+                <span class="footer-audience-text">
+                    <span class="footer-audience-eyebrow">For Businesses</span>
+                    <span class="footer-audience-title">Get your own booking app</span>
+                    <span class="footer-audience-cta">See plans and pricing<MudIcon Icon="@Icons.Material.Filled.ArrowForward" Size="Size.Small" /></span>
+                </span>
+            </a>
+            <AuthorizeView Roles="@StaffRoles">
+                <Authorized>
+                    <a href="@AppRoutes.AdminHome" class="footer-audience footer-audience-team">
+                        <span class="footer-audience-icon"><MudIcon Icon="@Icons.Material.Outlined.Engineering" /></span>
+                        <span class="footer-audience-text">
+                            <span class="footer-audience-eyebrow">For Technicians &amp; Staff</span>
+                            <span class="footer-audience-title">Your jobs and schedule</span>
+                            <span class="footer-audience-cta">Open dashboard<MudIcon Icon="@Icons.Material.Filled.ArrowForward" Size="Size.Small" /></span>
+                        </span>
+                    </a>
+                </Authorized>
+                <NotAuthorized>
+                    <a href="@StaffLoginUrl" class="footer-audience footer-audience-team">
+                        <span class="footer-audience-icon"><MudIcon Icon="@Icons.Material.Outlined.Engineering" /></span>
+                        <span class="footer-audience-text">
+                            <span class="footer-audience-eyebrow">For Technicians &amp; Staff</span>
+                            <span class="footer-audience-title">See today's jobs and schedule</span>
+                            <span class="footer-audience-cta">Team sign in<MudIcon Icon="@Icons.Material.Filled.ArrowForward" Size="Size.Small" /></span>
+                        </span>
+                    </a>
+                </NotAuthorized>
+            </AuthorizeView>
+        </div>
+    </MudContainer>
+
     <MudContainer MaxWidth="MaxWidth.Large" Class="py-8">
-        <MudGrid Spacing="6">
-            <MudItem xs="12" md="4">
-                <MarketingBrandMark />
-                @foreach (var info in _footerInfos)
-                {
-                    <MudText Typo="Typo.body2" Class="mt-3">@info.Description</MudText>
-                }
-                <MudStack Spacing="1" Class="mt-3">
-                    <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
-                        <MudIcon Icon="@Icons.Material.Filled.LocationOn" Size="Size.Small" />
-                        <MudText Typo="Typo.body2">Proudly serving the greater metro area</MudText>
-                    </MudStack>
-                    <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
-                        <MudIcon Icon="@Icons.Material.Filled.AccessTime" Size="Size.Small" />
-                        <MudText Typo="Typo.body2">Mon&ndash;Sat: 7am&ndash;8pm &bull; 24/7 Emergency Line</MudText>
-                    </MudStack>
-                </MudStack>
-                @if (_socialLinks is { Count: > 0 })
-                {
-                    <MudStack Row="true" Spacing="1" Class="mt-3">
-                        @foreach (var link in _socialLinks)
-                        {
-                            <MudIconButton Href="@link.Url" Target="_blank" Icon="@link.Icon"
-                                           Size="Size.Small" Color="Color.Inherit" />
-                        }
-                    </MudStack>
-                }
-            </MudItem>
-
-            <MudItem xs="12" sm="6" md="2">
-                <MudText Typo="Typo.subtitle1" Class="marketing-display marketing-footer-heading mb-2">Quick Links</MudText>
-                <MudStack Spacing="1">
-                    <MudLink Href="/" Color="Color.Inherit">Home</MudLink>
-                    <MudLink Href="/about" Color="Color.Inherit">About Us</MudLink>
-                    <MudLink Href="/gallery" Color="Color.Inherit">Gallery</MudLink>
-                    <MudLink Href="/services" Color="Color.Inherit">Services</MudLink>
-                    <MudLink Href="/contact" Color="Color.Inherit">Contact</MudLink>
-                    <MudLink Href="/login" Color="Color.Inherit">Login</MudLink>
-                </MudStack>
-            </MudItem>
-
-            <MudItem xs="12" sm="6" md="3">
-                <MudText Typo="Typo.subtitle1" Class="marketing-display marketing-footer-heading mb-2">Popular Services</MudText>
-                <MudStack Spacing="3">
-                    @foreach (var service in _popularServices)
+        <div class="footer-columns">
+            <div class="footer-brand">
+                <div class="footer-brand-about">
+                    <MarketingBrandMark />
+                    @foreach (var info in _footerInfos)
                     {
-                        <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
-                            <MudImage Src="@_imageUrlsByServiceId.GetValueOrDefault(service.Id)" ObjectFit="ObjectFit.Cover"
-                                      Width="66" Height="66" Class="rounded flex-shrink-0" />
-                            <div>
-                                <MudLink Href="@($"/services/{service.Slug}")" Color="Color.Inherit" Typo="Typo.body2" Class="d-block footer-course-title">@service.Title</MudLink>
-                                <MudText Typo="Typo.caption" Class="d-block mt-1">Price: @CurrencyFormat.Format(service.DiscountedPrice)</MudText>
-                            </div>
-                        </MudStack>
+                        <p class="footer-brand-desc">@info.Description</p>
                     }
-                </MudStack>
-            </MudItem>
+                </div>
 
-            <MudItem xs="12" sm="6" md="3">
-                <MudText Typo="Typo.subtitle1" Class="marketing-display marketing-footer-heading mb-2">Newsletter</MudText>
-                <MudText Typo="Typo.body2" Class="mb-2">Enter your email and we'll send you more information of.</MudText>
-                <EditForm Model="_newsletterModel" method="post" FormName="marketing-newsletter" OnValidSubmit="SubscribeAsync">
-                    <div class="newsletter-input-box">
-                        <InputText @bind-Value="_newsletterModel.Email" name="email" class="newsletter-input" placeholder="Your email address" />
-                        <MudIconButton ButtonType="ButtonType.Submit" Icon="@Icons.Material.Filled.Send" Size="Size.Small"
-                                       Class="newsletter-button" Disabled="@_isSubscribing" />
+                <ul class="footer-reach">
+                    @if (!string.IsNullOrWhiteSpace(_contact?.Phone))
+                    {
+                        <li>
+                            <a href="@($"tel:{_contact.Phone}")" class="footer-reach-item">
+                                <span class="footer-reach-icon"><MudIcon Icon="@Icons.Material.Outlined.Phone" Size="Size.Small" /></span>
+                                <span class="footer-reach-text"><span class="footer-reach-label">Call us</span><span class="footer-reach-value">@_contact.Phone</span></span>
+                            </a>
+                        </li>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(_contact?.Email))
+                    {
+                        <li>
+                            <a href="@($"mailto:{_contact.Email}")" class="footer-reach-item">
+                                <span class="footer-reach-icon"><MudIcon Icon="@Icons.Material.Outlined.Email" Size="Size.Small" /></span>
+                                <span class="footer-reach-text"><span class="footer-reach-label">Email us</span><span class="footer-reach-value">@_contact.Email</span></span>
+                            </a>
+                        </li>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(_contact?.WorkingHours))
+                    {
+                        <li>
+                            <a href="/contact" class="footer-reach-item">
+                                <span class="footer-reach-icon"><MudIcon Icon="@Icons.Material.Outlined.AccessTime" Size="Size.Small" /></span>
+                                <span class="footer-reach-text"><span class="footer-reach-label">Working hours</span><span class="footer-reach-value">@_contact.WorkingHours</span></span>
+                            </a>
+                        </li>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(_contact?.Address))
+                    {
+                        <li>
+                            <a href="@($"https://www.google.com/maps/search/?api=1&query={Uri.EscapeDataString(_contact.Address)}")" target="_blank" rel="noopener" class="footer-reach-item">
+                                <span class="footer-reach-icon"><MudIcon Icon="@Icons.Material.Outlined.LocationOn" Size="Size.Small" /></span>
+                                <span class="footer-reach-text"><span class="footer-reach-label">Address</span><span class="footer-reach-value">@_contact.Address</span></span>
+                            </a>
+                        </li>
+                    }
+                    @if (_socialLinks is { Count: > 0 })
+                    {
+                        <li>
+                            <div class="footer-reach-item">
+                                <span class="footer-reach-icon"><MudIcon Icon="@Icons.Material.Outlined.Share" Size="Size.Small" /></span>
+                                <span class="footer-reach-text">
+                                    <span class="footer-reach-label">Follow us</span>
+                                    <span class="footer-reach-social">
+                                        @foreach (var link in _socialLinks)
+                                        {
+                                            <MudTooltip Text="@link.Name">
+                                                <a href="@link.Url" target="_blank" rel="noopener" aria-label="@link.Name" class="@($"footer-reach-social-link social-brand {SocialBrand.ClassFor(link)}")"
+                                                   style="@SocialBrand.StyleFor(link)"><MudIcon Icon="@link.Icon" Size="Size.Small" /></a>
+                                            </MudTooltip>
+                                        }
+                                    </span>
+                                </span>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            </div>
+
+            <nav class="footer-links" aria-label="For homeowners">
+                <span class="marketing-footer-heading">Homeowners</span>
+                <a href="/services">Services</a>
+                <a href="/appointment">Book a visit</a>
+                <a href="/membership">Membership</a>
+                <a href="/gallery">Our work</a>
+                <AuthorizeView>
+                    <Authorized>
+                        <a href="/user/dashboard">My account</a>
+                        <a href="/user/appointments">My visits</a>
+                    </Authorized>
+                    <NotAuthorized>
+                        <a href="/login">Sign in</a>
+                        <a href="/register">Create account</a>
+                    </NotAuthorized>
+                </AuthorizeView>
+                @if (_popularServices.Count > 0)
+                {
+                    <div class="footer-popular">
+                        <span class="footer-popular-head"><MudIcon Icon="@Icons.Material.Filled.LocalFireDepartment" Size="Size.Small" />Popular</span>
+                        @foreach (var service in _popularServices)
+                        {
+                            <a href="@($"/services/{service.Slug}")" class="@($"footer-popular-item {AccentTone.For(service.CategoryId)}")">
+                                <span class="footer-popular-icon">
+                                    <MudIcon Icon="@(service.Kind == ServiceKinds.Product ? Icons.Material.Outlined.Inventory2 : Icons.Material.Outlined.HomeRepairService)" Size="Size.Small" />
+                                </span>
+                                <span class="footer-popular-text">
+                                    <span class="footer-popular-title">@service.Title</span>
+                                    <span class="footer-popular-price">@ServicePriceFormat.Display(service)</span>
+                                </span>
+                                <MudIcon Icon="@Icons.Material.Filled.ChevronRight" Size="Size.Small" Class="footer-popular-chevron" />
+                            </a>
+                        }
+                        <a href="/services" class="footer-popular-all">All services<MudIcon Icon="@Icons.Material.Filled.ArrowForward" Size="Size.Small" /></a>
                     </div>
-                </EditForm>
-            </MudItem>
-        </MudGrid>
+                }
+            </nav>
+
+            <nav class="footer-links" aria-label="For businesses">
+                <span class="marketing-footer-heading">Businesses</span>
+                <a href="/pricing">Plans &amp; pricing</a>
+                <a href="/pricing#build">Build your own plan</a>
+                <a href="/signup">Sign up your business</a>
+                <a href="/contact">Talk to us</a>
+                <a href="/about">About us</a>
+            </nav>
+
+            <nav class="footer-links" aria-label="For technicians and staff">
+                <span class="marketing-footer-heading">Team</span>
+                <AuthorizeView Roles="@StaffRoles">
+                    <Authorized>
+                        <a href="@AppRoutes.AdminHome">Dashboard</a>
+                        <a href="@($"{AppRoutes.AdminHome}/operations/appointments")">Appointments &amp; jobs</a>
+                        <a href="/notifications">Notifications</a>
+                    </Authorized>
+                    <NotAuthorized>
+                        <a href="@StaffLoginUrl">Team sign in</a>
+                        <a href="/forgot-password">Forgot password</a>
+                    </NotAuthorized>
+                </AuthorizeView>
+                <a href="/contact">Help &amp; support</a>
+            </nav>
+
+            <div class="footer-newsletter">
+                <span class="marketing-footer-heading">Newsletter</span>
+                <MudText Typo="Typo.body2" Class="mb-2">Seasonal maintenance tips and offers, straight to your inbox.</MudText>
+                <NewsletterForm FormName="footer-newsletter" />
+            </div>
+        </div>
     </MudContainer>
 
-    <MudContainer MaxWidth="MaxWidth.Large" Class="py-4">
-        <MudStack Row="true" Spacing="1" Justify="Justify.Center" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap">
-            <MudText Typo="Typo.body2">&copy; All rights reserved 2024 - @DateTime.UtcNow.Year</MudText>
-            <MudLink Href="/" Color="Color.Inherit" Class="d-flex align-center" Style="text-decoration:none;">
-                <MudIcon Icon="@Icons.Material.Filled.Star" Size="Size.Small" Color="Color.Primary" Class="mx-1" />
-                <MudText Typo="Typo.body2" Class="mr-1 text-strong">Comfort</MudText>
-                <MudText Typo="Typo.body2">Pro</MudText>
-            </MudLink>
-            <MudText Typo="Typo.body2">&#9829; Developed by</MudText>
-            <MudLink Href="/" Color="Color.Inherit">Fluent IT Innovator Solutions</MudLink>
-        </MudStack>
-    </MudContainer>
-</MudContainer>
+    <div class="footer-bottom">
+        <MudContainer MaxWidth="MaxWidth.Large" Class="footer-bottom-inner">
+            <span>&copy; 2024&ndash;@DateTime.UtcNow.Year ComfortPro. All rights reserved.</span>
+            <span>Developed by <a href="/">Fluent IT Innovator Solutions</a></span>
+        </MudContainer>
+    </div>
+</footer>
 
 @code {
+    private const string StaffRoles = "Admin,Super Admin,Member";
+    private const int PopularCount = 3;
+    private const int PopularCandidates = 24;
+
+    private static readonly string StaffLoginUrl = $"{AppRoutes.Login}?ReturnUrl={Uri.EscapeDataString(AppRoutes.AdminHome)}";
+
     private List<FooterInfoResponse> _footerInfos = [];
     private List<SocialLinkResponse>? _socialLinks;
+    private CompanyContactResponse? _contact;
     private List<ServiceResponse> _popularServices = [];
-    private Dictionary<Guid, string?> _imageUrlsByServiceId = [];
-    private bool _isSubscribing;
-
-    [SupplyParameterFromForm]
-    private NewsletterModel _newsletterModel { get => field ??= new(); set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -110,44 +218,11 @@
         var socialLinksResult = await ApiClient.GetAsync<List<SocialLinkResponse>>(ApiRoutes.SiteContent.SocialLink.Base);
         _socialLinks = socialLinksResult.IsSuccessful ? socialLinksResult.ResultData : null;
 
-        await LoadPopularServicesAsync();
-    }
+        var contactResult = await ApiClient.GetAsync<CompanyContactResponse>(ApiRoutes.Inquiries.Contact.Get);
+        _contact = contactResult.IsSuccessful ? contactResult.ResultData : null;
 
-    /// <summary>Mirrors the legacy site's LayoutFooterTopAreaBlock3ViewComponentPartial exactly:
-    /// first catalog page capped to 3, then only the entries that actually have a cover image.</summary>
-    private async Task LoadPopularServicesAsync()
-    {
-        var pagedResult = await ApiClient.GetAsync<PaginatedResponse<ServiceResponse>>(ApiRoutes.Paged(ApiRoutes.Services.Base, 0, 3));
-        var page = pagedResult.IsSuccessful ? pagedResult.ResultData?.Items ?? [] : [];
-
-        _popularServices = [.. page.Where(s => s.CoverMediaAssetId is not null)];
-
-        var lookups = await Task.WhenAll(_popularServices.Select(async service =>
-            (service.Id, Url: service.CoverMediaAssetId is Guid mediaId ? await MediaUploadHelper.GetUrlAsync(ApiClient, mediaId) : null)));
-
-        _imageUrlsByServiceId = lookups.ToDictionary(l => l.Id, l => l.Url);
-    }
-
-    private async Task SubscribeAsync()
-    {
-        _isSubscribing = true;
-
-        var result = await ApiClient.PostAsync(ApiRoutes.Inquiries.Newsletter.Subscribe, new { email = _newsletterModel.Email });
-
-        _isSubscribing = false;
-
-        Snackbar.Add(result.DisplayMessage, result.IsSuccessful ? Severity.Success : Severity.Error);
-
-        if (result.IsSuccessful)
-        {
-            _newsletterModel.Email = string.Empty;
-        }
-
-        StateHasChanged();
-    }
-
-    private sealed class NewsletterModel
-    {
-        public string Email { get; set; } = string.Empty;
+        var servicesResult = await ApiClient.GetAsync<PaginatedResponse<ServiceResponse>>(ApiRoutes.Paged(ApiRoutes.Services.Base, 0, PopularCandidates));
+        var services = servicesResult.IsSuccessful ? servicesResult.ResultData?.Items ?? [] : [];
+        _popularServices = [.. services.OrderByDescending(s => s.FeaturedArea).Take(PopularCount)];
     }
 }

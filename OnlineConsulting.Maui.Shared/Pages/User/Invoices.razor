@@ -1,0 +1,192 @@
+﻿@* The customer's invoices and receipts, laid out like My Orders: what's due first (an orange total that filters to the open ones), then
+   paid total and count, a search box with status pills (only the ones that have invoices), and one tappable card per invoice
+   (a row on wide screens, stacked on phones) showing what it's for (service visit or online order), its status and total. *@
+@page "/user/invoices"
+@attribute [Authorize(Roles = AppRoles.User)]
+@layout OnlineConsulting.Maui.Shared.Layout.DashboardLayout
+@implements IDisposable
+@inject IApiClient ApiClient
+@inject DataChangeNotifier Notifier
+
+<PageTitle>Invoices</PageTitle>
+
+<DashboardPageHeading Text="Invoices" />
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+@if (_loading)
+{
+    <ListSkeleton Rows="3" />
+}
+else if (_invoices.Count == 0)
+{
+    <div class="cart-empty">
+        <span class="tone-bubble tone-bubble-lg tone-orange"><MudIcon Icon="@Icons.Material.Outlined.RequestQuote" /></span>
+        <MudText Typo="Typo.h6" Class="text-strong">No invoices yet</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">Invoices for completed visits and receipts for online orders show up here.</MudText>
+        <div class="cart-empty-actions">
+            <MudButton Href="/appointment" Variant="Variant.Filled" Class="sell-btn" EndIcon="@Icons.Material.Filled.ArrowForward">Book a visit</MudButton>
+        </div>
+    </div>
+}
+else
+{
+    <div class="orders-stats">
+        @if (OpenTotal > 0)
+        {
+            <button type="button" class="orders-stat orders-stat-alert" @onclick="@(() => _filter = FilterDue)">
+                <span class="orders-stat-value">@CurrencyFormat.Format(OpenTotal)</span>
+                <span class="orders-stat-label">due on @OpenCount @(OpenCount == 1 ? "invoice" : "invoices")</span>
+            </button>
+        }
+        <div class="orders-stat">
+            <span class="orders-stat-value">@CurrencyFormat.Format(_invoices.Where(i => i.IsPaid).Sum(i => i.Total))</span>
+            <span class="orders-stat-label">paid</span>
+        </div>
+        <div class="orders-stat">
+            <span class="orders-stat-value">@_invoices.Count</span>
+            <span class="orders-stat-label">@(_invoices.Count == 1 ? "invoice" : "invoices")</span>
+        </div>
+    </div>
+
+    <div class="orders-toolbar">
+        <div class="area-search orders-search">
+            <MudIcon Icon="@Icons.Material.Outlined.Search" Class="area-search-icon" />
+            <input id="invoices-search" class="area-search-input" type="search" placeholder=" " autocomplete="off"
+                   @bind="_query" @bind:event="oninput" />
+            <label for="invoices-search" class="area-search-label">Search number or title</label>
+        </div>
+        <div class="list-tabs orders-filters" role="tablist" aria-label="Filter by status">
+            @foreach (var (key, label) in Filters)
+            {
+                var count = _invoices.Count(i => Matches(i, key));
+                if (count == 0)
+                {
+                    continue;
+                }
+                var isActive = _filter == key;
+                <button type="button" role="tab" aria-selected="@(isActive ? "true" : "false")" class="@($"list-tab {(isActive ? "active" : "")}")"
+                        @onclick="@(() => _filter = key)">
+                    @label <span class="gallery-chip-count">@count</span>
+                </button>
+            }
+        </div>
+    </div>
+
+    @if (Visible.Count == 0)
+    {
+        <MudText Color="Color.Secondary" Class="py-6" Align="Align.Center">No invoices match. Try another number or filter.</MudText>
+    }
+
+    <div class="order-cards" role="list">
+        @foreach (var invoice in Visible)
+        {
+            var isVisit = invoice.SourceType == VisitSource;
+            <a href="@($"/user/invoices/{invoice.Id}")" class="@($"order-card {Tone(invoice)}")" role="listitem">
+                <span class="order-card-icon"><MudIcon Icon="@(invoice.IsPaid ? Icons.Material.Outlined.TaskAlt : isVisit ? Icons.Material.Outlined.HomeRepairService : Icons.Material.Outlined.ShoppingBag)" /></span>
+                <span class="order-card-main">
+                    <span class="order-card-number">@invoice.Title</span>
+                    <span class="order-card-date">@(isVisit ? "Service visit" : "Online order") · @invoice.InvoiceNumber · @DateTimeFormat.FormatDate(invoice.IssuedAt)</span>
+                </span>
+                <span class="order-card-badges">
+                    <StatusBadge Label="@StatusLabel(invoice)" Kind="@StatusKind(invoice)" />
+                </span>
+                <span class="order-card-total">@CurrencyFormat.Format(invoice.Total)</span>
+                <MudIcon Icon="@Icons.Material.Filled.ChevronRight" Class="order-card-chevron" />
+            </a>
+        }
+    </div>
+}
+
+@code {
+    private const string FilterDue = "Due";
+    private const string VisitSource = "Appointment";
+
+    private static readonly (string Key, string Label)[] Filters =
+    [
+        ("", "All"),
+        (FilterDue, "Due"),
+        ("Overdue", "Overdue"),
+        ("Paid", "Paid"),
+        ("Void", "Void"),
+    ];
+
+    private string? _query;
+    private string _filter = string.Empty;
+
+    private List<InvoiceResponse> Visible =>
+    [
+        .. Ordered
+            .Where(i => Matches(i, _filter))
+            .Where(i => string.IsNullOrWhiteSpace(_query)
+                || i.InvoiceNumber.Contains(_query.Trim(), StringComparison.OrdinalIgnoreCase)
+                || i.Title.Contains(_query.Trim(), StringComparison.OrdinalIgnoreCase)),
+    ];
+
+    private static bool Matches(InvoiceResponse invoice, string filter) => filter switch
+    {
+        "" => true,
+        FilterDue => invoice.IsOpen,
+        "Overdue" => invoice.IsOverdue,
+        "Paid" => invoice.IsPaid,
+        _ => invoice.Status == filter,
+    };
+
+    private static string StatusKind(InvoiceResponse invoice) => invoice switch
+    {
+        { IsPaid: true } => StatusKinds.Success,
+        { IsOverdue: true } => StatusKinds.Danger,
+        { IsOpen: true } => StatusKinds.Warning,
+        _ => StatusKinds.Neutral,
+    };
+
+    private static string Tone(InvoiceResponse invoice) => invoice switch
+    {
+        { IsPaid: true } => AccentTone.Green,
+        { IsOverdue: true } => AccentTone.Red,
+        { IsOpen: true } => AccentTone.Orange,
+        _ => AccentTone.Cornflower,
+    };
+
+    private List<InvoiceResponse> _invoices = [];
+    private bool _loading = true;
+    private string? _loadError;
+    private IDisposable? _liveUpdates;
+
+    private IEnumerable<InvoiceResponse> Ordered => _invoices.OrderByDescending(i => i.IsOpen).ThenByDescending(i => i.IssuedAt);
+
+    private decimal OpenTotal => _invoices.Where(i => i.IsOpen).Sum(i => i.Total);
+
+    private int OpenCount => _invoices.Count(i => i.IsOpen);
+
+    protected override Task OnInitializedAsync()
+    {
+        _liveUpdates = Notifier.Subscribe(() => InvokeAsync(async () => { await ReloadAsync(); StateHasChanged(); }), DataTopic.Orders);
+        return ReloadAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
+        var result = await ApiClient.GetAsync<List<InvoiceResponse>>(ApiRoutes.Invoices.Mine);
+        _loadError = result.IsSuccessful ? null : result.DisplayMessage;
+        _invoices = result.IsSuccessful ? result.ResultData ?? [] : [];
+        _loading = false;
+    }
+
+    internal static Color StatusColor(InvoiceResponse invoice) => invoice switch
+    {
+        { IsPaid: true } => Color.Success,
+        { IsOverdue: true } => Color.Error,
+        { IsOpen: true } => Color.Warning,
+        _ => Color.Default,
+    };
+
+    internal static string StatusLabel(InvoiceResponse invoice) => invoice switch
+    {
+        { IsPaid: true } => "Paid",
+        { IsOverdue: true } => "Overdue",
+        { IsOpen: true } => invoice.DueAt is { } due ? $"Due {due:MMM d}" : "Due",
+        _ => invoice.Status,
+    };
+
+    public void Dispose() => _liveUpdates?.Dispose();
+}

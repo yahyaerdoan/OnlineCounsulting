@@ -28,11 +28,13 @@ else
             <MudTh>Actions</MudTh>
         </HeaderContent>
         <RowTemplate Context="offering">
-            <MudTd DataLabel="Name">@offering.Name</MudTd>
+            <MudTd DataLabel="Name" Class="cell-primary">@offering.Name</MudTd>
             <MudTd DataLabel="Price" Class="mud-table-cell-align-right">@CurrencyFormat.Format(offering.Price)</MudTd>
             <MudTd DataLabel="Actions">
-                <MudIconButton Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" Size="Size.Small" title="Edit"
-                               OnClick="@(() => Navigation.NavigateTo($"{AppRoutes.AdminHome}/platform/module-offerings/{offering.Id}/edit"))" />
+                <MudTooltip Text="Edit">
+                    <MudIconButton aria-label="Edit" Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" Size="Size.Small"
+                                   OnClick="@(() => Navigation.NavigateTo($"{AppRoutes.AdminHome}/platform/module-offerings/{offering.Id}/edit"))" />
+                </MudTooltip>
             </MudTd>
         </RowTemplate>
     </SearchableTable>

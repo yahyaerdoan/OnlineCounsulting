@@ -25,11 +25,11 @@ public class GetAllAppointmentsHandler(IAppointmentRepository repository)
     {
         var appointments = string.IsNullOrWhiteSpace(request.Status)
             ? await repository.GetListAsync(
-                orderBy: q => q.OrderByDescending(a => a.ScheduledStart),
+                orderBy: q => q.OrderByDescending(a => a.CreatedDate).ThenByDescending(a => a.Id),
                 index: request.PageRequest.PageIndex, size: request.PageRequest.PageSize, cancellationToken: cancellationToken)
             : await repository.GetListAsync(
                 predicate: a => a.Status == request.Status,
-                orderBy: q => q.OrderByDescending(a => a.ScheduledStart),
+                orderBy: q => q.OrderByDescending(a => a.CreatedDate).ThenByDescending(a => a.Id),
                 index: request.PageRequest.PageIndex, size: request.PageRequest.PageSize, cancellationToken: cancellationToken);
 
         var response = new Paginate<AppointmentResponse>

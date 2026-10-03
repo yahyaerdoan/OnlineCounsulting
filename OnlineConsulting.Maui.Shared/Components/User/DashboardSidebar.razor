@@ -1,4 +1,5 @@
 @* Vertical dashboard nav - mirrors the legacy MVC Areas/User sidebar, MudBlazor-native. *@
+@inject IAuthSession AuthSession
 @namespace OnlineConsulting.Maui.Shared.Components.User
 
 <MudNavMenu Class="user-dashboard-nav">
@@ -12,6 +13,12 @@
         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
             <MudIcon Icon="@Icons.Material.Outlined.ShoppingBag" Size="Size.Small" />
             <span>Orders</span>
+        </MudStack>
+    </MudNavLink>
+    <MudNavLink Href="/user/invoices">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+            <MudIcon Icon="@Icons.Material.Outlined.RequestQuote" Size="Size.Small" />
+            <span>Invoices</span>
         </MudStack>
     </MudNavLink>
     <MudNavLink Href="/user/appointments">
@@ -57,7 +64,7 @@
         </MudStack>
     </MudNavLink>
     <MudDivider Class="my-2" />
-    <MudNavLink Href="@AppRoutes.Logout" Style="color:var(--mud-palette-error);">
+    <MudNavLink OnClick="@(() => AuthSession.SignOutAsync())" Style="color:var(--mud-palette-error);">
         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
             <MudIcon Icon="@Icons.Material.Outlined.Logout" Size="Size.Small" />
             <span>Sign out</span>

@@ -6,8 +6,10 @@ using OnlineConsulting.SharedKernel.Payments;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.OnTenantSubscriptionRenewed;
 
-/// <summary>ReferenceId round-trips to a TenantSubscription id set by ActivateTenantSubscriptionHandler; Memberships has its own handler on the same broadcast, so an unrecognized id here is an expected no-op. Also restores Tenant.Status to Active (unless Suspended/Cancelled) after a PastDue recovery.</summary>
-public class OnTenantSubscriptionRenewedHandler(ITenantSubscriptionRepository subscriptionRepository, ITenantRepository tenantRepository) : INotificationHandler<SubscriptionRenewedNotification>
+/// <summary>ReferenceId round-trips to a TenantSubscription id set by ActivateTenantSubscriptionHandler; Memberships has its own handler on the same broadcast, so an unrecognized id here is an expected no-op. Also restores Tenant.Status to Active (unless Suspended/Cancelled) after a PastDue recovery.
+/// Renewal invoices also get a receipt email; the first invoice (subscription_create) is receipted by the signup itself.</summary>
+public class OnTenantSubscriptionRenewedHandler(ITenantSubscriptionRepository subscriptionRepository, ITenantRepository tenantRepository, TenantReceiptSender receiptSender)
+    : INotificationHandler<SubscriptionRenewedNotification>
 {
     public async Task Handle(SubscriptionRenewedNotification notification, CancellationToken cancellationToken)
     {
@@ -27,6 +29,11 @@ public class OnTenantSubscriptionRenewedHandler(ITenantSubscriptionRepository su
         _ = await subscriptionRepository.UpdateAsync(tenantSubscription);
 
         var tenant = await tenantRepository.GetAsync(t => t.Id == tenantSubscription.TenantId, cancellationToken: cancellationToken);
+        if (tenant is not null && notification.Invoice is { IsPaid: true } invoice && invoice.BillingReason != SubscriptionInvoice.FirstInvoiceReason)
+        {
+            await receiptSender.SendAsync(tenant, invoice, cancellationToken);
+        }
+
         if (tenant is null || tenant.Status is TenantStatuses.Suspended or TenantStatuses.Cancelled)
         {
             return;

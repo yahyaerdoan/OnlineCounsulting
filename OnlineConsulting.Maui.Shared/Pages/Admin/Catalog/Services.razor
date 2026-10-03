@@ -26,7 +26,7 @@
         <MudTh>Actions</MudTh>
     </HeaderContent>
     <RowTemplate Context="service">
-        <MudTd DataLabel="Title">@service.Title</MudTd>
+        <MudTd DataLabel="Title" Class="cell-primary">@service.Title</MudTd>
         <MudTd DataLabel="Category">@GetCategoryTitle(service.CategoryId)</MudTd>
         <MudTd DataLabel="Price">@FormatPrice(service)</MudTd>
         <MudTd DataLabel="Featured">
@@ -37,11 +37,15 @@
         </MudTd>
         <MudTd DataLabel="Actions">
             <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
-                <MudIconButton Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" title="Edit"
-                               OnClick="@(() => Navigation.NavigateTo($"{AppRoutes.AdminHome}/catalog/services/{service.Id}/edit"))" />
+                <MudTooltip Text="Edit">
+                    <MudIconButton aria-label="Edit" Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default"
+                                   OnClick="@(() => Navigation.NavigateTo($"{AppRoutes.AdminHome}/catalog/services/{service.Id}/edit"))" />
+                </MudTooltip>
 
-                <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" title="Delete"
-                               OnClick="@(() => DeleteAsync(service))" />
+                <MudTooltip Text="Delete">
+                    <MudIconButton aria-label="Delete" Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error"
+                                   OnClick="@(() => DeleteAsync(service))" />
+                </MudTooltip>
             </MudButtonGroup>
         </MudTd>
     </RowTemplate>

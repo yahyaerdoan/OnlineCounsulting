@@ -1,4 +1,5 @@
 using OnlineConsulting.SharedKernel.Tenancy;
+using OnlineConsulting.SharedKernel.Catalog;
 
 namespace OnlineConsulting.Modules.Services.Domain;
 
@@ -29,6 +30,9 @@ public class Service : SequentialGuidTenantEntity
 
     /// <summary>Whether this service can be requested as an urgent/24-7 callout (e.g. "HVAC Emergency"), not a separate service - an urgency modifier on the same service.</summary>
     public bool IsEmergencyAvailable { get; set; }
+
+    /// <summary>ServiceKinds.* - Booking is scheduled through the appointment flow, Product is bought through basket and checkout.</summary>
+    public string Kind { get; set; } = ServiceKinds.Booking;
 
     /// <summary>Plain id, no navigation - MediaAsset lives in the Media module. Null means no cover photo uploaded yet.</summary>
     public Guid? CoverMediaAssetId { get; set; }

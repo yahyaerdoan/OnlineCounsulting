@@ -1,0 +1,37 @@
+@* Phone-only "composer" card under the hero: one big prompt into the service finder plus the three most common
+   actions, so a first-time visitor has an obvious next tap. Hidden on wide screens via CSS. *@
+@inject IApiClient ApiClient
+
+<section class="quick-start mobile-only" aria-label="Get started">
+    <a href="/service-finder" class="quick-start-prompt">
+        <span class="quick-start-avatar"><MudIcon Icon="@Icons.Material.Outlined.Handyman" /></span>
+        <span class="quick-start-prompt-text">What do you need help with?</span>
+    </a>
+    <div class="quick-start-actions">
+        <a href="/appointment" class="quick-start-action">
+            <span class="tone-bubble tone-bubble-sm @AccentTone.Blue"><MudIcon Icon="@Icons.Material.Outlined.EventAvailable" Size="Size.Small" /></span>
+            <span>Book</span>
+        </a>
+        @if (!string.IsNullOrWhiteSpace(_phone))
+        {
+            <a href="@($"tel:{_phone}")" class="quick-start-action">
+                <span class="tone-bubble tone-bubble-sm @AccentTone.Red"><MudIcon Icon="@Icons.Material.Outlined.Emergency" Size="Size.Small" /></span>
+                <span>Emergency</span>
+            </a>
+        }
+        <a href="/contact" class="quick-start-action">
+            <span class="tone-bubble tone-bubble-sm @AccentTone.Green"><MudIcon Icon="@Icons.Material.Outlined.RequestQuote" Size="Size.Small" /></span>
+            <span>Get a quote</span>
+        </a>
+    </div>
+</section>
+
+@code {
+    private string? _phone;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await ApiClient.GetAsync<CompanyContactResponse>(ApiRoutes.Inquiries.Contact.Get);
+        _phone = result.IsSuccessful ? result.ResultData?.Phone : null;
+    }
+}

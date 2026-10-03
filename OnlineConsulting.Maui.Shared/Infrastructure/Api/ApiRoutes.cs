@@ -31,6 +31,24 @@ public static class ApiRoutes
         public const string All = "/api/permissions";
     }
 
+    public static class Notifications
+    {
+        /// <summary>GET the caller's inbox, newest first, paginated.</summary>
+        public const string Base = "/api/notifications";
+        public const string UnreadCount = "/api/notifications/unread-count";
+        public const string ReadAll = "/api/notifications/read-all";
+
+        public static string Read(Guid id) => $"/api/notifications/{id}/read";
+    }
+
+    public static class DeviceTokens
+    {
+        /// <summary>POST registers the signed-in user's push token for this device; DELETE ById(token) removes it on sign-out.</summary>
+        public const string Base = "/api/device-tokens";
+
+        public static string ById(string token) => $"/api/device-tokens/{Uri.EscapeDataString(token)}";
+    }
+
     public static class Users
     {
         public const string Me = "/api/users/me";
@@ -271,6 +289,9 @@ public static class ApiRoutes
             /// <summary>POST cancels a still-unpaid order and restores its items to the caller's basket -
             /// lets Checkout.razor's Payment phase back out to shopping instead of stranding the customer.</summary>
             public static string CancelPending(Guid id) => $"/api/orders/{id}/cancel";
+
+            /// <summary>PUT: re-points an unpaid order at the caller's current default shipping/billing addresses.</summary>
+            public static string UpdateAddresses(Guid id) => $"/api/orders/{id}/addresses";
         }
 
         public static class Baskets
@@ -292,10 +313,30 @@ public static class ApiRoutes
         }
     }
 
+    public static class Invoices
+    {
+        public const string Mine = "/api/invoices/mine";
+        public const string All = "/api/invoices/admin/query";
+
+        public static string ById(Guid id) => $"/api/invoices/{id}";
+        public static string Pdf(Guid id) => $"/api/invoices/{id}/pdf";
+        public static string Pay(Guid id) => $"/api/invoices/{id}/pay";
+
+        /// <summary>POST: settles the caller's open invoice at once if the provider already took the payment.</summary>
+        public static string SyncPayment(Guid id) => $"/api/invoices/{id}/sync-payment";
+        public static string StaffById(Guid id) => $"/api/invoices/admin/{id}";
+        public static string StaffPdf(Guid id) => $"/api/invoices/admin/{id}/pdf";
+        public static string MarkPaid(Guid id) => $"/api/invoices/admin/{id}/mark-paid";
+        public static string Void(Guid id) => $"/api/invoices/admin/{id}/void";
+    }
+
     public static class Addresses
     {
         /// <summary>GET (list), POST (create) - both current-user-scoped.</summary>
         public const string Base = "/api/addresses";
+
+        /// <summary>GET ?text= - US street address type-ahead (signed-in only).</summary>
+        public static string Suggestions(string text) => $"/api/addresses/suggestions?text={Uri.EscapeDataString(text)}";
 
         /// <summary>GET the current user's billing address - 404 if not set yet.</summary>
         public const string Billing = "/api/addresses/billing";
@@ -346,6 +387,8 @@ public static class ApiRoutes
             public static string ById(Guid id) => $"/api/appointments/{id}";
             public static string Confirm(Guid id) => $"/api/appointments/{id}/confirm";
             public static string Cancel(Guid id) => $"/api/appointments/{id}/cancel";
+            /// <summary>Staff-side cancel of any customer's appointment, with an optional reason shown to the customer.</summary>
+            public static string StaffCancel(Guid id) => $"/api/appointments/admin/{id}/cancel";
             public static string AssignTechnician(Guid id) => $"/api/appointments/{id}/assign-technician";
         }
 
@@ -389,6 +432,14 @@ public static class ApiRoutes
 
             /// <summary>Admin-cancel a specific customer's membership by CustomerMembership.Id.</summary>
             public static string AdminCancel(Guid id) => $"/api/memberships/{id}/cancel";
+
+            /// <summary>Undoes a pending cancellation before the period ends.</summary>
+            public const string Reactivate = "/api/memberships/reactivate";
+
+            public static string AdminReactivate(Guid id) => $"/api/memberships/{id}/reactivate";
+
+            /// <summary>GET the caller's most recent ended membership - 404 when none or already a member.</summary>
+            public const string MinePrevious = "/api/memberships/mine/previous";
 
             /// <summary>POST previews a promo code's discount for the current user - does not redeem it.</summary>
             public const string ValidatePromoCode = "/api/memberships/promo-codes/validate";

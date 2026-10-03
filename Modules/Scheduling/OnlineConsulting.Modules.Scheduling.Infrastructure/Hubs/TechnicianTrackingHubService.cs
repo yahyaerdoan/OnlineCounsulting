@@ -1,17 +1,12 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using OnlineConsulting.Modules.Scheduling.Application.Features.TechnicianTracking.Abstractions;
-using OnlineConsulting.SharedKernel.Notifications;
 
 namespace OnlineConsulting.Modules.Scheduling.Infrastructure.Hubs;
 
-/// <summary>Notifies both channels a customer might be reached through: SignalR (only reaches an actively-open app) and push (reaches the device even when the app is closed) - complementary, not redundant.</summary>
-public class TechnicianTrackingHubService(IHubContext<TechnicianTrackingHub, ITechnicianTrackingClient> hubContext, IPushNotificationSender pushNotificationSender) : ITechnicianTrackingHubService
+/// <summary>Updates an open tracking screen in real time; the push/email side of an assignment is IAppointmentNotifier's job.</summary>
+public class TechnicianTrackingHubService(IHubContext<TechnicianTrackingHub, ITechnicianTrackingClient> hubContext) : ITechnicianTrackingHubService
 {
-    public async Task NotifyTechnicianAssignedAsync(Guid appointmentId, Guid customerUserId, Guid technicianUserId, CancellationToken cancellationToken = default)
-    {
-        await hubContext.Clients.Group(TechnicianTrackingHub.GroupName(appointmentId))
+    public Task NotifyTechnicianAssignedAsync(Guid appointmentId, Guid technicianUserId, CancellationToken cancellationToken = default) =>
+        hubContext.Clients.Group(TechnicianTrackingHub.GroupName(appointmentId))
             .ReceivedTechnicianAssigned(new TechnicianAssignedUpdate(appointmentId, technicianUserId));
-
-        await pushNotificationSender.SendToUserAsync(customerUserId, "Your technician is on the way", "A technician has been assigned to your appointment.", new Dictionary<string, string> { ["appointmentId"] = appointmentId.ToString() }, cancellationToken);
-    }
 }

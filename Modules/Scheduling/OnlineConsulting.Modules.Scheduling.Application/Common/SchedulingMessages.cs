@@ -12,4 +12,7 @@ public static class SchedulingMessages
     public const string WorkOrderAlreadyExistsForAppointment = "A work order already exists for this appointment.";
     public const string WorkOrderNotFoundFormat = "Work order {0} was not found.";
     public const string CannotAssignTechnicianToClosedAppointment = "Can't assign a technician to a cancelled or completed appointment.";
+    public const string CannotRecordWorkOrderForCancelledAppointment = "Can't record a work order for a cancelled appointment.";
+    public const string ServiceNotFound = "The selected service is not available.";
+    public const string ServiceIsBoughtNotBooked = "This item is bought online, not booked as a visit. Please add it to your cart instead.";
 }

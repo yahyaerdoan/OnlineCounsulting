@@ -7,6 +7,7 @@ using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Orders.GetOrders;
 
+/// <summary>The user's orders, newest first - the storefront shows the latest order at the top.</summary>
 public record GetOrdersQuery(Guid UserId) : IRequest<OperationDataResult<List<OrderResponse>>>;
 
 public class GetOrdersHandler(IOrderRepository orderRepository, IOrderItemRepository orderItemRepository)
@@ -14,7 +15,7 @@ public class GetOrdersHandler(IOrderRepository orderRepository, IOrderItemReposi
 {
     public async Task<OperationDataResult<List<OrderResponse>>> Handle(GetOrdersQuery request, CancellationToken cancellationToken)
     {
-        var orders = await orderRepository.GetListAsync(o => o.UserId == request.UserId, orderBy: q => q.OrderBy(o => o.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+        var orders = await orderRepository.GetListAsync(o => o.UserId == request.UserId, orderBy: q => q.OrderByDescending(o => o.CreatedDate).ThenByDescending(o => o.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
         if (orders.Items.Count == 0)
         {
             return Result.Success(new List<OrderResponse>(), "No orders found for this user.");

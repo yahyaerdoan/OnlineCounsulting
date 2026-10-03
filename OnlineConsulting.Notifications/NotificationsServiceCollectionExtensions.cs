@@ -3,6 +3,7 @@ using Google.Apis.Auth.OAuth2;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using OnlineConsulting.Notifications.Dispatch;
 using OnlineConsulting.Notifications.Persistence;
 using OnlineConsulting.Notifications.Sending;
@@ -29,7 +30,8 @@ public static class NotificationsServiceCollectionExtensions
         return services;
     }
 
-    /// <summary>Fcm is only registered when Push:FirebaseCredentialsPath points at a real file; otherwise "ActiveProvider: Fcm" falls back to Mock instead of crashing at startup.</summary>
+    /// <summary>Fcm is only registered when Push:FirebaseCredentialsPath points at a real file; otherwise "ActiveProvider: Fcm" falls back to Mock instead of crashing at startup.
+    /// Whatever the provider, every send is also recorded in the user's in-app inbox.</summary>
     private static void AddPushNotificationSender(this IServiceCollection services, IConfiguration configuration)
     {
         var pushSection = configuration.GetSection("Push");
@@ -58,6 +60,9 @@ public static class NotificationsServiceCollectionExtensions
             activeProvider = PushProviderNames.Mock;
         }
 
-        _ = services.AddScoped(sp => sp.GetRequiredKeyedService<IPushNotificationSender>(activeProvider));
+        _ = services.AddScoped<IPushNotificationSender>(sp => new InboxRecordingPushNotificationSender(
+            sp.GetRequiredKeyedService<IPushNotificationSender>(activeProvider),
+            sp.GetService<IUserNotificationInbox>(),
+            sp.GetRequiredService<ILogger<InboxRecordingPushNotificationSender>>()));
     }
 }

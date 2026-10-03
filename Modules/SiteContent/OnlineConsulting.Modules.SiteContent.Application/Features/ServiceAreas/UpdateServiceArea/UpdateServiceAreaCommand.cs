@@ -16,7 +16,7 @@ public record UpdateServiceAreaCommand(Guid Id, string Name, string State, strin
     public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Update];
 }
 
-public class UpdateServiceAreaHandler(IServiceAreaRepository repository) : IRequestHandler<UpdateServiceAreaCommand, OperationResult>
+public class UpdateServiceAreaHandler(IServiceAreaRepository repository, ICityGeocoder geocoder) : IRequestHandler<UpdateServiceAreaCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(UpdateServiceAreaCommand request, CancellationToken cancellationToken)
     {
@@ -26,8 +26,22 @@ public class UpdateServiceAreaHandler(IServiceAreaRepository repository) : IRequ
             return SiteContentBusinessRules.NotFound("ServiceArea", request.Id);
         }
 
+        var placeChanged = !string.Equals(entity.Name, request.Name, StringComparison.OrdinalIgnoreCase)
+            || !string.Equals(entity.State, request.State, StringComparison.OrdinalIgnoreCase);
+
         entity.Name = request.Name;
         entity.State = request.State;
+
+        if ((placeChanged || entity.Latitude is null) && await geocoder.GeocodeAsync(request.Name, request.State, cancellationToken) is { } point)
+        {
+            entity.Latitude = point.Latitude;
+            entity.Longitude = point.Longitude;
+        }
+        else if (placeChanged)
+        {
+            entity.Latitude = null;
+            entity.Longitude = null;
+        }
         entity.IntroText = request.IntroText;
         entity.DisplayOrder = request.DisplayOrder;
 

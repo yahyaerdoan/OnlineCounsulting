@@ -35,30 +35,38 @@ else if (_workOrder is not null)
 
         <MudDivider Class="my-4" />
 
-        <MudGrid Spacing="3">
-            <MudItem xs="12" md="6">
-                <MudText Typo="Typo.subtitle2" Class="mb-1">Before</MudText>
-                @if (_beforePhotoUrl is not null)
-                {
-                    <MudImage Src="@_beforePhotoUrl" Height="160" Class="rounded-lg" />
-                }
-                else
-                {
-                    <MudText Typo="Typo.body2">-</MudText>
-                }
-            </MudItem>
-            <MudItem xs="12" md="6">
-                <MudText Typo="Typo.subtitle2" Class="mb-1">After</MudText>
-                @if (_afterPhotoUrl is not null)
-                {
-                    <MudImage Src="@_afterPhotoUrl" Height="160" Class="rounded-lg" />
-                }
-                else
-                {
-                    <MudText Typo="Typo.body2">-</MudText>
-                }
-            </MudItem>
-        </MudGrid>
+        @if (_photos is { Before: { } before, After: { } after })
+        {
+            <MudText Typo="Typo.subtitle2" Class="mb-2">Before and after</MudText>
+            <BeforeAfterSlider BeforeUrl="@before" AfterUrl="@after" Height="280" />
+        }
+        else
+        {
+            <MudGrid Spacing="3">
+                <MudItem xs="12" md="6">
+                    <MudText Typo="Typo.subtitle2" Class="mb-1">Before</MudText>
+                    @if (_photos.Before is not null)
+                    {
+                        <MudImage Src="@_photos.Before" Height="160" Class="rounded-lg" />
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.body2">-</MudText>
+                    }
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudText Typo="Typo.subtitle2" Class="mb-1">After</MudText>
+                    @if (_photos.After is not null)
+                    {
+                        <MudImage Src="@_photos.After" Height="160" Class="rounded-lg" />
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.body2">-</MudText>
+                    }
+                </MudItem>
+            </MudGrid>
+        }
     </MudPaper>
 }
 
@@ -69,8 +77,7 @@ else if (_workOrder is not null)
     private WorkOrderResponse? _workOrder;
     private string _technicianLabel = "-";
     private string _equipmentLabel = "-";
-    private string? _beforePhotoUrl;
-    private string? _afterPhotoUrl;
+    private WorkOrderPhotoUrls _photos = new(null, null);
     private bool _loading = true;
     private string? _loadError;
 
@@ -100,18 +107,7 @@ else if (_workOrder is not null)
                 : equipmentId.ToString();
         }
 
-        var beforeItem = _workOrder.MediaItems.FirstOrDefault(m => m.IsBeforePhoto);
-        var afterItem = _workOrder.MediaItems.FirstOrDefault(m => !m.IsBeforePhoto);
-
-        if (beforeItem is not null)
-        {
-            _beforePhotoUrl = await MediaUploadHelper.GetUrlAsync(ApiClient, beforeItem.MediaAssetId);
-        }
-
-        if (afterItem is not null)
-        {
-            _afterPhotoUrl = await MediaUploadHelper.GetUrlAsync(ApiClient, afterItem.MediaAssetId);
-        }
+        _photos = await WorkOrderPhotos.LoadAsync(ApiClient, _workOrder);
 
         _loading = false;
     }

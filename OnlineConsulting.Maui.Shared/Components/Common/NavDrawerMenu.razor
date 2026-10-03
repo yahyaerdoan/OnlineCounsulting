@@ -7,7 +7,7 @@
 <MudNavMenu>
     @foreach (var section in Sections)
     {
-        var visibleItems = section.Items.Where(i => !i.SuperAdminOnly || User.IsSuperAdmin()).ToList();
+        var visibleItems = section.VisibleItems(User);
         if (visibleItems.Count == 0)
         {
             continue;

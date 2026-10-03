@@ -3,10 +3,10 @@
    through address/payment - no separate "review your order" screen needed. *@
 @inject NavigationManager NavigationManager
 
-<MudPaper Class="@(Bordered ? "pa-4" : "pa-0")" Outlined="@Bordered" Elevation="0">
+<MudPaper Class="@(Bordered ? "pa-5 cart-summary-card" : "pa-0")" Outlined="@Bordered" Elevation="0">
     @if (Bordered)
     {
-        <MudText Typo="Typo.h6" Class="mb-3">Cart Totals</MudText>
+        <MudText Typo="Typo.h6" Class="mb-3 text-strong">Order summary</MudText>
     }
 
     @if (Items is { Count: > 0 })
@@ -41,7 +41,7 @@
 
     @if (ShowAction)
     {
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Class="mt-4"
+        <MudButton Variant="Variant.Filled" FullWidth="true" Class="mt-4 sell-btn cart-checkout-button" StartIcon="@Icons.Material.Filled.Lock"
                    Disabled="@Disabled" OnClick="@(() => NavigationManager.NavigateTo("/user/checkout"))">
             Proceed to Checkout
         </MudButton>

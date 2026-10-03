@@ -9,7 +9,7 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.SiteContent.Application.Features.Partnerships.CreatePartnership;
 
-public record CreatePartnershipCommand(string FirstName, string LastName, string Email, string Title, string CompanyName, string Description, string WebsiteUrl, Guid? PhotoMediaAssetId = null, int DisplayOrder = 0, Dictionary<string, object>? Metadata = null)
+public record CreatePartnershipCommand(string FirstName, string LastName, string? Email, string Title, string? CompanyName, string Description, string? WebsiteUrl, Guid? PhotoMediaAssetId = null, int DisplayOrder = 0, Dictionary<string, object>? Metadata = null, string Kind = PartnershipKinds.Partner)
     : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
     [JsonIgnore]
@@ -24,11 +24,12 @@ public class CreatePartnershipHandler(IPartnershipRepository repository) : IRequ
         {
             FirstName = request.FirstName,
             LastName = request.LastName,
-            Email = request.Email,
+            Email = request.Email?.Trim() ?? string.Empty,
             Title = request.Title,
-            CompanyName = request.CompanyName,
+            CompanyName = request.CompanyName?.Trim() ?? string.Empty,
             Description = request.Description,
-            WebsiteUrl = request.WebsiteUrl,
+            WebsiteUrl = request.WebsiteUrl?.Trim() ?? string.Empty,
+            Kind = request.Kind,
             PhotoMediaAssetId = request.PhotoMediaAssetId,
             DisplayOrder = request.DisplayOrder,
             Metadata = MetadataSerializer.Serialize(request.Metadata),

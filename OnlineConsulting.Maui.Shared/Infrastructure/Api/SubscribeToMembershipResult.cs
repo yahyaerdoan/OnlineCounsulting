@@ -1,3 +1,4 @@
+
 namespace OnlineConsulting.Maui.Shared.Infrastructure.Api;
 
 /// <summary>Mirrors POST /api/memberships/subscribe's response shape. ClientSecret is null for Stripe/Mock

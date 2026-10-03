@@ -1,4 +1,7 @@
-@* Category filter + image grid. Query-param filtering (Static SSR), links straight to full-size - no JS lightbox. *@
+@* Our work: colored category pills with photo counts filter a mixed-size photo grid (some tiles tall or wide on wide screens,
+   an even two-column grid on phones). Hovering a tile shows its caption and category; tapping opens an in-page viewer with
+   previous/next, a counter and keyboard support (arrows, Escape). Ends with a booking call to action. The pills are links, so
+   with interactive routing the page stays mounted and the list is re-filtered in OnParametersSet. *@
 @page "/gallery"
 @layout OnlineConsulting.Maui.Shared.Layout.MarketingLayout
 @using OnlineConsulting.Maui.Shared.Components.Marketing
@@ -10,37 +13,110 @@
 <MarketingPageBanner Title="Gallery" SubPage="Gallery" />
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
+    <SectionHeading Eyebrow="Our Work" Title="Real Homes, Real Results" Lead="Recent installs, repairs and cleanings from our technicians. Tap a photo to see it up close." />
+
     @if (_categories.Count > 0)
     {
-        <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="2" Justify="Justify.Center" Class="mb-6">
-            <MudChip T="string" Href="/gallery" Size="Size.Small" Variant="Variant.Filled"
-                     Color="@(CategoryId is null ? Color.Primary : Color.Default)">All</MudChip>
+        <nav class="svc-chips gallery-chips" aria-label="Photo categories">
+            <a href="/gallery" class="@($"svc-chip {(CategoryId is null ? "active" : "")}")" aria-current="@(CategoryId is null ? "page" : null)">
+                <MudIcon Icon="@Icons.Material.Outlined.PhotoLibrary" Size="Size.Small" />All <span class="gallery-chip-count">@_allItems.Count</span>
+            </a>
             @foreach (var category in _categories)
             {
-                <MudChip T="string" Href="@($"/gallery?category={category.Id}")" Size="Size.Small" Variant="Variant.Filled"
-                         Color="@(CategoryId == category.Id ? Color.Primary : Color.Default)">@category.Name</MudChip>
+                var isActive = CategoryId == category.Id;
+                <a href="@($"/gallery?category={category.Id}")" class="@($"svc-chip {AccentTone.For(category.Id)} {(isActive ? "active" : "")}")"
+                   aria-current="@(isActive ? "page" : null)">
+                    @category.Name <span class="gallery-chip-count">@_allItems.Count(i => i.Categories.Any(c => c.Id == category.Id))</span>
+                </a>
             }
-        </MudStack>
+        </nav>
     }
 
     @if (_items.Count == 0)
     {
-        <MudAlert Severity="Severity.Info">No gallery images found.</MudAlert>
+        <EmptyState Icon="@Icons.Material.Outlined.PhotoLibrary" Title="No photos in this category yet"
+                    Text="Try another category, or see all of our work." ActionText="Show all photos" ActionHref="/gallery" />
     }
     else
     {
-        <MudGrid Spacing="3">
-            @foreach (var item in _items)
+        <div class="gallery-grid" role="list">
+            @for (var i = 0; i < _items.Count; i++)
             {
-                <MudItem xs="12" sm="6" md="4">
-                    <a href="@_imageUrlsById.GetValueOrDefault(item.Id)" target="_blank" class="marketing-gallery-item">
-                        <MudImage Src="@_imageUrlsById.GetValueOrDefault(item.Id)" ObjectFit="ObjectFit.Cover" Height="280" Class="rounded" />
-                    </a>
-                </MudItem>
+                var index = i;
+                var item = _items[i];
+                var category = item.Categories.FirstOrDefault();
+                <button type="button" role="listitem" class="@($"gallery-tile {TileShape(index)} {(category is null ? "" : AccentTone.For(category.Id))}")"
+                        aria-label="@($"Open photo {index + 1}: {item.Description}")" @onclick="@(() => Open(index))">
+                    @if (_imageUrlsById.GetValueOrDefault(item.Id) is { Length: > 0 } src)
+                    {
+                        <img src="@src" alt="@item.Description" loading="lazy" />
+                    }
+                    else
+                    {
+                        <span class="gallery-tile-empty"><MudIcon Icon="@Icons.Material.Outlined.Image" /></span>
+                    }
+                    <span class="gallery-tile-overlay">
+                        @if (category is not null)
+                        {
+                            <span class="gallery-tile-category">@category.Name</span>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(item.Description))
+                        {
+                            <span class="gallery-tile-caption">@item.Description</span>
+                        }
+                    </span>
+                    <span class="gallery-tile-zoom" aria-hidden="true"><MudIcon Icon="@Icons.Material.Filled.ZoomOutMap" Size="Size.Small" /></span>
+                </button>
             }
-        </MudGrid>
+        </div>
+
+        <div class="how-cta gallery-cta">
+            <span class="tone-bubble tone-bubble-lg tone-gold how-cta-icon"><MudIcon Icon="@Icons.Material.Outlined.AutoAwesome" /></span>
+            <div class="how-cta-text">
+                <span class="how-cta-title">Want results like these at your place?</span>
+                <span class="how-cta-sub">Book a visit online in about two minutes, or tell us what you need.</span>
+            </div>
+            <div class="how-cta-actions">
+                <MudButton Href="/appointment" Variant="Variant.Filled" Class="sell-btn" EndIcon="@Icons.Material.Filled.ArrowForward">Book a visit</MudButton>
+                <MudButton Href="/contact" Variant="Variant.Outlined" Color="Color.Primary" Class="how-cta-secondary">Get a quote</MudButton>
+            </div>
+        </div>
     }
 </MudContainer>
+
+@if (_openIndex is int open && open < _items.Count)
+{
+    var current = _items[open];
+    <div class="gallery-viewer" role="dialog" aria-modal="true" aria-label="Photo viewer" tabindex="-1"
+         @ref="_viewer" @onkeydown="OnViewerKeyAsync">
+        <div class="gallery-viewer-backdrop" @onclick="Close"></div>
+        <div class="gallery-viewer-top">
+            <span class="gallery-viewer-count">@(open + 1) / @_items.Count</span>
+            <MudIconButton Icon="@Icons.Material.Filled.Close" Class="gallery-viewer-btn" aria-label="Close" OnClick="Close" />
+        </div>
+        <figure class="gallery-viewer-figure">
+            @if (_imageUrlsById.GetValueOrDefault(current.Id) is { Length: > 0 } src)
+            {
+                <img src="@src" alt="@current.Description" />
+            }
+            @if (!string.IsNullOrWhiteSpace(current.Description) || current.Categories.Count > 0)
+            {
+                <figcaption class="gallery-viewer-caption">
+                    @foreach (var category in current.Categories)
+                    {
+                        <span class="gallery-tile-category">@category.Name</span>
+                    }
+                    <span>@current.Description</span>
+                </figcaption>
+            }
+        </figure>
+        @if (_items.Count > 1)
+        {
+            <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" Class="gallery-viewer-btn gallery-viewer-prev" aria-label="Previous photo" OnClick="Previous" />
+            <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" Class="gallery-viewer-btn gallery-viewer-next" aria-label="Next photo" OnClick="Next" />
+        }
+    </div>
+}
 
 @code {
     [SupplyParameterFromQuery(Name = "category")]
@@ -49,24 +125,83 @@
     private Guid? CategoryId => Guid.TryParse(CategoryIdRaw, out var id) ? id : null;
 
     private List<GalleryCategoryResponse> _categories = [];
+    private List<GalleryItemResponse> _allItems = [];
     private List<GalleryItemResponse> _items = [];
-    private Dictionary<Guid, string?> _imageUrlsById = [];
+    private readonly Dictionary<Guid, string?> _imageUrlsById = [];
+    private int? _openIndex;
+    private bool _focusViewer;
+    private ElementReference _viewer;
 
     protected override async Task OnInitializedAsync()
     {
-        var categoriesResult = await ApiClient.GetAsync<List<GalleryCategoryResponse>>(ApiRoutes.SiteContent.GalleryCategory.Base);
+        var categoriesTask = ApiClient.GetAsync<List<GalleryCategoryResponse>>(ApiRoutes.SiteContent.GalleryCategory.Base);
+        var itemsTask = ApiClient.GetAsync<List<GalleryItemResponse>>(ApiRoutes.SiteContent.GalleryItem.Base);
+
+        var categoriesResult = await categoriesTask;
         _categories = categoriesResult.IsSuccessful ? categoriesResult.ResultData ?? [] : [];
 
-        var itemsResult = await ApiClient.GetAsync<List<GalleryItemResponse>>(ApiRoutes.SiteContent.GalleryItem.Base);
-        var allItems = itemsResult.IsSuccessful ? itemsResult.ResultData ?? [] : [];
+        var itemsResult = await itemsTask;
+        _allItems = itemsResult.IsSuccessful ? itemsResult.ResultData?.OrderBy(i => i.DisplayOrder).ToList() ?? [] : [];
 
-        _items = CategoryId is Guid categoryId
-            ? [.. allItems.Where(i => i.Categories.Any(c => c.Id == categoryId))]
-            : allItems;
-
-        var lookups = await Task.WhenAll(_items.Select(async item =>
+        var lookups = await Task.WhenAll(_allItems.Select(async item =>
             (item.Id, Url: item.PhotoMediaAssetId is Guid mediaId ? await MediaUploadHelper.GetUrlAsync(ApiClient, mediaId) : null)));
 
-        _imageUrlsById = lookups.ToDictionary(l => l.Id, l => l.Url);
+        foreach (var (id, url) in lookups)
+        {
+            _imageUrlsById[id] = url;
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        _items = CategoryId is Guid categoryId ? [.. _allItems.Where(i => i.Categories.Any(c => c.Id == categoryId))] : _allItems;
+        _openIndex = null;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_focusViewer)
+        {
+            _focusViewer = false;
+            await _viewer.FocusAsync();
+        }
+    }
+
+    /// <summary>A repeating mix of tile shapes so the grid reads as a gallery, not a spreadsheet of equal squares.</summary>
+    private static string TileShape(int index) => (index % 8) switch
+    {
+        0 => "gallery-tile-tall",
+        5 => "gallery-tile-wide",
+        _ => string.Empty,
+    };
+
+    private void Open(int index)
+    {
+        _openIndex = index;
+        _focusViewer = true;
+    }
+
+    private void Close() => _openIndex = null;
+
+    private void Previous() => _openIndex = _openIndex is int i ? (i - 1 + _items.Count) % _items.Count : null;
+
+    private void Next() => _openIndex = _openIndex is int i ? (i + 1) % _items.Count : null;
+
+    private Task OnViewerKeyAsync(KeyboardEventArgs args)
+    {
+        switch (args.Key)
+        {
+            case "Escape":
+                Close();
+                break;
+            case "ArrowLeft":
+                Previous();
+                break;
+            case "ArrowRight":
+                Next();
+                break;
+        }
+
+        return Task.CompletedTask;
     }
 }

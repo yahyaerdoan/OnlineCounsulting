@@ -27,15 +27,19 @@
     </HeaderContent>
     <RowTemplate Context="category">
         <MudTd DataLabel="Icon"><MudIcon Icon="@IconCatalog.Resolve(category.Icon)" Style="@IconCatalog.ColorStyle(category.IconColor)" Size="Size.Small" /></MudTd>
-        <MudTd DataLabel="Title">@category.Title</MudTd>
+        <MudTd DataLabel="Title" Class="cell-primary">@category.Title</MudTd>
         <MudTd DataLabel="Description">@category.Description</MudTd>
         <MudTd DataLabel="Actions">
             <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
-                <MudIconButton Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" title="Edit"
-                               OnClick="@(() => Navigation.NavigateTo($"{AppRoutes.AdminHome}/catalog/categories/{category.Id}/edit"))" />
+                <MudTooltip Text="Edit">
+                    <MudIconButton aria-label="Edit" Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default"
+                                   OnClick="@(() => Navigation.NavigateTo($"{AppRoutes.AdminHome}/catalog/categories/{category.Id}/edit"))" />
+                </MudTooltip>
 
-                <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" title="Delete"
-                               OnClick="@(() => DeleteAsync(category))" />
+                <MudTooltip Text="Delete">
+                    <MudIconButton aria-label="Delete" Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error"
+                                   OnClick="@(() => DeleteAsync(category))" />
+                </MudTooltip>
             </MudButtonGroup>
         </MudTd>
     </RowTemplate>

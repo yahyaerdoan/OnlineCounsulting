@@ -1,0 +1,109 @@
+@* "What do I need?" helper: three yes/no questions (Infrastructure/Marketing/ServiceFinderQuiz) lead to a kind of service and the
+   matching catalog services, each one tap away from the booking flow. *@
+@page "/service-finder"
+@using OnlineConsulting.Maui.Shared.Infrastructure.Marketing
+@layout OnlineConsulting.Maui.Shared.Layout.MarketingLayout
+@inject IApiClient ApiClient
+
+<PageTitle>Find the right service</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="marketing-section">
+    <MudText Typo="Typo.h4" Class="mb-2">Not sure what you need?</MudText>
+    <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-6">Answer a few quick questions and we'll point you to the right visit.</MudText>
+
+    @if (_answers.Count > 0)
+    {
+        <ol class="finder-trail">
+            @for (var index = 0; index < _answers.Count; index++)
+            {
+                var step = index;
+                var answer = _answers[step];
+                <li>
+                    <button type="button" class="finder-trail-item" @onclick="@(() => Rewind(step))" aria-label="@($"Change answer: {answer.Question.Text}")">
+                        <span>@answer.Question.Text</span>
+                        <span class="finder-trail-answer">@(answer.Yes ? "Yes" : "No")</span>
+                    </button>
+                </li>
+            }
+        </ol>
+    }
+
+    @if (Current.Question is { } question)
+    {
+        <MudPaper Outlined="true" Class="pa-6 finder-card" aria-live="polite">
+            <MudText Typo="Typo.overline" Color="Color.Secondary">Question @(_answers.Count + 1)</MudText>
+            <MudText Typo="Typo.h6" Class="mt-1">@question.Text</MudText>
+            <MudStack Row="true" Spacing="2" Class="mt-5">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => Answer(question, true))" Class="px-6">Yes</MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="@(() => Answer(question, false))" Class="px-6">No</MudButton>
+            </MudStack>
+        </MudPaper>
+    }
+    else if (Current.Need is { } need)
+    {
+        <MudPaper Outlined="true" Class="pa-6 finder-card" aria-live="polite">
+            <MudText Typo="Typo.overline" Color="Color.Primary">We Recommend</MudText>
+            <MudText Typo="Typo.h5" Class="mt-1">@need.Title</MudText>
+            <MudText Color="Color.Secondary" Class="mt-2">@need.Why</MudText>
+
+            @if (_services.Count > 0 && ServiceFinderQuiz.Match(need, _services) is { Count: > 0 } matches)
+            {
+                <div class="finder-matches">
+                    @foreach (var service in matches)
+                    {
+                        <div class="finder-match">
+                            <div class="min-w-0">
+                                <MudLink Href="@($"/services/{service.Slug}")" Class="text-strong">@service.Title</MudLink>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="finder-match-text">@service.Description</MudText>
+                            </div>
+                            <MudButton Href="@($"/appointment?service={service.Id}")" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small">Book this</MudButton>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <MudButton Href="/appointment" Variant="Variant.Filled" Color="Color.Primary" Class="mt-4">Book a visit</MudButton>
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">A technician will confirm the exact work on site.</MudText>
+            }
+
+            @if (need.SuggestMembership)
+            {
+                <MudAlert Severity="Severity.Info" Class="mt-4" Icon="@Icons.Material.Outlined.Savings">
+                    Planning regular maintenance? A <MudLink Href="/membership">membership</MudLink> covers it and saves on every visit.
+                </MudAlert>
+            }
+
+            <MudButton Variant="Variant.Text" Class="mt-4" StartIcon="@Icons.Material.Outlined.Replay" OnClick="@(() => _answers.Clear())">Start over</MudButton>
+        </MudPaper>
+    }
+</MudContainer>
+
+@code {
+    private readonly List<(ServiceFinderQuestion Question, bool Yes)> _answers = [];
+    private List<ServiceResponse> _services = [];
+
+    private ServiceFinderNode Current
+    {
+        get
+        {
+            ServiceFinderNode node = ServiceFinderQuiz.Root;
+            foreach (var (question, yes) in _answers)
+            {
+                node = yes ? question.Yes : question.No;
+            }
+
+            return node;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await ApiClient.GetAsync<PaginatedResponse<ServiceResponse>>($"{ApiRoutes.Services.Base}?size=100");
+        _services = result.IsSuccessful && result.ResultData is not null ? result.ResultData.Items : [];
+    }
+
+    private void Answer(ServiceFinderQuestion question, bool yes) => _answers.Add((question, yes));
+
+    private void Rewind(int index) => _answers.RemoveRange(index, _answers.Count - index);
+}

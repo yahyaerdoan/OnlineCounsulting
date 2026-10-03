@@ -4,7 +4,6 @@
 @using OnlineConsulting.Maui.Shared.Infrastructure.Api
 @using OnlineConsulting.Maui.Shared.Infrastructure.Auth
 @using OnlineConsulting.Maui.Shared.Infrastructure.Forms
-@using OnlineConsulting.Maui.Shared.Layout
 @inject IApiClient ApiClient
 @inject SecureStorageAccessTokenProvider TokenProvider
 @inject MauiAuthenticationStateProvider AuthStateProvider
@@ -14,23 +13,43 @@
 
 <PageTitle>Sign in</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.Small" Class="d-flex justify-center align-center auth-page-container">
-    <AuthCard Subtitle="Sign in to your ComfortPro admin workspace" Elevation="4">
-        <EditForm EditContext="@Form.EditContext" OnValidSubmit="SubmitAsync" autocomplete="off">
-            <MudTextField @bind-Value="_model.UserNameOrEmail" For="@(() => _model.UserNameOrEmail)" Label="Username or email" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" autocomplete="off" />
-            <MudTextField @bind-Value="_model.Password" For="@(() => _model.Password)" Label="Password" InputType="InputType.Password" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mb-4" autocomplete="new-password" />
+<AuthCard Subtitle="Sign in to book visits and manage your ComfortPro account.">
+    <EditForm EditContext="@Form.EditContext" OnValidSubmit="SubmitAsync" autocomplete="off">
+        <MudTextField @bind-Value="_model.UserNameOrEmail" For="@(() => _model.UserNameOrEmail)" Label="Username or email" Variant="Variant.Outlined"
+                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Outlined.Person" Class="mb-4" autocomplete="username" />
+        <MudTextField @bind-Value="_model.Password" For="@(() => _model.Password)" Label="Password" InputType="@(_showPassword ? InputType.Text : InputType.Password)"
+                      Variant="Variant.Outlined" Adornment="Adornment.End" AdornmentIcon="@(_showPassword ? Icons.Material.Outlined.VisibilityOff : Icons.Material.Outlined.Visibility)"
+                      OnAdornmentClick="@(() => _showPassword = !_showPassword)" AdornmentAriaLabel="Show password" Class="mb-5" autocomplete="current-password" />
 
-            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Class="auth-submit" Disabled="Form.IsBusy">
-                @(Form.IsBusy ? "Signing in..." : "Sign in")
-            </MudButton>
-        </EditForm>
-    </AuthCard>
-</MudContainer>
+        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Class="auth-submit" Disabled="Form.IsBusy">
+            @(Form.IsBusy ? "Signing in..." : "Sign in")
+        </MudButton>
+    </EditForm>
+
+    <MudText Typo="Typo.body2" Class="mt-5" Align="Align.Center">
+        New here? <MudLink Href="@RegisterHref" Class="text-strong">Create an account</MudLink>
+    </MudText>
+</AuthCard>
 
 @code {
     private readonly LoginModel _model = new();
+    private bool _showPassword;
 
-    protected override void OnInitialized() => Form.Bind(_model);
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    private string RegisterHref => string.IsNullOrEmpty(ReturnUrl) ? "/register" : $"/register?ReturnUrl={Uri.EscapeDataString(ReturnUrl)}";
+
+    protected override async Task OnInitializedAsync()
+    {
+        Form.Bind(_model);
+
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated is true)
+        {
+            Navigation.NavigateTo(SignInRedirect.Target(authState.User, ReturnUrl), replace: true);
+        }
+    }
 
     private Task SubmitAsync() => Form.SubmitAsync(async () =>
     {
@@ -54,6 +73,7 @@
         }
 
         AuthStateProvider.SignIn(userResult.ResultData);
-        Navigation.NavigateTo($"{AppRoutes.AdminHome}?welcome=true");
+        var target = SignInRedirect.Target(userResult.ResultData.Roles, ReturnUrl);
+        Navigation.NavigateTo(target.Contains('?') ? $"{target}&welcome=true" : $"{target}?welcome=true", replace: true);
     });
 }

@@ -1,7 +1,9 @@
-@* Checkout: pick addresses + review, place order, confirm payment in-page via Stripe Elements
+﻿@* Checkout: pick addresses + review, place order, confirm payment in-page via Stripe Elements
    (marketing.js). Two steps, not three - address selection and order review share one screen since
    the order summary sidebar already keeps totals visible, a separate review-only screen just made
-   the customer confirm the same cart twice. *@
+   the customer confirm the same cart twice. Wide screens: numbered address and payment cards beside a sticky order summary.
+   Phones: a collapsible order summary at the top and the next action with the total in a bar above the tab bar. Adding an
+   address from here comes back here. *@
 @page "/user/checkout"
 @attribute [Authorize(Roles = AppRoles.User)]
 @using Microsoft.AspNetCore.Http
@@ -29,92 +31,160 @@
     }
     else if (_phase == CheckoutPhase.Confirmed)
     {
-        <MudStack AlignItems="AlignItems.Center" Class="py-10" Spacing="3">
-            <MudIcon Icon="@Icons.Material.Outlined.CheckCircleOutline" Size="Size.Large" Color="Color.Success" />
-            <MudText Typo="Typo.h6">Order placed - thank you!</MudText>
-            <MudText>Order number @_orderNumber</MudText>
-            <MudButton Href="@OrderDetailUrl" Variant="Variant.Filled" Color="Color.Primary">View Order</MudButton>
-        </MudStack>
+        <div class="checkout-done">
+            <span class="checkout-done-icon"><MudIcon Icon="@Icons.Material.Filled.CheckCircle" /></span>
+            <MudText Typo="Typo.h5" Class="marketing-display text-strong">Order placed, thank you!</MudText>
+            <MudText Typo="Typo.body1" Color="Color.Secondary">Your payment went through. A confirmation email is on its way.</MudText>
+            <span class="checkout-done-number">Order @_orderNumber</span>
+            <div class="checkout-done-actions">
+                <MudButton Href="@OrderDetailUrl" Variant="Variant.Filled" Class="sell-btn" EndIcon="@Icons.Material.Filled.ArrowForward">View order</MudButton>
+                <MudButton Href="/services" Variant="Variant.Outlined" Color="Color.Primary" Class="svc-action">Continue shopping</MudButton>
+            </div>
+        </div>
     }
     else if (_phase == CheckoutPhase.Payment || _basket is { Items.Count: > 0 })
     {
-        <MudGrid Spacing="6">
-            <MudItem xs="12" md="6">
-                @if (_addresses.Count == 0)
-                {
-                    <MudText Typo="Typo.h6" Class="mb-3">Shipping &amp; Billing</MudText>
-                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">You have no saved addresses yet.</MudText>
-                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Add"
-                               Href="/user/addresses/new">Add Address</MudButton>
-                }
-                else
-                {
-                    var shipping = _addresses.First(a => a.Id == _shippingAddressId);
-                    var billing = _addresses.First(a => a.Id == _billingAddressId);
-                    var canEdit = _phase == CheckoutPhase.Details;
+        <div class="checkout-top">
+            <span class="checkout-secure"><MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Small" />Secure checkout</span>
+            <StepIndicator Steps="StepNames" Current="@((int)_phase)" CurrentChanged="OnStepChangedAsync" />
+        </div>
 
-                    <MudText Typo="Typo.h6" Class="mb-3">Shipping Address</MudText>
-                    <MudPaper Outlined="true" Class="pa-4 rounded-lg mb-4">
-                        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start" Class="mb-2">
-                            <MudText Typo="Typo.subtitle1">@shipping.AddressName</MudText>
-                            @if (canEdit)
-                            {
-                                <MudIconButton Icon="@Icons.Material.Outlined.Edit" Size="Size.Small" OnClick="SelectShippingAddressAsync" />
-                            }
-                        </MudStack>
-                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">@AddressFormat.FullLine(shipping)</MudText>
-                        <MudChip T="string" Size="Size.Small" Color="Color.Success">Shipping Address</MudChip>
-                    </MudPaper>
-
-                    <MudText Typo="Typo.h6" Class="mb-3">Billing Address</MudText>
-                    <MudPaper Outlined="true" Class="pa-4 rounded-lg">
-                        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start" Class="mb-2">
-                            <MudText Typo="Typo.subtitle1">@billing.AddressName</MudText>
-                            @if (canEdit)
-                            {
-                                <MudIconButton Icon="@Icons.Material.Outlined.Edit" Size="Size.Small" OnClick="SelectBillingAddressAsync" />
-                            }
-                        </MudStack>
-                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">@AddressFormat.FullLine(billing)</MudText>
-                        <MudChip T="string" Size="Size.Small" Color="Color.Primary">Billing Address</MudChip>
-                    </MudPaper>
-                }
-            </MudItem>
-
-            <MudItem xs="12" md="6">
-                <MudText Typo="Typo.h6" Class="mb-3">Your Order</MudText>
-                @if (_basket is not null)
-                {
+        @if (_basket is not null)
+        {
+            <details class="checkout-mini-summary mobile-only">
+                <summary>
+                    <MudIcon Icon="@Icons.Material.Outlined.ShoppingBag" Size="Size.Small" />
+                    <span class="checkout-mini-label">Order summary · @ItemCount @(ItemCount == 1 ? "item" : "items")</span>
+                    <span class="checkout-mini-total">@CurrencyFormat.Format(_basket.TotalPrice)</span>
+                    <MudIcon Icon="@Icons.Material.Filled.ExpandMore" Size="Size.Small" Class="checkout-mini-chevron" />
+                </summary>
+                <div class="checkout-mini-body">
                     <CartSummary SubTotal="@_basket.SubTotalPrice" TaxTotal="@_taxTotal" Total="@_basket.TotalPrice"
-                                 Items="@LineItems" ShowAction="false" />
-                }
+                                 Items="@LineItems" ShowAction="false" Bordered="false" />
+                </div>
+            </details>
+        }
 
-                <MudText Typo="Typo.h6" Class="mt-4 mb-3">Payment</MudText>
-                @if (_phase == CheckoutPhase.Payment)
-                {
-                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">Order @_orderNumber - enter your card details to complete the payment.</MudText>
+        <div class="checkout-layout">
+            <div class="checkout-main">
+                <section class="checkout-card">
+                    <div class="checkout-card-head">
+                        <span class="checkout-card-step">1</span>
+                        <MudText Typo="Typo.h6" Class="text-strong">Where should we ship?</MudText>
+                    </div>
+                    @if (_addresses.Count == 0)
+                    {
+                        <div class="checkout-empty-address">
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">You have no saved addresses yet. Add one and you'll come right back here.</MudText>
+                            <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Add" Class="svc-action"
+                                       Href="@AddAddressUrl">Add address</MudButton>
+                        </div>
+                    }
+                    else
+                    {
+                        var shipping = _addresses.First(a => a.Id == _shippingAddressId);
+                        var billing = _addresses.First(a => a.Id == _billingAddressId);
+                        var canEdit = _phase == CheckoutPhase.Details;
 
-                    <div id="payment-element" class="mb-3"></div>
-                    <ApiErrorAlert Message="@_paymentError" Severity="Severity.Error" />
+                        <div class="checkout-address-row">
+                            <span class="tone-bubble @AccentTone.Green"><MudIcon Icon="@Icons.Material.Outlined.LocalShipping" /></span>
+                            <div class="checkout-address-body">
+                                <span class="checkout-address-label">Shipping to</span>
+                                <span class="checkout-address-name">@shipping.AddressName</span>
+                                <span class="checkout-address-line">@AddressFormat.FullLine(shipping)</span>
+                            </div>
+                            @if (canEdit)
+                            {
+                                <MudButton Variant="Variant.Text" Color="Color.Primary" Size="Size.Small" OnClick="SelectShippingAddressAsync">Change</MudButton>
+                            }
+                            else if (_phase == CheckoutPhase.Payment)
+                            {
+                                <MudButton Variant="Variant.Text" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Outlined.Edit" OnClick="BackToAddressAsync">Edit</MudButton>
+                            }
+                        </div>
 
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Class="mt-3"
-                               Disabled="@_isBusy" OnClick="ConfirmPaymentAsync">
-                        Place Order
-                    </MudButton>
-                }
-                else if (_addresses.Count > 0)
-                {
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" EndIcon="@Icons.Material.Outlined.ArrowForward"
-                               Disabled="@_isBusy" OnClick="ContinueToPaymentAsync">
-                        Continue to Payment
-                    </MudButton>
-                }
-                else
-                {
-                    <MudText Typo="Typo.body2" Color="Color.Secondary">Add a shipping and billing address to continue.</MudText>
-                }
-            </MudItem>
-        </MudGrid>
+                        <div class="checkout-address-row">
+                            <span class="tone-bubble @AccentTone.Blue"><MudIcon Icon="@Icons.Material.Outlined.Receipt" /></span>
+                            <div class="checkout-address-body">
+                                <span class="checkout-address-label">Billing address</span>
+                                @if (billing.Id == shipping.Id)
+                                {
+                                    <span class="checkout-address-name">Same as shipping</span>
+                                }
+                                else
+                                {
+                                    <span class="checkout-address-name">@billing.AddressName</span>
+                                    <span class="checkout-address-line">@AddressFormat.FullLine(billing)</span>
+                                }
+                            </div>
+                            @if (canEdit)
+                            {
+                                <MudButton Variant="Variant.Text" Color="Color.Primary" Size="Size.Small" OnClick="SelectBillingAddressAsync">Change</MudButton>
+                            }
+                        </div>
+
+                        @if (canEdit)
+                        {
+                            <a href="@AddAddressUrl" class="checkout-add-link"><MudIcon Icon="@Icons.Material.Outlined.Add" Size="Size.Small" />Add a new address</a>
+                        }
+                    }
+                </section>
+
+                <section class="@($"checkout-card {(_phase == CheckoutPhase.Payment ? "" : "checkout-card-pending")}")">
+                    <div class="checkout-card-head">
+                        <span class="checkout-card-step">2</span>
+                        <MudText Typo="Typo.h6" Class="text-strong">Payment</MudText>
+                    </div>
+                    @if (_phase == CheckoutPhase.Payment)
+                    {
+                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">Order @_orderNumber. Enter your card details to finish.</MudText>
+
+                        <div id="payment-element" class="mb-3"></div>
+                        <ApiErrorAlert Message="@_paymentError" Severity="Severity.Error" />
+
+                        <span class="checkout-secure-note"><MudIcon Icon="@Icons.Material.Outlined.Lock" Size="Size.Small" />Secure payment by Stripe. We never store your card number.</span>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">Confirm your address, then you'll enter your card here.</MudText>
+                    }
+                </section>
+            </div>
+
+            <aside class="checkout-summary hide-on-phone" aria-label="Your order">
+                <div class="checkout-card">
+                    <div class="checkout-card-head">
+                        <MudText Typo="Typo.h6" Class="text-strong">Your order</MudText>
+                        <span class="cart-head-count">@ItemCount @(ItemCount == 1 ? "item" : "items")</span>
+                    </div>
+                    @if (_basket is not null)
+                    {
+                        <CartSummary SubTotal="@_basket.SubTotalPrice" TaxTotal="@_taxTotal" Total="@_basket.TotalPrice"
+                                     Items="@LineItems" ShowAction="false" Bordered="false" />
+                    }
+
+                    <div class="mt-4">
+                        @PrimaryAction
+                    </div>
+                    <ul class="cart-assurance mt-3">
+                        <li><MudIcon Icon="@Icons.Material.Outlined.Lock" Size="Size.Small" />Secure payment by Stripe</li>
+                        <li><MudIcon Icon="@Icons.Material.Outlined.ReceiptLong" Size="Size.Small" />Tax is included in your total</li>
+                    </ul>
+                    @if (_phase == CheckoutPhase.Details)
+                    {
+                        <a href="/user/cart" class="checkout-back-link"><MudIcon Icon="@Icons.Material.Outlined.ArrowBack" Size="Size.Small" />Back to cart</a>
+                    }
+                </div>
+            </aside>
+        </div>
+
+        <div class="checkout-mobile-bar mobile-only">
+            @if (_basket is not null && _phase == CheckoutPhase.Details)
+            {
+                <span class="checkout-mobile-total"><span>Total</span><strong>@CurrencyFormat.Format(_basket.TotalPrice)</strong></span>
+            }
+            @PrimaryAction
+        </div>
     }
     else if (OrderId.HasValue)
     {
@@ -123,16 +193,45 @@
     }
     else
     {
-        <MudStack AlignItems="AlignItems.Center" Class="py-10" Spacing="3">
-            <MudIcon Icon="@Icons.Material.Outlined.ShoppingCart" Size="Size.Large" Color="Color.Secondary" />
-            <MudText Typo="Typo.h6">Your cart is empty.</MudText>
-            <MudButton Href="/services" Variant="Variant.Filled" Color="Color.Primary">Browse Services</MudButton>
-        </MudStack>
+        <div class="cart-empty">
+            <span class="tone-bubble tone-bubble-lg tone-blue"><MudIcon Icon="@Icons.Material.Outlined.ShoppingCart" /></span>
+            <MudText Typo="Typo.h6" Class="text-strong">Your cart is empty</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Add something to your cart first, then come back to check out.</MudText>
+            <div class="cart-empty-actions">
+                <MudButton Href="/services" Variant="Variant.Filled" Class="sell-btn" EndIcon="@Icons.Material.Filled.ArrowForward">Browse services</MudButton>
+            </div>
+        </div>
     }
 </MudContainer>
 
 @code {
     private enum CheckoutPhase { Details, Payment, Confirmed }
+
+    private static readonly string[] StepNames = ["Address", "Payment", "Done"];
+
+    /// <summary>The one next step for the current phase - rendered in the order summary on wide screens and in the sticky bottom bar on phones.</summary>
+    private RenderFragment PrimaryAction => __builder =>
+    {
+        if (_phase == CheckoutPhase.Payment)
+        {
+            <MudButton Variant="Variant.Filled" FullWidth="true" Size="Size.Large" StartIcon="@Icons.Material.Outlined.Lock"
+                       Class="sell-btn checkout-cta" Disabled="@_isBusy" OnClick="ConfirmPaymentAsync">
+                @(_isBusy ? "Processing..." : $"Pay {CurrencyFormat.Format(_basket?.TotalPrice ?? 0m)}")
+            </MudButton>
+        }
+        else if (_addresses.Count > 0)
+        {
+            <MudButton Variant="Variant.Filled" FullWidth="true" Size="Size.Large" EndIcon="@Icons.Material.Outlined.ArrowForward"
+                       Class="sell-btn checkout-cta" Disabled="@_isBusy" OnClick="ContinueToPaymentAsync">
+                @(_isBusy ? "Placing order..." : "Continue to payment")
+            </MudButton>
+        }
+        else
+        {
+            <MudButton Variant="Variant.Filled" FullWidth="true" Size="Size.Large" StartIcon="@Icons.Material.Outlined.Add"
+                       Class="sell-btn checkout-cta" Href="@AddAddressUrl">Add address</MudButton>
+        }
+    };
 
     /// <summary>Lets a mid-payment reload resume the same order instead of showing an empty cart.</summary>
     [SupplyParameterFromQuery(Name = "orderId")]
@@ -143,6 +242,10 @@
         "Check My Account for your order, or contact us to complete payment.";
 
     private string OrderDetailUrl => _placedOrderId is Guid id ? $"/user/orders/{id}" : "/user/orders";
+
+    private static string AddAddressUrl => $"/user/addresses/new?returnUrl={Uri.EscapeDataString("/user/checkout")}";
+
+    private int ItemCount => _basket?.Items.Sum(i => i.Quantity) ?? 0;
 
     private List<CartSummary.LineItem> LineItems => _basket is null
         ? []
@@ -183,7 +286,7 @@
             await TryResumePaymentAsync();
         }
 
-        if (_phase == CheckoutPhase.Details && _basket is { Items.Count: > 0 })
+        if (_phase != CheckoutPhase.Confirmed && _basket is { Items.Count: > 0 })
         {
             await LoadAddressesAsync();
             await LoadServiceTitlesAsync();
@@ -233,7 +336,11 @@
         {
             _paymentElementMounted = true;
             var publishableKey = Configuration["Stripe:PublishableKey"];
-            await JsRuntime.InvokeVoidAsync("checkoutStripe.init", publishableKey, _clientSecret);
+            _paymentError = await JsRuntime.InvokeAsync<string?>("checkoutStripe.init", publishableKey, _clientSecret);
+            if (_paymentError is not null)
+            {
+                StateHasChanged();
+            }
         }
     }
 
@@ -278,6 +385,24 @@
 
     /// <summary>Saves the chosen addresses and places the order in one step - what used to be a
     /// separate "confirm addresses" screen followed by a "review and place order" screen.</summary>
+    /// <summary>The step header's "Address" step, clickable from payment.</summary>
+    private Task OnStepChangedAsync(int step) => step == (int)CheckoutPhase.Details ? BackToAddressAsync() : Task.CompletedTask;
+
+    /// <summary>Back from payment to change an address. The order and its payment stay; continuing again updates the order's
+    /// addresses (UpdatePendingOrderAddresses) and remounts the same payment instead of placing a second order.</summary>
+    private Task BackToAddressAsync()
+    {
+        if (_phase != CheckoutPhase.Payment || _isBusy)
+        {
+            return Task.CompletedTask;
+        }
+
+        _phase = CheckoutPhase.Details;
+        _paymentElementMounted = false;
+        _paymentError = null;
+        return Task.CompletedTask;
+    }
+
     private async Task ContinueToPaymentAsync()
     {
         _isBusy = true;
@@ -297,6 +422,22 @@
             // Shipping already committed server-side by this point - say so, rather than a generic
             // failure message that would wrongly imply nothing was saved.
             Snackbar.ShowError($"Shipping address saved. Billing address failed to save: {billingResult.DisplayMessage}");
+            _isBusy = false;
+            return;
+        }
+
+        if (_placedOrderId is Guid pendingOrderId && _clientSecret is not null)
+        {
+            var updateResult = await ApiClient.PutAsync(ApiRoutes.Commerce.Orders.UpdateAddresses(pendingOrderId), null);
+            if (!updateResult.IsSuccessful)
+            {
+                Snackbar.ShowError(updateResult.DisplayMessage);
+                _isBusy = false;
+                return;
+            }
+
+            _paymentElementMounted = false;
+            _phase = CheckoutPhase.Payment;
             _isBusy = false;
             return;
         }
@@ -348,6 +489,11 @@
         // The webhook that actually clears the basket server-side arrives asynchronously - zero the
         // header badge now, optimistically, rather than leaving it stale until the next full page load.
         CartState.SetCount(0);
+        if (_placedOrderId is Guid placedOrderId)
+        {
+            _ = await ApiClient.GetAsync<CreateOrderResult>(ApiRoutes.Commerce.Orders.ResumePayment(placedOrderId));
+        }
+
         _phase = CheckoutPhase.Confirmed;
         _isBusy = false;
     }

@@ -105,6 +105,7 @@ public class SiteContentDbContext(DbContextOptions<SiteContentDbContext> options
             _ = builder.Property(x => x.CompanyName).HasMaxLength(200).IsRequired();
             _ = builder.Property(x => x.Description).HasMaxLength(2000).IsRequired();
             _ = builder.Property(x => x.WebsiteUrl).HasMaxLength(500).IsRequired();
+            _ = builder.Property(x => x.Kind).HasMaxLength(20).IsRequired().HasDefaultValue(PartnershipKinds.Partner);
             _ = builder.Property(x => x.RowVersion).IsRowVersion();
             _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });

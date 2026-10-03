@@ -1,7 +1,7 @@
-﻿using OnlineConsulting.Modules.Categories.Application.Abstractions;
+﻿using OnlineConsulting.Modules.Categories.Application.Features.Categories.Abstractions;
 using OnlineConsulting.Modules.Categories.Domain;
-using OnlineConsulting.Modules.Services.Application.Abstractions;
 using OnlineConsulting.Modules.Services.Application.Common;
+using OnlineConsulting.Modules.Services.Application.Features.Services.Abstractions;
 using OnlineConsulting.Modules.Services.Domain;
 using OnlineConsulting.SharedKernel.Slugs;
 using OnlineConsulting.SharedKernel.Tenancy;

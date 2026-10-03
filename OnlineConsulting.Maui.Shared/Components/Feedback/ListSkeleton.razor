@@ -1,0 +1,19 @@
+@* Placeholder rows shaped like the list that is loading, so the page does not jump when data arrives. *@
+
+<div class="list-skeleton" aria-busy="true" aria-label="Loading">
+    @for (var i = 0; i < Rows; i++)
+    {
+        <div class="list-skeleton-row">
+            <MudSkeleton SkeletonType="SkeletonType.Circle" Width="36px" Height="36px" />
+            <div class="list-skeleton-lines">
+                <MudSkeleton Width="55%" />
+                <MudSkeleton Width="35%" />
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public int Rows { get; set; } = 3;
+}

@@ -8,6 +8,7 @@ using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.GetMyAppointments;
 
+/// <summary>Newest booking first - a just-made request is always at the top, not buried under a later-scheduled or completed visit.</summary>
 public record GetMyAppointmentsQuery(Guid UserId, PageRequest PageRequest) : IRequest<OperationDataResult<Paginate<AppointmentResponse>>>;
 
 public class GetMyAppointmentsHandler(IAppointmentRepository repository)
@@ -15,7 +16,7 @@ public class GetMyAppointmentsHandler(IAppointmentRepository repository)
 {
     public async Task<OperationDataResult<Paginate<AppointmentResponse>>> Handle(GetMyAppointmentsQuery request, CancellationToken cancellationToken)
     {
-        var appointments = await repository.GetListAsync(a => a.UserId == request.UserId, orderBy: q => q.OrderByDescending(a => a.ScheduledStart), index: request.PageRequest.PageIndex, size: request.PageRequest.PageSize, cancellationToken: cancellationToken);
+        var appointments = await repository.GetListAsync(a => a.UserId == request.UserId, orderBy: q => q.OrderByDescending(a => a.CreatedDate).ThenByDescending(a => a.Id), index: request.PageRequest.PageIndex, size: request.PageRequest.PageSize, cancellationToken: cancellationToken);
 
         var response = new Paginate<AppointmentResponse>
         {

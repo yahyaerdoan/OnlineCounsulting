@@ -1,6 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
-using OnlineConsulting.Modules.Media.Application.Features.GetMediaAssets;
+using OnlineConsulting.Modules.Media.Application.Features.MediaAssets.GetMediaAssets;
 using ResultHandler.AspNetCore.Extensions;
 
 namespace OnlineConsulting.Api.Features.Media;

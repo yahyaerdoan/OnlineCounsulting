@@ -89,6 +89,7 @@ public class StripePaymentGateway(IOptions<PaymentOptions> options) : IPaymentGa
     private static string MapStatus(string stripeStatus) => stripeStatus switch
     {
         "succeeded" => PaymentStatuses.Succeeded,
+        "processing" => PaymentStatuses.Processing,
         "canceled" => PaymentStatuses.Failed,
         _ => PaymentStatuses.Pending,
     };

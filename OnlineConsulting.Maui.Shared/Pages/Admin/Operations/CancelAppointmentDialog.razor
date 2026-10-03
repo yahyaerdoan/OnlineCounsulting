@@ -1,0 +1,46 @@
+@namespace OnlineConsulting.Maui.Shared.Pages.Admin.Operations
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">Cancel Appointment</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudText Typo="Typo.body2" Class="mb-3">
+            The customer gets an email and a notification. If a technician is assigned, they're notified too.
+        </MudText>
+        <MudTextField T="string" @bind-Value="_reason" Label="Reason for the customer (optional)" Variant="Variant.Outlined"
+                      Lines="3" AutoGrow="true" MaxLength="500" Counter="500" />
+    </DialogContent>
+    <DialogActions>
+        <DialogActionButtons OnOk="CancelAsync" OkText="Cancel appointment" CancelText="Keep" IsBusy="@_isBusy" />
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance? MudDialog { get; set; }
+
+    [Parameter, EditorRequired]
+    public Guid AppointmentId { get; set; }
+
+    private string? _reason;
+    private bool _isBusy;
+
+    private async Task CancelAsync()
+    {
+        _isBusy = true;
+        var result = await ApiClient.PostAsync(ApiRoutes.Operations.Appointments.StaffCancel(AppointmentId), new { reason = _reason });
+        _isBusy = false;
+
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        MudDialog?.Close(DialogResult.Ok(true));
+    }
+}

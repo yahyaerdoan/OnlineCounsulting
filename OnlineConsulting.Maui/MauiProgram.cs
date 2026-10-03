@@ -8,7 +8,9 @@ using OnlineConsulting.Maui.Infrastructure.Auth;
 using OnlineConsulting.Maui.Shared;
 using OnlineConsulting.Maui.Shared.Infrastructure.Api;
 using OnlineConsulting.Maui.Shared.Infrastructure.Auth;
+using OnlineConsulting.Maui.Shared.Infrastructure.LiveUpdates;
 using OnlineConsulting.Maui.Shared.Layout;
+using OnlineConsulting.Maui.Shared.Theme;
 
 namespace OnlineConsulting.Maui;
 
@@ -23,6 +25,8 @@ public static class MauiProgram
             {
                 _ = fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
             });
+
+        builder.Configuration["Stripe:PublishableKey"] = StripeKeys.PublishableKey;
 
         _ = builder.Services.AddMauiBlazorWebView();
         ConfigureAndroidWebView();
@@ -41,6 +45,11 @@ public static class MauiProgram
 
         _ = builder.Services.AddMauiSharedInfrastructure(typeof(MauiProgram).Assembly);
         _ = builder.Services.AddSingleton<IPlatformInfo, MauiPlatformInfo>();
+        _ = builder.Services.AddSingleton<MauiAppResumeSource>();
+        _ = builder.Services.AddSingleton<IAppResumeSource>(sp => sp.GetRequiredService<MauiAppResumeSource>());
+        _ = builder.Services.AddSingleton<ILiveUpdatesTransportConfigurator, DevCertificateLiveUpdatesConfigurator>();
+        _ = builder.Services.AddSingleton<ISystemBarsStyler, MauiSystemBarsStyler>();
+        _ = builder.Services.AddSingleton<OnlineConsulting.Maui.Shared.Infrastructure.Files.IFileSaver, MauiFileSaver>();
 
         _ = builder.Services.AddAuthorizationCore();
 
@@ -90,10 +99,14 @@ public static class MauiProgram
 #endif
     }
 
+    /// <summary>One cookie jar for every Api client and handler generation: the guest basket lives in the Api's guest_id cookie, so
+    /// it must survive handler recycling and reach the login call (which folds the guest cart into the account).</summary>
+    private static readonly System.Net.CookieContainer ApiCookies = new();
+
     /// <summary>Gated on #if DEBUG rather than AppEnvironment.IsDevelopment, so the cert bypass cannot exist in a Release binary.</summary>
     private static HttpMessageHandler CreatePrimaryHandler()
     {
-        var handler = new HttpClientHandler();
+        var handler = new HttpClientHandler { UseCookies = true, CookieContainer = ApiCookies };
 #if DEBUG
         handler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
 #endif

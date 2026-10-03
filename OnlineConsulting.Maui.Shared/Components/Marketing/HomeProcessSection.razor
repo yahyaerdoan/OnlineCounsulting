@@ -1,36 +1,54 @@
-@* "How It Works" - a connected step timeline (numbered badge + a linking rail on desktop)
-   instead of a plain icon grid, so the sequence reads as an ordered process, not a loose list. *@
+@* "How It Works" as connected step cards: on wide screens the steps sit in one row, each with a colored icon marker on a rail that
+   links it to the next and a card below (step label, title, text); on phones they become a vertical timeline,
+   marker and line on the left, card on the right. Each step uses its admin-picked color, or a rotating accent tone. A closing call
+   to action turns the explanation into a booking. *@
 @using OnlineConsulting.Maui.Shared.Infrastructure.Api
 @inject IApiClient ApiClient
 
-<div class="marketing-dark-section">
-    <MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
-        <div class="marketing-section-header-left">
-            <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center" Class="mb-1">
-                <MudIcon Icon="@Icons.Material.Filled.PlayArrow" Color="Color.Primary" Size="Size.Small" />
-                <MudText Typo="Typo.subtitle1" Color="Color.Primary" Class="text-strong">Getting Started</MudText>
-            </MudStack>
-            <MudText Typo="Typo.h5" Class="marketing-display text-strong">How It Works</MudText>
-        </div>
+@if (_steps.Count > 0)
+{
+    <div class="marketing-dark-section">
+        <MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
+            <SectionHeading Eyebrow="Getting Started" Title="How It Works">
+                @_steps.Count simple @(_steps.Count == 1 ? "step" : "steps") from booking to a comfortable home.
+            </SectionHeading>
 
-        <div class="marketing-process-track">
-            @for (var i = 0; i < _steps.Count; i++)
-            {
-                var step = _steps[i];
-                <div class="marketing-process-step">
-                    <div class="marketing-process-badge" style="@($"background:{step.IconColor ?? "var(--mud-palette-primary)"};")">
-                        <MudIcon Icon="@step.Icon" Style="color:#ffffff;" />
-                        <span class="marketing-process-number">@((i + 1).ToString("00"))</span>
-                    </div>
-                    <MudText Typo="Typo.h6" Class="mt-4">@step.Title</MudText>
-                    <MudText Typo="Typo.body2" Color="Color.Secondary">@step.Description</MudText>
+            <ol class="@($"how-steps {(_steps.Count <= MaxSingleRow ? "how-steps-row" : "")}")" style="@($"--how-count:{Math.Min(_steps.Count, MaxSingleRow)};")">
+                @for (var i = 0; i < _steps.Count; i++)
+                {
+                    var step = _steps[i];
+                    var number = (i + 1).ToString("00");
+                    <li class="@($"how-step {AccentTone.At(i)}")" style="@(string.IsNullOrWhiteSpace(step.IconColor) ? null : $"--tone:{step.IconColor};")">
+                        <div class="how-step-marker" aria-hidden="true">
+                            <span class="how-step-icon"><MudIcon Icon="@step.Icon" /></span>
+                        </div>
+                        <div class="how-step-card">
+                            <span class="how-step-label">Step @number</span>
+                            <h3 class="how-step-title">@step.Title</h3>
+                            <p class="how-step-text">@step.Description</p>
+                        </div>
+                    </li>
+                }
+            </ol>
+
+            <div class="how-cta">
+                <span class="tone-bubble tone-bubble-lg tone-gold how-cta-icon"><MudIcon Icon="@Icons.Material.Outlined.EventAvailable" /></span>
+                <div class="how-cta-text">
+                    <span class="how-cta-title">Ready when you are</span>
+                    <span class="how-cta-sub">Pick a time online in about two minutes. No phone tag, upfront pricing.</span>
                 </div>
-            }
-        </div>
-    </MudContainer>
-</div>
+                <div class="how-cta-actions">
+                    <MudButton Href="/appointment" Variant="Variant.Filled" Class="sell-btn" EndIcon="@Icons.Material.Filled.ArrowForward">Book a visit</MudButton>
+                    <MudButton Href="/contact" Variant="Variant.Outlined" Color="Color.Primary" Class="how-cta-secondary">Ask a question</MudButton>
+                </div>
+            </div>
+        </MudContainer>
+    </div>
+}
 
 @code {
+    private const int MaxSingleRow = 5;
+
     private List<ServiceProcessStepResponse> _steps = [];
 
     protected override async Task OnInitializedAsync()

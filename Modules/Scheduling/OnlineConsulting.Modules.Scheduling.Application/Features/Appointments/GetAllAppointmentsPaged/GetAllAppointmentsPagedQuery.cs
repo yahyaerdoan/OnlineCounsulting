@@ -26,7 +26,7 @@ public class GetAllAppointmentsPagedHandler(IAppointmentRepository repository)
 {
     public async Task<OperationDataResult<Paginate<AppointmentResponse>>> Handle(GetAllAppointmentsPagedQuery request, CancellationToken cancellationToken)
     {
-        var paged = await repository.Query().ToDynamicPaginateAsync(request.PageRequest, request.DynamicQuery, defaultOrderBy: a => a.ScheduledStart, tieBreaker: a => a.Id, cancellationToken);
+        var paged = await repository.Query().ToDynamicPaginateAsync(request.PageRequest, request.DynamicQuery, defaultOrderBy: a => a.CreatedDate, tieBreaker: a => a.Id, cancellationToken, defaultDescending: true);
 
         var response = new Paginate<AppointmentResponse>
         {

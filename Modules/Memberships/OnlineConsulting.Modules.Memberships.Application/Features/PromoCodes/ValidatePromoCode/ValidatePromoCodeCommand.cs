@@ -4,7 +4,7 @@ using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMembersh
 using OnlineConsulting.Modules.Memberships.Application.Features.MembershipPlans.Abstractions;
 using OnlineConsulting.Modules.Memberships.Application.Features.MembershipPlans.Constants;
 using OnlineConsulting.Modules.Memberships.Application.Features.PromoCodes.Abstractions;
-using OnlineConsulting.Modules.Memberships.Application.Features.PromoCodes.Common;
+using OnlineConsulting.Modules.Memberships.Application.Features.PromoCodes.Contracts;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -16,8 +16,6 @@ public record ValidatePromoCodeCommand(Guid UserId, string Code, Guid Membership
     [JsonIgnore]
     public string[] Roles => [];
 }
-
-public record ValidatePromoCodeResult(bool IsValid, string? Error, decimal DiscountAmount, decimal FinalPrice);
 
 /// <summary>Preview only - never touches PromoCode.RedemptionCount; IsValid=false is still a 200 so the UI can render the reason inline, not as a toast.</summary>
 public class ValidatePromoCodeHandler(IMembershipPlanRepository planRepository, IPromoCodeRepository promoCodeRepository, ICustomerMembershipRepository membershipRepository)

@@ -1,7 +1,8 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
-using OnlineConsulting.Modules.Tenancy.Application.Features.Signup;
+using OnlineConsulting.Modules.Tenancy.Application.Features.Signup.ActivateTenantSubscription;
+using OnlineConsulting.Modules.Tenancy.Application.Features.Signup.Contracts;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.Constants;
 using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.AspNetCore.Extensions;

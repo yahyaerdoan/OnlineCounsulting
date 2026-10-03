@@ -5,6 +5,17 @@
 @inject ISnackbar Snackbar
 
 <MudStack Spacing="3">
+    <div>
+        <MudText Typo="Typo.subtitle2" Class="mb-1">Show on the About page as</MudText>
+        <MudToggleGroup T="string" @bind-Value="Model.Kind" SelectionMode="SelectionMode.SingleSelection" Color="Color.Primary" Size="Size.Small" CheckMark="true">
+            <MudToggleItem Value="@PartnershipKinds.Team" Text="Team member" />
+            <MudToggleItem Value="@PartnershipKinds.Partner" Text="Brand partner" />
+        </MudToggleGroup>
+        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="d-block mt-1">
+            @(Model.IsTeam ? "Owner, technicians and staff appear under \"Meet Our Team\". Email, company and website are optional." : "Manufacturers and specialists appear under \"Trusted Brand Partners\".")
+        </MudText>
+    </div>
+
     <MudGrid Spacing="3">
         <MudItem xs="12" sm="6">
             <MudTextField @bind-Value="Model.FirstName" For="@(() => Model.FirstName)" Label="First name" Variant="Variant.Outlined" Margin="Margin.Dense" />
@@ -14,16 +25,16 @@
         </MudItem>
     </MudGrid>
 
-    <MudTextField @bind-Value="Model.Email" For="@(() => Model.Email)" Label="Email" Variant="Variant.Outlined" Margin="Margin.Dense" />
+    <MudTextField @bind-Value="Model.Title" For="@(() => Model.Title)" Label="@(Model.IsTeam ? "Role (e.g. Owner, Lead Technician)" : "Title")" Variant="Variant.Outlined" Margin="Margin.Dense" />
 
-    <MudTextField @bind-Value="Model.Title" For="@(() => Model.Title)" Label="Title" Variant="Variant.Outlined" Margin="Margin.Dense" />
+    <MudTextField @bind-Value="Model.Email" For="@(() => Model.Email)" Label="@(Model.IsTeam ? "Email (optional, not shown on the site)" : "Email")" Variant="Variant.Outlined" Margin="Margin.Dense" />
 
-    <MudTextField @bind-Value="Model.CompanyName" For="@(() => Model.CompanyName)" Label="Company name" Variant="Variant.Outlined" Margin="Margin.Dense" />
+    <MudTextField @bind-Value="Model.CompanyName" For="@(() => Model.CompanyName)" Label="@(Model.IsTeam ? "Company name (optional)" : "Company name")" Variant="Variant.Outlined" Margin="Margin.Dense" />
 
     <MudTextField @bind-Value="Model.Description" For="@(() => Model.Description)" Label="Description" Variant="Variant.Outlined" Margin="Margin.Dense"
                   Lines="1" MaxLines="5" Sizing="InputSizing.Auto" />
 
-    <MudTextField @bind-Value="Model.WebsiteUrl" For="@(() => Model.WebsiteUrl)" Label="Website URL" Variant="Variant.Outlined" Margin="Margin.Dense" />
+    <MudTextField @bind-Value="Model.WebsiteUrl" For="@(() => Model.WebsiteUrl)" Label="@(Model.IsTeam ? "Website URL (optional)" : "Website URL")" Variant="Variant.Outlined" Margin="Margin.Dense" />
 
     <MudNumericField @bind-Value="Model.DisplayOrder" For="@(() => Model.DisplayOrder)" Label="Display order" Variant="Variant.Outlined" Margin="Margin.Dense" />
 

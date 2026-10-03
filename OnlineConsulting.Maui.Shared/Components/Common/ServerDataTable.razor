@@ -1,14 +1,15 @@
 ﻿@typeparam TItem where TItem : IQueryableFields
 @inject IApiClient ApiClient
 
-@* Generic paginated/searchable/sortable MudTable wrapper - reuse for every admin list screen. *@
-<MudTable @ref="_table" ServerData="ServerReloadAsync" Hover="true" Dense="true" Class="@Class">
+@* Generic paginated/searchable/sortable MudTable wrapper - reuse for every admin list screen. Below 960px each row becomes a card
+   (label/value lines, actions along the bottom), styled by .admin-table in app.css. *@
+<MudTable @ref="_table" ServerData="ServerReloadAsync" Hover="true" Dense="true" Breakpoint="Breakpoint.Sm" Class="@($"admin-table {Class}")">
     <ToolBarContent>
         <MudSpacer />
-        @if (TItem.SearchFields.Length > 0)
+        @if (ServerSearch || TItem.SearchFields.Length > 0)
         {
-            <MudTextField T="string" ValueChanged="OnSearch" Immediate="true" DebounceInterval="300" Margin="Margin.Dense"
-                          Placeholder="@SearchPlaceholder" Adornment="Adornment.Start"
+            <MudTextField T="string" ValueChanged="OnSearch" Immediate="true" DebounceInterval="300" Margin="Margin.Dense" Class="admin-table-search"
+                          Placeholder="@SearchPlaceholder" Adornment="Adornment.Start" Clearable="true"
                           AdornmentIcon="@Icons.Material.Outlined.Search" IconSize="Size.Small" />
         }
         @ToolbarContent
@@ -65,6 +66,14 @@
     [Parameter]
     public string Class { get; set; } = "mt-2";
 
+    /// <summary>Sends the search box text as ?search= for the endpoint to match (e.g. joined names), instead of a DynamicQuery filter on SearchFields.</summary>
+    [Parameter]
+    public bool ServerSearch { get; set; }
+
+    /// <summary>Extra query string (e.g. "&amp;view=Ending"), read on every load so a filter tab can change it and call RefilterAsync.</summary>
+    [Parameter]
+    public Func<string?>? ExtraQuery { get; set; }
+
     /// <summary>Fires with the failure message - the page decides how to display it.</summary>
     [Parameter]
     public EventCallback<string> OnLoadError { get; set; }
@@ -75,9 +84,30 @@
     /// <summary>Call after any mutation (create/update/delete) so the current page re-fetches.</summary>
     public Task ReloadAsync() => _table.ReloadServerData();
 
+    /// <summary>Call after a filter changes: back to the first page, then re-fetch.</summary>
+    public async Task RefilterAsync()
+    {
+        if (_table.CurrentPage != 0)
+        {
+            _table.NavigateTo(0);
+        }
+
+        await _table.ReloadServerData();
+    }
+
     private async Task<TableData<TItem>> ServerReloadAsync(TableState state, CancellationToken cancellationToken)
     {
         var route = ApiRoutes.Paged(ApiBasePath, state.Page, state.PageSize);
+        if (ServerSearch && !string.IsNullOrWhiteSpace(_searchText))
+        {
+            route += $"&search={Uri.EscapeDataString(_searchText.Trim())}";
+        }
+
+        if (ExtraQuery?.Invoke() is { Length: > 0 } extra)
+        {
+            route += extra;
+        }
+
         var result = await ApiClient.QueryAsync<PaginatedResponse<TItem>>(route, BuildDynamicQuery(state), cancellationToken);
 
         if (!result.IsSuccessful || result.ResultData is null)
@@ -95,7 +125,7 @@
             ? null
             : [new DynamicSort(state.SortLabel, state.SortDirection == SortDirection.Descending ? "desc" : "asc")];
 
-        var filter = string.IsNullOrWhiteSpace(_searchText) || TItem.SearchFields.Length == 0
+        var filter = ServerSearch || string.IsNullOrWhiteSpace(_searchText) || TItem.SearchFields.Length == 0
             ? null
             : BuildSearchFilter(TItem.SearchFields, _searchText);
 
@@ -111,9 +141,9 @@
             : root with { Logic = "or", Filters = [.. fields.Skip(1).Select(f => new DynamicFilter(f, "contains", search))] };
     }
 
-    private void OnSearch(string text)
+    private Task OnSearch(string? text)
     {
         _searchText = text;
-        _ = _table.ReloadServerData();
+        return RefilterAsync();
     }
 }

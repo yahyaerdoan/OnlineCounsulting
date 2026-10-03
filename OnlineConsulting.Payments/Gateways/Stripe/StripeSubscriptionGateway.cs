@@ -111,6 +111,15 @@ public class StripeSubscriptionGateway(IOptions<PaymentOptions> options) : ISubs
         return ToSubscriptionResult(subscription);
     }
 
+    public async Task<SubscriptionResult> ReactivateSubscriptionAsync(string providerSubscriptionId, CancellationToken cancellationToken = default)
+    {
+        var service = new SubscriptionService(_client);
+
+        var updated = await service.UpdateAsync(providerSubscriptionId, new SubscriptionUpdateOptions { CancelAtPeriodEnd = false }, cancellationToken: cancellationToken);
+
+        return ToSubscriptionResult(updated);
+    }
+
     public async Task<SubscriptionResult> UpdateSubscriptionPriceAsync(string providerSubscriptionId, string newProviderPriceId, CancellationToken cancellationToken = default)
     {
         var service = new SubscriptionService(_client);
@@ -151,6 +160,44 @@ public class StripeSubscriptionGateway(IOptions<PaymentOptions> options) : ISubs
 
         return ToSubscriptionResult(updated);
     }
+
+    public async Task CancelAndRefundAsync(string providerCustomerId, string providerSubscriptionId, CancellationToken cancellationToken = default)
+    {
+        var subscriptionService = new SubscriptionService(_client);
+        var subscription = await subscriptionService.GetAsync(providerSubscriptionId, cancellationToken: cancellationToken);
+        if (subscription.Status is not ("canceled" or "incomplete_expired"))
+        {
+            _ = await subscriptionService.CancelAsync(providerSubscriptionId, cancellationToken: cancellationToken);
+        }
+
+        var chargeService = new ChargeService(_client);
+        var refundService = new RefundService(_client);
+        var charges = await chargeService.ListAsync(new ChargeListOptions { Customer = providerCustomerId, Limit = 100 }, cancellationToken: cancellationToken);
+        foreach (var charge in charges.Data.Where(c => c.Paid && !c.Refunded && c.AmountRefunded < c.Amount))
+        {
+            _ = await refundService.CreateAsync(new RefundCreateOptions { Charge = charge.Id }, new RequestOptions { IdempotencyKey = $"signup-rollback-refund:{charge.Id}" }, cancellationToken);
+        }
+    }
+
+    public async Task<SubscriptionInvoice?> GetLatestInvoiceAsync(string providerSubscriptionId, CancellationToken cancellationToken = default)
+    {
+        var service = new SubscriptionService(_client);
+        var subscription = await service.GetAsync(providerSubscriptionId, new SubscriptionGetOptions { Expand = ["latest_invoice"] }, cancellationToken: cancellationToken);
+        return subscription.LatestInvoice is { } invoice ? ToSubscriptionInvoice(invoice) : null;
+    }
+
+    private static SubscriptionInvoice ToSubscriptionInvoice(Invoice invoice) => new(
+        invoice.Id,
+        invoice.Number,
+        invoice.AmountPaid / 100m,
+        invoice.Currency.ToUpperInvariant(),
+        invoice.Status,
+        invoice.HostedInvoiceUrl,
+        invoice.InvoicePdf,
+        invoice.Lines.Data.Count > 0 ? new DateTimeOffset(invoice.Lines.Data[0].Period.Start, TimeSpan.Zero) : null,
+        invoice.Lines.Data.Count > 0 ? new DateTimeOffset(invoice.Lines.Data.Max(l => l.Period.End), TimeSpan.Zero) : null,
+        invoice.BillingReason,
+        [.. invoice.Lines.Data.Select(l => new SubscriptionInvoiceLine(l.Description ?? "Subscription", l.Amount / 100m))]);
 
     public async Task<string> AddSubscriptionItemAsync(string providerSubscriptionId, string providerPriceId, string? idempotencyKey = null, CancellationToken cancellationToken = default)
     {
@@ -226,7 +273,8 @@ public class StripeSubscriptionGateway(IOptions<PaymentOptions> options) : ISubs
                         ? new DateTimeOffset(invoice.Lines.Data[0].Period.End, TimeSpan.Zero)
                         : (DateTimeOffset?)null;
 
-                    return Task.FromResult<SubscriptionWebhookEvent?>(new SubscriptionWebhookEvent(subscriptionDetails.SubscriptionId, referenceId, eventKind, newRenewalDate));
+                    return Task.FromResult<SubscriptionWebhookEvent?>(new SubscriptionWebhookEvent(subscriptionDetails.SubscriptionId, referenceId, eventKind, newRenewalDate,
+                        eventKind == SubscriptionEventKinds.Renewed ? ToSubscriptionInvoice(invoice) : null));
                 }
             default:
 

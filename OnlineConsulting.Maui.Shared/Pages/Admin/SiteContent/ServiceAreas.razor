@@ -25,16 +25,20 @@
         <MudTh>Actions</MudTh>
     </HeaderContent>
     <RowTemplate Context="area">
-        <MudTd DataLabel="Name">@area.Name</MudTd>
+        <MudTd DataLabel="Name" Class="cell-primary">@area.Name</MudTd>
         <MudTd DataLabel="State">@area.State</MudTd>
         <MudTd DataLabel="Slug">@area.Slug</MudTd>
         <MudTd DataLabel="Actions">
             <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
-                <MudIconButton Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" title="Edit"
-                               OnClick="@(() => Navigation.NavigateTo($"{AppRoutes.AdminHome}/site-content/service-areas/{area.Id}/edit"))" />
+                <MudTooltip Text="Edit">
+                    <MudIconButton aria-label="Edit" Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default"
+                                   OnClick="@(() => Navigation.NavigateTo($"{AppRoutes.AdminHome}/site-content/service-areas/{area.Id}/edit"))" />
+                </MudTooltip>
 
-                <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" title="Delete"
-                               OnClick="@(() => DeleteAsync(area))" />
+                <MudTooltip Text="Delete">
+                    <MudIconButton aria-label="Delete" Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error"
+                                   OnClick="@(() => DeleteAsync(area))" />
+                </MudTooltip>
             </MudButtonGroup>
         </MudTd>
     </RowTemplate>

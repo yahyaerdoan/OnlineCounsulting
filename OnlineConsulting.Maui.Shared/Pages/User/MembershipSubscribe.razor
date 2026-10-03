@@ -10,98 +10,210 @@
 @inject NavigationManager Navigation
 @inject IConfiguration Configuration
 @inject IJSRuntime JsRuntime
+@implements IDisposable
 @inject AuthenticationStateProvider AuthStateProvider
 
 <PageTitle>Subscribe</PageTitle>
 
-<MarketingPageBanner Title="Subscribe" SubPage="Subscribe" ParentLabel="Membership" ParentHref="/membership" />
+<MudContainer MaxWidth="MaxWidth.Large" Class="subscribe-page">
+    <a href="/membership" class="subscribe-back"><MudIcon Icon="@Icons.Material.Filled.ArrowBack" Size="Size.Small" />Membership plans</a>
 
-<MudContainer MaxWidth="MaxWidth.Small" Class="marketing-section-tight">
     <ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
 
     @if (_loading)
     {
-        <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+        <div class="subscribe-layout">
+            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="420px" Class="rounded-lg subscribe-summary-area" />
+            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="360px" Class="rounded-lg subscribe-form-area" />
+        </div>
     }
-    else if (_subscribed)
+    else if (_subscribed && _plan is not null)
     {
-        <MudStack AlignItems="AlignItems.Center" Class="py-10" Spacing="3">
-            <MudIcon Icon="@Icons.Material.Outlined.CheckCircleOutline" Size="Size.Large" Color="Color.Success" />
-            <MudText Typo="Typo.h5" Align="Align.Center" Class="marketing-display text-strong">Subscribed - welcome aboard!</MudText>
-            <MudText Typo="Typo.body1" Color="Color.Secondary" Align="Align.Center">Your membership is active and ready to use.</MudText>
-            <MudButton Href="/user/membership" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" Class="mt-2">View My Membership</MudButton>
-        </MudStack>
+        <div class="subscribe-success">
+            <span class="subscribe-success-icon"><MudIcon Icon="@Icons.Material.Filled.Check" /></span>
+            <MudText Typo="Typo.h4" Align="Align.Center" Class="marketing-display text-strong">Welcome to @_plan.Name!</MudText>
+            <MudText Typo="Typo.body1" Color="Color.Secondary" Align="Align.Center" Class="subscribe-success-lead">
+                @(IsTrial ? $"Your {_plan.TrialDays}-day free trial has started." : "Your membership is active.")
+                Your member perks are ready to use right away.
+            </MudText>
+            <ul class="subscribe-success-steps">
+                <li><span class="tone-bubble tone-bubble-sm @AccentTone.Blue"><MudIcon Icon="@Icons.Material.Outlined.EventAvailable" Size="Size.Small" /></span>Book your first included visit with priority time slots</li>
+                @if (_plan.DiscountPercent > 0)
+                {
+                    <li><span class="tone-bubble tone-bubble-sm @AccentTone.Green"><MudIcon Icon="@Icons.Material.Outlined.Savings" Size="Size.Small" /></span>@_plan.DiscountPercent.ToString("0.##")% off applies automatically to every extra service</li>
+                }
+                <li><span class="tone-bubble tone-bubble-sm @AccentTone.Gold"><MudIcon Icon="@Icons.Material.Outlined.ManageAccounts" Size="Size.Small" /></span>Pause, switch or cancel anytime from your account</li>
+            </ul>
+            <div class="sales-intro-actions subscribe-success-actions">
+                <MudButton Href="/appointment" Variant="Variant.Filled" Size="Size.Large" EndIcon="@Icons.Material.Filled.ArrowForward" Class="sell-btn">Book my first visit</MudButton>
+                <MudButton Href="/user/membership" Variant="Variant.Filled" Size="Size.Large" Class="sell-btn-soft">View my membership</MudButton>
+            </div>
+        </div>
     }
     else if (_plan is not null)
     {
-        <MudCard Outlined="true">
-            <MudCardContent Class="pa-6">
-                <MudText Typo="Typo.h6" Class="text-strong mb-3">Subscribe to @_plan.Name</MudText>
+        <div class="subscribe-heading">
+            <MudText Typo="Typo.h4" Class="marketing-display text-strong">@(IsTrial ? "Start your free trial" : "Complete your membership")</MudText>
+            <span class="subscribe-secure-pill"><MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Small" />Secure checkout</span>
+        </div>
 
-                <MudPaper Outlined="true" Class="rounded-lg pa-1 mb-4">
-                    <MudStack Row="true" Justify="Justify.SpaceBetween" Class="pa-3">
-                        <MudText Typo="Typo.body2">Plan</MudText>
-                        <MudText Typo="Typo.body2" Color="Color.Secondary">@_plan.Name</MudText>
-                    </MudStack>
-                    <MudDivider />
-                    <MudStack Row="true" Justify="Justify.SpaceBetween" Class="pa-3">
-                        <MudText Typo="Typo.body2">Billing</MudText>
-                        <MudText Typo="Typo.body2" Color="Color.Secondary">@_plan.Price.ToString("C") / @(_plan.BillingCycle == "Annual" ? "year" : "month")</MudText>
-                    </MudStack>
-                    @if (_appliedPromo is { IsValid: true } applied)
-                    {
-                        <MudDivider />
-                        <MudStack Row="true" Justify="Justify.SpaceBetween" Class="pa-3">
-                            <MudText Typo="Typo.body2" Color="Color.Success">Discount</MudText>
-                            <MudText Typo="Typo.body2" Color="Color.Success">-@applied.DiscountAmount.ToString("C")</MudText>
-                        </MudStack>
-                        <MudDivider />
-                        <MudStack Row="true" Justify="Justify.SpaceBetween" Class="pa-3">
-                            <MudText Typo="Typo.subtitle2" Class="text-strong">Total due today</MudText>
-                            <MudText Typo="Typo.subtitle2" Class="text-strong">@applied.FinalPrice.ToString("C")</MudText>
-                        </MudStack>
-                    }
-                </MudPaper>
+        <div class="subscribe-layout">
+            <aside class="subscribe-summary subscribe-summary-area">
+                <div class="subscribe-plan-hero">
+                    <span class="subscribe-plan-icon"><MudIcon Icon="@Icons.Material.Outlined.WorkspacePremium" /></span>
+                    <div class="min-w-0">
+                        <span class="subscribe-plan-eyebrow">ComfortPro Membership</span>
+                        <span class="subscribe-plan-name">@_plan.Name</span>
+                    </div>
+                    <div class="subscribe-plan-price">
+                        <span class="subscribe-plan-amount">@CurrencyFormat.Format(_plan.Price)</span>
+                        <span class="subscribe-plan-cycle">/ @CycleWord</span>
+                    </div>
+                </div>
 
+                <div class="subscribe-summary-body">
+                    <span class="subscribe-summary-label">What's Included</span>
+                    <ul class="membership-benefits subscribe-benefits">
+                        <li><MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" Color="Color.Primary" /><span><strong>@_plan.IncludedVisitsPerYear</strong> included @(_plan.IncludedVisitsPerYear == 1 ? "visit" : "visits") per year</span></li>
+                        @if (_plan.DiscountPercent > 0)
+                        {
+                            <li><MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" Color="Color.Primary" /><span><strong>@_plan.DiscountPercent.ToString("0.##")% off</strong> every additional service</span></li>
+                        }
+                        @if (_plan.CreditAmount > 0)
+                        {
+                            <li><MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" Color="Color.Primary" /><span><strong>@CurrencyFormat.Format(_plan.CreditAmount)</strong> account credit</span></li>
+                        }
+                        @foreach (var benefit in BenefitLines(_plan.Benefits))
+                        {
+                            <li><MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" Color="Color.Primary" /><span>@benefit</span></li>
+                        }
+                    </ul>
+
+                    <div class="subscribe-lines">
+                        <div class="subscribe-line"><span>@_plan.Name (@(IsAnnual ? "yearly" : "monthly"))</span><span>@CurrencyFormat.Format(_plan.Price)</span></div>
+                        @if (_appliedPromo is { IsValid: true } applied)
+                        {
+                            <div class="subscribe-line subscribe-line-good"><span>Promo @_promoCode.ToUpperInvariant()</span><span>-@CurrencyFormat.Format(applied.DiscountAmount)</span></div>
+                        }
+                        @if (IsTrial)
+                        {
+                            <div class="subscribe-line subscribe-line-good"><span>@_plan.TrialDays-day free trial</span><span>Free</span></div>
+                        }
+                        <div class="subscribe-line subscribe-line-total">
+                            <span>Due today</span>
+                            <span @key="DueTodayText" class="subscribe-total-value">@DueTodayText</span>
+                        </div>
+                        <span class="subscribe-then">@ThenText</span>
+                    </div>
+                </div>
+            </aside>
+
+            <section class="subscribe-form subscribe-form-area">
                 <AuthorizeView>
                     <Authorized>
-                        <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Start" Class="mb-4">
-                            <MudTextField @bind-Value="_promoCode" Label="Promo code (optional)" Variant="Variant.Outlined" Margin="Margin.Dense" Disabled="@(_appliedPromo is { IsValid: true })" />
+                        <div class="subscribe-step">
+                            <span class="subscribe-step-number">1</span>
+                            <span class="subscribe-step-title">Payment details</span>
+                        </div>
+
+                        <div id="card-field" class="card-field-wrap section-anchor @(_cardMissing ? "missing" : null)">
+                            <div id="membership-card-element" class="subscribe-card-field"></div>
+                        </div>
+                        @if (_cardMissing && _paymentError is null)
+                        {
+                            <p class="signup-field-error"><MudIcon Icon="@Icons.Material.Filled.ErrorOutline" Size="Size.Small" />Enter your card number, expiry date and CVC to continue.</p>
+                        }
+                        <div class="subscribe-card-hint">
+                            <MudIcon Icon="@Icons.Material.Outlined.CreditCard" Size="Size.Small" />
+                            <span>All major credit and debit cards accepted</span>
+                        </div>
+                        <ApiErrorAlert Message="@_paymentError" Severity="Severity.Error" />
+
+                        <div class="subscribe-promo">
                             @if (_appliedPromo is { IsValid: true })
                             {
-                                <MudButton Variant="Variant.Outlined" OnClick="@(() => { _appliedPromo = null; _promoCode = string.Empty; })">Remove</MudButton>
+                                <div class="subscribe-promo-applied">
+                                    <MudIcon Icon="@Icons.Material.Filled.LocalOffer" Size="Size.Small" />
+                                    <span><strong>@_promoCode.ToUpperInvariant()</strong> applied</span>
+                                    <MudButton Variant="Variant.Text" Size="Size.Small" Color="Color.Default" Disabled="@_isBusy"
+                                               OnClick="@(() => { _appliedPromo = null; _promoCode = string.Empty; })">Remove</MudButton>
+                                </div>
+                            }
+                            else if (_showPromo)
+                            {
+                                <div class="@($"promo-field {(_appliedPromo is { IsValid: false } || _promoNeedsApply ? "invalid" : "")}")">
+                                    <input id="promo-code" class="promo-field-input" placeholder=" " autocomplete="off" autocapitalize="characters" spellcheck="false"
+                                           @bind="_promoCode" @bind:event="oninput" @bind:after="ClearInvalidPromo" @onkeydown="OnPromoKeyDownAsync" disabled="@_isBusy" />
+                                    <label for="promo-code" class="promo-field-label">Promo code</label>
+                                    <button type="button" class="@($"promo-field-apply {(CanApplyPromo ? "ready" : "")}")" disabled="@(!CanApplyPromo)" @onclick="ApplyPromoCodeAsync">
+                                        @if (_validatingPromo)
+                                        {
+                                            <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+                                        }
+                                        else
+                                        {
+                                            <span>Apply</span>
+                                        }
+                                    </button>
+                                </div>
+                                @if (_appliedPromo is { IsValid: false } invalid)
+                                {
+                                    <ApiErrorAlert Message="@invalid.Error" Severity="Severity.Error" />
+                                }
+                                else if (_promoNeedsApply)
+                                {
+                                    <p class="signup-field-error"><MudIcon Icon="@Icons.Material.Filled.ErrorOutline" Size="Size.Small" />Tap Apply to use this code, or clear it before paying.</p>
+                                }
                             }
                             else
                             {
-                                <MudButton Variant="Variant.Outlined" Disabled="@(string.IsNullOrWhiteSpace(_promoCode) || _validatingPromo)" OnClick="ApplyPromoCodeAsync">Apply</MudButton>
+                                <button type="button" class="subscribe-promo-toggle" @onclick="@(() => _showPromo = true)">
+                                    <MudIcon Icon="@Icons.Material.Outlined.LocalOffer" Size="Size.Small" />Have a promo code?
+                                </button>
                             }
-                        </MudStack>
-                        @if (_appliedPromo is { IsValid: false } invalid)
-                        {
-                            <ApiErrorAlert Message="@invalid.Error" Severity="Severity.Error" />
-                        }
+                        </div>
 
-                        <MudText Typo="Typo.subtitle2" Class="text-strong mb-2">Card Details</MudText>
-                        <div id="membership-card-element" class="mb-3"></div>
-                        <ApiErrorAlert Message="@_paymentError" Severity="Severity.Error" />
-
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Size="Size.Large" Class="mt-4"
-                                   Disabled="@_isBusy" OnClick="SubscribeAsync">
-                            Subscribe
+                        <MudButton Variant="Variant.Filled" FullWidth="true" Size="Size.Large" Class="sell-btn subscribe-pay-btn"
+                                   Disabled="@_isBusy" OnClick="SubscribeAsync"
+                                   StartIcon="@(_isBusy ? null : Icons.Material.Filled.Lock)">
+                            @if (_isBusy)
+                            {
+                                <MudProgressCircular Indeterminate="true" Size="Size.Small" Class="mr-2" />
+                                <span>Processing...</span>
+                            }
+                            else
+                            {
+                                <span>@PayButtonText</span>
+                            }
                         </MudButton>
+
+                        <p class="subscribe-consent">
+                            @(IsTrial
+                                ? $"You won't be charged today. After your trial, {CurrencyFormat.Format(RecurringPrice)} is charged every {CycleWord} until you cancel."
+                                : $"{CurrencyFormat.Format(RecurringPrice)} is charged every {CycleWord} until you cancel.")
+                            Cancel anytime from your account.
+                        </p>
+
+                        <div class="subscribe-trust">
+                            @foreach (var (icon, label) in TrustPoints)
+                            {
+                                <span class="subscribe-trust-item"><MudIcon Icon="@icon" Size="Size.Small" />@label</span>
+                            }
+                        </div>
                     </Authorized>
                     <NotAuthorized>
-                        <MudAlert Severity="Severity.Info" Class="mt-2">
-                            Sign in to apply a promo code and subscribe.
-                            <div class="mt-2">
-                                <MudButton Href="@($"/login?ReturnUrl=/user/membership/subscribe/{PlanId}")" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small">Sign In</MudButton>
-                                <MudButton Href="/register" Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" Class="ml-2">Register</MudButton>
-                            </div>
-                        </MudAlert>
+                        <div class="subscribe-signin">
+                            <span class="tone-bubble tone-bubble-lg @AccentTone.Blue"><MudIcon Icon="@Icons.Material.Outlined.AccountCircle" /></span>
+                            <MudText Typo="Typo.h6" Class="text-strong">Sign in to continue</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">Your membership is linked to your account so you can book visits and manage it anytime.</MudText>
+                            <MudButton Href="@($"/login?ReturnUrl=/user/membership/subscribe/{PlanId}")" Variant="Variant.Filled" Size="Size.Large" FullWidth="true"
+                                       EndIcon="@Icons.Material.Filled.ArrowForward" Class="sell-btn mt-2">Sign in</MudButton>
+                            <MudButton Href="/register" Variant="Variant.Filled" Size="Size.Large" FullWidth="true" Class="sell-btn-soft">Create a free account</MudButton>
+                        </div>
                     </NotAuthorized>
                 </AuthorizeView>
-            </MudCardContent>
-        </MudCard>
+            </section>
+        </div>
     }
 </MudContainer>
 
@@ -109,16 +221,40 @@
     [Parameter]
     public Guid PlanId { get; set; }
 
+    private static readonly (string Icon, string Label)[] TrustPoints =
+    [
+        (Icons.Material.Outlined.Lock, "Payments processed securely by Stripe"),
+        (Icons.Material.Outlined.CreditCardOff, "We never store your card details"),
+        (Icons.Material.Outlined.EventRepeat, "Cancel anytime, no long-term contract"),
+    ];
+
     private MembershipPlanResponse? _plan;
     private bool _loading = true;
     private bool _isBusy;
     private bool _subscribed;
     private bool _cardElementMounted;
+    private bool _showPromo;
     private string? _loadError;
     private string? _paymentError;
     private string _promoCode = string.Empty;
     private bool _validatingPromo;
     private ValidatePromoCodeResult? _appliedPromo;
+
+    private bool IsTrial => _plan?.TrialDays is > 0;
+
+    private bool IsAnnual => _plan?.BillingCycle == "Annual";
+
+    private string CycleWord => IsAnnual ? "year" : "month";
+
+    private decimal RecurringPrice => _appliedPromo is { IsValid: true } applied ? applied.FinalPrice : _plan?.Price ?? 0;
+
+    private string DueTodayText => CurrencyFormat.Format(IsTrial ? 0 : RecurringPrice);
+
+    private string ThenText => IsTrial
+        ? $"Then {CurrencyFormat.Format(RecurringPrice)} / {CycleWord} from {DateTime.Today.AddDays(_plan?.TrialDays ?? 0):MMM d, yyyy}"
+        : $"Renews at {CurrencyFormat.Format(RecurringPrice)} / {CycleWord}";
+
+    private string PayButtonText => IsTrial ? "Start my free trial" : $"Pay {DueTodayText} and join";
 
     protected override async Task OnInitializedAsync()
     {
@@ -150,7 +286,35 @@
 
         _cardElementMounted = true;
         var publishableKey = Configuration["Stripe:PublishableKey"];
-        await JsRuntime.InvokeVoidAsync("subscribeStripe.init", publishableKey, "membership-card-element");
+        _selfReference ??= DotNetObjectReference.Create(this);
+        _paymentError = await JsRuntime.InvokeAsync<string?>("subscribeStripe.init", publishableKey, "membership-card-element", _selfReference);
+        if (_paymentError is not null)
+        {
+            StateHasChanged();
+        }
+    }
+
+    private bool _promoNeedsApply;
+
+    private bool PromoPending => _showPromo && !string.IsNullOrWhiteSpace(_promoCode) && _appliedPromo is not { IsValid: true };
+
+    private void ClearInvalidPromo()
+    {
+        _promoNeedsApply = false;
+        if (_appliedPromo is { IsValid: false })
+        {
+            _appliedPromo = null;
+        }
+    }
+
+    private bool CanApplyPromo => !string.IsNullOrWhiteSpace(_promoCode) && !_validatingPromo && !_isBusy;
+
+    private async Task OnPromoKeyDownAsync(KeyboardEventArgs args)
+    {
+        if (args.Key == "Enter" && CanApplyPromo)
+        {
+            await ApplyPromoCodeAsync();
+        }
     }
 
     private async Task ApplyPromoCodeAsync()
@@ -165,12 +329,26 @@
             membershipPlanId = PlanId,
         });
 
-        _appliedPromo = result.IsSuccessful ? result.ResultData : new ValidatePromoCodeResult(false, result.DisplayMessage, 0, _plan!.Price);
+        _appliedPromo = result.IsSuccessful ? result.ResultData : new ValidatePromoCodeResult(false, result.DisplayMessage, 0, _plan?.Price ?? 0);
         _validatingPromo = false;
     }
 
     private async Task SubscribeAsync()
     {
+        if (PromoPending)
+        {
+            _promoNeedsApply = true;
+            await JsRuntime.InvokeVoidAsync("comfortProScrollToSection", "promo-code");
+            return;
+        }
+
+        if (!_cardComplete)
+        {
+            _cardMissing = true;
+            await JsRuntime.InvokeVoidAsync("comfortProScrollToSection", "card-field");
+            return;
+        }
+
         _isBusy = true;
         _paymentError = null;
         StateHasChanged();
@@ -194,23 +372,46 @@
 
         if (!subscribeResult.IsSuccessful || subscribeResult.ResultData is null)
         {
-            Snackbar.ShowError(subscribeResult.DisplayMessage);
+            _paymentError = subscribeResult.DisplayMessage;
             _isBusy = false;
             return;
         }
 
-        // A ClientSecret here is a PayPal approval URL to redirect the payer to - Stripe/Mock already
-        // settled the subscription's first invoice synchronously and return null.
         if (subscribeResult.ResultData.ClientSecret is { } approvalUrl)
         {
             Navigation.NavigateTo(approvalUrl, forceLoad: true);
             return;
         }
 
-        Snackbar.ShowSuccess("Subscribed to membership plan successfully.");
+        Snackbar.ShowSuccess("You're in! Your membership is active.");
         _subscribed = true;
         _isBusy = false;
+        await JsRuntime.InvokeVoidAsync("scrollTo", 0, 0);
     }
+
+    private static IEnumerable<string> BenefitLines(string? benefits) =>
+        benefits?.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [];
+
+    private DotNetObjectReference<MembershipSubscribe>? _selfReference;
+
+    /// <summary>Called by subscribeStripe.js whenever the card field's validation state changes, so a fixed card clears its error right away.</summary>
+    [JSInvokable]
+    public Task OnCardChanged(string? error, bool complete) => InvokeAsync(() =>
+    {
+        _paymentError = error;
+        _cardComplete = complete;
+        if (complete)
+        {
+            _cardMissing = false;
+        }
+
+        StateHasChanged();
+    });
+
+    private bool _cardComplete;
+    private bool _cardMissing;
+
+    public void Dispose() => _selfReference?.Dispose();
 
     private sealed record StripeTokenizeResult(string? PaymentMethodId, string? Error);
 }

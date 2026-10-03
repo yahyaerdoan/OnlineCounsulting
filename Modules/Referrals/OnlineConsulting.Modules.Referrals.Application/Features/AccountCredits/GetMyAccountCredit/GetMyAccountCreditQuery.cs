@@ -9,8 +9,6 @@ namespace OnlineConsulting.Modules.Referrals.Application.Features.AccountCredits
 
 public record GetMyAccountCreditQuery(Guid UserId) : IRequest<OperationDataResult<AccountCreditSummaryResponse>>;
 
-public record AccountCreditSummaryResponse(decimal Balance, List<AccountCreditResponse> Entries);
-
 public class GetMyAccountCreditHandler(IAccountCreditRepository repository) : IRequestHandler<GetMyAccountCreditQuery, OperationDataResult<AccountCreditSummaryResponse>>
 {
     public async Task<OperationDataResult<AccountCreditSummaryResponse>> Handle(GetMyAccountCreditQuery request, CancellationToken cancellationToken)

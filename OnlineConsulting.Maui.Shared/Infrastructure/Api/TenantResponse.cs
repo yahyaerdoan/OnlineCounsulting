@@ -8,7 +8,8 @@ public record TenantResponse(
     string Status,
     string PrimaryContactEmail,
     List<string> ActiveModuleKeys,
-    decimal TotalActivePrice) : IQueryableFields
+    decimal TotalActivePrice,
+    DateTimeOffset? CreatedDate = null) : IQueryableFields
 {
     public static string[] SearchFields => [nameof(Name), nameof(Slug), nameof(PrimaryContactEmail)];
 }

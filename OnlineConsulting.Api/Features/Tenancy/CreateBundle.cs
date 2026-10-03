@@ -1,3 +1,4 @@
+using Hateoas.AspNetCore;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
@@ -14,6 +15,7 @@ public class CreateBundle : IEndpoint
             .WithTags("Tenancy")
             .RequireAuthorization()
             .WithName("CreateBundle")
+            .WithCreatedLocation("GetBundleById")
             .WithDescription("Creates a bundle - a shortcut group of existing module offerings (SuperAdmin).");
     }
 

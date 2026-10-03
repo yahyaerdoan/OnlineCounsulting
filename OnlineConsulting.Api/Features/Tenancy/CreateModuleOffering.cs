@@ -1,3 +1,4 @@
+using Hateoas.AspNetCore;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
@@ -14,6 +15,7 @@ public class CreateModuleOffering : IEndpoint
             .WithTags("Tenancy")
             .RequireAuthorization()
             .WithName("CreateModuleOffering")
+            .WithCreatedLocation("GetModuleOfferingById")
             .WithDescription("Creates a module offering (SuperAdmin) and its provider-side product/price.");
     }
 

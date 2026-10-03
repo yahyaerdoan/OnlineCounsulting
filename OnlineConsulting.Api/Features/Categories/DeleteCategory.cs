@@ -1,6 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
-using OnlineConsulting.Modules.Categories.Application.Features.DeleteCategory;
+using OnlineConsulting.Modules.Categories.Application.Features.Categories.DeleteCategory;
 using ResultHandler.AspNetCore.Extensions;
 
 namespace OnlineConsulting.Api.Features.Categories;

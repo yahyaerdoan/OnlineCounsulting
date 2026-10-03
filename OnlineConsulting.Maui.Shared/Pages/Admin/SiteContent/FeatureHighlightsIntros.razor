@@ -20,19 +20,23 @@
                  SearchPlaceholder="Search description" OnLoadError="@(message => _loadError = message)">
     <HeaderContent>
         <MudTh>Description</MudTh>
-        <MudTh>Display order</MudTh>
+        <MudTh>Display Order</MudTh>
         <MudTh>Actions</MudTh>
     </HeaderContent>
     <RowTemplate Context="intro">
-        <MudTd DataLabel="Description">@intro.Description</MudTd>
-        <MudTd DataLabel="Display order">@intro.DisplayOrder</MudTd>
+        <MudTd DataLabel="Description" Class="cell-primary">@intro.Description</MudTd>
+        <MudTd DataLabel="Display Order">@intro.DisplayOrder</MudTd>
         <MudTd DataLabel="Actions">
             <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
-                <MudIconButton Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" title="Edit"
-                               OnClick="@(() => EditAsync(intro))" />
+                <MudTooltip Text="Edit">
+                    <MudIconButton aria-label="Edit" Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default"
+                                   OnClick="@(() => EditAsync(intro))" />
+                </MudTooltip>
 
-                <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" title="Delete"
-                               OnClick="@(() => DeleteAsync(intro))" />
+                <MudTooltip Text="Delete">
+                    <MudIconButton aria-label="Delete" Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error"
+                                   OnClick="@(() => DeleteAsync(intro))" />
+                </MudTooltip>
             </MudButtonGroup>
         </MudTd>
     </RowTemplate>

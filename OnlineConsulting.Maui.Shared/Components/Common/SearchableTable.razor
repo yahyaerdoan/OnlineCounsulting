@@ -1,11 +1,11 @@
 @typeparam TItem
 
-@* Same toolbar/search UX as ServerDataTable, but filters an already-fetched flat list in-memory. *@
-<MudTable Items="@_filteredItems" Hover="true" Dense="true" Class="@Class">
+@* Same toolbar/search UX and .admin-table styling as ServerDataTable (cards below 960px), but filters an already-fetched flat list in-memory. *@
+<MudTable Items="@_filteredItems" Hover="true" Dense="true" Breakpoint="Breakpoint.Sm" Class="@($"admin-table {Class}")">
     <ToolBarContent>
         <MudSpacer />
-        <MudTextField T="string" ValueChanged="OnSearch" Immediate="true" DebounceInterval="300" Margin="Margin.Dense"
-                      Placeholder="@SearchPlaceholder" Adornment="Adornment.Start"
+        <MudTextField T="string" ValueChanged="OnSearch" Immediate="true" DebounceInterval="300" Margin="Margin.Dense" Class="admin-table-search"
+                      Placeholder="@SearchPlaceholder" Adornment="Adornment.Start" Clearable="true"
                       AdornmentIcon="@Icons.Material.Outlined.Search" IconSize="Size.Small" />
         @ToolbarContent
     </ToolBarContent>
@@ -52,7 +52,7 @@
     private string? _searchText;
 
     private IEnumerable<TItem> _filteredItems =>
-        string.IsNullOrWhiteSpace(_searchText) ? Items : Items.Where(item => Filter(item, _searchText!));
+        _searchText is { } text && !string.IsNullOrWhiteSpace(text) ? Items.Where(item => Filter(item, text)) : Items;
 
     private void OnSearch(string text) => _searchText = text;
 }

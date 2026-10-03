@@ -18,7 +18,7 @@ public record AssignTechnicianCommand(Guid Id, Guid TechnicianUserId) : IRequest
     public string[] Roles => [SchedulingOperationClaims.Admin, SchedulingOperationClaims.Write, SchedulingOperationClaims.Update];
 }
 
-public class AssignTechnicianHandler(IAppointmentRepository repository, ITechnicianTrackingHubService hubService)
+public class AssignTechnicianHandler(IAppointmentRepository repository, ITechnicianTrackingHubService hubService, IAppointmentNotifier notifier)
     : IRequestHandler<AssignTechnicianCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(AssignTechnicianCommand request, CancellationToken cancellationToken)
@@ -34,10 +34,17 @@ public class AssignTechnicianHandler(IAppointmentRepository repository, ITechnic
             return Result.Conflict(SchedulingMessages.CannotAssignTechnicianToClosedAppointment);
         }
 
+        if (appointment.AssignedTechnicianUserId == request.TechnicianUserId)
+        {
+            return Result.Success("Technician is already assigned.");
+        }
+
+        var previousTechnicianUserId = appointment.AssignedTechnicianUserId;
         appointment.AssignedTechnicianUserId = request.TechnicianUserId;
         _ = await repository.UpdateAsync(appointment);
 
-        await hubService.NotifyTechnicianAssignedAsync(appointment.Id, appointment.UserId, request.TechnicianUserId, cancellationToken);
+        await hubService.NotifyTechnicianAssignedAsync(appointment.Id, request.TechnicianUserId, cancellationToken);
+        await notifier.TechnicianAssignedAsync(appointment, previousTechnicianUserId, cancellationToken);
 
         return Result.Success("Technician assigned successfully.");
     }

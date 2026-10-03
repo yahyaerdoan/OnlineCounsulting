@@ -1,6 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
-using OnlineConsulting.Modules.FeatureFlags.Application.Features.GetFeatureFlags;
+using OnlineConsulting.Modules.FeatureFlags.Application.Features.FeatureFlags.GetFeatureFlags;
 using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.AspNetCore.Extensions;
 

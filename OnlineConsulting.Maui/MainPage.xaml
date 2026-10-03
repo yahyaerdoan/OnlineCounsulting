@@ -4,7 +4,8 @@
              xmlns:local="clr-namespace:OnlineConsulting.Maui"
              xmlns:shared="clr-namespace:OnlineConsulting.Maui.Shared;assembly=OnlineConsulting.Maui.Shared"
              x:Class="OnlineConsulting.Maui.MainPage"
-             BackgroundColor="{DynamicResource PageBackgroundColor}">
+             SafeAreaEdges="All"
+             BackgroundColor="#FFFFFF">
 
     <BlazorWebView x:Name="blazorWebView" HostPage="wwwroot/index.html">
         <BlazorWebView.RootComponents>

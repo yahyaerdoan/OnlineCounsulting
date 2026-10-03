@@ -1,68 +1,128 @@
-@* Extracted from the former AccountProfileTab (split into Addresses.razor + Profile.razor -
-   addresses are now their own top-level dashboard section). *@
+@* Saved addresses as cards (styled like the checkout address picker): an icon from the name, the full address and default shipping /
+   billing badges, with Edit and Delete on each card. Search shows once there are more than three. Two columns wide, one on phones. *@
 @page "/user/addresses"
 @attribute [Authorize(Roles = AppRoles.User)]
 @layout OnlineConsulting.Maui.Shared.Layout.DashboardLayout
 @inject IApiClient ApiClient
+@inject DataChangeNotifier Notifier
+@implements IDisposable
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
-@inject NavigationManager Navigation
 
 <PageTitle>Addresses</PageTitle>
 
+<DashboardPageHeading Text="Addresses">
+    @if (_addresses.Count > 0)
+    {
+        <MudButton Href="/user/addresses/new" Variant="Variant.Filled" Class="sell-btn" StartIcon="@Icons.Material.Outlined.Add">Add Address</MudButton>
+    }
+</DashboardPageHeading>
+
 <ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
 
-    @if (_loading)
+@if (_loading)
+{
+    <ListSkeleton Rows="3" />
+}
+else if (_addresses.Count == 0)
+{
+    <div class="cart-empty">
+        <span class="tone-bubble tone-bubble-lg tone-green"><MudIcon Icon="@Icons.Material.Outlined.Home" /></span>
+        <MudText Typo="Typo.h6" Class="text-strong">No Saved Addresses Yet</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">Save your home address once and pick it when you book or check out.</MudText>
+        <div class="cart-empty-actions">
+            <MudButton Href="/user/addresses/new" Variant="Variant.Filled" Class="sell-btn" StartIcon="@Icons.Material.Outlined.Add">Add Address</MudButton>
+        </div>
+    </div>
+}
+else
+{
+    @if (_addresses.Count > 3)
     {
-        <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+        <div class="orders-toolbar">
+            <div class="area-search orders-search">
+                <MudIcon Icon="@Icons.Material.Outlined.Search" Class="area-search-icon" />
+                <input id="addresses-search" class="area-search-input" type="search" placeholder=" " autocomplete="off"
+                       @bind="_query" @bind:event="oninput" />
+                <label for="addresses-search" class="area-search-label">Search name, street or city</label>
+            </div>
+        </div>
     }
-    else
-    {
-        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-2">
-            <MudText Typo="Typo.h6">Saved Addresses</MudText>
-            <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Outlined.Add"
-                       OnClick="@(() => Navigation.NavigateTo("/user/addresses/new"))">Add Address</MudButton>
-        </MudStack>
 
-        <SearchableTable TItem="UserAddressResponse" Items="_addresses" Filter="@((address, text) => address.AddressName.Contains(text, StringComparison.OrdinalIgnoreCase))"
-                          SearchPlaceholder="Search address">
-            <HeaderContent>
-                <MudTh>Name</MudTh>
-                <MudTh>Address</MudTh>
-                <MudTh>City</MudTh>
-                <MudTh>Shipping</MudTh>
-                <MudTh>Billing</MudTh>
-                <MudTh>Actions</MudTh>
-            </HeaderContent>
-            <RowTemplate Context="address">
-                <MudTd DataLabel="Name">@address.AddressName</MudTd>
-                <MudTd DataLabel="Address">@address.AddressLine</MudTd>
-                <MudTd DataLabel="City">@address.City, @address.State @address.Zipcode</MudTd>
-                <MudTd DataLabel="Shipping">@(address.IsShippingAddress ? "Yes" : "-")</MudTd>
-                <MudTd DataLabel="Billing">@(address.IsBillingAddress ? "Yes" : "-")</MudTd>
-                <MudTd DataLabel="Actions">
-                    <MudIconButton Icon="@Icons.Material.Outlined.Edit" Size="Size.Small" title="Edit"
-                                   OnClick="@(() => Navigation.NavigateTo($"/user/addresses/{address.Id}"))" />
-                    <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" Size="Size.Small" title="Delete"
-                                   OnClick="@(() => DeleteAsync(address))" />
-                </MudTd>
-            </RowTemplate>
-            <NoRecordsContent>
-                <MudText>No saved addresses yet.</MudText>
-            </NoRecordsContent>
-        </SearchableTable>
+    @if (Visible.Count == 0)
+    {
+        <MudText Color="Color.Secondary" Class="py-6" Align="Align.Center">No addresses match. Try another search.</MudText>
     }
+
+    <div class="address-book" role="list">
+        @for (var i = 0; i < Visible.Count; i++)
+        {
+            var address = Visible[i];
+            <article class="address-book-card" role="listitem">
+                <div class="address-book-top">
+                    <span class="@($"tone-bubble {AccentTone.At(i)}")"><MudIcon Icon="@AddressIcons.For(address.AddressName)" /></span>
+                    <span class="address-card-body">
+                        <span class="address-card-name">@address.AddressName</span>
+                        @if (!string.IsNullOrWhiteSpace(address.CompanyName))
+                        {
+                            <span class="address-card-line">@address.CompanyName</span>
+                        }
+                        <span class="address-card-line">@address.AddressLine</span>
+                        <span class="address-card-line">@address.City, @address.State @address.Zipcode</span>
+                    </span>
+                </div>
+                @if (address.IsShippingAddress || address.IsBillingAddress)
+                {
+                    <div class="address-book-badges">
+                        @if (address.IsShippingAddress)
+                        {
+                            <StatusBadge Label="Default Shipping" Kind="@StatusKinds.Success" />
+                        }
+                        @if (address.IsBillingAddress)
+                        {
+                            <StatusBadge Label="Default Billing" Kind="@StatusKinds.Info" />
+                        }
+                    </div>
+                }
+                <div class="address-book-actions">
+                    <MudButton Href="@($"/user/addresses/{address.Id}")" Variant="Variant.Outlined" Color="Color.Primary" Class="svc-action"
+                               StartIcon="@Icons.Material.Outlined.Edit">Edit</MudButton>
+                    <MudButton Variant="Variant.Text" Color="Color.Error" StartIcon="@Icons.Material.Outlined.DeleteOutline" Disabled="@_busy"
+                               OnClick="@(() => DeleteAsync(address))">Delete</MudButton>
+                </div>
+            </article>
+        }
+    </div>
+}
 
 @code {
     private List<UserAddressResponse> _addresses = [];
+    private string? _query;
+    private bool _busy;
     private bool _loading = true;
     private string? _loadError;
 
-    protected override Task OnInitializedAsync() => ReloadAsync();
+    private IDisposable? _liveUpdates;
+
+    private List<UserAddressResponse> Visible =>
+    [
+        .. _addresses
+            .OrderByDescending(a => a.IsShippingAddress || a.IsBillingAddress)
+            .ThenBy(a => a.AddressName)
+            .Where(a => string.IsNullOrWhiteSpace(_query)
+                || a.AddressName.Contains(_query.Trim(), StringComparison.OrdinalIgnoreCase)
+                || a.AddressLine.Contains(_query.Trim(), StringComparison.OrdinalIgnoreCase)
+                || a.City.Contains(_query.Trim(), StringComparison.OrdinalIgnoreCase)),
+    ];
+
+    protected override Task OnInitializedAsync()
+    {
+        _liveUpdates = Notifier.Subscribe(() => InvokeAsync(async () => { await ReloadAsync(); StateHasChanged(); }), DataTopic.Addresses);
+        return ReloadAsync();
+    }
 
     private async Task ReloadAsync()
     {
-        _loading = true;
         _loadError = null;
 
         var addressesResult = await ApiClient.GetAsync<List<UserAddressResponse>>(ApiRoutes.Addresses.Base);
@@ -81,19 +141,29 @@
 
     private async Task DeleteAsync(UserAddressResponse address)
     {
-        if (!await DialogService.ConfirmDeleteAsync("address", address.AddressName))
+        if (_busy || !await DialogService.ConfirmDeleteAsync("address", address.AddressName))
         {
             return;
         }
 
-        var result = await ApiClient.DeleteAsync(ApiRoutes.Addresses.ById(address.Id));
-        if (!result.IsSuccessful)
+        _busy = true;
+        try
         {
-            Snackbar.ShowError(result.DisplayMessage);
-            return;
-        }
+            var result = await ApiClient.DeleteAsync(ApiRoutes.Addresses.ById(address.Id));
+            if (!result.IsSuccessful)
+            {
+                Snackbar.ShowError(result.DisplayMessage);
+                return;
+            }
 
-        Snackbar.ShowSuccess(result.DisplayMessage);
-        await ReloadAsync();
+            Snackbar.ShowSuccess(result.DisplayMessage);
+            await ReloadAsync();
+        }
+        finally
+        {
+            _busy = false;
+        }
     }
+
+    public void Dispose() => _liveUpdates?.Dispose();
 }

@@ -1,27 +1,45 @@
-@* Pick a different plan to switch to - mirrors SelectAddressDialog's radio-list pattern. *@
+@* Pick a different plan to switch to, styled like SelectAddressDialog's cards: tap a plan to select it, then confirm with Switch plan
+   (a billing change, so it isn't applied on tap). *@
 @namespace OnlineConsulting.Maui.Shared.Components.User
 
-<MudDialog>
+<MudDialog Class="address-dialog">
     <TitleContent>
-        <MudText Typo="Typo.h6">Change Plan</MudText>
+        <div class="address-dialog-head">
+            <span class="tone-bubble tone-gold"><MudIcon Icon="@Icons.Material.Outlined.SwapHoriz" /></span>
+            <span class="address-dialog-title">
+                <MudText Typo="Typo.h6" Class="text-strong">Change plan</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">Pick the plan you'd like to switch to.</MudText>
+            </span>
+        </div>
     </TitleContent>
     <DialogContent>
-        <MudRadioGroup T="Guid" @bind-Value="_selectedId">
-            @foreach (var plan in Plans)
+        <div class="address-picker address-dialog-list" role="radiogroup" aria-label="Plans">
+            @for (var i = 0; i < Plans.Count; i++)
             {
-                <MudPaper Outlined="true" Class="pa-3 mb-2 rounded-lg">
-                    <MudRadio T="Guid" Value="@plan.Id" Color="Color.Primary">
-                        <MudStack Spacing="0">
-                            <MudText Typo="Typo.body1">@plan.Name</MudText>
-                            <MudText Typo="Typo.body2" Color="Color.Secondary">@plan.Price.ToString("C") / @(plan.BillingCycle == "Annual" ? "year" : "month")</MudText>
-                        </MudStack>
-                    </MudRadio>
-                </MudPaper>
+                var plan = Plans[i];
+                var isChosen = plan.Id == _selectedId;
+                <button type="button" role="radio" aria-checked="@(isChosen ? "true" : "false")"
+                        class="@($"address-card {(isChosen ? "selected" : "")}")" @onclick="@(() => _selectedId = plan.Id)">
+                    <span class="@($"tone-bubble {AccentTone.At(i)}")"><MudIcon Icon="@Icons.Material.Outlined.WorkspacePremium" /></span>
+                    <span class="address-card-body">
+                        <span class="address-card-name">@plan.Name</span>
+                        <span class="address-card-line">@CurrencyFormat.Format(plan.Price) / @(plan.BillingCycle == "Annual" ? "year" : "month")</span>
+                        @if (plan.IncludedVisitsPerYear > 0 || plan.DiscountPercent > 0)
+                        {
+                            <span class="address-card-line">
+                                @(plan.IncludedVisitsPerYear > 0 ? $"{plan.IncludedVisitsPerYear} visits a year" : "")@(plan.IncludedVisitsPerYear > 0 && plan.DiscountPercent > 0 ? " · " : "")@(plan.DiscountPercent > 0 ? $"{plan.DiscountPercent:0.#}% off services" : "")
+                            </span>
+                        }
+                    </span>
+                    <span class="address-card-check" aria-hidden="true">
+                        <MudIcon Icon="@(isChosen ? Icons.Material.Filled.CheckCircle : Icons.Material.Outlined.Circle)" />
+                    </span>
+                </button>
             }
-        </MudRadioGroup>
+        </div>
     </DialogContent>
     <DialogActions>
-        <DialogActionButtons OnOk="Select" OkText="Switch Plan" />
+        <DialogActionButtons OnOk="Select" OkText="Switch plan" />
     </DialogActions>
 </MudDialog>
 

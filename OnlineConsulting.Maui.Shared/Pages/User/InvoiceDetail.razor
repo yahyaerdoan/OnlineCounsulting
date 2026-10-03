@@ -1,0 +1,292 @@
+@* One invoice as a document (from, bill to, lines, totals) with Pay now for open invoices and a PDF download. Paying mounts
+   the Stripe Payment Element for the invoice's intent; the webhook marks it paid and live updates refresh this page. *@
+@page "/user/invoices/{Id:guid}"
+@attribute [Authorize(Roles = AppRoles.User)]
+@layout OnlineConsulting.Maui.Shared.Layout.DashboardLayout
+@using Microsoft.Extensions.Configuration
+@using OnlineConsulting.Maui.Shared.Infrastructure.Files
+@implements IDisposable
+@inject IApiClient ApiClient
+@inject IJSRuntime JsRuntime
+@inject IConfiguration Configuration
+@inject IFileSaver FileSaver
+@inject ISnackbar Snackbar
+@inject DataChangeNotifier Notifier
+
+<PageTitle>@(_invoice?.InvoiceNumber ?? "Invoice")</PageTitle>
+
+<a href="/user/invoices" class="subscribe-back"><MudIcon Icon="@Icons.Material.Filled.ArrowBack" Size="Size.Small" />All invoices</a>
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+@if (_loading)
+{
+    <ListSkeleton Rows="4" />
+}
+else if (_invoice is { } invoice)
+{
+    <div class="invoice-doc">
+        <div class="invoice-doc-head">
+            <div class="min-w-0">
+                <span class="invoice-doc-kind">@(invoice.IsPaid ? "Receipt" : "Invoice") @invoice.InvoiceNumber</span>
+                <span class="invoice-doc-title">@invoice.Title</span>
+                <span class="invoice-doc-date">Issued @DateTimeFormat.FormatDate(invoice.IssuedAt)</span>
+            </div>
+            <div class="invoice-doc-amount">
+                <span class="invoice-doc-total">@CurrencyFormat.Format(invoice.Total)</span>
+                <MudChip T="string" Size="Size.Small" Color="@Invoices.StatusColor(invoice)">@Invoices.StatusLabel(invoice)</MudChip>
+            </div>
+        </div>
+
+        <div class="invoice-doc-parties">
+            <div>
+                <span class="subscribe-summary-label">Bill To</span>
+                <span class="invoice-doc-party">@invoice.BillToName</span>
+                @if (!string.IsNullOrWhiteSpace(invoice.BillToAddress))
+                {
+                    <span class="invoice-doc-muted">@invoice.BillToAddress</span>
+                }
+            </div>
+            @if (invoice.IsPaid && invoice.PaidAt is { } paidAt)
+            {
+                <div>
+                    <span class="subscribe-summary-label">Paid</span>
+                    <span class="invoice-doc-party">@DateTimeFormat.FormatDate(paidAt)</span>
+                    <span class="invoice-doc-muted">@PaymentMethodLabel(invoice.PaymentMethod)</span>
+                </div>
+            }
+            else if (invoice.IsOpen && invoice.DueAt is { } dueAt)
+            {
+                <div>
+                    <span class="subscribe-summary-label">Due By</span>
+                    <span class="invoice-doc-party @(invoice.IsOverdue ? "invoice-overdue" : null)">@DateTimeFormat.FormatDate(dueAt)</span>
+                </div>
+            }
+        </div>
+
+        <ul class="invoice-doc-lines">
+            @foreach (var line in invoice.Lines)
+            {
+                <li>
+                    <span class="invoice-line-desc">
+                        <span>@line.Description</span>
+                        @if (line.Quantity != 1)
+                        {
+                            <span class="invoice-doc-muted">@line.Quantity.ToString("0.##") &times; @CurrencyFormat.Format(line.UnitPrice)</span>
+                        }
+                    </span>
+                    <span>@CurrencyFormat.Format(line.Subtotal)</span>
+                </li>
+            }
+        </ul>
+
+        <div class="subscribe-lines">
+            <div class="subscribe-line"><span>Subtotal</span><span>@CurrencyFormat.Format(invoice.Subtotal)</span></div>
+            @if (invoice.DiscountAmount > 0)
+            {
+                <div class="subscribe-line subscribe-line-good"><span>@(invoice.DiscountLabel ?? "Discount")</span><span>-@CurrencyFormat.Format(invoice.DiscountAmount)</span></div>
+            }
+            @if (invoice.TaxAmount > 0)
+            {
+                <div class="subscribe-line"><span>Tax</span><span>@CurrencyFormat.Format(invoice.TaxAmount)</span></div>
+            }
+            <div class="subscribe-line subscribe-line-total">
+                <span>@(invoice.IsPaid ? "Total paid" : "Amount due")</span>
+                <span class="subscribe-total-value">@CurrencyFormat.Format(invoice.Total)</span>
+            </div>
+        </div>
+
+        @if (invoice.Status == "Void")
+        {
+            <MudAlert Severity="Severity.Info" Class="mt-4">This invoice was voided@(string.IsNullOrWhiteSpace(invoice.VoidReason) ? "." : $": {invoice.VoidReason}")</MudAlert>
+        }
+    </div>
+
+    @if (invoice.IsOpen)
+    {
+        <section class="subscribe-form invoice-pay">
+            @if (_clientSecret is null)
+            {
+                <MudButton Variant="Variant.Filled" FullWidth="true" Size="Size.Large" Class="sell-btn subscribe-pay-btn" Disabled="@_isBusy"
+                           StartIcon="@(_isBusy ? null : Icons.Material.Filled.Lock)" OnClick="StartPaymentAsync">
+                    @if (_isBusy)
+                    {
+                        <MudProgressCircular Indeterminate="true" Size="Size.Small" Class="mr-2" />
+                        <span>Preparing payment...</span>
+                    }
+                    else
+                    {
+                        <span>Pay @CurrencyFormat.Format(invoice.Total) now</span>
+                    }
+                </MudButton>
+            }
+            else
+            {
+                <div class="subscribe-step">
+                    <span class="subscribe-step-number"><MudIcon Icon="@Icons.Material.Filled.CreditCard" Size="Size.Small" /></span>
+                    <span class="subscribe-step-title">Payment details</span>
+                </div>
+                <div id="payment-element" class="invoice-payment-element"></div>
+                <MudButton Variant="Variant.Filled" FullWidth="true" Size="Size.Large" Class="sell-btn subscribe-pay-btn mt-4" Disabled="@_isBusy"
+                           StartIcon="@(_isBusy ? null : Icons.Material.Filled.Lock)" OnClick="ConfirmPaymentAsync">
+                    @if (_isBusy)
+                    {
+                        <MudProgressCircular Indeterminate="true" Size="Size.Small" Class="mr-2" />
+                        <span>Processing...</span>
+                    }
+                    else
+                    {
+                        <span>Pay @CurrencyFormat.Format(invoice.Total)</span>
+                    }
+                </MudButton>
+            }
+            <ApiErrorAlert Message="@_paymentError" Severity="Severity.Error" />
+            @if (_processing)
+            {
+                <MudAlert Severity="Severity.Info" Class="mt-3">Payment received. Your receipt will appear here in a moment.</MudAlert>
+            }
+            <div class="subscribe-trust">
+                <span class="subscribe-trust-item"><MudIcon Icon="@Icons.Material.Outlined.Lock" Size="Size.Small" />Payments processed securely by Stripe</span>
+                <span class="subscribe-trust-item"><MudIcon Icon="@Icons.Material.Outlined.CreditCardOff" Size="Size.Small" />We never store your card details</span>
+                <span class="subscribe-trust-item"><MudIcon Icon="@Icons.Material.Outlined.Receipt" Size="Size.Small" />Emailed receipt when paid</span>
+            </div>
+        </section>
+    }
+
+    <MudButton Variant="Variant.Filled" FullWidth="true" Size="Size.Large" Class="sell-btn-soft mt-4" Disabled="@_downloading"
+               StartIcon="@Icons.Material.Outlined.FileDownload" OnClick="DownloadPdfAsync">
+        @(_downloading ? "Preparing PDF..." : "Download PDF")
+    </MudButton>
+}
+
+@code {
+    [Parameter]
+    public Guid Id { get; set; }
+
+    private InvoiceResponse? _invoice;
+    private bool _loading = true;
+    private bool _isBusy;
+    private bool _downloading;
+    private bool _processing;
+    private bool _elementMounted;
+    private string? _clientSecret;
+    private string? _loadError;
+    private string? _paymentError;
+    private IDisposable? _liveUpdates;
+
+    protected override Task OnInitializedAsync()
+    {
+        _liveUpdates = Notifier.Subscribe(() => InvokeAsync(async () => { await ReloadAsync(); StateHasChanged(); }), DataTopic.Orders);
+        return ReloadAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
+        var result = await ApiClient.GetAsync<InvoiceResponse>(ApiRoutes.Invoices.ById(Id));
+        if (result is { IsSuccessful: true, ResultData.IsOpen: true } && await IsPaymentSettledAsync())
+        {
+            result = await ApiClient.GetAsync<InvoiceResponse>(ApiRoutes.Invoices.ById(Id));
+        }
+
+        _loadError = result.IsSuccessful ? null : result.DisplayMessage;
+        _invoice = result.IsSuccessful ? result.ResultData : null;
+        if (_invoice is { IsOpen: false })
+        {
+            _clientSecret = null;
+            _processing = false;
+        }
+
+        _loading = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_clientSecret is not null && !_elementMounted)
+        {
+            _elementMounted = true;
+            _paymentError = await JsRuntime.InvokeAsync<string?>("checkoutStripe.init", Configuration["Stripe:PublishableKey"], _clientSecret);
+            if (_paymentError is not null)
+            {
+                StateHasChanged();
+            }
+        }
+    }
+
+    private async Task StartPaymentAsync()
+    {
+        _isBusy = true;
+        _paymentError = null;
+
+        var result = await ApiClient.PostAsync<PayInvoiceResult>(ApiRoutes.Invoices.Pay(Id), new { });
+        _isBusy = false;
+
+        if (!result.IsSuccessful || result.ResultData is null)
+        {
+            _paymentError = result.DisplayMessage;
+            return;
+        }
+
+        if (result.ResultData.Paid)
+        {
+            Snackbar.ShowSuccess("Payment received. Thank you!");
+            await ReloadAsync();
+            return;
+        }
+
+        _clientSecret = result.ResultData.ClientSecret;
+        _elementMounted = false;
+    }
+
+    private async Task ConfirmPaymentAsync()
+    {
+        _isBusy = true;
+        _paymentError = null;
+        StateHasChanged();
+
+        var confirm = await JsRuntime.InvokeAsync<StripeConfirmResult>("checkoutStripe.confirmPayment", $"/user/invoices/{Id}");
+        _isBusy = false;
+
+        if (confirm.Error is not null)
+        {
+            _paymentError = confirm.Error;
+            return;
+        }
+
+        _processing = true;
+        Snackbar.ShowSuccess("Payment received. Thank you!");
+        await ReloadAsync();
+    }
+
+    private async Task<bool> IsPaymentSettledAsync()
+    {
+        var sync = await ApiClient.PostAsync<SyncInvoicePaymentResult>(ApiRoutes.Invoices.SyncPayment(Id), new { });
+        return sync is { IsSuccessful: true, ResultData.Paid: true };
+    }
+
+    private async Task DownloadPdfAsync()
+    {
+        _downloading = true;
+        var result = await ApiClient.GetAsync<InvoicePdfResponse>(ApiRoutes.Invoices.Pdf(Id));
+        _downloading = false;
+
+        if (!result.IsSuccessful || result.ResultData is null)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        await FileSaver.SaveAsync(result.ResultData.FileName, Convert.FromBase64String(result.ResultData.ContentBase64), "application/pdf");
+    }
+
+    private static string PaymentMethodLabel(string? method) => method switch
+    {
+        "Card" => "Paid by card",
+        "Cash" => "Paid in cash",
+        "Check" => "Paid by check",
+        "Covered" => "Nothing to pay",
+        _ => "Paid",
+    };
+
+    private sealed record StripeConfirmResult(string? Error);
+
+    public void Dispose() => _liveUpdates?.Dispose();
+}

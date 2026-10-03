@@ -1,7 +1,8 @@
-﻿using MediatR;
+﻿using Hateoas.AspNetCore;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
-using OnlineConsulting.Modules.Services.Application.Features.CreateService;
+using OnlineConsulting.Modules.Services.Application.Features.Services.CreateService;
 using ResultHandler.AspNetCore.Extensions;
 
 namespace OnlineConsulting.Api.Features.Services;
@@ -14,6 +15,7 @@ public class CreateService : IEndpoint
             .WithTags("Services")
             .RequireAuthorization()
             .WithName("CreateService")
+            .WithCreatedLocation("GetServiceById")
             .WithDescription("Creates a new service in the catalog.");
     }
 

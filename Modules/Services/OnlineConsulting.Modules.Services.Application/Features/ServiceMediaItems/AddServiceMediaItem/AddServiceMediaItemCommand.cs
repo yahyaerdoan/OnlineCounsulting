@@ -1,9 +1,9 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
-using OnlineConsulting.Modules.Services.Application.Abstractions;
-using OnlineConsulting.Modules.Services.Application.Features.Constants;
-using OnlineConsulting.Modules.Services.Application.Features.Rules;
+using OnlineConsulting.Modules.Services.Application.Common;
 using OnlineConsulting.Modules.Services.Application.Features.ServiceMediaItems.Abstractions;
+using OnlineConsulting.Modules.Services.Application.Features.Services.Abstractions;
+using OnlineConsulting.Modules.Services.Application.Features.Services.Rules;
 using OnlineConsulting.Modules.Services.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
 using ResultHandler.Core.Base;

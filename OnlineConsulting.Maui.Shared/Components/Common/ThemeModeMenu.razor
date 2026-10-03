@@ -1,0 +1,41 @@
+@* Light / System / Dark picker; the icon shows the current choice. *@
+@using OnlineConsulting.Maui.Shared.Theme
+@implements IDisposable
+@inject ThemeModeState ThemeModeState
+
+<MudMenu Icon="@IconFor(ThemeModeState.Mode)" Color="Color.Inherit" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight"
+         aria-label="Choose color theme" Class="@Class">
+    @foreach (var mode in Modes)
+    {
+        <MudMenuItem Icon="@IconFor(mode)" OnClick="@(() => ThemeModeState.SetAsync(mode))">
+            @LabelFor(mode)
+        </MudMenuItem>
+    }
+</MudMenu>
+
+@code {
+    private static readonly ThemeMode[] Modes = [ThemeMode.Light, ThemeMode.System, ThemeMode.Dark];
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    protected override void OnInitialized() => ThemeModeState.Changed += OnModeChangedAsync;
+
+    private Task OnModeChangedAsync() => InvokeAsync(StateHasChanged);
+
+    private static string IconFor(ThemeMode mode) => mode switch
+    {
+        ThemeMode.Light => Icons.Material.Outlined.LightMode,
+        ThemeMode.Dark => Icons.Material.Outlined.DarkMode,
+        _ => Icons.Material.Outlined.BrightnessAuto,
+    };
+
+    private static string LabelFor(ThemeMode mode) => mode switch
+    {
+        ThemeMode.Light => "Light",
+        ThemeMode.Dark => "Dark",
+        _ => "System",
+    };
+
+    public void Dispose() => ThemeModeState.Changed -= OnModeChangedAsync;
+}

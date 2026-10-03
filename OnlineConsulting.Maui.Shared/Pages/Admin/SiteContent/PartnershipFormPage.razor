@@ -130,6 +130,7 @@
             return;
         }
 
+        _model.Kind = partnership.Kind;
         _model.FirstName = partnership.FirstName;
         _model.LastName = partnership.LastName;
         _model.Email = partnership.Email;
@@ -205,6 +206,7 @@
             websiteUrl = _model.WebsiteUrl,
             photoMediaAssetId = _model.PhotoMediaAssetId,
             displayOrder = _model.DisplayOrder,
+            kind = _model.Kind,
         };
 
         if (Id is null)

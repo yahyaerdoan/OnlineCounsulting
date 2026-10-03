@@ -1,6 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
-using OnlineConsulting.Modules.Services.Application.Features.DeleteService;
+using OnlineConsulting.Modules.Services.Application.Features.Services.DeleteService;
 using ResultHandler.AspNetCore.Extensions;
 
 namespace OnlineConsulting.Api.Features.Services;

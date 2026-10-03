@@ -1,0 +1,66 @@
+@* MudThemeProvider that follows ThemeModeState: a fixed light/dark choice, or the OS setting (live) when the user picked System.
+   In the native app it also restyles the phone's status/navigation bars to match. *@
+@using Microsoft.Extensions.DependencyInjection
+@using OnlineConsulting.Maui.Shared.Theme
+@implements IDisposable
+@inject ThemeModeState ThemeModeState
+@inject IServiceProvider Services
+
+<MudThemeProvider @ref="_provider" Theme="Theme" IsDarkMode="_isDarkMode" />
+
+@code {
+    private MudThemeProvider? _provider;
+    private bool _isDarkMode;
+    private bool _systemIsDark;
+    private bool? _barsDarkMode;
+
+    [Parameter, EditorRequired]
+    public MudTheme Theme { get; set; } = new();
+
+    protected override void OnInitialized() => ThemeModeState.Changed += OnModeChangedAsync;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || _provider is null)
+        {
+            return;
+        }
+
+        await ThemeModeState.LoadAsync();
+        _systemIsDark = await _provider.GetSystemDarkModeAsync();
+        await _provider.WatchSystemDarkModeAsync(OnSystemDarkModeChangedAsync);
+        Apply();
+    }
+
+    private Task OnSystemDarkModeChangedAsync(bool isDark)
+    {
+        _systemIsDark = isDark;
+        return InvokeAsync(Apply);
+    }
+
+    private Task OnModeChangedAsync() => InvokeAsync(Apply);
+
+    private void Apply()
+    {
+        var isDark = ThemeModeState.Mode switch
+        {
+            ThemeMode.Dark => true,
+            ThemeMode.Light => false,
+            _ => _systemIsDark,
+        };
+
+        if (isDark != _isDarkMode)
+        {
+            _isDarkMode = isDark;
+            StateHasChanged();
+        }
+
+        if (isDark != _barsDarkMode && Services.GetService<ISystemBarsStyler>() is { } barsStyler)
+        {
+            _barsDarkMode = isDark;
+            barsStyler.Apply(isDark);
+        }
+    }
+
+    public void Dispose() => ThemeModeState.Changed -= OnModeChangedAsync;
+}

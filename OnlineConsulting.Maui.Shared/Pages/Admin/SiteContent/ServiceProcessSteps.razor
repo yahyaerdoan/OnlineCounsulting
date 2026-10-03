@@ -27,15 +27,19 @@
     </HeaderContent>
     <RowTemplate Context="step">
         <MudTd DataLabel="Icon"><MudIcon Icon="@IconCatalog.Resolve(step.Icon)" Style="@IconCatalog.ColorStyle(step.IconColor)" Size="Size.Small" /></MudTd>
-        <MudTd DataLabel="Title">@step.Title</MudTd>
+        <MudTd DataLabel="Title" Class="cell-primary">@step.Title</MudTd>
         <MudTd DataLabel="Description">@step.Description</MudTd>
         <MudTd DataLabel="Actions">
             <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
-                <MudIconButton Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" title="Edit"
-                               OnClick="@(() => EditAsync(step))" />
+                <MudTooltip Text="Edit">
+                    <MudIconButton aria-label="Edit" Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default"
+                                   OnClick="@(() => EditAsync(step))" />
+                </MudTooltip>
 
-                <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" title="Delete"
-                               OnClick="@(() => DeleteAsync(step))" />
+                <MudTooltip Text="Delete">
+                    <MudIconButton aria-label="Delete" Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error"
+                                   OnClick="@(() => DeleteAsync(step))" />
+                </MudTooltip>
             </MudButtonGroup>
         </MudTd>
     </RowTemplate>

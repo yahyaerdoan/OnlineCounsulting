@@ -12,6 +12,8 @@ public class CommerceDbContext(DbContextOptions<CommerceDbContext> options, ITen
     public DbSet<BasketItem> BasketItems => Set<BasketItem>();
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
+    public DbSet<Invoice> Invoices => Set<Invoice>();
+    public DbSet<InvoiceLine> InvoiceLines => Set<InvoiceLine>();
     public DbSet<OutboxEmail> OutboxEmails => Set<OutboxEmail>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -63,6 +65,46 @@ public class CommerceDbContext(DbContextOptions<CommerceDbContext> options, ITen
             _ = builder.Property(o => o.ProviderPaymentId).HasMaxLength(200);
             _ = builder.Property(o => o.RowVersion).IsRowVersion();
             _ = builder.HasIndex(o => o.UserId);
+            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+        });
+
+        _ = modelBuilder.Entity<Invoice>(builder =>
+        {
+            _ = builder.Property(i => i.InvoiceNumber).HasMaxLength(40).IsRequired();
+            _ = builder.Property(i => i.SourceType).HasMaxLength(20).IsRequired();
+            _ = builder.Property(i => i.Status).HasMaxLength(20).IsRequired();
+            _ = builder.Property(i => i.Currency).HasMaxLength(3).IsRequired();
+            _ = builder.Property(i => i.BillToName).HasMaxLength(200).IsRequired();
+            _ = builder.Property(i => i.BillToEmail).HasMaxLength(256);
+            _ = builder.Property(i => i.BillToAddress).HasMaxLength(500);
+            _ = builder.Property(i => i.Title).HasMaxLength(200).IsRequired();
+            _ = builder.Property(i => i.DiscountLabel).HasMaxLength(200);
+            _ = builder.Property(i => i.PaymentMethod).HasMaxLength(20);
+            _ = builder.Property(i => i.PaymentProvider).HasMaxLength(50);
+            _ = builder.Property(i => i.ProviderPaymentId).HasMaxLength(200);
+            _ = builder.Property(i => i.VoidReason).HasMaxLength(500);
+            _ = builder.Property(i => i.Subtotal).HasColumnType("decimal(18,2)");
+            _ = builder.Property(i => i.DiscountAmount).HasColumnType("decimal(18,2)");
+            _ = builder.Property(i => i.TaxAmount).HasColumnType("decimal(18,2)");
+            _ = builder.Property(i => i.Total).HasColumnType("decimal(18,2)");
+            _ = builder.Property(i => i.RowVersion).IsRowVersion();
+            _ = builder.HasIndex(i => i.UserId);
+            _ = builder.HasIndex(i => new { i.TenantId, i.InvoiceNumber }).IsUnique();
+            _ = builder.HasIndex(i => new { i.SourceType, i.SourceId });
+            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+        });
+
+        _ = modelBuilder.Entity<InvoiceLine>(builder =>
+        {
+            _ = builder.Property(l => l.Description).HasMaxLength(300).IsRequired();
+            _ = builder.Property(l => l.Quantity).HasColumnType("decimal(18,2)");
+            _ = builder.Property(l => l.UnitPrice).HasColumnType("decimal(18,2)");
+            _ = builder.Property(l => l.Subtotal).HasColumnType("decimal(18,2)");
+            _ = builder.Property(l => l.DiscountAmount).HasColumnType("decimal(18,2)");
+            _ = builder.Property(l => l.TaxAmount).HasColumnType("decimal(18,2)");
+            _ = builder.Property(l => l.Total).HasColumnType("decimal(18,2)");
+            _ = builder.Property(l => l.RowVersion).IsRowVersion();
+            _ = builder.HasIndex(l => l.InvoiceId);
             _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 

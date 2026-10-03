@@ -1,3 +1,4 @@
+@* Every business on the platform: who they are, how to reach them, what they pay for and their billing state, with status tabs. *@
 @page "/admin/platform/tenants"
 @attribute [Authorize(Roles = "Admin,Super Admin,Member")]
 @using OnlineConsulting.Maui.Shared.Pages.Admin.Platform
@@ -12,51 +13,130 @@
 
 <ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
 
-<ServerDataTable TItem="TenantResponse" @ref="_table" ApiBasePath="@ApiRoutes.Platform.Tenants.All"
-                 SearchPlaceholder="Search tenant name" OnLoadError="@(message => _loadError = message)">
+<ListFilterTabs Options="StatusTabs" Selected="@_status" SelectedChanged="OnStatusChanged" Label="Filter by status" />
+
+<ServerDataTable TItem="TenantResponse" @ref="_table" ApiBasePath="@ApiRoutes.Platform.Tenants.All" ExtraQuery="StatusQuery"
+                 SearchPlaceholder="Search name, web address or email" OnLoadError="@(message => _loadError = message)">
     <HeaderContent>
-        <MudTh>Name</MudTh>
+        <MudTh><MudTableSortLabel SortLabel="@nameof(TenantResponse.Name)" T="TenantResponse">Business</MudTableSortLabel></MudTh>
+        <MudTh>Contact</MudTh>
+        <MudTh>Modules</MudTh>
+        <MudTh Class="mud-table-cell-align-right">Monthly</MudTh>
         <MudTh>Status</MudTh>
-        <MudTh>Actions</MudTh>
+        <MudTh><MudTableSortLabel SortLabel="@nameof(TenantResponse.CreatedDate)" T="TenantResponse">Since</MudTableSortLabel></MudTh>
+        <MudTh Class="cell-actions">Actions</MudTh>
     </HeaderContent>
     <RowTemplate Context="tenant">
-        <MudTd DataLabel="Name">@tenant.Name</MudTd>
-        <MudTd DataLabel="Status">@tenant.Status</MudTd>
-        <MudTd DataLabel="Actions">
-            <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
-                <MudIconButton Icon="@Icons.Material.Outlined.Receipt" Color="Color.Default" Size="Size.Small" title="View subscription"
+        <MudTd Class="cell-primary">
+            <PersonCell Name="@tenant.Name" Secondary="@tenant.Slug" />
+        </MudTd>
+        <MudTd DataLabel="Contact"><a class="cell-link" href="@($"mailto:{tenant.PrimaryContactEmail}")">@tenant.PrimaryContactEmail</a></MudTd>
+        <MudTd DataLabel="Modules">
+            <span class="cell-chips" title="@string.Join(", ", tenant.ActiveModuleKeys.Select(ModuleName))">
+                @if (tenant.ActiveModuleKeys.Count == 0)
+                {
+                    <span class="cell-muted">None</span>
+                }
+                @foreach (var key in tenant.ActiveModuleKeys.Take(3))
+                {
+                    <span class="role-chip">@ModuleName(key)</span>
+                }
+                @if (tenant.ActiveModuleKeys.Count > 3)
+                {
+                    <span class="role-chip role-chip-more">+@(tenant.ActiveModuleKeys.Count - 3)</span>
+                }
+            </span>
+        </MudTd>
+        <MudTd DataLabel="Monthly" Class="mud-table-cell-align-right cell-strong">@CurrencyFormat.Format(tenant.TotalActivePrice)</MudTd>
+        <MudTd DataLabel="Status"><StatusBadge Label="@StatusLabel(tenant.Status)" Kind="@StatusKind(tenant.Status)" /></MudTd>
+        <MudTd DataLabel="Since">@(tenant.CreatedDate is { } created ? DateTimeFormat.FormatDate(created) : "-")</MudTd>
+        <MudTd DataLabel="Actions" Class="cell-actions">
+            <MudTooltip Text="View subscription">
+                <MudIconButton Icon="@Icons.Material.Outlined.Receipt" Size="Size.Small" aria-label="View subscription"
                                OnClick="@(() => Navigation.NavigateTo($"{AppRoutes.AdminHome}/platform/tenants/{tenant.Id}"))" />
-                <MudIconButton Icon="@Icons.Material.Outlined.Extension" Color="Color.Default" Size="Size.Small" title="Manage modules"
+            </MudTooltip>
+            <MudTooltip Text="Manage modules">
+                <MudIconButton Icon="@Icons.Material.Outlined.Extension" Size="Size.Small" aria-label="Manage modules"
                                OnClick="@(() => ManageModulesAsync(tenant))" />
-                @if (tenant.Status == TenantStatusesSuspended)
-                {
-                    <MudIconButton Icon="@Icons.Material.Outlined.PlayArrow" Color="Color.Success" Size="Size.Small" title="Reactivate"
+            </MudTooltip>
+            @if (tenant.Status == TenantStatusesSuspended)
+            {
+                <MudTooltip Text="Reactivate">
+                    <MudIconButton Icon="@Icons.Material.Outlined.PlayArrow" Color="Color.Success" Size="Size.Small" aria-label="Reactivate"
                                    OnClick="@(() => ReactivateAsync(tenant))" />
-                }
-                else if (tenant.Status != TenantStatusesCancelled)
-                {
-                    <MudIconButton Icon="@Icons.Material.Outlined.Pause" Color="Color.Warning" Size="Size.Small" title="Suspend"
+                </MudTooltip>
+            }
+            else if (tenant.Status != TenantStatusesCancelled)
+            {
+                <MudTooltip Text="Suspend">
+                    <MudIconButton Icon="@Icons.Material.Outlined.Pause" Color="Color.Warning" Size="Size.Small" aria-label="Suspend"
                                    OnClick="@(() => SuspendAsync(tenant))" />
-                }
-                @if (tenant.Status != TenantStatusesCancelled)
-                {
-                    <MudIconButton Icon="@Icons.Material.Outlined.Cancel" Color="Color.Error" Size="Size.Small" title="Cancel permanently"
+                </MudTooltip>
+            }
+            @if (tenant.Status != TenantStatusesCancelled)
+            {
+                <MudTooltip Text="Cancel permanently">
+                    <MudIconButton Icon="@Icons.Material.Outlined.Cancel" Color="Color.Error" Size="Size.Small" aria-label="Cancel permanently"
                                    OnClick="@(() => CancelAsync(tenant))" />
-                }
-            </MudButtonGroup>
+                </MudTooltip>
+            }
         </MudTd>
     </RowTemplate>
+    <NoRecordsContent>
+        <MudText Color="Color.Secondary">No tenants match this view.</MudText>
+    </NoRecordsContent>
 </ServerDataTable>
 
 @code {
     private const string TenantStatusesSuspended = "Suspended";
     private const string TenantStatusesCancelled = "Cancelled";
 
-    private ServerDataTable<TenantResponse> _table = default!;
+    private static readonly List<ListFilterOption> StatusTabs =
+    [
+        new(string.Empty, "All", Icons.Material.Outlined.Apartment),
+        new("Active", "Active"),
+        new("PastDue", "Past due"),
+        new("PendingPayment", "Pending"),
+        new("Suspended", "Suspended"),
+        new("Cancelled", "Cancelled"),
+    ];
+
+    private ServerDataTable<TenantResponse>? _table;
     private string? _loadError;
+    private string _status = string.Empty;
+
+    private string? StatusQuery() => _status.Length == 0 ? null : $"&status={Uri.EscapeDataString(_status)}";
+
+    private async Task OnStatusChanged(string status)
+    {
+        _status = status;
+        await ReloadAsync(refilter: true);
+    }
+
+    private Task ReloadAsync(bool refilter = false) =>
+        _table is null ? Task.CompletedTask : refilter ? _table.RefilterAsync() : _table.ReloadAsync();
+
+    private static string ModuleName(string key) =>
+        string.Join(' ', key.Split(['-', '_', ' '], StringSplitOptions.RemoveEmptyEntries).Select(part => char.ToUpperInvariant(part[0]) + part[1..]));
+
+    private static string StatusLabel(string status) => status switch
+    {
+        "PastDue" => "Past due",
+        "PendingPayment" => "Pending payment",
+        "Failed" => "Signup failed",
+        _ => status,
+    };
+
+    private static string StatusKind(string status) => status switch
+    {
+        "Active" => StatusKinds.Success,
+        "PastDue" or "Failed" => StatusKinds.Danger,
+        "PendingPayment" or "Suspended" => StatusKinds.Warning,
+        _ => StatusKinds.Neutral,
+    };
 
     private Task ManageModulesAsync(TenantResponse tenant) =>
-        DialogService.ShowAndReloadAsync("Manage Modules", new DialogParameters<ManageTenantModulesDialog> { { x => x.Tenant, tenant } }, _table.ReloadAsync);
+        DialogService.ShowAndReloadAsync("Manage Modules", new DialogParameters<ManageTenantModulesDialog> { { x => x.Tenant, tenant } }, () => ReloadAsync());
 
     private async Task SuspendAsync(TenantResponse tenant)
     {
@@ -65,29 +145,10 @@
             return;
         }
 
-        var result = await ApiClient.PostAsync(ApiRoutes.Platform.Tenants.Suspend(tenant.Id), new { });
-        if (!result.IsSuccessful)
-        {
-            Snackbar.ShowError(result.DisplayMessage);
-            return;
-        }
-
-        Snackbar.ShowSuccess(result.DisplayMessage);
-        await _table.ReloadAsync();
+        await RunAsync(ApiRoutes.Platform.Tenants.Suspend(tenant.Id));
     }
 
-    private async Task ReactivateAsync(TenantResponse tenant)
-    {
-        var result = await ApiClient.PostAsync(ApiRoutes.Platform.Tenants.Reactivate(tenant.Id), new { });
-        if (!result.IsSuccessful)
-        {
-            Snackbar.ShowError(result.DisplayMessage);
-            return;
-        }
-
-        Snackbar.ShowSuccess(result.DisplayMessage);
-        await _table.ReloadAsync();
-    }
+    private Task ReactivateAsync(TenantResponse tenant) => RunAsync(ApiRoutes.Platform.Tenants.Reactivate(tenant.Id));
 
     private async Task CancelAsync(TenantResponse tenant)
     {
@@ -96,7 +157,12 @@
             return;
         }
 
-        var result = await ApiClient.PostAsync(ApiRoutes.Platform.Tenants.Cancel(tenant.Id), new { });
+        await RunAsync(ApiRoutes.Platform.Tenants.Cancel(tenant.Id));
+    }
+
+    private async Task RunAsync(string route)
+    {
+        var result = await ApiClient.PostAsync(route, new { });
         if (!result.IsSuccessful)
         {
             Snackbar.ShowError(result.DisplayMessage);
@@ -104,6 +170,6 @@
         }
 
         Snackbar.ShowSuccess(result.DisplayMessage);
-        await _table.ReloadAsync();
+        await ReloadAsync();
     }
 }

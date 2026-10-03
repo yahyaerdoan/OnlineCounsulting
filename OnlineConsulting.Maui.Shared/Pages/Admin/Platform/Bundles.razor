@@ -28,11 +28,13 @@ else
             <MudTh>Actions</MudTh>
         </HeaderContent>
         <RowTemplate Context="bundle">
-            <MudTd DataLabel="Name">@bundle.Name</MudTd>
+            <MudTd DataLabel="Name" Class="cell-primary">@bundle.Name</MudTd>
             <MudTd DataLabel="Modules">@string.Join(", ", bundle.ModuleKeys)</MudTd>
             <MudTd DataLabel="Actions">
-                <MudIconButton Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" Size="Size.Small" title="Edit"
-                               OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + $"/platform/bundles/{bundle.Id}/edit"))" />
+                <MudTooltip Text="Edit">
+                    <MudIconButton aria-label="Edit" Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" Size="Size.Small"
+                                   OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + $"/platform/bundles/{bundle.Id}/edit"))" />
+                </MudTooltip>
             </MudTd>
         </RowTemplate>
     </SearchableTable>

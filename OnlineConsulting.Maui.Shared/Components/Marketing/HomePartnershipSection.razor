@@ -1,53 +1,101 @@
-@* Card grid (photo, name, title, socials) - no bio-detail popup on click. *@
+@* People cards for the About page, one section per PartnershipKinds value: "Meet Our Team" (owner, technicians) and "Trusted Brand
+   Partners". Each card: photo (or colored initials), name, role (and company for partners), a short description, social links in
+   each platform's own color and a website link. A grid on wide screens, swipeable cards on phones. Hidden when the kind has no one. *@
 @using OnlineConsulting.Maui.Shared.Infrastructure.Api
 @inject IApiClient ApiClient
 
-<MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
-    <MudStack Spacing="1" AlignItems="AlignItems.Center" Class="mb-2">
-        <MudIcon Icon="@Icons.Material.Filled.Groups" Color="Color.Primary" Size="Size.Small" />
-        <MudText Typo="Typo.subtitle1" Color="Color.Primary" Class="text-strong">Who We Work With</MudText>
-    </MudStack>
-    <MudText Typo="Typo.h5" Align="Align.Center" Class="marketing-display text-strong mb-4">Trusted Brand Partners</MudText>
+@if (_partnerships.Count > 0)
+{
+    <MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
+        <SectionHeading Eyebrow="@Eyebrow" Title="@Title" Lead="@Lead" />
 
-    <MudGrid Spacing="2">
-        @foreach (var partner in _partnerships)
-        {
-            <MudItem xs="6" sm="4" md="3">
-                <div class="single-popular-courses">
-                    <div class="popular-courses-image">
-                        <MudImage Src="@_photoUrlsById.GetValueOrDefault(partner.Id)" ObjectFit="ObjectFit.Cover" />
-                    </div>
-                    <div class="popular-courses-contnet text-center">
-                        <MudText Typo="Typo.subtitle1" Class="text-strong">@partner.FirstName @partner.LastName</MudText>
-                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-2">@partner.Title</MudText>
-                        @if (partner.SocialLinks.Count > 0)
+        <div class="@($"partners {(_partnerships.Count == 1 ? "partners-single" : "")}")" role="list">
+            @for (var i = 0; i < _partnerships.Count; i++)
+            {
+                var partner = _partnerships[i];
+                var name = $"{partner.FirstName} {partner.LastName}".Trim();
+                var role = partner.IsTeam ? partner.Title : string.Join(" · ", new[] { partner.Title, partner.CompanyName }.Where(s => !string.IsNullOrWhiteSpace(s)));
+                <article class="@($"partner {AccentTone.At(i)}")" role="listitem">
+                    <div class="partner-photo">
+                        @if (_photoUrlsById.GetValueOrDefault(partner.Id) is { Length: > 0 } photo)
                         {
-                            <MudStack Row="true" Spacing="1" Justify="Justify.Center">
-                                @foreach (var link in partner.SocialLinks)
-                                {
-                                    <MudIconButton Href="@link.Url" Target="_blank" Icon="@link.Icon" Size="Size.Small" Color="Color.Primary" />
-                                }
-                            </MudStack>
+                            <img src="@photo" alt="@name" loading="lazy" />
+                        }
+                        else
+                        {
+                            <span class="partner-initials">@Initials(partner)</span>
+                        }
+                        @if (!partner.IsTeam && !string.IsNullOrWhiteSpace(partner.CompanyName))
+                        {
+                            <span class="partner-company">@partner.CompanyName</span>
                         }
                     </div>
-                </div>
-            </MudItem>
-        }
-    </MudGrid>
-</MudContainer>
+                    <div class="partner-body">
+                        <h3 class="partner-name">@name</h3>
+                        @if (role.Length > 0)
+                        {
+                            <span class="partner-role">@role</span>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(partner.Description))
+                        {
+                            <p class="partner-desc">@partner.Description</p>
+                        }
+                        <div class="partner-footer">
+                            @if (partner.SocialLinks.Count > 0)
+                            {
+                                <span class="partner-social">
+                                    @foreach (var link in partner.SocialLinks)
+                                    {
+                                        <MudTooltip Text="@link.Name">
+                                            <a href="@link.Url" target="_blank" rel="noopener" aria-label="@($"{name} on {link.Name}")"
+                                               class="@($"footer-reach-social-link social-brand {SocialBrand.ClassFor(link)}")" style="@SocialBrand.StyleFor(link)">
+                                                <MudIcon Icon="@link.Icon" Size="Size.Small" />
+                                            </a>
+                                        </MudTooltip>
+                                    }
+                                </span>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(partner.WebsiteUrl))
+                            {
+                                <a href="@partner.WebsiteUrl" target="_blank" rel="noopener" class="partner-website">
+                                    Website<MudIcon Icon="@Icons.Material.Filled.OpenInNew" Size="Size.Small" />
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </article>
+            }
+        </div>
+    </MudContainer>
+}
 
 @code {
+    [Parameter]
+    public string Kind { get; set; } = PartnershipKinds.Partner;
+
+    [Parameter]
+    public string Eyebrow { get; set; } = "Who We Work With";
+
+    [Parameter]
+    public string Title { get; set; } = "Trusted Brand Partners";
+
+    [Parameter]
+    public string? Lead { get; set; } = "The manufacturers and specialists we rely on to keep your home comfortable.";
+
     private List<PartnershipResponse> _partnerships = [];
     private Dictionary<Guid, string?> _photoUrlsById = [];
 
     protected override async Task OnInitializedAsync()
     {
         var result = await ApiClient.GetAsync<List<PartnershipResponse>>(ApiRoutes.SiteContent.Partnership.Base);
-        _partnerships = result.IsSuccessful ? result.ResultData?.OrderBy(p => p.DisplayOrder).ToList() ?? [] : [];
+        _partnerships = result.IsSuccessful ? result.ResultData?.Where(p => p.Kind == Kind).OrderBy(p => p.DisplayOrder).ToList() ?? [] : [];
 
         var lookups = await Task.WhenAll(_partnerships.Select(async p =>
             (p.Id, Url: p.PhotoMediaAssetId is Guid mediaId ? await MediaUploadHelper.GetUrlAsync(ApiClient, mediaId) : null)));
 
         _photoUrlsById = lookups.ToDictionary(l => l.Id, l => l.Url);
     }
+
+    private static string Initials(PartnershipResponse partner) =>
+        string.Concat(new[] { partner.FirstName, partner.LastName }.Where(n => !string.IsNullOrWhiteSpace(n)).Select(n => char.ToUpperInvariant(n.Trim()[0])));
 }

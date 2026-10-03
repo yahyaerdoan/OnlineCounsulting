@@ -1,10 +1,7 @@
-﻿using Hateoas;
-using Hateoas.AspNetCore;
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
-using OnlineConsulting.Modules.Services.Application.Features.GetServiceById;
+using OnlineConsulting.Modules.Services.Application.Features.Services.GetServiceById;
 using ResultHandler.AspNetCore.Extensions;
-using ResultHandler.Functional;
 
 namespace OnlineConsulting.Api.Features.Services;
 
@@ -18,18 +15,9 @@ public class GetServiceById : IEndpoint
             .WithDescription("Returns a single service by id. Public - no login required to browse the catalog.");
     }
 
-    private static async Task<IResult> Handle(Guid id, ISender sender, LinkGenerator linkGenerator, HttpContext httpContext)
+    private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)
     {
         var result = await sender.Send(new GetServiceByIdQuery(id));
-        return result
-            .OnSuccess(service => service.Links = BuildLinks(httpContext, linkGenerator, service.Id))
-            .ToEnvelopedResult(httpContext);
+        return result.ToEnvelopedResult(httpContext);
     }
-
-    internal static Dictionary<string, Link> BuildLinks(HttpContext httpContext, LinkGenerator linkGenerator, Guid id)
-        => httpContext.Links(linkGenerator)
-            .Add("self", "GetServiceById", HttpMethods.Get, new { id })
-            .Add("edit", "UpdateService", HttpMethods.Put, new { id })
-            .AddCustom("delete", "DeleteService", HttpMethods.Delete, new { id })
-            .Build();
 }

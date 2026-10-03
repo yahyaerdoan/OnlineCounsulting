@@ -1,0 +1,43 @@
+@* One notification row (bell dropdown and /notifications page): icon by kind, title, body, time, unread dot. *@
+
+@if (Notification is { } notification)
+{
+    <button type="button" class="notification-item @(notification.IsRead ? null : "unread")" @onclick="@(() => OnOpen.InvokeAsync(notification))">
+        <span class="tone-bubble @ToneFor(notification)"><MudIcon Icon="@IconFor(notification)" Size="Size.Small" /></span>
+        <span class="notification-item-body">
+            <span class="notification-item-title">@notification.Title</span>
+            <span class="notification-item-text">@notification.Body</span>
+            <span class="notification-item-time">@NotificationState.Ago(notification.CreatedAt)</span>
+        </span>
+        @if (!notification.IsRead)
+        {
+            <span class="notification-item-dot" aria-label="Unread"></span>
+        }
+    </button>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public UserNotificationResponse? Notification { get; set; }
+
+    [Parameter]
+    public EventCallback<UserNotificationResponse> OnOpen { get; set; }
+
+    private static string IconFor(UserNotificationResponse notification) => notification.Data switch
+    {
+        var d when d.ContainsKey("orderId") => Icons.Material.Outlined.ReceiptLong,
+        var d when d.ContainsKey("appointmentId") => Icons.Material.Outlined.EventAvailable,
+        var d when d.ContainsKey("customerMembershipId") => Icons.Material.Outlined.WorkspacePremium,
+        var d when d.ContainsKey("referralId") => Icons.Material.Outlined.CardGiftcard,
+        _ => Icons.Material.Outlined.Notifications,
+    };
+
+    private static string ToneFor(UserNotificationResponse notification) => notification.Data switch
+    {
+        var d when d.ContainsKey("orderId") => AccentTone.Orange,
+        var d when d.ContainsKey("appointmentId") => AccentTone.Blue,
+        var d when d.ContainsKey("customerMembershipId") => AccentTone.Gold,
+        var d when d.ContainsKey("referralId") => AccentTone.Berry,
+        _ => AccentTone.Teal,
+    };
+}

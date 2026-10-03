@@ -1,45 +1,57 @@
-@* Matches the legacy "single-popular-courses" card. Raw HTML/CSS - MudCard can't map its hover-zoom/layout. *@
+@* Catalog card for a service (Services page, home "Popular Services", related services). Colored by its category's tone, with 24/7
+   and deal badges on the photo, the price up front and the one next step for its kind: "Book a visit" (blue) for a visit,
+   "Add to cart" (gold) for a product. Pure CSS hover, so it works on the static-SSR pages; inside .svc-grid on phones it turns
+   into a compact horizontal row. *@
 
-<div class="single-popular-courses">
-    <div class="popular-courses-image">
-        <a href="@DetailUrl">
-            <img src="@ImageUrl" alt="Service Images" />
-        </a>
-    </div>
-    <div class="popular-courses-contnet">
-        <h5 class="popular-courses-title"><a href="@DetailUrl">@Service.Title</a></h5>
-        <div class="post_meta">
-            <ul>
-                @if (!string.IsNullOrWhiteSpace(CategoryTitle))
-                {
-                    <li><a href="@CategoryUrl">@CategoryTitle</a></li>
-                }
-                @if (Service.DiscountRate > 0)
-                {
-                    <li><p class="price-strike">@CurrencyFormat.Format(Service.Price)</p></li>
-                    <li><p class="price-discounted">@CurrencyFormat.Format(Service.DiscountedPrice)</p></li>
-                    <li><p class="price-off">@Service.DiscountRate% Off</p></li>
-                }
-                else
-                {
-                    <li><p class="price-plain">@FormattedPrice</p></li>
-                }
-            </ul>
-        </div>
-        <p class="popular-courses-desc">@TruncatedDescription</p>
-        <div class="button-block">
-            @if (Service.PriceType == ServicePriceTypes.Fixed)
+<article class="@($"svc-card {AccentTone.For(Service.CategoryId)}")">
+    <a href="@DetailUrl" class="svc-card-media" aria-label="@Service.Title">
+        @if (!string.IsNullOrWhiteSpace(ImageUrl))
+        {
+            <img src="@ImageUrl" alt="" loading="lazy" />
+        }
+        else
+        {
+            <span class="svc-card-placeholder"><MudIcon Icon="@Icons.Material.Outlined.HomeRepairService" /></span>
+        }
+        <span class="svc-card-badges">
+            @if (Service.IsEmergencyAvailable)
             {
-                <AddToCartForm ServiceId="@Service.Id" Price="@Service.DiscountedPrice" TaxRate="@Service.TaxRate"
-                                ButtonText="Book This Service" ShowIcon="false" FullWidth="true" />
+                <span class="svc-badge svc-badge-emergency"><MudIcon Icon="@Icons.Material.Filled.Bolt" Size="Size.Small" />24/7</span>
             }
-            else
+            @if (ServicePriceFormat.HasDiscount(Service))
             {
-                <MudButton Href="@DetailUrl" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true">Get a Quote</MudButton>
+                <span class="svc-badge svc-badge-deal">@Service.DiscountRate% off</span>
+            }
+        </span>
+    </a>
+
+    <div class="svc-card-body">
+        @if (!string.IsNullOrWhiteSpace(CategoryTitle))
+        {
+            <a href="@CategoryUrl" class="svc-card-category"><span class="svc-card-dot" aria-hidden="true"></span>@CategoryTitle</a>
+        }
+        <h3 class="svc-card-title"><a href="@DetailUrl">@Service.Title</a></h3>
+        <p class="svc-card-desc">@Service.Description</p>
+
+        <div class="svc-card-price">
+            <span class="svc-card-price-now">@ServicePriceFormat.Display(Service)</span>
+            @if (ServicePriceFormat.HasDiscount(Service))
+            {
+                <span class="svc-card-price-old">@CurrencyFormat.Format(Service.Price)</span>
             }
         </div>
+        <span class="svc-card-kind">
+            <MudIcon Icon="@(IsProduct ? Icons.Material.Outlined.Inventory2 : Icons.Material.Outlined.Engineering)" Size="Size.Small" />
+            @(IsProduct ? "Order online" : "A technician comes to you")
+        </span>
+
+        <div class="svc-card-actions">
+            <ServicePrimaryAction ServiceId="@Service.Id" Kind="@Service.Kind" BookText="Book a visit" ShowIcon="true" FullWidth="true"
+                                  Class="svc-card-cta" />
+            <a href="@DetailUrl" class="svc-card-details" aria-label="@($"Details for {Service.Title}")">Details</a>
+        </div>
     </div>
-</div>
+</article>
 
 @code {
     [Parameter, EditorRequired]
@@ -60,15 +72,5 @@
     [Parameter, EditorRequired]
     public string DetailUrl { get; set; } = default!;
 
-    private string FormattedPrice => Service.PriceType switch
-    {
-        ServicePriceTypes.StartingAt => $"From {CurrencyFormat.Format(Service.Price)}",
-        ServicePriceTypes.Range when Service.PriceMax is not null => $"{CurrencyFormat.Format(Service.Price)} - {CurrencyFormat.Format(Service.PriceMax.Value)}",
-        _ => CurrencyFormat.Format(Service.Price),
-    };
-
-    /// <summary>Mirrors the legacy card's exact truncation (80 chars + "...").</summary>
-    private string TruncatedDescription => Service.Description.Length > 80
-        ? Service.Description[..80] + "..."
-        : Service.Description;
+    private bool IsProduct => Service.Kind == ServiceKinds.Product;
 }

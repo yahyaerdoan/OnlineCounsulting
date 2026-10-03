@@ -28,32 +28,38 @@ else
             <MudTh>Name</MudTh>
             <MudTh>Billing</MudTh>
             <MudTh Class="mud-table-cell-align-right">Price</MudTh>
-            <MudTh Class="mud-table-cell-align-right">Visits/yr</MudTh>
+            <MudTh Class="mud-table-cell-align-right">Visits/Year</MudTh>
             <MudTh>Status</MudTh>
             <MudTh>Actions</MudTh>
         </HeaderContent>
         <RowTemplate Context="plan">
-            <MudTd DataLabel="Name">@plan.Name</MudTd>
+            <MudTd DataLabel="Name" Class="cell-primary">@plan.Name</MudTd>
             <MudTd DataLabel="Billing">@plan.BillingCycle</MudTd>
             <MudTd DataLabel="Price" Class="mud-table-cell-align-right">@CurrencyFormat.Format(plan.Price)</MudTd>
-            <MudTd DataLabel="Visits/yr" Class="mud-table-cell-align-right">@plan.IncludedVisitsPerYear</MudTd>
+            <MudTd DataLabel="Visits/Year" Class="mud-table-cell-align-right">@plan.IncludedVisitsPerYear</MudTd>
             <MudTd DataLabel="Status">
                 <MudChip T="string" Size="Size.Small" Color="@(plan.IsActive ? Color.Success : Color.Default)">
                     @(plan.IsActive ? "Active" : "Archived")
                 </MudChip>
             </MudTd>
             <MudTd DataLabel="Actions">
-                <MudIconButton Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" Size="Size.Small" title="Edit"
-                               OnClick="@(() => Navigation.NavigateTo($"{AppRoutes.AdminHome}/growth/memberships/{plan.Id}/edit"))" />
+                <MudTooltip Text="Edit">
+                    <MudIconButton aria-label="Edit" Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" Size="Size.Small"
+                                   OnClick="@(() => Navigation.NavigateTo($"{AppRoutes.AdminHome}/growth/memberships/{plan.Id}/edit"))" />
+                </MudTooltip>
                 @if (plan.IsActive)
                 {
-                    <MudIconButton Icon="@Icons.Material.Outlined.Archive" Color="Color.Default" Size="Size.Small" title="Archive"
-                                   OnClick="@(() => SetActiveAsync(plan, false))" />
+                    <MudTooltip Text="Archive">
+                        <MudIconButton aria-label="Archive" Icon="@Icons.Material.Outlined.Archive" Color="Color.Default" Size="Size.Small"
+                                       OnClick="@(() => SetActiveAsync(plan, false))" />
+                    </MudTooltip>
                 }
                 else
                 {
-                    <MudIconButton Icon="@Icons.Material.Outlined.Unarchive" Color="Color.Default" Size="Size.Small" title="Restore"
-                                   OnClick="@(() => SetActiveAsync(plan, true))" />
+                    <MudTooltip Text="Restore">
+                        <MudIconButton aria-label="Restore" Icon="@Icons.Material.Outlined.Unarchive" Color="Color.Default" Size="Size.Small"
+                                       OnClick="@(() => SetActiveAsync(plan, true))" />
+                    </MudTooltip>
                 }
             </MudTd>
         </RowTemplate>

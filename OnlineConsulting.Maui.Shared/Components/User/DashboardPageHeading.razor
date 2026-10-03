@@ -1,9 +1,18 @@
-@* Consistent h6 heading for /user/* pages whose header is a plain title with no adjacent button. *@
+@* Consistent heading for /user/* pages: the title, and the page's main action (e.g. Add Address) on its right when given. *@
 @namespace OnlineConsulting.Maui.Shared.Components.User
 
-<MudText Typo="Typo.h6" Class="mb-4">@Text</MudText>
+<div class="dashboard-heading">
+    <MudText Typo="Typo.h6" Class="text-strong">@Text</MudText>
+    @if (ChildContent is not null)
+    {
+        <div class="dashboard-heading-actions">@ChildContent</div>
+    }
+</div>
 
 @code {
     [Parameter, EditorRequired]
     public string Text { get; set; } = "";
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
 }

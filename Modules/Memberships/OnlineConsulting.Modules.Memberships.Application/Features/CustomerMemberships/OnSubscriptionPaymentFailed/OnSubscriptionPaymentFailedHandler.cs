@@ -1,12 +1,11 @@
 ﻿using MediatR;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Abstractions;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Constants;
-using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Payments;
 
 namespace OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.OnSubscriptionPaymentFailed;
 
-public class OnSubscriptionPaymentFailedHandler(ICustomerMembershipRepository repository, IPushNotificationSender pushNotificationSender) : INotificationHandler<SubscriptionPaymentFailedNotification>
+public class OnSubscriptionPaymentFailedHandler(ICustomerMembershipRepository repository, IMembershipNotifier notifier) : INotificationHandler<SubscriptionPaymentFailedNotification>
 {
     public async Task Handle(SubscriptionPaymentFailedNotification notification, CancellationToken cancellationToken)
     {
@@ -27,8 +26,6 @@ public class OnSubscriptionPaymentFailedHandler(ICustomerMembershipRepository re
 
         _ = await repository.UpdateAsync(membership);
 
-        await pushNotificationSender.SendToUserAsync(membership.UserId,
-            "Membership payment failed", "We couldn't process your latest membership payment. Please update your payment method to avoid losing your benefits.",
-            new Dictionary<string, string> { ["customerMembershipId"] = membership.Id.ToString() }, cancellationToken);
+        await notifier.PaymentFailedAsync(membership, cancellationToken);
     }
 }

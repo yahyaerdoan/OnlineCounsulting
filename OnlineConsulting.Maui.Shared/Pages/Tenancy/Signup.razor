@@ -12,143 +12,262 @@
 @inject NavigationManager Navigation
 @inject IConfiguration Configuration
 @inject IJSRuntime JsRuntime
+@implements IDisposable
 @inject FormState<SignupModel> Form
 
 <PageTitle>Sign Up Your Business</PageTitle>
 
-<MarketingPageBanner Title="Start Your Business" SubPage="Sign Up" />
+<MudContainer MaxWidth="MaxWidth.Large" Class="subscribe-page">
+    <a href="/pricing" class="subscribe-back"><MudIcon Icon="@Icons.Material.Filled.ArrowBack" Size="Size.Small" />Pricing</a>
 
-<MudContainer MaxWidth="MaxWidth.Medium" Class="marketing-section-tight">
     <ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
 
     @if (_loading)
     {
-        <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+        <div class="subscribe-layout">
+            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="360px" Class="rounded-lg subscribe-summary-area" />
+            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="560px" Class="rounded-lg subscribe-form-area" />
+        </div>
     }
     else if (_phase == SignupPhase.Confirmed)
     {
-        <MudStack AlignItems="AlignItems.Center" Class="py-10" Spacing="3">
-            <MudIcon Icon="@Icons.Material.Outlined.CheckCircleOutline" Size="Size.Large" Color="Color.Success" />
-            <MudText Typo="Typo.h5" Align="Align.Center" Class="marketing-display text-strong">Account created - welcome aboard!</MudText>
-            <MudText Typo="Typo.body1" Color="Color.Secondary" Align="Align.Center">Sign in to start setting up your workspace.</MudText>
-            <MudButton Href="/login" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" Class="mt-2">Sign In</MudButton>
-        </MudStack>
+        <div class="subscribe-success">
+            <span class="subscribe-success-icon"><MudIcon Icon="@Icons.Material.Filled.RocketLaunch" /></span>
+            <MudText Typo="Typo.h4" Align="Align.Center" Class="marketing-display text-strong">@_model.CompanyName is live!</MudText>
+            <MudText Typo="Typo.body1" Color="Color.Secondary" Align="Align.Center" Class="subscribe-success-lead">
+                Your workspace is ready. Sign in with @_model.Email to finish setting it up.
+            </MudText>
+            <ul class="subscribe-success-steps">
+                <li><span class="tone-bubble tone-bubble-sm @AccentTone.Blue"><MudIcon Icon="@Icons.Material.Outlined.Login" Size="Size.Small" /></span>Sign in to your admin dashboard</li>
+                <li><span class="tone-bubble tone-bubble-sm @AccentTone.Green"><MudIcon Icon="@Icons.Material.Outlined.HomeRepairService" Size="Size.Small" /></span>Add your services, prices and working hours</li>
+                <li><span class="tone-bubble tone-bubble-sm @AccentTone.Gold"><MudIcon Icon="@Icons.Material.Outlined.GroupAdd" Size="Size.Small" /></span>Invite your team and start taking bookings</li>
+            </ul>
+            <div class="sales-intro-actions subscribe-success-actions">
+                <MudButton Href="/login" Variant="Variant.Filled" Size="Size.Large" EndIcon="@Icons.Material.Filled.ArrowForward" Class="sell-btn">Sign in to my dashboard</MudButton>
+            </div>
+        </div>
     }
     else
     {
-        <MudStack Row="true" Justify="Justify.Center" Spacing="2" AlignItems="AlignItems.Center" Class="mb-6">
-            <MudChip T="string" Size="Size.Small" Variant="@(_phase == SignupPhase.Details ? Variant.Filled : Variant.Text)"
-                     Color="@(_phase == SignupPhase.Details ? Color.Primary : Color.Success)"
-                     Icon="@(_phase == SignupPhase.Payment ? Icons.Material.Filled.Check : null)">1. Company Details</MudChip>
-            <MudIcon Icon="@Icons.Material.Filled.ChevronRight" Color="Color.Secondary" Size="Size.Small" />
-            <MudChip T="string" Size="Size.Small" Variant="@(_phase == SignupPhase.Payment ? Variant.Filled : Variant.Text)"
-                     Color="@(_phase == SignupPhase.Payment ? Color.Primary : Color.Default)">2. Payment</MudChip>
-        </MudStack>
+        <div class="subscribe-heading">
+            <MudText Typo="Typo.h4" Class="marketing-display text-strong">@(_phase == SignupPhase.Details ? "Launch your business online" : "Almost there!")</MudText>
+            <span class="subscribe-secure-pill"><MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Small" />Secure checkout</span>
+        </div>
 
-        @if (_phase == SignupPhase.Details)
-        {
-            <MudCard Outlined="true">
-                <MudCardContent Class="pa-6">
+        <ol class="signup-stepper" aria-label="Signup steps">
+            <li class="@StepClass(SignupPhase.Details)">
+                <span class="signup-stepper-dot">
+                    @if (_phase == SignupPhase.Payment)
+                    {
+                        <MudIcon Icon="@Icons.Material.Filled.Check" Size="Size.Small" />
+                    }
+                    else
+                    {
+                        <span>1</span>
+                    }
+                </span>
+                <span>Plan &amp; account</span>
+            </li>
+            <li class="@StepClass(SignupPhase.Payment)">
+                <span class="signup-stepper-dot"><span>2</span></span>
+                <span>Payment</span>
+            </li>
+        </ol>
+
+        <div class="subscribe-layout">
+            <aside class="@($"subscribe-summary subscribe-summary-area {(_phase == SignupPhase.Details ? "signup-summary-details" : "")}")">
+                @SummaryCard
+            </aside>
+
+            <section class="subscribe-form subscribe-form-area">
+                @if (_phase == SignupPhase.Details)
+                {
                     <EditForm EditContext="@Form.EditContext" autocomplete="off">
-                        <MudText Typo="Typo.h6" Class="text-strong">Company Details</MudText>
-                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">Tell us a bit about your business.</MudText>
-                        <MudTextField T="string" Label="Company name" @bind-Value="_model.CompanyName" For="@(() => _model.CompanyName)" Variant="Variant.Outlined" Margin="Margin.Dense" autocomplete="off" />
+                        <div class="subscribe-step">
+                            <span class="subscribe-step-number">1</span>
+                            <span class="subscribe-step-title">Choose what your business needs</span>
+                        </div>
 
                         @if (_bundles.Count > 0)
                         {
-                            <MudDivider Class="my-5" />
-                            <MudText Typo="Typo.subtitle2" Class="text-strong mb-1">Quick start bundles</MudText>
-                            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">Pick one to pre-select its modules below, or skip and choose your own.</MudText>
-                            <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="2">
+                            <span class="subscribe-summary-label">Quick Start</span>
+                            <div class="signup-bundles">
                                 @foreach (var bundle in _bundles)
                                 {
-                                    <MudChip T="string" Size="Size.Medium" Icon="@(IsBundleSelected(bundle) ? Icons.Material.Filled.Check : null)"
-                                             Variant="@(IsBundleSelected(bundle) ? Variant.Filled : Variant.Outlined)"
-                                             Color="@(IsBundleSelected(bundle) ? Color.Primary : Color.Default)"
-                                             OnClick="@(() => SelectBundle(bundle))">@bundle.Name</MudChip>
+                                    var selected = IsBundleSelected(bundle);
+                                    <button type="button" class="@($"signup-bundle {(selected ? "selected" : "")}")" @onclick="@(() => SelectBundle(bundle))">
+                                        <MudIcon Icon="@(selected ? Icons.Material.Filled.CheckCircle : Icons.Material.Outlined.AutoAwesome)" Size="Size.Small" />
+                                        @bundle.Name
+                                    </button>
                                 }
-                            </MudStack>
+                            </div>
                         }
 
-                        <MudDivider Class="my-5" />
-                        <MudText Typo="Typo.subtitle2" Class="text-strong mb-3">Choose your modules</MudText>
-                        <MudPaper Outlined="true" Class="rounded-lg">
-                            @for (var i = 0; i < _offerings.Count; i++)
+                        <div id="signup-field-Modules" class="pricing-module-grid signup-module-grid section-anchor" role="group" aria-label="Modules">
+                            @foreach (var (offering, index) in _offerings.Select((o, i) => (o, i)))
                             {
-                                var offering = _offerings[i];
-                                <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="pa-3">
-                                    <MudCheckBox T="bool" Value="@_selectedKeys.Contains(offering.Key)"
-                                                 ValueChanged="@(isChecked => ToggleModule(offering.Key, isChecked))"
-                                                 Label="@offering.Name" Dense="true" />
-                                    <MudText Typo="Typo.body2" Color="Color.Secondary">@offering.Price.ToString("C") / @(offering.BillingCycle == "Annual" ? "yr" : "mo")</MudText>
-                                </MudStack>
-                                @if (i < _offerings.Count - 1)
-                                {
-                                    <MudDivider />
-                                }
+                                var selected = _selectedKeys.Contains(offering.Key);
+                                <button type="button" role="checkbox" aria-checked="@(selected ? "true" : "false")"
+                                        class="@($"pricing-module {(selected ? "selected" : "")}")" @onclick="@(() => ToggleModule(offering.Key, !selected))">
+                                    <span class="tone-bubble @AccentTone.At(index)"><MudIcon Icon="@ModuleOfferingDisplay.Icon(offering)" /></span>
+                                    <span class="pricing-module-text">
+                                        <span class="pricing-module-name">@offering.Name</span>
+                                        <span class="pricing-module-price">@CurrencyFormat.Format(offering.Price) / @ModuleOfferingDisplay.CycleLabel(offering)</span>
+                                    </span>
+                                    <span class="pricing-module-check" aria-hidden="true">
+                                        <MudIcon Icon="@(selected ? Icons.Material.Filled.CheckCircle : Icons.Material.Outlined.AddCircleOutline)" />
+                                    </span>
+                                </button>
                             }
-                        </MudPaper>
+                        </div>
 
-                        <MudDivider Class="my-6" />
-                        <MudText Typo="Typo.h6" Class="text-strong mb-1">Your Account</MudText>
-                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">You will use this to sign in as the workspace admin.</MudText>
-                        <MudGrid Spacing="3">
-                            <MudItem xs="12" sm="6"><MudTextField T="string" Label="First name" @bind-Value="_model.FirstName" For="@(() => _model.FirstName)" Variant="Variant.Outlined" Margin="Margin.Dense" autocomplete="off" /></MudItem>
-                            <MudItem xs="12" sm="6"><MudTextField T="string" Label="Last name" @bind-Value="_model.LastName" For="@(() => _model.LastName)" Variant="Variant.Outlined" Margin="Margin.Dense" autocomplete="off" /></MudItem>
-                            <MudItem xs="12" sm="6"><MudTextField T="string" Label="Email" InputType="InputType.Email" @bind-Value="_model.Email" For="@(() => _model.Email)" Variant="Variant.Outlined" Margin="Margin.Dense" autocomplete="off" /></MudItem>
-                            <MudItem xs="12" sm="6"><MudTextField T="string" Label="Phone (optional)" @bind-Value="_model.PhoneNumber" For="@(() => _model.PhoneNumber)" Variant="Variant.Outlined" Margin="Margin.Dense" autocomplete="off" /></MudItem>
-                            <MudItem xs="12"><MudTextField T="string" Label="Password" InputType="InputType.Password" @bind-Value="_model.Password" For="@(() => _model.Password)" Variant="Variant.Outlined" Margin="Margin.Dense" autocomplete="new-password" /></MudItem>
+                        @if (ShowError(ModulesField) is { } modulesError)
+                        {
+                            <p class="signup-field-error"><MudIcon Icon="@Icons.Material.Filled.ErrorOutline" Size="Size.Small" />@modulesError</p>
+                        }
+
+                        <div class="subscribe-summary signup-inline-card mobile-only" aria-live="polite">
+                            @SummaryCard
+                        </div>
+
+                        <div class="subscribe-step signup-step-gap">
+                            <span class="subscribe-step-number">2</span>
+                            <span class="subscribe-step-title">Your business</span>
+                        </div>
+                        <div id="signup-field-CompanyName" class="section-anchor">
+                            <MudTextField T="string" Label="Company name" @bind-Value="_model.CompanyName" For="@(() => _model.CompanyName)" Variant="Variant.Outlined" Immediate="true"
+                                          autocomplete="organization" MaxLength="100" OnBlur="@(() => Touch(nameof(SignupModel.CompanyName)))"
+                                          Error="@(ShowError(nameof(SignupModel.CompanyName)) is not null)" ErrorText="@ShowError(nameof(SignupModel.CompanyName))" />
+                        </div>
+
+                        <div class="subscribe-step signup-step-gap">
+                            <span class="subscribe-step-number">3</span>
+                            <span class="subscribe-step-title">Your admin account</span>
+                        </div>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-2">You'll use this to sign in and manage your workspace.</MudText>
+                        <MudGrid Spacing="2">
+                            <MudItem xs="12" sm="6">
+                                <div id="signup-field-FirstName" class="section-anchor">
+                                    <MudTextField T="string" Label="First name" @bind-Value="_model.FirstName" For="@(() => _model.FirstName)" Variant="Variant.Outlined" Immediate="true"
+                                                  autocomplete="given-name" MaxLength="50" OnBlur="@(() => Touch(nameof(SignupModel.FirstName)))"
+                                                  Error="@(ShowError(nameof(SignupModel.FirstName)) is not null)" ErrorText="@ShowError(nameof(SignupModel.FirstName))" />
+                                </div>
+                            </MudItem>
+                            <MudItem xs="12" sm="6">
+                                <div id="signup-field-LastName" class="section-anchor">
+                                    <MudTextField T="string" Label="Last name" @bind-Value="_model.LastName" For="@(() => _model.LastName)" Variant="Variant.Outlined" Immediate="true"
+                                                  autocomplete="family-name" MaxLength="50" OnBlur="@(() => Touch(nameof(SignupModel.LastName)))"
+                                                  Error="@(ShowError(nameof(SignupModel.LastName)) is not null)" ErrorText="@ShowError(nameof(SignupModel.LastName))" />
+                                </div>
+                            </MudItem>
+                            <MudItem xs="12" sm="6">
+                                <div id="signup-field-Email" class="section-anchor">
+                                    <MudTextField T="string" Label="Email" InputType="InputType.Email" @bind-Value="_model.Email" For="@(() => _model.Email)" Variant="Variant.Outlined" Immediate="true"
+                                                  autocomplete="email" MaxLength="256" OnBlur="@(() => Touch(nameof(SignupModel.Email)))"
+                                                  Error="@(ShowError(nameof(SignupModel.Email)) is not null)" ErrorText="@ShowError(nameof(SignupModel.Email))" />
+                                </div>
+                            </MudItem>
+                            <MudItem xs="12" sm="6">
+                                <div id="signup-field-PhoneNumber" class="section-anchor">
+                                    <MudTextField T="string" Label="Phone (optional)" InputType="InputType.Telephone" @bind-Value="_model.PhoneNumber" For="@(() => _model.PhoneNumber)" Variant="Variant.Outlined" Immediate="true"
+                                                  autocomplete="tel" MaxLength="20" OnBlur="@(() => Touch(nameof(SignupModel.PhoneNumber)))"
+                                                  Error="@(ShowError(nameof(SignupModel.PhoneNumber)) is not null)" ErrorText="@ShowError(nameof(SignupModel.PhoneNumber))" />
+                                </div>
+                            </MudItem>
+                            <MudItem xs="12">
+                                <div id="signup-field-Password" class="section-anchor">
+                                    <MudTextField T="string" Label="Password" InputType="@(_showPassword ? InputType.Text : InputType.Password)" @bind-Value="_model.Password" For="@(() => _model.Password)"
+                                                  Variant="Variant.Outlined" Immediate="true" autocomplete="new-password" OnBlur="@(() => Touch(nameof(SignupModel.Password)))"
+                                                  Error="@(ShowError(nameof(SignupModel.Password)) is not null)" ErrorText="@ShowError(nameof(SignupModel.Password))"
+                                                  Adornment="Adornment.End" AdornmentIcon="@(_showPassword ? Icons.Material.Outlined.VisibilityOff : Icons.Material.Outlined.Visibility)"
+                                                  OnAdornmentClick="@(() => _showPassword = !_showPassword)" AdornmentAriaLabel="Show password" />
+                                    <ul class="password-rules" aria-label="Password requirements">
+                                        @foreach (var (label, met) in PasswordRules)
+                                        {
+                                            <li class="@(met ? "met" : null)">
+                                                <MudIcon Icon="@(met ? Icons.Material.Filled.CheckCircle : Icons.Material.Outlined.Circle)" Size="Size.Small" />@label
+                                            </li>
+                                        }
+                                    </ul>
+                                </div>
+                            </MudItem>
                         </MudGrid>
 
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Size="Size.Large" Class="mt-6"
-                                   Disabled="@(!CanContinue)" OnClick="@(() => _phase = SignupPhase.Payment)">
-                            Continue to Payment
-                        </MudButton>
-                        @if (!CanContinue)
+                        @if (_attempted && FieldErrors.Count > 0)
                         {
-                            <MudText Typo="Typo.caption" Color="Color.Secondary" Align="Align.Center" Class="d-block mt-2">
-                                Fill in your company and account details and select at least one module to continue.
-                            </MudText>
+                            <div class="signup-error-summary" role="alert">
+                                <MudIcon Icon="@Icons.Material.Filled.ErrorOutline" Size="Size.Small" />
+                                <span>Please fix @(FieldErrors.Count == 1 ? "the highlighted field" : $"the {FieldErrors.Count} highlighted fields") to continue.</span>
+                            </div>
                         }
-                    </EditForm>
-                </MudCardContent>
-            </MudCard>
-        }
-        else
-        {
-            <MudCard Outlined="true">
-                <MudCardContent Class="pa-6">
-                    <MudText Typo="Typo.h6" Class="text-strong mb-3">Order Summary</MudText>
-                    <MudPaper Outlined="true" Class="rounded-lg pa-1 mb-5">
-                        @foreach (var offering in SelectedOfferings)
-                        {
-                            <MudStack Row="true" Justify="Justify.SpaceBetween" Class="pa-3">
-                                <MudText Typo="Typo.body2">@offering.Name</MudText>
-                                <MudText Typo="Typo.body2" Color="Color.Secondary">@offering.Price.ToString("C") / @(offering.BillingCycle == "Annual" ? "yr" : "mo")</MudText>
-                            </MudStack>
-                        }
-                    </MudPaper>
 
-                    <MudText Typo="Typo.subtitle2" Class="text-strong mb-2">Card Details</MudText>
-                    <div id="tenancy-signup-card-element" class="mb-3"></div>
+                        <MudButton Variant="Variant.Filled" FullWidth="true" Size="Size.Large" Class="sell-btn subscribe-pay-btn mt-4"
+                                   EndIcon="@Icons.Material.Filled.ArrowForward" OnClick="GoToPaymentAsync">
+                            Continue to payment
+                        </MudButton>
+                    </EditForm>
+                }
+                else
+                {
+                    <div class="subscribe-step">
+                        <span class="subscribe-step-number">4</span>
+                        <span class="subscribe-step-title">Payment details</span>
+                    </div>
+
+                    <div id="card-field" class="card-field-wrap section-anchor @(_cardMissing ? "missing" : null)">
+                        <div id="tenancy-signup-card-element" class="subscribe-card-field"></div>
+                    </div>
+                    @if (_cardMissing && _paymentError is null)
+                    {
+                        <p class="signup-field-error"><MudIcon Icon="@Icons.Material.Filled.ErrorOutline" Size="Size.Small" />Enter your card number, expiry date and CVC to continue.</p>
+                    }
+                    <div class="subscribe-card-hint">
+                        <MudIcon Icon="@Icons.Material.Outlined.CreditCard" Size="Size.Small" />
+                        <span>All major credit and debit cards accepted</span>
+                    </div>
                     <ApiErrorAlert Message="@_paymentError" Severity="Severity.Error" />
 
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Size="Size.Large" Class="mt-4"
-                               Disabled="@_isBusy" OnClick="SubmitAsync">
-                        Create Account &amp; Subscribe
+                    <MudButton Variant="Variant.Filled" FullWidth="true" Size="Size.Large" Class="sell-btn subscribe-pay-btn mt-4"
+                               Disabled="@_isBusy" OnClick="SubmitAsync" StartIcon="@(_isBusy ? null : Icons.Material.Filled.Lock)">
+                        @if (_isBusy)
+                        {
+                            <MudProgressCircular Indeterminate="true" Size="Size.Small" Class="mr-2" />
+                            <span>Setting up your workspace...</span>
+                        }
+                        else
+                        {
+                            <span>Subscribe and launch</span>
+                        }
                     </MudButton>
-                    <MudButton Variant="Variant.Text" FullWidth="true" Class="mt-2" Disabled="@_isBusy"
-                               OnClick="@(() => _phase = SignupPhase.Details)">
-                        Back
-                    </MudButton>
-                </MudCardContent>
-            </MudCard>
-        }
+                    <MudButton Variant="Variant.Text" FullWidth="true" Class="mt-2" Disabled="@_isBusy" StartIcon="@Icons.Material.Filled.ArrowBack"
+                               OnClick="BackToDetails">Back to plan &amp; account</MudButton>
+
+                    <p class="subscribe-consent">
+                        Your subscription starts today at @TotalText and renews automatically until you cancel.
+                    </p>
+
+                    <div class="subscribe-trust">
+                        @foreach (var (icon, label) in TrustPoints)
+                        {
+                            <span class="subscribe-trust-item"><MudIcon Icon="@icon" Size="Size.Small" />@label</span>
+                        }
+                    </div>
+                }
+            </section>
+        </div>
+
     }
 </MudContainer>
 
 @code {
     private enum SignupPhase { Details, Payment, Confirmed }
+
+    private static readonly (string Icon, string Label)[] TrustPoints =
+    [
+        (Icons.Material.Outlined.Lock, "Payments processed securely by Stripe"),
+        (Icons.Material.Outlined.CreditCardOff, "We never store your card details"),
+        (Icons.Material.Outlined.PhoneIphone, "Web and mobile apps included"),
+    ];
 
     private List<PublicModuleOfferingResponse> _offerings = [];
     private List<PublicBundleResponse> _bundles = [];
@@ -159,23 +278,106 @@
     private SignupPhase _phase = SignupPhase.Details;
     private bool _loading = true;
     private bool _isBusy;
+    private bool _showPassword;
     private bool _cardElementMounted;
     private string? _loadError;
     private string? _paymentError;
 
-    private IEnumerable<PublicModuleOfferingResponse> SelectedOfferings => _offerings.Where(o => _selectedKeys.Contains(o.Key));
+    private List<PublicModuleOfferingResponse> SelectedOfferings => [.. _offerings.Where(o => _selectedKeys.Contains(o.Key))];
 
-    private bool CanContinue =>
-        _selectedKeys.Count > 0 &&
-        !string.IsNullOrWhiteSpace(_model.CompanyName) &&
-        !string.IsNullOrWhiteSpace(_model.FirstName) &&
-        !string.IsNullOrWhiteSpace(_model.LastName) &&
-        !string.IsNullOrWhiteSpace(_model.Email) &&
-        !string.IsNullOrWhiteSpace(_model.Password);
+    private string TotalText => ModuleOfferingDisplay.PriceText(SelectedOfferings);
+
+    private const string ModulesField = nameof(SignupModel.CompanyName) + "Modules";
+
+    private static readonly string[] FieldOrder =
+    [
+        ModulesField, nameof(SignupModel.CompanyName), nameof(SignupModel.FirstName), nameof(SignupModel.LastName),
+        nameof(SignupModel.Email), nameof(SignupModel.PhoneNumber), nameof(SignupModel.Password),
+    ];
+
+    private static readonly System.Text.RegularExpressions.Regex EmailPattern = new(@"^[^@\s]+@[^@\s]+\.[^@\s]{2,}$");
+
+    private readonly HashSet<string> _touched = [];
+    private bool _attempted;
+
+    private (string Label, bool Met)[] PasswordRules =>
+    [
+        ("At least 8 characters", (_model.Password ?? "").Length >= 8),
+        ("An uppercase letter", (_model.Password ?? "").Any(char.IsUpper)),
+        ("A lowercase letter", (_model.Password ?? "").Any(char.IsLower)),
+        ("A number", (_model.Password ?? "").Any(char.IsDigit)),
+        ("A symbol, like ! or #", (_model.Password ?? "").Any(c => !char.IsLetterOrDigit(c))),
+    ];
+
+    /// <summary>What's wrong with a field right now, or null when it's fine - the same rules the server applies before charging.</summary>
+    private string? Validate(string field) => field switch
+    {
+        ModulesField when _selectedKeys.Count == 0 => "Pick at least one module for your plan.",
+        nameof(SignupModel.CompanyName) when string.IsNullOrWhiteSpace(_model.CompanyName) => "Enter your company name.",
+        nameof(SignupModel.CompanyName) when _model.CompanyName.Trim().Length < 2 => "Company name needs at least 2 characters.",
+        nameof(SignupModel.FirstName) when string.IsNullOrWhiteSpace(_model.FirstName) => "Enter your first name.",
+        nameof(SignupModel.LastName) when string.IsNullOrWhiteSpace(_model.LastName) => "Enter your last name.",
+        nameof(SignupModel.Email) when string.IsNullOrWhiteSpace(_model.Email) => "Enter your email address.",
+        nameof(SignupModel.Email) when !EmailPattern.IsMatch(_model.Email.Trim()) => "Enter a valid email address, like name@company.com.",
+        nameof(SignupModel.PhoneNumber) when !string.IsNullOrWhiteSpace(_model.PhoneNumber) && _model.PhoneNumber.Count(char.IsDigit) is < 10 or > 15
+            => "Enter a full phone number, like (555) 123-4567.",
+        nameof(SignupModel.Password) when string.IsNullOrEmpty(_model.Password) => "Create a password.",
+        nameof(SignupModel.Password) when PasswordRules.Any(r => !r.Met) => $"Your password still needs: {string.Join(", ", PasswordRules.Where(r => !r.Met).Select(r => r.Label.ToLowerInvariant()))}.",
+        _ => null,
+    };
+
+    private List<string> FieldErrors => [.. FieldOrder.Where(f => Validate(f) is not null)];
+
+    private string? ShowError(string field) => _attempted || _touched.Contains(field) ? Validate(field) : null;
+
+    private void Touch(string field) => _touched.Add(field);
+
+    private RenderFragment SummaryCard => __builder =>
+    {
+        <div class="subscribe-plan-hero">
+            <span class="subscribe-plan-icon"><MudIcon Icon="@Icons.Material.Outlined.Storefront" /></span>
+            <div class="min-w-0">
+                <span class="subscribe-plan-eyebrow">Your workspace</span>
+                <span class="subscribe-plan-name">@(string.IsNullOrWhiteSpace(_model.CompanyName) ? "Your business" : _model.CompanyName)</span>
+            </div>
+        </div>
+
+        <div class="subscribe-summary-body">
+            <span class="subscribe-summary-label">Selected Modules</span>
+            @if (SelectedOfferings.Count == 0)
+            {
+                <div class="pricing-summary-empty">
+                    <MudIcon Icon="@Icons.Material.Outlined.TouchApp" Size="Size.Large" />
+                    <span>Pick at least one module to see your price.</span>
+                </div>
+            }
+            else
+            {
+                <ul class="signup-summary-modules">
+                    @foreach (var offering in SelectedOfferings)
+                    {
+                        <li>
+                            <MudIcon Icon="@ModuleOfferingDisplay.Icon(offering)" Size="Size.Small" Color="Color.Primary" />
+                            <span class="signup-summary-module-name">@offering.Name</span>
+                            <span>@CurrencyFormat.Format(offering.Price) / @ModuleOfferingDisplay.CycleLabel(offering)</span>
+                        </li>
+                    }
+                </ul>
+                <div class="subscribe-lines">
+                    <div class="subscribe-line subscribe-line-total">
+                        <span>Total</span>
+                        <span @key="TotalText" class="subscribe-total-value">@TotalText</span>
+                    </div>
+                    <span class="subscribe-then">Renews automatically</span>
+                </div>
+            }
+        </div>
+    };
+
+    private string StepClass(SignupPhase step) => step == _phase ? "active" : step < _phase ? "done" : "";
 
     protected override async Task OnInitializedAsync()
     {
-        // Bind before any await - Blazor can render (and touch Form.EditContext) after the first yield point.
         Form.Bind(_model);
 
         var offeringsResult = await ApiClient.GetAsync<List<PublicModuleOfferingResponse>>(ApiRoutes.Tenancy.ModuleOfferings);
@@ -186,7 +388,7 @@
             return;
         }
 
-        _offerings = offeringsResult.ResultData ?? [];
+        _offerings = [.. (offeringsResult.ResultData ?? []).OrderBy(o => o.Price)];
 
         var bundlesResult = await ApiClient.GetAsync<List<PublicBundleResponse>>(ApiRoutes.Tenancy.Bundles);
         _bundles = bundlesResult.IsSuccessful ? bundlesResult.ResultData ?? [] : [];
@@ -223,8 +425,35 @@
         {
             _cardElementMounted = true;
             var publishableKey = Configuration["Stripe:PublishableKey"];
-            await JsRuntime.InvokeVoidAsync("subscribeStripe.init", publishableKey, "tenancy-signup-card-element");
+            _selfReference ??= DotNetObjectReference.Create(this);
+            _paymentError = await JsRuntime.InvokeAsync<string?>("subscribeStripe.init", publishableKey, "tenancy-signup-card-element", _selfReference);
+            if (_paymentError is not null)
+            {
+                StateHasChanged();
+            }
         }
+    }
+
+    private async Task GoToPaymentAsync()
+    {
+        _attempted = true;
+        if (FieldErrors.FirstOrDefault() is { } firstInvalid)
+        {
+            await JsRuntime.InvokeVoidAsync("comfortProScrollToSection", $"signup-field-{(firstInvalid == ModulesField ? "Modules" : firstInvalid)}");
+            return;
+        }
+
+        _phase = SignupPhase.Payment;
+        await JsRuntime.InvokeVoidAsync("scrollTo", 0, 0);
+    }
+
+    private void BackToDetails()
+    {
+        _phase = SignupPhase.Details;
+        _cardElementMounted = false;
+        _cardComplete = false;
+        _cardMissing = false;
+        _paymentError = null;
     }
 
     private bool IsBundleSelected(PublicBundleResponse bundle) =>
@@ -252,6 +481,13 @@
 
     private async Task SubmitAsync()
     {
+        if (!_cardComplete)
+        {
+            _cardMissing = true;
+            await JsRuntime.InvokeVoidAsync("comfortProScrollToSection", "card-field");
+            return;
+        }
+
         _isBusy = true;
         _paymentError = null;
         StateHasChanged();
@@ -286,9 +522,10 @@
         Snackbar.ShowSuccess(result.DisplayMessage);
         _phase = SignupPhase.Confirmed;
         _isBusy = false;
+        await JsRuntime.InvokeVoidAsync("scrollTo", 0, 0);
     }
 
-    /// <summary>Remaps chained commands' inconsistent field names onto SignupModel's; unmappable ones (no matching input) go to the toast.</summary>
+    /// <summary>Field errors send the user back to the form with each input marked; anything else stays inline on the payment step.</summary>
     private void ApplySignupErrors(ApiEnvelope result)
     {
         var fieldErrors = new Dictionary<string, List<string>>();
@@ -312,14 +549,17 @@
 
         if (fieldErrors.Count > 0)
         {
-            _phase = SignupPhase.Details;
+            BackToDetails();
             Form.DisplayErrors(result with { FieldErrors = fieldErrors });
+            if (generalMessages.Count > 0)
+            {
+                Snackbar.ShowError(string.Join(" ", generalMessages));
+            }
+
+            return;
         }
 
-        if (generalMessages.Count > 0 || fieldErrors.Count == 0)
-        {
-            Snackbar.ShowError(generalMessages.Count > 0 ? string.Join(" ", generalMessages) : result.DisplayMessage);
-        }
+        _paymentError = generalMessages.Count > 0 ? string.Join(" ", generalMessages) : result.DisplayMessage;
     }
 
     private static readonly HashSet<string> DirectSignupFieldKeys =
@@ -334,6 +574,27 @@
         "PhoneNumber" or "AdminPhoneNumber" => nameof(SignupModel.PhoneNumber),
         _ => null,
     };
+
+    private DotNetObjectReference<Signup>? _selfReference;
+
+    /// <summary>Called by subscribeStripe.js whenever the card field's validation state changes, so a fixed card clears its error right away.</summary>
+    [JSInvokable]
+    public Task OnCardChanged(string? error, bool complete) => InvokeAsync(() =>
+    {
+        _paymentError = error;
+        _cardComplete = complete;
+        if (complete)
+        {
+            _cardMissing = false;
+        }
+
+        StateHasChanged();
+    });
+
+    private bool _cardComplete;
+    private bool _cardMissing;
+
+    public void Dispose() => _selfReference?.Dispose();
 
     private sealed record StripeTokenizeResult(string? PaymentMethodId, string? Error);
 

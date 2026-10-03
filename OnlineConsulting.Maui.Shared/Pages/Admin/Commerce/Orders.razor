@@ -23,7 +23,7 @@
     </HeaderContent>
     <RowTemplate Context="order">
         <MudTd DataLabel="Date">@DateTimeFormat.FormatDateTime(order.CreatedDate)</MudTd>
-        <MudTd DataLabel="Order #">@order.OrderNumber</MudTd>
+        <MudTd DataLabel="Order #" Class="cell-primary">@order.OrderNumber</MudTd>
         <MudTd DataLabel="Customer">@(order.UserName ?? order.UserEmail ?? "-")</MudTd>
         <MudTd DataLabel="Status">@order.OrderStatus</MudTd>
         <MudTd DataLabel="Payment">
@@ -31,8 +31,10 @@
         </MudTd>
         <MudTd DataLabel="Total" Class="mud-table-cell-align-right">@CurrencyFormat.Format(order.TotalPrice)</MudTd>
         <MudTd DataLabel="Actions">
-            <MudIconButton Icon="@Icons.Material.Outlined.Undo" Color="Color.Error" Size="Size.Small" title="Refund"
-                           Disabled="@(order.PaymentStatus != "Paid")" OnClick="@(() => RefundAsync(order))" />
+            <MudTooltip Text="Refund">
+                <MudIconButton aria-label="Refund" Icon="@Icons.Material.Outlined.Undo" Color="Color.Error" Size="Size.Small"
+                               Disabled="@(order.PaymentStatus != "Paid")" OnClick="@(() => RefundAsync(order))" />
+            </MudTooltip>
         </MudTd>
     </RowTemplate>
 </ServerDataTable>

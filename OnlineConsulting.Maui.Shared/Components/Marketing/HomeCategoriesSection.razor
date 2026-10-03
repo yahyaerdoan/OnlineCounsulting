@@ -1,48 +1,183 @@
-@* Category grid - each tile is a real link into the filtered service list (not just decorative),
-   with a description line and a "View services" affordance so it reads as useful navigation. *@
+@* Tabbed "explore by category" band (wide screens; phones use the service rails instead). Each category keeps its own color
+   (AccentTone.For, same as the Services page). The left list shows how many services each has; the panel opens with a colored
+   header (what the category covers, service count, lowest price, 24/7 when any service offers it, the next steps) above up to
+   four service tiles, each with photo, deal/24/7/popular badges, price and its one next step: "Book" for a visit, "Add to cart"
+   for a product. Photos are looked up per category the first time it is opened. *@
 @using OnlineConsulting.Maui.Shared.Infrastructure.Api
 @inject IApiClient ApiClient
 
-<MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
-    <MudText Typo="Typo.subtitle1" Color="Color.Primary" Align="Align.Center" Class="text-strong">Your Comfort, Our Priority</MudText>
-    <MudText Typo="Typo.h5" Align="Align.Center" Class="marketing-display text-strong mb-2">Home Services We Provide</MudText>
-    <MudText Typo="Typo.body1" Color="Color.Secondary" Align="Align.Center" Class="mx-auto mb-4" Style="max-width:640px;">
-        From routine maintenance to emergency repairs and full system installs, ComfortPro's licensed technicians
-        keep your home comfortable year-round. Explore our service categories below:
-    </MudText>
+<section class="category-explorer-band">
+    <MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
+        <SectionHeading Eyebrow="Services" Title="Everything Your Home's Comfort Needs"
+                        Lead="From routine maintenance to emergency repairs and full system installs. Pick a category to see what we do." />
 
-    <MudGrid Spacing="2">
-        @foreach (var (category, colorClass) in _tiles)
+        @if (_categories.Count > 0)
         {
-            <MudItem xs="12" sm="6" md="4">
-                <a href="@($"/services?category={category.Id}")" class="marketing-category-tile @colorClass">
-                    <MudIcon Icon="@category.Icon" Class="marketing-category-icon" Style="@($"color:{category.IconColor ?? "var(--mud-palette-primary)"};")" />
-                    <MudText Typo="Typo.subtitle1" Class="marketing-category-title text-strong">@category.Title</MudText>
-                    @if (!string.IsNullOrWhiteSpace(category.Description))
+            <div class="category-explorer">
+                <div class="category-explorer-tabs" role="tablist" aria-label="Service categories" aria-orientation="vertical">
+                    @foreach (var category in _categories)
                     {
-                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="marketing-category-desc">@category.Description</MudText>
+                        var id = category.Id;
+                        var count = ServicesOf(id).Count();
+                        <button type="button" role="tab" id="@($"category-tab-{id}")" aria-controls="category-panel"
+                                aria-selected="@(id == _selectedId ? "true" : "false")"
+                                class="@($"category-explorer-tab {AccentTone.For(id)} {(id == _selectedId ? "selected" : "")}")"
+                                @onclick="@(() => SelectAsync(id))">
+                            <span class="tone-bubble category-explorer-tab-icon"><MudIcon Icon="@category.Icon" Size="Size.Small" /></span>
+                            <span class="category-explorer-tab-text">
+                                <span class="category-explorer-tab-label">@category.Title</span>
+                                <span class="category-explorer-tab-count">@count @(count == 1 ? "service" : "services")</span>
+                            </span>
+                            <MudIcon Icon="@Icons.Material.Filled.ChevronRight" Size="Size.Small" Class="category-explorer-tab-chevron" />
+                        </button>
                     }
-                    <span class="marketing-category-link">
-                        View services <MudIcon Icon="@Icons.Material.Filled.ArrowForward" Size="Size.Small" />
-                    </span>
-                </a>
-            </MudItem>
-        }
-    </MudGrid>
+                </div>
 
-    <MudStack AlignItems="AlignItems.Center" Class="mt-6">
-        <MudButton Href="/services" Variant="Variant.Filled" Color="Color.Primary">View All Services</MudButton>
-    </MudStack>
-</MudContainer>
+                @if (Selected is { } selected)
+                {
+                    var services = ServicesOf(selected.Id).OrderByDescending(s => s.FeaturedArea).Take(4).ToList();
+                    var all = ServicesOf(selected.Id).ToList();
+                    <div class="@($"category-explorer-panel {AccentTone.For(selected.Id)}")" role="tabpanel" id="category-panel"
+                         aria-labelledby="@($"category-tab-{selected.Id}")" @key="selected.Id">
+                        <div class="category-explorer-head">
+                            <span class="category-explorer-head-icon"><MudIcon Icon="@selected.Icon" /></span>
+                            <div class="category-explorer-head-text">
+                                <h3 class="category-explorer-head-title">@selected.Title</h3>
+                                @if (!string.IsNullOrWhiteSpace(selected.Description))
+                                {
+                                    <p class="category-explorer-head-desc">@selected.Description</p>
+                                }
+                                <div class="category-explorer-facts">
+                                    <span class="category-explorer-fact"><MudIcon Icon="@Icons.Material.Outlined.HomeRepairService" Size="Size.Small" />@all.Count @(all.Count == 1 ? "service" : "services")</span>
+                                    @if (all.Count > 0)
+                                    {
+                                        <span class="category-explorer-fact"><MudIcon Icon="@Icons.Material.Outlined.Sell" Size="Size.Small" />From @CurrencyFormat.Format(all.Min(s => s.DiscountRate > 0 ? s.DiscountedPrice : s.Price))</span>
+                                    }
+                                    @if (all.Any(s => s.IsEmergencyAvailable))
+                                    {
+                                        <span class="category-explorer-fact category-explorer-fact-urgent"><MudIcon Icon="@Icons.Material.Filled.Bolt" Size="Size.Small" />24/7 emergency</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (services.Count == 0)
+                        {
+                            <div class="category-explorer-empty">
+                                <MudText Typo="Typo.body1">We're adding services here soon. Tell us what you need and we'll help right away.</MudText>
+                                <MudButton Href="/contact" Variant="Variant.Outlined" Color="Color.Primary" Class="mt-2">Contact us</MudButton>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="category-explorer-services">
+                                @foreach (var service in services)
+                                {
+                                    var isProduct = service.Kind == ServiceKinds.Product;
+                                    var photo = _imageUrls.GetValueOrDefault(service.Id);
+                                    <article class="cat-svc">
+                                        <a href="@($"/services/{service.Slug}")" class="cat-svc-thumb" aria-label="@service.Title">
+                                            @if (!string.IsNullOrWhiteSpace(photo))
+                                            {
+                                                <img src="@photo" alt="" loading="lazy" />
+                                            }
+                                            else
+                                            {
+                                                <MudIcon Icon="@(isProduct ? Icons.Material.Outlined.Inventory2 : Icons.Material.Outlined.HomeRepairService)" />
+                                            }
+                                        </a>
+                                        <div class="cat-svc-body">
+                                            <div class="cat-svc-badges">
+                                                @if (service.FeaturedArea)
+                                                {
+                                                    <span class="svc-badge cat-svc-badge-popular"><MudIcon Icon="@Icons.Material.Filled.Star" Size="Size.Small" />Popular</span>
+                                                }
+                                                @if (service.IsEmergencyAvailable)
+                                                {
+                                                    <span class="svc-badge svc-badge-emergency"><MudIcon Icon="@Icons.Material.Filled.Bolt" Size="Size.Small" />24/7</span>
+                                                }
+                                                @if (ServicePriceFormat.HasDiscount(service))
+                                                {
+                                                    <span class="svc-badge svc-badge-deal">@service.DiscountRate% off</span>
+                                                }
+                                            </div>
+                                            <a href="@($"/services/{service.Slug}")" class="cat-svc-title">@service.Title</a>
+                                            <span class="cat-svc-desc">@service.Description</span>
+                                            <div class="cat-svc-footer">
+                                                <span class="cat-svc-price">
+                                                    @ServicePriceFormat.Display(service)
+                                                    @if (ServicePriceFormat.HasDiscount(service))
+                                                    {
+                                                        <span class="cat-svc-price-old">@CurrencyFormat.Format(service.Price)</span>
+                                                    }
+                                                </span>
+                                                <ServicePrimaryAction ServiceId="@service.Id" Kind="@service.Kind" BookText="Book" ShowIcon="true"
+                                                                      Class="cat-svc-cta" />
+                                            </div>
+                                        </div>
+                                    </article>
+                                }
+                            </div>
+                        }
+
+                        <div class="category-explorer-actions">
+                            <MudButton Href="@($"/services?category={selected.Id}")" Variant="Variant.Filled" Color="Color.Primary"
+                                       EndIcon="@Icons.Material.Filled.ArrowForward" Class="category-explorer-cta">
+                                @(all.Count > services.Count ? $"See all {all.Count} {selected.Title} services" : $"Explore {selected.Title}")
+                            </MudButton>
+                            <MudButton Href="/service-finder" Variant="Variant.Text" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.AutoAwesome">Help me choose</MudButton>
+                            <span class="category-explorer-assure"><MudIcon Icon="@Icons.Material.Outlined.VerifiedUser" Size="Size.Small" />Licensed techs · Upfront pricing</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </MudContainer>
+</section>
 
 @code {
-    private static readonly string[] ColorClasses = ["tile-malachite", "tile-sunglow", "tile-mariner", "tile-brilliantrose", "tile-shakespeare", "tile-deyork"];
+    private List<CategoryResponse> _categories = [];
+    private List<ServiceResponse> _services = [];
+    private readonly Dictionary<Guid, string?> _imageUrls = [];
+    private readonly HashSet<Guid> _imagesLoadedFor = [];
+    private Guid _selectedId;
 
-    private List<(CategoryResponse Category, string ColorClass)> _tiles = [];
+    private CategoryResponse? Selected => _categories.FirstOrDefault(c => c.Id == _selectedId);
 
     protected override async Task OnInitializedAsync()
     {
-        var categories = await CategoryLookupHelper.GetAllAsync(ApiClient);
-        _tiles = categories.Select((category, index) => (category, ColorClasses[index % ColorClasses.Length])).ToList();
+        var categoriesTask = CategoryLookupHelper.GetAllAsync(ApiClient);
+        var servicesTask = ApiClient.GetAsync<PaginatedResponse<ServiceResponse>>($"{ApiRoutes.Services.Base}?size=100");
+
+        _categories = await categoriesTask;
+        var services = await servicesTask;
+        _services = services.IsSuccessful && services.ResultData is not null ? services.ResultData.Items : [];
+        _selectedId = (_categories.FirstOrDefault(c => ServicesOf(c.Id).Any()) ?? _categories.FirstOrDefault())?.Id ?? Guid.Empty;
+        await LoadImagesAsync(_selectedId);
     }
+
+    private async Task SelectAsync(Guid categoryId)
+    {
+        _selectedId = categoryId;
+        await LoadImagesAsync(categoryId);
+    }
+
+    private async Task LoadImagesAsync(Guid categoryId)
+    {
+        if (categoryId == Guid.Empty || !_imagesLoadedFor.Add(categoryId))
+        {
+            return;
+        }
+
+        var lookups = await Task.WhenAll(ServicesOf(categoryId).OrderByDescending(s => s.FeaturedArea).Take(4)
+            .Where(s => s.CoverMediaAssetId is not null)
+            .Select(async s => (s.Id, Url: s.CoverMediaAssetId is Guid mediaId ? await MediaUploadHelper.GetUrlAsync(ApiClient, mediaId) : null)));
+
+        foreach (var (id, url) in lookups)
+        {
+            _imageUrls[id] = url;
+        }
+    }
+
+    private IEnumerable<ServiceResponse> ServicesOf(Guid categoryId) => _services.Where(s => s.CategoryId == categoryId);
 }

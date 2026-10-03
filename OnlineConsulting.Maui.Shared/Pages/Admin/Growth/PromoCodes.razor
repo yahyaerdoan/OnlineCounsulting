@@ -33,7 +33,7 @@ else
             <MudTh>Actions</MudTh>
         </HeaderContent>
         <RowTemplate Context="promo">
-            <MudTd DataLabel="Code">@promo.Code</MudTd>
+            <MudTd DataLabel="Code" Class="cell-primary">@promo.Code</MudTd>
             <MudTd DataLabel="Discount">@(promo.DiscountType == "Percent" ? $"{promo.DiscountValue}%" : CurrencyFormat.Format(promo.DiscountValue))</MudTd>
             <MudTd DataLabel="Redemptions" Class="mud-table-cell-align-right">@promo.RedemptionCount@(promo.MaxRedemptions is { } max ? $" / {max}" : "")</MudTd>
             <MudTd DataLabel="Expires">@(promo.ExpiresAt is { } expires ? DateTimeFormat.FormatDateTime(expires) : "Never")</MudTd>
@@ -45,13 +45,17 @@ else
             <MudTd DataLabel="Actions">
                 @if (promo.IsActive)
                 {
-                    <MudIconButton Icon="@Icons.Material.Outlined.Block" Color="Color.Default" Size="Size.Small" title="Deactivate"
-                                   OnClick="@(() => SetActiveAsync(promo, false))" />
+                    <MudTooltip Text="Deactivate">
+                        <MudIconButton aria-label="Deactivate" Icon="@Icons.Material.Outlined.Block" Color="Color.Default" Size="Size.Small"
+                                       OnClick="@(() => SetActiveAsync(promo, false))" />
+                    </MudTooltip>
                 }
                 else
                 {
-                    <MudIconButton Icon="@Icons.Material.Outlined.CheckCircleOutline" Color="Color.Default" Size="Size.Small" title="Activate"
-                                   OnClick="@(() => SetActiveAsync(promo, true))" />
+                    <MudTooltip Text="Activate">
+                        <MudIconButton aria-label="Activate" Icon="@Icons.Material.Outlined.CheckCircleOutline" Color="Color.Default" Size="Size.Small"
+                                       OnClick="@(() => SetActiveAsync(promo, true))" />
+                    </MudTooltip>
                 }
             </MudTd>
         </RowTemplate>

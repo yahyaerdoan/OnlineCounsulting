@@ -15,28 +15,45 @@
                  SearchPlaceholder="Search status" OnLoadError="@(message => _loadError = message)">
     <HeaderContent>
         <MudTh><MudTableSortLabel SortLabel="@nameof(AppointmentResponse.ScheduledStart)" T="AppointmentResponse">Scheduled</MudTableSortLabel></MudTh>
+        <MudTh>Where</MudTh>
         <MudTh>Status</MudTh>
         <MudTh>Technician</MudTh>
         <MudTh>Actions</MudTh>
     </HeaderContent>
     <RowTemplate Context="appointment">
-        <MudTd DataLabel="Scheduled">@DateTimeFormat.FormatDateTime(appointment.ScheduledStart)</MudTd>
+        <MudTd DataLabel="Scheduled" Class="cell-primary">@DateTimeFormat.FormatDateTime(appointment.ScheduledStart)</MudTd>
+        <MudTd DataLabel="Where">
+            <span class="appointment-where">
+                <MudIcon Icon="@(appointment.IsOnline ? Icons.Material.Outlined.VideoCall : Icons.Material.Outlined.LocationOn)" Size="Size.Small" />
+                <span>@(appointment.IsOnline ? $"Online: {appointment.Topic}" : appointment.ServiceAddress ?? "-")</span>
+            </span>
+        </MudTd>
         <MudTd DataLabel="Status">@appointment.Status</MudTd>
         <MudTd DataLabel="Technician">@(appointment.AssignedTechnicianUserId is not null ? "Assigned" : "Unassigned")</MudTd>
         <MudTd DataLabel="Actions">
             <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
-                <MudIconButton Icon="@Icons.Material.Outlined.Check" Color="Color.Success" Size="Size.Small" title="Confirm"
-                               Disabled="@(appointment.Status != "Pending")" OnClick="@(() => ConfirmAsync(appointment))" />
-                <MudIconButton Icon="@Icons.Material.Outlined.Close" Color="Color.Error" Size="Size.Small" title="Cancel"
-                               OnClick="@(() => CancelAsync(appointment))" />
-                <MudIconButton Icon="@Icons.Material.Outlined.PersonAdd" Color="Color.Default" Size="Size.Small" title="Assign technician"
-                               OnClick="@(() => AssignTechnicianAsync(appointment))" />
-                <MudIconButton Icon="@Icons.Material.Outlined.Build" Color="Color.Default" Size="Size.Small" title="Record work order"
-                               Disabled="@(appointment.AssignedTechnicianUserId is null)" OnClick="@(() => RecordWorkOrderAsync(appointment))" />
+                <MudTooltip Text="Confirm">
+                    <MudIconButton aria-label="Confirm" Icon="@Icons.Material.Outlined.Check" Color="Color.Success" Size="Size.Small"
+                                   Disabled="@(appointment.Status != "Pending")" OnClick="@(() => ConfirmAsync(appointment))" />
+                </MudTooltip>
+                <MudTooltip Text="Cancel">
+                    <MudIconButton aria-label="Cancel" Icon="@Icons.Material.Outlined.Close" Color="Color.Error" Size="Size.Small"
+                                   Disabled="@(!IsOpen(appointment))" OnClick="@(() => CancelAsync(appointment))" />
+                </MudTooltip>
+                <MudTooltip Text="Assign technician">
+                    <MudIconButton aria-label="Assign technician" Icon="@Icons.Material.Outlined.PersonAdd" Color="Color.Default" Size="Size.Small"
+                                   Disabled="@(!IsOpen(appointment))" OnClick="@(() => AssignTechnicianAsync(appointment))" />
+                </MudTooltip>
+                <MudTooltip Text="Record work order">
+                    <MudIconButton aria-label="Record work order" Icon="@Icons.Material.Outlined.Build" Color="Color.Default" Size="Size.Small"
+                                   Disabled="@(appointment.AssignedTechnicianUserId is null || !IsOpen(appointment))" OnClick="@(() => RecordWorkOrderAsync(appointment))" />
+                </MudTooltip>
                 @if (appointment.Status == "Completed")
                 {
-                    <MudIconButton Icon="@Icons.Material.Outlined.Description" Color="Color.Default" Size="Size.Small" title="View work order"
-                                   OnClick="@(() => ViewWorkOrderAsync(appointment))" />
+                    <MudTooltip Text="View work order">
+                        <MudIconButton aria-label="View work order" Icon="@Icons.Material.Outlined.Description" Color="Color.Default" Size="Size.Small"
+                                       OnClick="@(() => ViewWorkOrderAsync(appointment))" />
+                    </MudTooltip>
                 }
             </MudButtonGroup>
         </MudTd>
@@ -60,24 +77,10 @@
         await _table.ReloadAsync();
     }
 
-    private async Task CancelAsync(AppointmentResponse appointment)
-    {
-        if (!await DialogService.ConfirmAsync("Cancel Appointment", "Cancel this appointment? The customer will be notified."))
-        {
-            return;
-        }
+    private static bool IsOpen(AppointmentResponse appointment) => appointment.Status is "Pending" or "Confirmed";
 
-        // Self-service-only endpoint - UserId comes from the caller's own identity server-side.
-        var result = await ApiClient.PostAsync(ApiRoutes.Operations.Appointments.Cancel(appointment.Id), new { });
-        if (!result.IsSuccessful)
-        {
-            Snackbar.ShowError(result.DisplayMessage);
-            return;
-        }
-
-        Snackbar.ShowSuccess(result.DisplayMessage);
-        await _table.ReloadAsync();
-    }
+    private Task CancelAsync(AppointmentResponse appointment) =>
+        DialogService.ShowAndReloadAsync("Cancel Appointment", new DialogParameters<CancelAppointmentDialog> { { x => x.AppointmentId, appointment.Id } }, _table.ReloadAsync);
 
     private Task AssignTechnicianAsync(AppointmentResponse appointment) =>
         DialogService.ShowAndReloadAsync("Assign Technician", new DialogParameters<AssignTechnicianDialog> { { x => x.Appointment, appointment } }, _table.ReloadAsync);

@@ -1,5 +1,8 @@
-@* Public catalog listing - Static SSR (no live circuit, so no @onclick), same three-branch
-   loading shape as the Api itself: search overrides category overrides the plain paginated list. *@
+@* Public catalog listing, same three-branch loading shape as the Api itself: search overrides category overrides the plain
+   paginated list. The category pills are plain links, so with interactive routing the page stays mounted and only its query
+   parameters change; the list reloads in OnParametersSetAsync.
+   Colored category pills (swipeable on phones) filter the list; one ServiceListCard grid serves every width (cards on wide
+   screens, compact rows on phones). *@
 @page "/services"
 @layout OnlineConsulting.Maui.Shared.Layout.MarketingLayout
 @using OnlineConsulting.Maui.Shared.Components.Marketing
@@ -14,36 +17,59 @@
 <MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
     @if (_categories.Count > 0)
     {
-        <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="2" Class="mb-6">
-            <MudChip T="string" Href="/services" Size="Size.Small" Variant="Variant.Filled"
-                     Color="@(CategoryId is null ? Color.Primary : Color.Default)">All</MudChip>
+        <nav class="svc-chips" aria-label="Service categories">
+            <a href="/services" class="@($"svc-chip {(CategoryId is null && string.IsNullOrWhiteSpace(Query) ? "active" : "")}")"
+               aria-current="@(CategoryId is null ? "page" : null)">
+                <MudIcon Icon="@Icons.Material.Outlined.Apps" Size="Size.Small" />All
+            </a>
             @foreach (var category in _categories)
             {
-                <MudChip T="string" Href="@($"/services?category={category.Id}")" Size="Size.Small" Variant="Variant.Filled"
-                         Color="@(CategoryId == category.Id ? Color.Primary : Color.Default)">@category.Title</MudChip>
+                var isActive = CategoryId == category.Id;
+                <a href="@($"/services?category={category.Id}")" class="@($"svc-chip {AccentTone.For(category.Id)} {(isActive ? "active" : "")}")"
+                   aria-current="@(isActive ? "page" : null)">
+                    <MudIcon Icon="@category.Icon" Size="Size.Small" />@category.Title
+                </a>
             }
-        </MudStack>
+        </nav>
     }
 
     <ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
 
+    @if (_services.Count > 0)
+    {
+        <div class="svc-results-head">
+            <span class="svc-results-count">@_services.Count @(_services.Count == 1 ? "service" : "services")</span>
+            <span class="svc-results-context">@ResultsContext</span>
+        </div>
+    }
+
     @if (_services.Count == 0 && _loadError is null)
     {
-        <MudAlert Severity="Severity.Info">No services found.</MudAlert>
+        <div class="svc-empty">
+            <span class="tone-bubble tone-bubble-lg tone-orange"><MudIcon Icon="@Icons.Material.Outlined.SearchOff" /></span>
+            <div>
+                <MudText Typo="Typo.subtitle1" Class="text-strong">No services match @(string.IsNullOrWhiteSpace(Query) ? "this category" : $"\"{Query}\"") yet</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">Tell us what you need and we'll point you to the right fix, or browse everything we do.</MudText>
+                <MudStack Row="true" Spacing="2" Wrap="Wrap.Wrap" Class="mt-3">
+                    <MudButton Href="/service-finder" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.AutoAwesome">Help me choose</MudButton>
+                    <MudButton Href="/services" Variant="Variant.Outlined" Color="Color.Primary">See all services</MudButton>
+                </MudStack>
+            </div>
+        </div>
     }
     else
     {
-        <MudGrid>
+        <div class="svc-grid" role="list">
             @foreach (var service in _services)
             {
-                <MudItem xs="12" sm="6" md="4">
+                <div role="listitem">
                     <ServiceListCard Service="@service" ImageUrl="@_imageUrlsByServiceId.GetValueOrDefault(service.Id)"
                                       CategoryTitle="@_categoryTitlesById.GetValueOrDefault(service.CategoryId)"
                                       CategoryUrl="@($"/services?category={service.CategoryId}")"
                                       DetailUrl="@($"/services/{service.Slug}")" />
-                </MudItem>
+                </div>
             }
-        </MudGrid>
+        </div>
     }
 </MudContainer>
 
@@ -61,21 +87,46 @@
     private Dictionary<Guid, string> _categoryTitlesById = [];
     private Dictionary<Guid, string?> _imageUrlsByServiceId = [];
     private string? _loadError;
+    private string? _loadedFilterKey;
 
     // Malformed query value falls back to "no category filter" instead of crashing the bind.
     private Guid? CategoryId => Guid.TryParse(CategoryIdRaw, out var id) ? id : null;
+
+    private string ResultsContext => true switch
+    {
+        _ when !string.IsNullOrWhiteSpace(Query) => $"for \"{Query}\"",
+        _ when CategoryId is { } id && _categoryTitlesById.GetValueOrDefault(id) is { } title => $"in {title}",
+        _ => "Book a visit or order online",
+    };
 
     protected override async Task OnInitializedAsync()
     {
         _categories = await CategoryLookupHelper.GetAllAsync(ApiClient);
         _categoryTitlesById = _categories.ToDictionary(c => c.Id, c => c.Title);
+    }
 
+    /// <summary>Reloads whenever ?query= or ?category= changes: with interactive routing a pill click keeps this component and only
+    /// updates its query parameters, so loading in OnInitializedAsync alone left the list on "All".</summary>
+    protected override async Task OnParametersSetAsync()
+    {
+        var filterKey = $"{Query}|{CategoryId}";
+        if (filterKey == _loadedFilterKey)
+        {
+            return;
+        }
+
+        _loadedFilterKey = filterKey;
+        _loadError = null;
         _services = await LoadServicesAsync();
 
-        var lookups = await Task.WhenAll(_services.Select(async service =>
+        var missing = _services.Where(s => !_imageUrlsByServiceId.ContainsKey(s.Id)).ToList();
+        var lookups = await Task.WhenAll(missing.Select(async service =>
             (service.Id, Url: service.CoverMediaAssetId is Guid mediaId ? await MediaUploadHelper.GetUrlAsync(ApiClient, mediaId) : null)));
 
-        _imageUrlsByServiceId = lookups.ToDictionary(l => l.Id, l => l.Url);
+        foreach (var (id, url) in lookups)
+        {
+            _imageUrlsByServiceId[id] = url;
+        }
     }
 
     /// <summary>Search wins over category, category wins over the plain list - same precedence the Api enforces.</summary>

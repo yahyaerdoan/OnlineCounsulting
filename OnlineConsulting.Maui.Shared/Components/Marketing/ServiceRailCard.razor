@@ -1,0 +1,45 @@
+@* Compact service card for the phone home rails: image with an offer or 24/7 badge, name, price and its kind's action (Book or Add to cart). *@
+
+@if (Service is { } service)
+{
+    <div class="service-rail-card">
+        <a href="@($"/services/{service.Slug}")" class="service-rail-image" aria-label="@service.Title">
+            @if (ImageUrl is { Length: > 0 })
+            {
+                <img src="@ImageUrl" alt="" loading="lazy" />
+            }
+            else
+            {
+                <MudIcon Icon="@Icons.Material.Outlined.HomeRepairService" Class="service-rail-placeholder" />
+            }
+            @if (ServicePriceFormat.HasDiscount(service))
+            {
+                <span class="service-rail-badge">@service.DiscountRate% off</span>
+            }
+            else if (service.IsEmergencyAvailable)
+            {
+                <span class="service-rail-badge service-rail-badge-emergency">24/7</span>
+            }
+        </a>
+        <div class="service-rail-body">
+            <a href="@($"/services/{service.Slug}")" class="service-rail-title">@service.Title</a>
+            <div class="service-rail-price">
+                @ServicePriceFormat.Display(service)
+                @if (ServicePriceFormat.HasDiscount(service))
+                {
+                    <span class="service-rail-price-old">@CurrencyFormat.Format(service.Price)</span>
+                }
+            </div>
+            <ServicePrimaryAction ServiceId="@service.Id" Kind="@service.Kind" BookText="Book a visit" ShowIcon="true" FullWidth="true"
+                                  Class="mt-2 svc-card-cta" />
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public ServiceResponse? Service { get; set; }
+
+    [Parameter]
+    public string? ImageUrl { get; set; }
+}

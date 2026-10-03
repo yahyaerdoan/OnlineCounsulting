@@ -1,0 +1,15 @@
+﻿@* Colored dot + label for a row's state, the same look in every admin list. Kind: success, warning, danger, info or neutral. *@
+@namespace OnlineConsulting.Maui.Shared.Components.Common
+
+<span class="@($"status-badge status-{Kind}")" title="@Title"><span class="status-dot" aria-hidden="true"></span>@Label</span>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Label { get; set; } = string.Empty;
+
+    [Parameter]
+    public string Kind { get; set; } = StatusKinds.Neutral;
+
+    [Parameter]
+    public string? Title { get; set; }
+}

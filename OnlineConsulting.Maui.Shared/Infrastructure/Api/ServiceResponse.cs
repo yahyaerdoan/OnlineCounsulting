@@ -1,3 +1,4 @@
+
 namespace OnlineConsulting.Maui.Shared.Infrastructure.Api;
 
 /// <summary>Mirrors POST /api/services/query's response shape (MediaItems always empty on list queries).</summary>
@@ -17,7 +18,8 @@ public record ServiceResponse(
     decimal DiscountedPrice,
     bool RequiresPrepayment,
     bool IsEmergencyAvailable,
-    Guid? CoverMediaAssetId) : IQueryableFields
+    Guid? CoverMediaAssetId,
+    string Kind = ServiceKinds.Booking) : IQueryableFields
 {
     public static string[] SearchFields => [nameof(Title), nameof(Description)];
 }
@@ -40,6 +42,7 @@ public record ServiceDetailResponse(
     bool RequiresPrepayment,
     bool IsEmergencyAvailable,
     Guid? CoverMediaAssetId,
-    List<ServiceMediaItemResponse> MediaItems);
+    List<ServiceMediaItemResponse> MediaItems,
+    string Kind = ServiceKinds.Booking);
 
 public record ServiceMediaItemResponse(Guid Id, Guid MediaAssetId, int DisplayOrder);

@@ -1,10 +1,7 @@
-﻿using Hateoas;
-using Hateoas.AspNetCore;
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
-using OnlineConsulting.Modules.Categories.Application.Features.GetCategoryById;
+using OnlineConsulting.Modules.Categories.Application.Features.Categories.GetCategoryById;
 using ResultHandler.AspNetCore.Extensions;
-using ResultHandler.Functional;
 
 namespace OnlineConsulting.Api.Features.Categories;
 
@@ -18,18 +15,9 @@ public class GetCategoryById : IEndpoint
             .WithDescription("Returns a single category by id.");
     }
 
-    private static async Task<IResult> Handle(Guid id, ISender sender, LinkGenerator linkGenerator, HttpContext httpContext)
+    private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)
     {
         var result = await sender.Send(new GetCategoryByIdQuery(id));
-        return result
-            .OnSuccess(category => category.Links = BuildLinks(httpContext, linkGenerator, category.Id))
-            .ToEnvelopedResult(httpContext);
+        return result.ToEnvelopedResult(httpContext);
     }
-
-    internal static Dictionary<string, Link> BuildLinks(HttpContext httpContext, LinkGenerator linkGenerator, Guid id)
-        => httpContext.Links(linkGenerator)
-            .Add("self", "GetCategoryById", HttpMethods.Get, new { id })
-            .Add("edit", "UpdateCategory", HttpMethods.Put, new { id })
-            .AddCustom("delete", "DeleteCategory", HttpMethods.Delete, new { id })
-            .Build();
 }

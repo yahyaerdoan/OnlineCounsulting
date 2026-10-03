@@ -24,6 +24,14 @@
                       Lines="4" />
     </MudItem>
 
+    <MudItem xs="12">
+        <MudSelect T="string" @bind-Value="Model.Kind" For="@(() => Model.Kind)" Label="How customers get it" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true"
+                   HelperText="@(Model.Kind == ServiceKinds.Product ? "Shown with Add to cart - bought and paid online." : "Shown with Book - customers schedule a visit.")">
+            <MudSelectItem T="string" Value="@ServiceKinds.Booking">Booking - scheduled as a visit</MudSelectItem>
+            <MudSelectItem T="string" Value="@ServiceKinds.Product">Product - bought through the cart</MudSelectItem>
+        </MudSelect>
+    </MudItem>
+
     <MudItem xs="12" sm="4">
         <MudSelect T="string" @bind-Value="Model.PriceType" For="@(() => Model.PriceType)" Label="Price type" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true">
             <MudSelectItem T="string" Value="@ServicePriceTypes.Fixed">Fixed</MudSelectItem>
