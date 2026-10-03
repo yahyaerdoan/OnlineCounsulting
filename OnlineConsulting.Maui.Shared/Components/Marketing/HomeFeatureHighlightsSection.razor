@@ -1,6 +1,7 @@
 @* Matches the eduhas reference template's "Why Choose Us" / "What We Provide" section - intro paragraph + cover
    image (FeatureHighlightsIntro, singleton-in-practice) above a 2-column layout: left = the FeatureHighlight card
-   grid, right = the section's cover image. Falls back to the original full-width grid when no intro row exists yet. *@
+   grid, right = the section's cover image. Falls back to the original full-width grid when no intro row exists yet.
+   On phones the list becomes a row of swipeable cards and the cover image is dropped. *@
 @using OnlineConsulting.Maui.Shared.Infrastructure.Api
 @inject IApiClient ApiClient
 
@@ -19,7 +20,7 @@
 
     <MudGrid Spacing="2" Class="marketing-feature-columns">
         <MudItem xs="12" md="@(_coverImageUrl is null ? 12 : 6)">
-            <MudStack Spacing="0">
+            <MudStack Spacing="0" Class="marketing-feature-list">
                 @for (var i = 0; i < _items.Count; i++)
                 {
                     var item = _items[i];
@@ -36,7 +37,7 @@
         </MudItem>
         @if (_coverImageUrl is not null)
         {
-            <MudItem xs="12" md="6">
+            <MudItem xs="12" md="6" Class="hide-on-phone">
                 <MudImage id="marketing-feature-intro-image" Src="@_coverImageUrl" ObjectFit="ObjectFit.Cover" Class="marketing-feature-intro-image" data-default-src="@_coverImageUrl" />
             </MudItem>
         }

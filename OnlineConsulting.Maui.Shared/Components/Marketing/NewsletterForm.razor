@@ -1,0 +1,45 @@
+@* Email box + send button posting to Inquiries.Newsletter.Subscribe; used by the desktop footer and the phone Menu page. *@
+@using OnlineConsulting.Maui.Shared.Infrastructure.Api
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+
+<EditForm Model="_model" method="post" FormName="@FormName" OnValidSubmit="SubscribeAsync">
+    <div class="newsletter-input-box">
+        <InputText @bind-Value="_model.Email" name="email" type="email" class="newsletter-input" placeholder="Your email address"
+                   aria-label="Email address" />
+        <MudIconButton ButtonType="ButtonType.Submit" Icon="@Icons.Material.Filled.Send" Size="Size.Small"
+                       Class="newsletter-button" Disabled="@_isSubscribing" aria-label="Subscribe" />
+    </div>
+</EditForm>
+
+@code {
+    private bool _isSubscribing;
+
+    /// <summary>Must be unique per page - the footer and the Menu page render their own copies.</summary>
+    [Parameter, EditorRequired]
+    public string FormName { get; set; } = string.Empty;
+
+    [SupplyParameterFromForm]
+    private NewsletterModel _model { get => field ??= new(); set; }
+
+    private async Task SubscribeAsync()
+    {
+        _isSubscribing = true;
+
+        var result = await ApiClient.PostAsync(ApiRoutes.Inquiries.Newsletter.Subscribe, new { email = _model.Email });
+
+        _isSubscribing = false;
+
+        Snackbar.Add(result.DisplayMessage, result.IsSuccessful ? Severity.Success : Severity.Error);
+
+        if (result.IsSuccessful)
+        {
+            _model.Email = string.Empty;
+        }
+    }
+
+    private sealed class NewsletterModel
+    {
+        public string Email { get; set; } = string.Empty;
+    }
+}

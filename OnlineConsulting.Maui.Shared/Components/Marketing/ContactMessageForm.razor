@@ -14,43 +14,44 @@
         <MudGrid Spacing="3">
             <MudItem xs="12" sm="6">
                 <div class="marketing-field">
-                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="marketing-field-label">First Name</MudText>
-                    <InputText @bind-Value="_model.FirstName" class="marketing-field-input" placeholder="Jane" />
+                    <label for="contact-first-name" class="marketing-field-label">First name</label>
+                    <InputText id="contact-first-name" @bind-Value="_model.FirstName" class="marketing-field-input" placeholder=" " autocomplete="given-name" autocapitalize="words" />
                     <ValidationMessage For="@(() => _model.FirstName)" class="marketing-field-error" />
                 </div>
             </MudItem>
             <MudItem xs="12" sm="6">
                 <div class="marketing-field">
-                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="marketing-field-label">Last Name</MudText>
-                    <InputText @bind-Value="_model.LastName" class="marketing-field-input" placeholder="Doe" />
+                    <label for="contact-last-name" class="marketing-field-label">Last name</label>
+                    <InputText id="contact-last-name" @bind-Value="_model.LastName" class="marketing-field-input" placeholder=" " autocomplete="family-name" autocapitalize="words" />
                     <ValidationMessage For="@(() => _model.LastName)" class="marketing-field-error" />
                 </div>
             </MudItem>
             <MudItem xs="12" sm="6">
                 <div class="marketing-field">
-                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="marketing-field-label">Email</MudText>
-                    <InputText @bind-Value="_model.Email" class="marketing-field-input" placeholder="jane@example.com" />
+                    <label for="contact-email" class="marketing-field-label">Email</label>
+                    <InputText id="contact-email" type="email" inputmode="email" @bind-Value="_model.Email" class="marketing-field-input" placeholder=" " autocomplete="email" autocapitalize="off" />
                     <ValidationMessage For="@(() => _model.Email)" class="marketing-field-error" />
                 </div>
             </MudItem>
             <MudItem xs="12" sm="6">
                 <div class="marketing-field">
-                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="marketing-field-label">Subject</MudText>
-                    <InputText @bind-Value="_model.Subject" class="marketing-field-input" placeholder="How can we help?" />
+                    <label for="contact-subject" class="marketing-field-label">Subject</label>
+                    <InputText id="contact-subject" @bind-Value="_model.Subject" class="marketing-field-input" placeholder=" " autocapitalize="sentences" />
                     <ValidationMessage For="@(() => _model.Subject)" class="marketing-field-error" />
                 </div>
             </MudItem>
             <MudItem xs="12">
                 <div class="marketing-field">
-                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="marketing-field-label">Message</MudText>
-                    <InputTextArea @bind-Value="_model.Description" class="marketing-field-textarea" rows="5" placeholder="Tell us a bit more..." />
+                    <label for="contact-message" class="marketing-field-label">Message</label>
+                    <InputTextArea id="contact-message" @bind-Value="_model.Description" class="marketing-field-textarea" placeholder=" " rows="5" autocapitalize="sentences" />
                     <ValidationMessage For="@(() => _model.Description)" class="marketing-field-error" />
                 </div>
             </MudItem>
 
             <MudItem xs="12" Class="d-flex justify-end">
-                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="@Form.IsBusy">
-                    @(Form.IsBusy ? "Sending..." : "Send Email")
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="@Form.IsBusy"
+                           EndIcon="@Icons.Material.Filled.Send" Class="contact-submit">
+                    @(Form.IsBusy ? "Sending..." : "Send message")
                 </MudButton>
             </MudItem>
         </MudGrid>

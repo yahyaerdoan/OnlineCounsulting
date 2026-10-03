@@ -24,6 +24,8 @@ public static class MauiProgram
                 _ = fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
             });
 
+        builder.Configuration["Stripe:PublishableKey"] = StripeKeys.PublishableKey;
+
         _ = builder.Services.AddMauiBlazorWebView();
         ConfigureAndroidWebView();
         _ = builder.Services.AddMudServices(config =>

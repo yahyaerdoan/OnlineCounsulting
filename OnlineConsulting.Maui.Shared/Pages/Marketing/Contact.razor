@@ -1,20 +1,61 @@
-@* Matches the site's real Contact/Index.cshtml - page banner, the shared contact-message form,
-   contact information (address/email/phone/hours). *@
+@* Contact page: phones lead with one-tap Call / Email / Directions, then the message form, then the details card;
+   wide screens keep form and details side by side. The contact record is loaded once here and shared. *@
 @page "/contact"
 @layout OnlineConsulting.Maui.Shared.Layout.MarketingLayout
 @using OnlineConsulting.Maui.Shared.Components.Marketing
+@inject IApiClient ApiClient
 
 <PageTitle>Contact Us - ComfortPro</PageTitle>
 
 <MarketingPageBanner Title="Contact Us" SubPage="Contact" />
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
+    @if (_contact is { } contact)
+    {
+        <div class="contact-quick-actions mobile-only">
+            <MudText Typo="Typo.h6" Class="text-strong mb-3">How would you like to reach us?</MudText>
+            <div class="contact-quick-grid">
+                <a href="@($"tel:{contact.Phone}")" class="contact-quick-action">
+                    <span class="tone-bubble @AccentTone.Green"><MudIcon Icon="@Icons.Material.Filled.Phone" /></span>
+                    <span class="contact-quick-label">Call</span>
+                </a>
+                <a href="@($"mailto:{contact.Email}")" class="contact-quick-action">
+                    <span class="tone-bubble @AccentTone.Blue"><MudIcon Icon="@Icons.Material.Filled.Email" /></span>
+                    <span class="contact-quick-label">Email</span>
+                </a>
+                @if (ContactLinks.Directions(contact.Address) is { } directions)
+                {
+                    <a href="@directions" target="_blank" rel="noopener" class="contact-quick-action">
+                        <span class="tone-bubble @AccentTone.Orange"><MudIcon Icon="@Icons.Material.Filled.Directions" /></span>
+                        <span class="contact-quick-label">Directions</span>
+                    </a>
+                }
+            </div>
+            @if (!string.IsNullOrWhiteSpace(contact.WorkingHours))
+            {
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="contact-quick-hours">
+                    <MudIcon Icon="@Icons.Material.Outlined.AccessTime" Size="Size.Small" /> @contact.WorkingHours
+                </MudText>
+            }
+        </div>
+    }
+
     <MudGrid Spacing="6">
         <MudItem xs="12" md="7">
-            <ContactMessageForm />
+            <ContactMessageForm Heading="Send us a message" />
         </MudItem>
         <MudItem xs="12" md="5">
-            <ContactInformationSection />
+            <ContactInformationSection Contact="@_contact" />
         </MudItem>
     </MudGrid>
 </MudContainer>
+
+@code {
+    private CompanyContactResponse? _contact;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await ApiClient.GetAsync<CompanyContactResponse>(ApiRoutes.Inquiries.Contact.Get);
+        _contact = result.IsSuccessful ? result.ResultData : null;
+    }
+}

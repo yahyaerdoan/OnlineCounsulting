@@ -1,5 +1,6 @@
 @* Public service detail - eduhas's shop/product-details rows folded together: gallery, description,
-   price, add-to-cart, plus a related-services grid pulled from the same category. Static SSR. *@
+   price, add-to-cart, plus a related-services grid pulled from the same category. Static SSR. Phones get a
+   ratio-sized image, a sticky Add to cart / Book bar above the tab bar and a swipeable related-services rail. *@
 @page "/services/{Slug}"
 @layout OnlineConsulting.Maui.Shared.Layout.MarketingLayout
 @using Microsoft.AspNetCore.Http
@@ -21,14 +22,14 @@
 
         @if (_service is not null)
         {
-            <MudGrid>
+            <MudGrid Class="service-detail-grid">
                 <MudItem xs="12" md="6">
                     @if (_galleryUrls.Count > 0)
                     {
                         <MudImage id="service-gallery-main" Src="@_galleryUrls[0]" ObjectFit="ObjectFit.Cover" Height="360" Class="rounded mb-2 service-detail-image" />
                         @if (_galleryUrls.Count > 1)
                         {
-                            <MudGrid Spacing="1">
+                            <MudGrid Spacing="1" Class="service-gallery-strip">
                                 @foreach (var url in _galleryUrls.Skip(1))
                                 {
                                     <MudItem xs="4">
@@ -49,7 +50,7 @@
                         <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Text">@_categoryTitle</MudChip>
                     }
 
-                    <MudText Typo="Typo.h4" Class="mb-2">@_service.Title</MudText>
+                    <MudText Typo="Typo.h4" Class="mb-2 service-detail-title">@_service.Title</MudText>
                     <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-4">@_service.Description</MudText>
 
                     @if (_service.DiscountRate > 0)
@@ -64,15 +65,22 @@
                         <MudText Typo="Typo.h5" Color="Color.Primary" Class="mb-4">@FormattedPrice(_service)</MudText>
                     }
 
-                    @if (_service.PriceType == ServicePriceTypes.Fixed)
-                    {
-                        <AddToCartForm ServiceId="@_service.Id" Price="@_service.DiscountedPrice" TaxRate="@_service.TaxRate" />
-                    }
-                    else
-                    {
-                        @* Label, not <a href="#...">, so enhanced nav doesn't hijack the fragment. *@
-                        <label for="service-tab-ask" class="header-book-now-btn service-quote-cta">Get a Quote</label>
-                    }
+                    <div class="hide-on-phone">
+                        @if (_service.PriceType == ServicePriceTypes.Fixed)
+                        {
+                            <AddToCartForm ServiceId="@_service.Id" Price="@_service.DiscountedPrice" TaxRate="@_service.TaxRate" />
+                        }
+                        else
+                        {
+                            @* Label, not <a href="#...">, so enhanced nav doesn't hijack the fragment. *@
+                            <label for="service-tab-ask" class="header-book-now-btn service-quote-cta">Get a Quote</label>
+                        }
+
+                        <MudButton Href="@($"/appointment?service={_service.Id}")" Variant="Variant.Outlined" Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Outlined.EventAvailable" Class="mt-3">
+                            Book a visit for this service
+                        </MudButton>
+                    </div>
                 </MudItem>
             </MudGrid>
 
@@ -83,8 +91,8 @@
                 <input type="radio" name="service-tabs" id="service-tab-ask" class="marketing-tabs-radio" />
 
                 <div class="marketing-tabs-nav d-flex gap-2 mb-5">
-                    <label for="service-tab-details" class="marketing-tabs-btn">Detailed Descriptions</label>
-                    <label for="service-tab-ask" class="marketing-tabs-btn">Ask Your Questions</label>
+                    <label for="service-tab-details" class="marketing-tabs-btn">Details</label>
+                    <label for="service-tab-ask" class="marketing-tabs-btn">Ask a question</label>
                 </div>
 
                 <div class="marketing-tabs-panel" id="service-panel-details">
@@ -105,8 +113,16 @@
 
             @if (_relatedServices.Count > 0)
             {
-                <MudText Typo="Typo.h5" Class="mt-10 mb-4">Related Services</MudText>
-                <MudGrid>
+                <MudText Typo="Typo.h5" Class="mt-10 mb-4 service-detail-related-heading">Related Services</MudText>
+                <div class="service-rail service-detail-related-rail mobile-only" role="list">
+                    @foreach (var related in _relatedServices)
+                    {
+                        <div role="listitem" class="service-rail-item">
+                            <ServiceRailCard Service="@related" ImageUrl="@_relatedImageUrls.GetValueOrDefault(related.Id)" />
+                        </div>
+                    }
+                </div>
+                <MudGrid Class="hide-on-phone">
                     @foreach (var related in _relatedServices)
                     {
                         <MudItem xs="12" sm="6" md="4">
@@ -117,6 +133,20 @@
                     }
                 </MudGrid>
             }
+
+            <div class="service-detail-mobile-bar mobile-only">
+                @if (_service.PriceType == ServicePriceTypes.Fixed)
+                {
+                    <div class="service-detail-mobile-cart">
+                        <AddToCartForm ServiceId="@_service.Id" Price="@_service.DiscountedPrice" TaxRate="@_service.TaxRate"
+                                       Variant="Variant.Outlined" FullWidth="true" ButtonClass="service-detail-bar-button" />
+                    </div>
+                }
+                <MudButton Href="@($"/appointment?service={_service.Id}")" Variant="Variant.Filled" Color="Color.Primary"
+                           StartIcon="@Icons.Material.Outlined.EventAvailable" Class="service-detail-bar-button service-detail-mobile-book">
+                    Book a visit
+                </MudButton>
+            </div>
         }
     }
 </MudContainer>

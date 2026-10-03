@@ -1,0 +1,27 @@
+@* Drag-to-compare view of a before and an after photo; the range input keeps it keyboard and screen-reader accessible. *@
+
+<div class="before-after @Class" style="--before-after-position: @(_position)%; height: @(Height)px;">
+    <img src="@AfterUrl" alt="After" class="before-after-image" loading="lazy" />
+    <img src="@BeforeUrl" alt="Before" class="before-after-image before-after-before" loading="lazy" />
+    <span class="before-after-label before-after-label-before">Before</span>
+    <span class="before-after-label before-after-label-after">After</span>
+    <span class="before-after-handle" aria-hidden="true"></span>
+    <input type="range" min="0" max="100" value="@_position" class="before-after-range" aria-label="Compare before and after"
+           @oninput="@(e => _position = int.TryParse(e.Value?.ToString(), out var value) ? value : _position)" />
+</div>
+
+@code {
+    private int _position = 50;
+
+    [Parameter, EditorRequired]
+    public string BeforeUrl { get; set; } = string.Empty;
+
+    [Parameter, EditorRequired]
+    public string AfterUrl { get; set; } = string.Empty;
+
+    [Parameter]
+    public int Height { get; set; } = 220;
+
+    [Parameter]
+    public string? Class { get; set; }
+}

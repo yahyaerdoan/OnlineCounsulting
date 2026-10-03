@@ -1,0 +1,61 @@
+@* Jump-to-page search over the admin nav the user can see; Enter opens the first match. *@
+@using System.Security.Claims
+@using OnlineConsulting.Maui.Shared.Layout
+@inject NavigationManager Navigation
+
+<MudDialog Class="command-palette">
+    <DialogContent>
+        <MudTextField T="string" @bind-Value="_query" Immediate="true" AutoFocus="true" Placeholder="Search pages..."
+                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Outlined.Search" Variant="Variant.Outlined"
+                      OnKeyDown="OnKeyDown" aria-label="Search pages" />
+
+        <div class="command-palette-results" role="listbox" aria-label="Pages">
+            @if (Results.Count == 0)
+            {
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="pa-3">No pages match "@_query".</MudText>
+            }
+            @foreach (var (section, item) in Results)
+            {
+                <button type="button" class="command-palette-item" role="option" @onclick="@(() => Go(item.Href))">
+                    <MudIcon Icon="@item.Icon" Color="@section.Color" Size="Size.Small" />
+                    <span class="command-palette-item-text">@item.Text</span>
+                    <span class="command-palette-item-section">@section.Title</span>
+                </button>
+            }
+        </div>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    private string _query = string.Empty;
+
+    [CascadingParameter]
+    private IMudDialogInstance? MudDialog { get; set; }
+
+    [Parameter, EditorRequired]
+    public IReadOnlyList<NavSection> Sections { get; set; } = [];
+
+    [Parameter, EditorRequired]
+    public ClaimsPrincipal User { get; set; } = new();
+
+    private IReadOnlyList<(NavSection Section, NavItem Item)> Results =>
+        [.. Sections
+            .SelectMany(section => section.VisibleItems(User).Select(item => (Section: section, Item: item)))
+            .Where(pair => string.IsNullOrWhiteSpace(_query)
+                || pair.Item.Text.Contains(_query, StringComparison.OrdinalIgnoreCase)
+                || pair.Section.Title.Contains(_query, StringComparison.OrdinalIgnoreCase))];
+
+    private void OnKeyDown(KeyboardEventArgs args)
+    {
+        if (args.Key == "Enter" && Results.Count > 0)
+        {
+            Go(Results[0].Item.Href);
+        }
+    }
+
+    private void Go(string href)
+    {
+        MudDialog?.Close();
+        Navigation.NavigateTo(href);
+    }
+}

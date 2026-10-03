@@ -1,4 +1,5 @@
-@* Caller's own orders - GetOrders is current-user-scoped server-side, no UserId ever sent from here. *@
+@* Caller's own orders - GetOrders is current-user-scoped server-side, no UserId ever sent from here. Wide screens get the
+   searchable table; phones get one tappable card per order. *@
 @namespace OnlineConsulting.Maui.Shared.Components.User
 @inject IApiClient ApiClient
 
@@ -10,6 +11,38 @@
 }
 else
 {
+    <div class="order-cards mobile-only">
+        @if (_orders.Count > 3)
+        {
+            <MudTextField @bind-Value="_mobileQuery" Label="Search order number" Variant="Variant.Outlined" Margin="Margin.Dense"
+                          Immediate="true" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Outlined.Search" Class="mb-3" />
+        }
+        @if (MobileOrders.Count == 0)
+        {
+            <EmptyState Icon="@Icons.Material.Outlined.ReceiptLong" Title="@(string.IsNullOrWhiteSpace(_mobileQuery) ? "No orders yet" : "No matching orders")"
+                        Text="Services you pay for online show up here." ActionText="Browse services" ActionHref="/services" />
+        }
+        @foreach (var order in MobileOrders)
+        {
+            <a href="@($"/user/orders/{order.Id}")" class="order-card">
+                <span class="tone-bubble @AccentTone.Orange"><MudIcon Icon="@Icons.Material.Outlined.ReceiptLong" /></span>
+                <span class="order-card-body">
+                    <span class="order-card-top">
+                        <span class="order-card-number">#@order.OrderNumber</span>
+                        <span class="order-card-total">@CurrencyFormat.Format(order.TotalPrice)</span>
+                    </span>
+                    <span class="order-card-date">@DateTimeFormat.FormatDateTime(order.CreatedDate)</span>
+                    <span class="order-card-chips">
+                        <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined">@order.OrderStatus</MudChip>
+                        <MudChip T="string" Size="Size.Small" Color="@PaymentColor(order.PaymentStatus)">@order.PaymentStatus</MudChip>
+                    </span>
+                </span>
+                <MudIcon Icon="@Icons.Material.Filled.ChevronRight" Class="order-card-chevron" />
+            </a>
+        }
+    </div>
+
+    <div class="hide-on-phone">
     <SearchableTable TItem="OrderResponse" Items="_orders" Filter="@((order, text) => order.OrderNumber.Contains(text, StringComparison.OrdinalIgnoreCase))"
                       SearchPlaceholder="Search order number">
         <HeaderContent>
@@ -26,7 +59,7 @@ else
             <MudTd DataLabel="Date">@DateTimeFormat.FormatDateTime(order.CreatedDate)</MudTd>
             <MudTd DataLabel="Status">@order.OrderStatus</MudTd>
             <MudTd DataLabel="Payment">
-                <MudChip T="string" Size="Size.Small" Color="@(order.PaymentStatus == "Paid" ? Color.Success : order.PaymentStatus == "Refunded" ? Color.Default : Color.Warning)">@order.PaymentStatus</MudChip>
+                <MudChip T="string" Size="Size.Small" Color="@PaymentColor(order.PaymentStatus)">@order.PaymentStatus</MudChip>
             </MudTd>
             <MudTd DataLabel="Total" Class="mud-table-cell-align-right">@CurrencyFormat.Format(order.TotalPrice)</MudTd>
         </RowTemplate>
@@ -34,10 +67,24 @@ else
             <MudText>No orders yet.</MudText>
         </NoRecordsContent>
     </SearchableTable>
+    </div>
 }
 
 @code {
     private List<OrderResponse> _orders = [];
+    private string? _mobileQuery;
+
+    private List<OrderResponse> MobileOrders => string.IsNullOrWhiteSpace(_mobileQuery)
+        ? _orders
+        : [.. _orders.Where(o => o.OrderNumber.Contains(_mobileQuery.Trim(), StringComparison.OrdinalIgnoreCase))];
+
+    /// <summary>Paid is green, Refunded neutral, anything still open (Pending, Failed...) amber.</summary>
+    public static Color PaymentColor(string paymentStatus) => paymentStatus switch
+    {
+        "Paid" => Color.Success,
+        "Refunded" => Color.Default,
+        _ => Color.Warning,
+    };
     private bool _loading = true;
     private string? _loadError;
 

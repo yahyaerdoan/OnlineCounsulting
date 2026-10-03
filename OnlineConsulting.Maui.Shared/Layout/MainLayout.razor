@@ -9,12 +9,11 @@
 @inject IPlatformInfo PlatformInfo
 @inject UiModuleRegistry ModuleRegistry
 @inject AuthenticationExpiredNotifier ExpiredNotifier
-@inject IJSRuntime JsRuntime
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
 @inject AuthenticationStateProvider AuthStateProvider
 
-<MudThemeProvider Theme="AppTheme.Default" @bind-IsDarkMode="_isDarkMode" />
+<AppThemeProvider Theme="AppTheme.Default" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
@@ -30,8 +29,8 @@
                 <MudIconButton Icon="@Icons.Material.Outlined.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
                 <BrandMark Class="ml-2" />
                 <MudSpacer />
-                <MudIconButton Icon="@(_isDarkMode ? Icons.Material.Outlined.LightMode : Icons.Material.Outlined.DarkMode)"
-                               Color="Color.Inherit" OnClick="@ToggleDarkMode" />
+                <CommandPaletteButton User="context.User" />
+                <ThemeModeMenu />
                 <UserAccountMenu User="context.User" />
             </MudAppBar>
 
@@ -54,29 +53,36 @@
                 <BrandMark AvatarColor="Color.Surface" IconColor="Color.Primary" Class="auth-brand-mark" />
 
                 <div class="auth-brand-body">
-                    <MudText Typo="Typo.h1">Run your service business from one modern control center.</MudText>
+                    <MudText Typo="Typo.h1">Comfortable air, without the hassle.</MudText>
                     <MudText Typo="Typo.body1">
-                        Scheduling, work orders, memberships, and billing for every tenant - one
-                        polished admin, tailored per customer.
+                        Sign in to book visits, follow your technician and keep your home's
+                        heating and cooling in top shape.
                     </MudText>
                     <MudList T="string" Class="auth-brand-features">
                         <MudListItem T="string" Icon="@Icons.Material.Outlined.Check" Class="auth-feature-item">
-                            Real-time appointments and dispatch
+                            Book and reschedule visits in a few taps
                         </MudListItem>
                         <MudListItem T="string" Icon="@Icons.Material.Outlined.Check" Class="auth-feature-item">
-                            Per-tenant billing, plans and add-ons
+                            Track every visit from scheduled to done
                         </MudListItem>
                         <MudListItem T="string" Icon="@Icons.Material.Outlined.Check" Class="auth-feature-item">
-                            Role-based access across your whole team
+                            Membership perks, equipment history and invoices in one place
                         </MudListItem>
                     </MudList>
+                    <MudButton Href="/" Variant="Variant.Text" Color="Color.Inherit" StartIcon="@Icons.Material.Filled.ArrowBack"
+                               Class="mt-4">Back to website</MudButton>
                 </div>
 
                 <MudText Typo="Typo.caption" Class="auth-brand-footer">&copy; @DateTime.UtcNow.Year ComfortPro</MudText>
             </div>
 
             <div class="auth-panel">
+                <div class="auth-mobile-hero">
+                    <BrandMark AvatarColor="Color.Surface" IconColor="Color.Primary" Class="auth-brand-mark" />
+                    <MudText Typo="Typo.body1">Comfortable air, without the hassle.</MudText>
+                </div>
                 @Body
+                <MudButton Href="/" Variant="Variant.Text" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowBack" Class="auth-mobile-back">Back to website</MudButton>
             </div>
         </div>
     </NotAuthorized>
@@ -91,16 +97,13 @@
 @code {
 
     /// <summary>Shared shell for both hosts - AuthorizeView switches admin chrome vs. login panel;
-    /// also owns dark-mode persistence, the post-login welcome toast, and per-platform drawer behavior.</summary>
+    /// also owns the post-login welcome toast and per-platform drawer behavior.</summary>
     
     /// <summary>Mini is a persistent desktop icon-rail that just changes width when toggled - on a
     /// phone-sized viewport that resize is easy to miss entirely, which read as "the toggle button
     /// does nothing". Native mobile gets a real overlay drawer (Temporary) that opens/closes, closed
     /// by default so it doesn't cover content on first render.</summary>
-    private const string DarkModeStorageKey = "comfortpro-dark-mode";
-
     private bool _drawerOpen;
-    private bool _isDarkMode;
 
     /// <summary>Login redirects here with ?welcome=true - shown once, then stripped from the URL.</summary>
     protected override async Task OnInitializedAsync()
@@ -115,27 +118,6 @@
             Snackbar.ShowSuccess(string.IsNullOrEmpty(firstName) ? "Welcome back!" : $"Welcome back, {firstName}!");
             Navigation.ClearQueryFlag("welcome");
         }
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (!firstRender)
-        {
-            return;
-        }
-
-        var stored = await JsRuntime.InvokeAsync<string?>("localStorage.getItem", DarkModeStorageKey);
-        if (bool.TryParse(stored, out var storedIsDarkMode) && storedIsDarkMode != _isDarkMode)
-        {
-            _isDarkMode = storedIsDarkMode;
-            StateHasChanged();
-        }
-    }
-
-    private async Task ToggleDarkMode()
-    {
-        _isDarkMode = !_isDarkMode;
-        await JsRuntime.InvokeVoidAsync("localStorage.setItem", DarkModeStorageKey, _isDarkMode.ToString());
     }
 
     private void OnAuthenticationExpired() => InvokeAsync(() => AuthSession.SignOutAsync());

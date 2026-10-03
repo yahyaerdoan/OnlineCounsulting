@@ -1,0 +1,68 @@
+@* Opens the command palette from the app bar, and on Ctrl+K / Cmd+K where a keyboard exists. *@
+@using System.Security.Claims
+@using OnlineConsulting.Maui.Shared.Layout
+@implements IAsyncDisposable
+@inject IDialogService DialogService
+@inject UiModuleRegistry ModuleRegistry
+@inject IJSRuntime JsRuntime
+
+<MudTooltip Text="Search pages (Ctrl+K)">
+    <MudIconButton Icon="@Icons.Material.Outlined.Search" Color="Color.Inherit" OnClick="OpenAsync" aria-label="Search pages" />
+</MudTooltip>
+
+@code {
+    private DotNetObjectReference<CommandPaletteButton>? _selfReference;
+    private bool _isOpen;
+
+    [Parameter, EditorRequired]
+    public ClaimsPrincipal User { get; set; } = new();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        _selfReference = DotNetObjectReference.Create(this);
+        await JsRuntime.InvokeVoidAsync("comfortProShortcuts.registerCommandPalette", _selfReference);
+    }
+
+    [JSInvokable]
+    public async Task OpenAsync()
+    {
+        if (_isOpen)
+        {
+            return;
+        }
+
+        _isOpen = true;
+        var parameters = new DialogParameters<CommandPaletteDialog>
+        {
+            { dialog => dialog.Sections, ModuleRegistry.NavSections },
+            { dialog => dialog.User, User },
+        };
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, NoHeader = true, CloseOnEscapeKey = true, Position = DialogPosition.TopCenter };
+        var dialog = await DialogService.ShowAsync<CommandPaletteDialog>(null, parameters, options);
+        _ = await dialog.Result;
+        _isOpen = false;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_selfReference is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await JsRuntime.InvokeVoidAsync("comfortProShortcuts.unregisterCommandPalette");
+        }
+        catch (JSDisconnectedException)
+        {
+        }
+
+        _selfReference.Dispose();
+    }
+}

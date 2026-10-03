@@ -23,7 +23,7 @@ public class GetAllOrdersAdminHandler(IOrderRepository orderRepository, IOrderIt
 {
     public async Task<OperationDataResult<List<AdminOrderResponse>>> Handle(GetAllOrdersAdminQuery request, CancellationToken cancellationToken)
     {
-        var orders = await orderRepository.GetListAsync(o => true, orderBy: q => q.OrderBy(o => o.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+        var orders = await orderRepository.GetListAsync(o => true, orderBy: q => q.OrderByDescending(o => o.CreatedDate).ThenByDescending(o => o.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
         if (orders.Items.Count == 0)
         {
             return Result.Success(new List<AdminOrderResponse>(), "No orders found.");

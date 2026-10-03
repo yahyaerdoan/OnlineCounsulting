@@ -1,48 +1,84 @@
-@* Category grid - each tile is a real link into the filtered service list (not just decorative),
-   with a description line and a "View services" affordance so it reads as useful navigation. *@
+@* Tabbed "explore by category" band: category tabs (vertical on desktop, a swipeable row of story-style bubbles on phones) switch a
+   panel with the category's pitch and its services, each one tap from booking. *@
 @using OnlineConsulting.Maui.Shared.Infrastructure.Api
 @inject IApiClient ApiClient
 
-<MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
-    <MudText Typo="Typo.subtitle1" Color="Color.Primary" Align="Align.Center" Class="text-strong">Your Comfort, Our Priority</MudText>
-    <MudText Typo="Typo.h5" Align="Align.Center" Class="marketing-display text-strong mb-2">Home Services We Provide</MudText>
-    <MudText Typo="Typo.body1" Color="Color.Secondary" Align="Align.Center" Class="mx-auto mb-4" Style="max-width:640px;">
-        From routine maintenance to emergency repairs and full system installs, ComfortPro's licensed technicians
-        keep your home comfortable year-round. Explore our service categories below:
-    </MudText>
+<section class="category-explorer-band">
+    <MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
+        <MudText Typo="Typo.overline" Color="Color.Primary" Class="text-strong">Services</MudText>
+        <MudText Typo="Typo.h4" Class="marketing-display mb-2">Everything your home's comfort needs</MudText>
+        <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-6" Style="max-width:640px;">
+            From routine maintenance to emergency repairs and full system installs. Pick a category to see what we do.
+        </MudText>
 
-    <MudGrid Spacing="2">
-        @foreach (var (category, colorClass) in _tiles)
+        @if (_categories.Count > 0)
         {
-            <MudItem xs="12" sm="6" md="4">
-                <a href="@($"/services?category={category.Id}")" class="marketing-category-tile @colorClass">
-                    <MudIcon Icon="@category.Icon" Class="marketing-category-icon" Style="@($"color:{category.IconColor ?? "var(--mud-palette-primary)"};")" />
-                    <MudText Typo="Typo.subtitle1" Class="marketing-category-title text-strong">@category.Title</MudText>
-                    @if (!string.IsNullOrWhiteSpace(category.Description))
+            <div class="category-explorer">
+                <div class="category-explorer-tabs" role="tablist" aria-label="Service categories">
+                    @for (var index = 0; index < _categories.Count; index++)
                     {
-                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="marketing-category-desc">@category.Description</MudText>
+                        var category = _categories[index];
+                        var id = category.Id;
+                        <button type="button" role="tab" id="@($"category-tab-{id}")" aria-controls="category-panel"
+                                aria-selected="@(id == _selectedId)" class="category-explorer-tab @(id == _selectedId ? "selected" : null)"
+                                @onclick="@(() => _selectedId = id)">
+                            <span class="tone-bubble category-explorer-tab-icon @AccentTone.At(index)"><MudIcon Icon="@category.Icon" Size="Size.Small" /></span>
+                            <span class="category-explorer-tab-label">@category.Title</span>
+                        </button>
                     }
-                    <span class="marketing-category-link">
-                        View services <MudIcon Icon="@Icons.Material.Filled.ArrowForward" Size="Size.Small" />
-                    </span>
-                </a>
-            </MudItem>
-        }
-    </MudGrid>
+                </div>
 
-    <MudStack AlignItems="AlignItems.Center" Class="mt-6">
-        <MudButton Href="/services" Variant="Variant.Filled" Color="Color.Primary">View All Services</MudButton>
-    </MudStack>
-</MudContainer>
+                @if (Selected is { } selected)
+                {
+                    <div class="category-explorer-panel" role="tabpanel" id="category-panel" aria-labelledby="@($"category-tab-{selected.Id}")">
+                        <MudText Typo="Typo.h5">@selected.Title</MudText>
+                        @if (!string.IsNullOrWhiteSpace(selected.Description))
+                        {
+                            <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mt-2">@selected.Description</MudText>
+                        }
+
+                        <div class="category-explorer-services">
+                            @foreach (var service in ServicesOf(selected.Id).Take(4))
+                            {
+                                <div class="category-explorer-service">
+                                    <div class="min-w-0">
+                                        <MudLink Href="@($"/services/{service.Slug}")" Class="text-strong">@service.Title</MudLink>
+                                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="category-explorer-service-text">@service.Description</MudText>
+                                    </div>
+                                    <MudButton Href="@($"/appointment?service={service.Id}")" Variant="Variant.Text" Color="Color.Primary" Size="Size.Small">Book</MudButton>
+                                </div>
+                            }
+                        </div>
+
+                        <MudStack Row="true" Spacing="2" Wrap="Wrap.Wrap" Class="mt-5">
+                            <MudButton Href="@($"/services?category={selected.Id}")" Variant="Variant.Filled" Color="Color.Primary"
+                                       EndIcon="@Icons.Material.Filled.ArrowForward">Explore @selected.Title</MudButton>
+                            <MudButton Href="/service-finder" Variant="Variant.Text" Color="Color.Primary">Help me choose</MudButton>
+                        </MudStack>
+                    </div>
+                }
+            </div>
+        }
+    </MudContainer>
+</section>
 
 @code {
-    private static readonly string[] ColorClasses = ["tile-malachite", "tile-sunglow", "tile-mariner", "tile-brilliantrose", "tile-shakespeare", "tile-deyork"];
+    private List<CategoryResponse> _categories = [];
+    private List<ServiceResponse> _services = [];
+    private Guid _selectedId;
 
-    private List<(CategoryResponse Category, string ColorClass)> _tiles = [];
+    private CategoryResponse? Selected => _categories.FirstOrDefault(c => c.Id == _selectedId);
 
     protected override async Task OnInitializedAsync()
     {
-        var categories = await CategoryLookupHelper.GetAllAsync(ApiClient);
-        _tiles = categories.Select((category, index) => (category, ColorClasses[index % ColorClasses.Length])).ToList();
+        var categoriesTask = CategoryLookupHelper.GetAllAsync(ApiClient);
+        var servicesTask = ApiClient.GetAsync<PaginatedResponse<ServiceResponse>>($"{ApiRoutes.Services.Base}?size=100");
+
+        _categories = await categoriesTask;
+        var services = await servicesTask;
+        _services = services.IsSuccessful && services.ResultData is not null ? services.ResultData.Items : [];
+        _selectedId = _categories.FirstOrDefault()?.Id ?? Guid.Empty;
     }
+
+    private IEnumerable<ServiceResponse> ServicesOf(Guid categoryId) => _services.Where(s => s.CategoryId == categoryId);
 }

@@ -1,6 +1,5 @@
-@* Own appointments list - service name resolved per-item via GetAsync(Services.ById(...)) in
-   parallel, same pattern Cart.razor's LoadServiceInfoAsync already uses. CanCancel mirrors the
-   legacy MVC rule exactly: Status is Pending or Confirmed. *@
+@* Own appointments as cards with a progress track - service names resolved once per distinct service via
+   GetAsync(Services.ById(...)) in parallel. CanCancel mirrors the legacy MVC rule exactly: Status is Pending or Confirmed. *@
 @page "/user/appointments"
 @attribute [Authorize(Roles = AppRoles.User)]
 @layout OnlineConsulting.Maui.Shared.Layout.DashboardLayout
@@ -18,45 +17,62 @@
 
     @if (_loading)
     {
-        <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+        <ListSkeleton Rows="4" />
     }
     else if (_appointments.Count == 0)
     {
-        <MudText>You have no appointments yet.</MudText>
+        <EmptyState Icon="@Icons.Material.Outlined.CalendarMonth" Title="No appointments yet"
+                    Text="Book a visit and it will show up here with its status." ActionText="Book a visit" ActionHref="/appointment" />
     }
     else
     {
-        <MudSimpleTable Dense="true" Hover="true">
-            <thead>
-                <tr><th>#</th><th>Service</th><th>Scheduled</th><th>Status</th><th>Actions</th></tr>
-            </thead>
-            <tbody>
-                @for (var i = 0; i < _appointments.Count; i++)
-                {
-                    var appointment = _appointments[i];
-                    <tr>
-                        <td>@(i + 1)</td>
-                        <td>@ServiceName(appointment)</td>
-                        <td>@DateTimeFormat.FormatDateTime(appointment.ScheduledStart)</td>
-                        <td>
-                            <MudChip T="string" Size="Size.Small" Color="@StatusColor(appointment.Status)">@appointment.Status</MudChip>
-                        </td>
-                        <td>
+        <div class="appointment-list">
+            @foreach (var appointment in _appointments)
+            {
+                <MudPaper Outlined="true" Class="appointment-card">
+                    <div class="appointment-card-header">
+                        <div class="min-w-0">
+                            <MudText Typo="Typo.subtitle1" Class="text-strong">@ServiceName(appointment)</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">@DateTimeFormat.FormatDateTime(appointment.ScheduledStart)</MudText>
+                        </div>
+                        <MudChip T="string" Size="Size.Small" Color="@StatusColor(appointment.Status)">@StatusLabel(appointment.Status)</MudChip>
+                    </div>
+
+                    @if (appointment.Status == "Cancelled")
+                    {
+                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-3">This visit was cancelled.</MudText>
+                    }
+                    else
+                    {
+                        <ol class="appointment-progress" aria-label="Visit progress">
+                            @foreach (var (label, done) in Progress(appointment))
+                            {
+                                <li class="@(done ? "done" : null)">
+                                    <span class="appointment-progress-dot"></span>
+                                    <span class="appointment-progress-label">@label</span>
+                                </li>
+                            }
+                        </ol>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(appointment.NavigationUrl) || CanCancel(appointment))
+                    {
+                        <div class="appointment-card-actions">
                             @if (!string.IsNullOrWhiteSpace(appointment.NavigationUrl))
                             {
-                                <MudIconButton Icon="@Icons.Material.Outlined.LocationOn" Size="Size.Small" title="Navigate"
-                                               Href="@appointment.NavigationUrl" Target="_blank" />
+                                <MudButton Href="@appointment.NavigationUrl" Target="_blank" Size="Size.Small" Variant="Variant.Text"
+                                           StartIcon="@Icons.Material.Outlined.LocationOn">Directions</MudButton>
                             }
                             @if (CanCancel(appointment))
                             {
-                                <MudIconButton Icon="@Icons.Material.Outlined.Cancel" Size="Size.Small" Color="Color.Error" title="Cancel"
-                                               OnClick="@(() => CancelAsync(appointment))" />
+                                <MudButton Size="Size.Small" Variant="Variant.Text" Color="Color.Error" StartIcon="@Icons.Material.Outlined.Cancel"
+                                           OnClick="@(() => CancelAsync(appointment))">Cancel visit</MudButton>
                             }
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </MudSimpleTable>
+                        </div>
+                    }
+                </MudPaper>
+            }
+        </div>
     }
 
 @code {
@@ -89,21 +105,40 @@
 
     private async Task LoadServiceNamesAsync()
     {
-        var lookups = await Task.WhenAll(_appointments
-            .Where(a => a.ServiceId is not null)
-            .Select(async a =>
-            {
-                var result = await ApiClient.GetAsync<ServiceDetailResponse>(ApiRoutes.Services.ById(a.ServiceId!.Value));
-                return (ServiceId: a.ServiceId!.Value, Title: result.IsSuccessful ? result.ResultData?.Title : null);
-            }));
+        var serviceIds = _appointments.Select(a => a.ServiceId).OfType<Guid>().Distinct();
+        var lookups = await Task.WhenAll(serviceIds.Select(async serviceId =>
+        {
+            var result = await ApiClient.GetAsync<ServiceDetailResponse>(ApiRoutes.Services.ById(serviceId));
+            return (ServiceId: serviceId, Title: result.IsSuccessful ? result.ResultData?.Title : null);
+        }));
 
-        _serviceNames = lookups.Where(l => l.Title is not null).ToDictionary(l => l.ServiceId, l => l.Title!);
+        _serviceNames = lookups
+            .Where(l => l.Title is not null)
+            .ToDictionary(l => l.ServiceId, l => l.Title ?? string.Empty);
     }
 
     private string ServiceName(AppointmentResponse appointment) =>
         appointment.ServiceId is Guid serviceId && _serviceNames.TryGetValue(serviceId, out var name) ? name : "General meeting";
 
     private static bool CanCancel(AppointmentResponse appointment) => appointment.Status is "Pending" or "Confirmed";
+
+    private static string StatusLabel(string status) => status switch
+    {
+        "Pending" => "Requested",
+        "PendingPayment" => "Awaiting payment",
+        _ => status,
+    };
+
+    private static IEnumerable<(string Label, bool Done)> Progress(AppointmentResponse appointment)
+    {
+        var completed = appointment.Status == "Completed";
+        var confirmed = completed || appointment.Status == "Confirmed";
+
+        yield return ("Requested", true);
+        yield return ("Confirmed", confirmed);
+        yield return ("Technician assigned", completed || appointment.AssignedTechnicianUserId is not null);
+        yield return ("Completed", completed);
+    }
 
     private static Color StatusColor(string status) => status switch
     {

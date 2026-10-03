@@ -1,4 +1,5 @@
-@* Shell for public marketing pages - utility strip + sticky nav bar. Mobile nav is a full-screen overlay, not a dropdown. *@
+@* Shell for public marketing pages - one sticky nav bar (promotion strip above it). Phones navigate through the bottom tab bar
+   and the Menu page instead of the footer: the native app skips it, narrow browsers hide it in CSS. *@
 @inherits LayoutComponentBase
 @using OnlineConsulting.Maui.Shared.Theme
 @using OnlineConsulting.Maui.Shared.Components.Marketing
@@ -7,107 +8,62 @@
 @inject IApiClient ApiClient
 @inject IJSRuntime JsRuntime
 @inject IPlatformInfo PlatformInfo
+@inject IAuthSession AuthSession
 
-<MudThemeProvider Theme="MarketingTheme.Default" />
+<AppThemeProvider Theme="MarketingTheme.Default" />
 <MudPopoverProvider />
 <MudSnackbarProvider />
 <MudDialogProvider />
 
-<MudLayout Class="marketing-app-layout">
+<MudLayout Class="marketing-app-layout has-bottom-nav">
     @if (PlatformInfo.IsNativeMobile)
     {
         <div class="status-bar-safe-area"></div>
     }
-    <div class="marketing-top-bar">
-        <MudContainer MaxWidth="MaxWidth.Large" Class="d-flex justify-space-between align-center flex-wrap gap-2">
-            <div class="d-flex align-center gap-4 flex-wrap">
-                @if (_contact is not null)
-                {
-                    <a href="tel:@_contact.Phone" class="header-phone-cta">
-                        <MudIcon Icon="@Icons.Material.Filled.Phone" Size="Size.Small" />
-                        <span class="header-phone-cta-text">24/7 Emergency Service &middot; <strong>@_contact.Phone</strong></span>
-                    </a>
-                    <MudLink Href="@($"mailto:{_contact.Email}")" Color="Color.Inherit" Underline="Underline.None" Class="marketing-top-bar-link">
-                        <MudIcon Icon="@Icons.Material.Filled.Email" Size="Size.Small" Class="mr-1" />
-                        @_contact.Email
-                    </MudLink>
-                }
-            </div>
-            <MudStack Row="true" Spacing="3" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap">
-                @if (_socialLinks is { Count: > 0 })
-                {
-                    <MudStack Row="true" Spacing="0">
-                        @foreach (var link in _socialLinks)
-                        {
-                            <MudIconButton Href="@link.Url" Target="_blank" Icon="@link.Icon" Size="Size.Small" Color="Color.Inherit" />
-                        }
-                    </MudStack>
-                }
-                <MudStack Row="true" Spacing="1" Class="marketing-login-register" AlignItems="AlignItems.Center">
-                    <AuthorizeView>
-                        <Authorized>
-                            <MudLink Href="/user/dashboard" Color="Color.Inherit" Underline="Underline.None" Class="marketing-top-bar-link">@DisplayName(context.User)</MudLink>
-                            <MudLink Href="@AppRoutes.Logout" Color="Color.Inherit" Underline="Underline.None" Class="marketing-top-bar-link">Sign out</MudLink>
-                        </Authorized>
-                        <NotAuthorized>
-                            <MudLink Href="/login" Color="Color.Inherit" Underline="Underline.None" Class="marketing-top-bar-link">Login</MudLink>
-                            <MudLink Href="/register" Color="Color.Inherit" Underline="Underline.None" Class="marketing-top-bar-link">Register</MudLink>
-                        </NotAuthorized>
-                    </AuthorizeView>
-                </MudStack>
-            </MudStack>
-        </MudContainer>
-    </div>
+    <PromotionBanner />
 
     <div class="marketing-sticky-header">
         <MudAppBar Elevation="0" Fixed="false" Class="marketing-app-bar">
-            @* Same MudContainer as .marketing-top-bar above - lines the logo/nav/CTA up with the
-               utility strip and page content instead of a hand-matched CSS max-width. *@
             <MudContainer MaxWidth="MaxWidth.Large" Class="d-flex align-center" Style="width: 100%;">
                 <MarketingBrandMark />
                 <MudSpacer />
                 <MudStack Row="true" Spacing="5" AlignItems="AlignItems.Center" Class="marketing-nav">
-                    <NavLink href="/" Match="NavLinkMatch.All" class="marketing-nav-link">Home</NavLink>
-                    <NavLink href="/about" class="marketing-nav-link">About</NavLink>
-                    <NavLink href="/gallery" class="marketing-nav-link">Gallery</NavLink>
                     <NavLink href="/services" class="marketing-nav-link">Services</NavLink>
-                    <NavLink href="/contact" class="marketing-nav-link">Contact</NavLink>
                     <NavLink href="/membership" class="marketing-nav-link">Membership</NavLink>
-                    <NavLink href="/pricing" class="marketing-nav-link">Pricing</NavLink>
+                    <NavLink href="/gallery" class="marketing-nav-link">Our work</NavLink>
+                    <NavLink href="/about" class="marketing-nav-link">About</NavLink>
+                    <NavLink href="/contact" class="marketing-nav-link">Contact</NavLink>
                 </MudStack>
                 <MudSpacer />
-                <CartBadge Class="mr-4" />
-                <MudLink Href="/appointment" Underline="Underline.None" Class="header-book-now-btn">Book Now</MudLink>
-                <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Class="marketing-nav-toggle"
-                                aria-label="Toggle navigation" aria-expanded="false" />
+                @if (_contact is { Phone.Length: > 0 })
+                {
+                    <MudTooltip Text="@($"24/7 emergency: {_contact.Phone}")">
+                        <MudIconButton Href="@($"tel:{_contact.Phone}")" Icon="@Icons.Material.Outlined.Phone" Color="Color.Inherit"
+                                       Class="hide-on-phone" aria-label="@($"Call {_contact.Phone}")" />
+                    </MudTooltip>
+                }
+                <ThemeModeMenu Class="hide-on-phone" />
+                <CartBadge Class="mx-2" />
+                <AuthorizeView>
+                    <Authorized>
+                        <MudMenu Icon="@Icons.Material.Outlined.AccountCircle" Color="Color.Inherit" AnchorOrigin="Origin.BottomRight"
+                                 TransformOrigin="Origin.TopRight" aria-label="Your account" Class="mr-3 hide-on-phone">
+                            <MudText Typo="Typo.subtitle2" Class="px-4 pt-2 pb-2">@DisplayName(context.User)</MudText>
+                            <MudDivider />
+                            <MudMenuItem Href="/user/dashboard" Icon="@Icons.Material.Outlined.Dashboard">Dashboard</MudMenuItem>
+                            <MudMenuItem Href="/user/appointments" Icon="@Icons.Material.Outlined.CalendarMonth">My visits</MudMenuItem>
+                            <MudMenuItem Href="/user/profile" Icon="@Icons.Material.Outlined.ManageAccounts">Profile</MudMenuItem>
+                            <MudDivider />
+                            <MudMenuItem OnClick="@(() => AuthSession.SignOutAsync())" Icon="@Icons.Material.Outlined.Logout" IconColor="Color.Error">Sign out</MudMenuItem>
+                        </MudMenu>
+                    </Authorized>
+                    <NotAuthorized>
+                        <NavLink href="/login" class="marketing-nav-link mr-4 hide-on-phone">Sign in</NavLink>
+                    </NotAuthorized>
+                </AuthorizeView>
+                <MudLink Href="/appointment" Underline="Underline.None" Class="header-book-now-btn hide-on-phone">Book Now</MudLink>
             </MudContainer>
         </MudAppBar>
-
-        <nav class="marketing-nav-mobile">
-            <MudIconButton Icon="@Icons.Material.Filled.Close" Color="Color.Inherit" Class="marketing-nav-close"
-                            aria-label="Close navigation" />
-            <NavLink href="/" Match="NavLinkMatch.All" class="marketing-nav-link">Home</NavLink>
-            <NavLink href="/about" class="marketing-nav-link">About</NavLink>
-            <NavLink href="/gallery" class="marketing-nav-link">Gallery</NavLink>
-            <NavLink href="/services" class="marketing-nav-link">Services</NavLink>
-            <NavLink href="/contact" class="marketing-nav-link">Contact</NavLink>
-            <NavLink href="/appointment" class="marketing-nav-link">Appointment</NavLink>
-            <NavLink href="/membership" class="marketing-nav-link">Membership</NavLink>
-            <NavLink href="/pricing" class="marketing-nav-link">Pricing</NavLink>
-            <CartBadge IconOnly="false" Class="marketing-nav-link" />
-            <MudDivider Class="my-2" />
-            <AuthorizeView>
-                <Authorized>
-                    <MudLink Href="/user/dashboard" Color="Color.Inherit" Underline="Underline.None" Class="marketing-nav-link">My Account</MudLink>
-                    <MudLink Href="@AppRoutes.Logout" Color="Color.Inherit" Underline="Underline.None" Class="marketing-nav-link">Sign out</MudLink>
-                </Authorized>
-                <NotAuthorized>
-                    <MudLink Href="/login" Color="Color.Inherit" Underline="Underline.None" Class="marketing-nav-link">Login</MudLink>
-                    <MudLink Href="/register" Color="Color.Inherit" Underline="Underline.None" Class="marketing-nav-link">Register</MudLink>
-                </NotAuthorized>
-            </AuthorizeView>
-            <MudLink Href="/appointment" Underline="Underline.None" Class="header-book-now-btn mt-3 justify-center">Book Now</MudLink>
-        </nav>
     </div>
     <div class="marketing-sticky-header-spacer"></div>
 
@@ -115,26 +71,27 @@
         @Body
     </MudMainContent>
 
-    <MarketingFooter />
+    @if (!PlatformInfo.IsNativeMobile)
+    {
+        <MarketingFooter />
+    }
+
+    <MobileBottomNav />
 </MudLayout>
 
 @code {
     private CompanyContactResponse? _contact;
-    private List<SocialLinkResponse>? _socialLinks;
 
     protected override async Task OnInitializedAsync()
     {
         var contactResult = await ApiClient.GetAsync<CompanyContactResponse>(ApiRoutes.Inquiries.Contact.Get);
         _contact = contactResult.IsSuccessful ? contactResult.ResultData : null;
-
-        var socialLinksResult = await ApiClient.GetAsync<List<SocialLinkResponse>>(ApiRoutes.SiteContent.SocialLink.Base);
-        _socialLinks = socialLinksResult.IsSuccessful ? socialLinksResult.ResultData : null;
     }
 
-    /// <summary>Re-binds marketing.js's click handlers after every render, not just DOMContentLoaded/enhancedload - neither fires reliably in BlazorWebView, and AuthorizeView's async resolution re-creates the header's DOM on a later render anyway.</summary>
+    /// <summary>Re-binds marketing.js's scroll handlers after every render, not just DOMContentLoaded/enhancedload - neither fires reliably in BlazorWebView.</summary>
     protected override async Task OnAfterRenderAsync(bool firstRender) =>
         await JsRuntime.InvokeVoidAsync("initMarketingNav");
 
-    private static string? DisplayName(ClaimsPrincipal user) =>
-        user.FindFirst(ClaimTypes.GivenName)?.Value is { Length: > 0 } firstName ? firstName : user.Identity?.Name;
+    private static string DisplayName(ClaimsPrincipal user) =>
+        user.FindFirst(ClaimTypes.GivenName)?.Value is { Length: > 0 } firstName ? firstName : user.Identity?.Name ?? "Your account";
 }

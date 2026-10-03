@@ -1,0 +1,93 @@
+@* Phone home page: one horizontally swipeable rail per category (plus "Popular" from featured services) for browsing;
+   the full vertical, comparable list lives on /services. Empty categories are skipped. Hidden on wide screens. *@
+@inject IApiClient ApiClient
+
+<section class="service-rails mobile-only" aria-label="Services">
+    @if (_loading)
+    {
+        <div class="service-rail-header"><MudSkeleton Width="140px" Height="28px" /></div>
+        <div class="service-rail">
+            @for (var i = 0; i < 3; i++)
+            {
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="250px" Class="service-rail-card rounded-lg" />
+            }
+        </div>
+    }
+    else
+    {
+        @foreach (var (rail, index) in _rails.Select((r, i) => (r, i)))
+        {
+            <div class="service-rail-group">
+                <div class="service-rail-header">
+                    <span class="tone-bubble tone-bubble-sm @AccentTone.At(index)"><MudIcon Icon="@rail.Icon" Size="Size.Small" /></span>
+                    <MudText Typo="Typo.h6" Class="service-rail-heading">@rail.Title</MudText>
+                    <MudLink Href="@rail.SeeAllHref" Class="service-rail-see-all">See all</MudLink>
+                </div>
+                <div class="service-rail" role="list">
+                    @foreach (var service in rail.Services)
+                    {
+                        <div role="listitem" class="service-rail-item">
+                            <ServiceRailCard Service="@service" ImageUrl="@_imageUrlsByServiceId.GetValueOrDefault(service.Id)" />
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    }
+</section>
+
+@code {
+    private sealed record Rail(string Title, string Icon, string SeeAllHref, List<ServiceResponse> Services);
+
+    private const int ServicesPerRail = 10;
+
+    private List<Rail> _rails = [];
+    private Dictionary<Guid, string?> _imageUrlsByServiceId = [];
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var categoriesTask = CategoryLookupHelper.GetAllAsync(ApiClient);
+        var servicesTask = ApiClient.GetAsync<PaginatedResponse<ServiceResponse>>(ApiRoutes.Paged(ApiRoutes.Services.Base, 0, 100));
+
+        var categories = await categoriesTask;
+        var servicesResult = await servicesTask;
+        var services = servicesResult.IsSuccessful ? servicesResult.ResultData?.Items ?? [] : [];
+
+        _rails = BuildRails(categories, services);
+        await LoadImagesAsync();
+        _loading = false;
+    }
+
+    private static List<Rail> BuildRails(List<CategoryResponse> categories, List<ServiceResponse> services)
+    {
+        List<Rail> rails = [];
+
+        var popular = services.Where(s => s.FeaturedArea).Take(ServicesPerRail).ToList();
+        if (popular.Count > 0)
+        {
+            rails.Add(new Rail("Popular", Icons.Material.Outlined.LocalFireDepartment, "/services", popular));
+        }
+
+        foreach (var category in categories)
+        {
+            var inCategory = services.Where(s => s.CategoryId == category.Id).Take(ServicesPerRail).ToList();
+            if (inCategory.Count > 0)
+            {
+                var icon = category.Icon is { Length: > 0 } categoryIcon ? categoryIcon : Icons.Material.Outlined.Category;
+                rails.Add(new Rail(category.Title, icon, $"/services?category={category.Id}", inCategory));
+            }
+        }
+
+        return rails;
+    }
+
+    private async Task LoadImagesAsync()
+    {
+        var withCovers = _rails.SelectMany(r => r.Services).DistinctBy(s => s.Id).Where(s => s.CoverMediaAssetId is not null);
+        var lookups = await Task.WhenAll(withCovers.Select(async service =>
+            (service.Id, Url: service.CoverMediaAssetId is Guid mediaId ? await MediaUploadHelper.GetUrlAsync(ApiClient, mediaId) : null)));
+
+        _imageUrlsByServiceId = lookups.ToDictionary(l => l.Id, l => l.Url);
+    }
+}

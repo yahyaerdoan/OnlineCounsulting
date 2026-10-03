@@ -1,0 +1,156 @@
+@* Phone "Menu" hub (the bottom bar's last tab): who you are, every shortcut as a tile, settings, and what the desktop
+   footer holds (social links, newsletter, "For businesses") - phones don't render the footer. *@
+@page "/menu"
+@using System.Security.Claims
+@using OnlineConsulting.Maui.Shared.Theme
+@using OnlineConsulting.Maui.Shared.Components.Marketing
+@using OnlineConsulting.Maui.Shared.Infrastructure.Api
+@layout OnlineConsulting.Maui.Shared.Layout.MarketingLayout
+@implements IDisposable
+@inject ThemeModeState ThemeModeState
+@inject IApiClient ApiClient
+@inject IAuthSession AuthSession
+
+<PageTitle>Menu</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="menu-page">
+    <AuthorizeView>
+        <Authorized>
+            <a href="/user/dashboard" class="menu-profile">
+                <MudAvatar Color="Color.Primary" Size="Size.Large">@Initials(context.User)</MudAvatar>
+                <span class="min-w-0">
+                    <span class="menu-profile-name">@DisplayName(context.User)</span>
+                    <span class="menu-profile-link">View your dashboard</span>
+                </span>
+                <MudIcon Icon="@Icons.Material.Filled.ChevronRight" />
+            </a>
+
+            <MudText Typo="Typo.subtitle2" Class="menu-heading">Your account</MudText>
+            <div class="menu-grid">
+                @foreach (var tile in AccountTiles)
+                {
+                    <a href="@tile.Href" class="menu-tile">
+                        <span class="tone-bubble @tile.Tone"><MudIcon Icon="@tile.Icon" /></span>
+                        <span>@tile.Label</span>
+                    </a>
+                }
+            </div>
+        </Authorized>
+        <NotAuthorized>
+            <div class="menu-profile menu-profile-guest">
+                <MudAvatar Color="Color.Default" Size="Size.Large"><MudIcon Icon="@Icons.Material.Outlined.Person" /></MudAvatar>
+                <span class="min-w-0">
+                    <span class="menu-profile-name">Welcome</span>
+                    <span class="menu-profile-link">Sign in to book and track your visits</span>
+                </span>
+            </div>
+            <MudStack Row="true" Spacing="2" Class="mb-4">
+                <MudButton Href="/login?ReturnUrl=/menu" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true">Sign in</MudButton>
+                <MudButton Href="/register" Variant="Variant.Outlined" Color="Color.Primary" FullWidth="true">Create account</MudButton>
+            </MudStack>
+        </NotAuthorized>
+    </AuthorizeView>
+
+    <MudText Typo="Typo.subtitle2" Class="menu-heading">Explore</MudText>
+    <div class="menu-grid">
+        @foreach (var tile in PublicTiles)
+        {
+            <a href="@tile.Href" class="menu-tile">
+                <span class="tone-bubble @tile.Tone"><MudIcon Icon="@tile.Icon" /></span>
+                <span>@tile.Label</span>
+            </a>
+        }
+    </div>
+
+    <MudText Typo="Typo.subtitle2" Class="menu-heading">Appearance</MudText>
+    <div class="menu-segmented" role="radiogroup" aria-label="Color theme">
+        @foreach (var (mode, label, icon) in Modes)
+        {
+            <button type="button" role="radio" aria-checked="@(ThemeModeState.Mode == mode)"
+                    class="menu-segmented-option @(ThemeModeState.Mode == mode ? "selected" : null)" @onclick="@(() => ThemeModeState.SetAsync(mode))">
+                <MudIcon Icon="@icon" Size="Size.Small" />
+                <span>@label</span>
+            </button>
+        }
+    </div>
+
+    @if (_socialLinks is { Count: > 0 })
+    {
+        <MudText Typo="Typo.subtitle2" Class="menu-heading">Follow us</MudText>
+        <div class="menu-social">
+            @foreach (var link in _socialLinks)
+            {
+                <a href="@link.Url" target="_blank" rel="noopener" aria-label="@link.Name" class="tone-bubble @AccentTone.At(_socialLinks.IndexOf(link))"><MudIcon Icon="@link.Icon" /></a>
+            }
+        </div>
+    }
+
+    <MudText Typo="Typo.subtitle2" Class="menu-heading">Newsletter</MudText>
+    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-2">Seasonal maintenance tips and offers, straight to your inbox.</MudText>
+    <NewsletterForm FormName="menu-newsletter" />
+
+    <AuthorizeView>
+        <Authorized>
+            <MudButton OnClick="@(() => AuthSession.SignOutAsync())" Variant="Variant.Text" Color="Color.Error" StartIcon="@Icons.Material.Outlined.Logout"
+                       FullWidth="true" Class="mt-6">Sign out</MudButton>
+        </Authorized>
+    </AuthorizeView>
+
+    <div class="menu-fineprint">
+        <a href="/pricing">For businesses</a>
+        <span>&copy; @DateTime.UtcNow.Year ComfortPro</span>
+    </div>
+</MudContainer>
+
+@code {
+    private sealed record MenuTile(string Label, string Href, string Icon, string Tone);
+
+    private static readonly MenuTile[] AccountTiles =
+    [
+        new("Visits", "/user/appointments", Icons.Material.Outlined.CalendarMonth, AccentTone.Blue),
+        new("Orders", "/user/orders", Icons.Material.Outlined.ReceiptLong, AccentTone.Orange),
+        new("Membership", "/user/membership", Icons.Material.Outlined.WorkspacePremium, AccentTone.Gold),
+        new("Equipment", "/user/equipment", Icons.Material.Outlined.AcUnit, AccentTone.Teal),
+        new("Addresses", "/user/addresses", Icons.Material.Outlined.Home, AccentTone.Green),
+        new("Referrals", "/user/referrals", Icons.Material.Outlined.CardGiftcard, AccentTone.Berry),
+        new("Cart", "/user/cart", Icons.Material.Outlined.ShoppingCart, AccentTone.Red),
+        new("Profile", "/user/profile", Icons.Material.Outlined.ManageAccounts, AccentTone.Cornflower),
+    ];
+
+    private static readonly MenuTile[] PublicTiles =
+    [
+        new("Find a service", "/service-finder", Icons.Material.Outlined.TravelExplore, AccentTone.Blue),
+        new("All services", "/services", Icons.Material.Outlined.HomeRepairService, AccentTone.Teal),
+        new("Memberships", "/membership", Icons.Material.Outlined.Loyalty, AccentTone.Gold),
+        new("Our work", "/gallery", Icons.Material.Outlined.PhotoLibrary, AccentTone.Green),
+        new("About us", "/about", Icons.Material.Outlined.Info, AccentTone.Cornflower),
+        new("Contact", "/contact", Icons.Material.Outlined.SupportAgent, AccentTone.Orange),
+    ];
+
+    private static readonly (ThemeMode Mode, string Label, string Icon)[] Modes =
+    [
+        (ThemeMode.Light, "Light", Icons.Material.Outlined.LightMode),
+        (ThemeMode.System, "System", Icons.Material.Outlined.BrightnessAuto),
+        (ThemeMode.Dark, "Dark", Icons.Material.Outlined.DarkMode),
+    ];
+
+    private List<SocialLinkResponse>? _socialLinks;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ThemeModeState.Changed += OnThemeChangedAsync;
+
+        var socialLinksResult = await ApiClient.GetAsync<List<SocialLinkResponse>>(ApiRoutes.SiteContent.SocialLink.Base);
+        _socialLinks = socialLinksResult.IsSuccessful ? socialLinksResult.ResultData : null;
+    }
+
+    private Task OnThemeChangedAsync() => InvokeAsync(StateHasChanged);
+
+    private static string DisplayName(ClaimsPrincipal user) =>
+        user.FindFirst(ClaimTypes.GivenName)?.Value is { Length: > 0 } firstName ? firstName : user.Identity?.Name ?? "Your account";
+
+    private static string Initials(ClaimsPrincipal user) =>
+        DisplayName(user) is { Length: > 0 } name ? name[..1].ToUpperInvariant() : "?";
+
+    public void Dispose() => ThemeModeState.Changed -= OnThemeChangedAsync;
+}

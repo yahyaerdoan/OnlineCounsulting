@@ -25,7 +25,8 @@
 
     @if (_items.Count == 0)
     {
-        <MudAlert Severity="Severity.Info">No gallery images found.</MudAlert>
+        <EmptyState Icon="@Icons.Material.Outlined.PhotoLibrary" Title="No photos in this category yet"
+                    Text="Try another category, or see all of our work." ActionText="Show all photos" ActionHref="/gallery" />
     }
     else
     {

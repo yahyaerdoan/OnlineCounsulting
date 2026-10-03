@@ -1,5 +1,6 @@
 @* Public catalog listing - Static SSR (no live circuit, so no @onclick), same three-branch
-   loading shape as the Api itself: search overrides category overrides the plain paginated list. *@
+   loading shape as the Api itself: search overrides category overrides the plain paginated list.
+   Wide screens get a card grid; phones get a vertical, Amazon-style list of rows under swipeable category chips. *@
 @page "/services"
 @layout OnlineConsulting.Maui.Shared.Layout.MarketingLayout
 @using OnlineConsulting.Maui.Shared.Components.Marketing
@@ -14,7 +15,7 @@
 <MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
     @if (_categories.Count > 0)
     {
-        <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="2" Class="mb-6">
+        <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="2" Class="mb-6 service-filter-chips">
             <MudChip T="string" Href="/services" Size="Size.Small" Variant="Variant.Filled"
                      Color="@(CategoryId is null ? Color.Primary : Color.Default)">All</MudChip>
             @foreach (var category in _categories)
@@ -33,7 +34,50 @@
     }
     else
     {
-        <MudGrid>
+        <div class="service-rows mobile-only" role="list">
+            @foreach (var service in _services)
+            {
+                var imageUrl = _imageUrlsByServiceId.GetValueOrDefault(service.Id);
+                <div class="service-row" role="listitem">
+                    <a href="@($"/services/{service.Slug}")" class="service-row-thumb" aria-label="@service.Title">
+                        @if (imageUrl is { Length: > 0 })
+                        {
+                            <img src="@imageUrl" alt="" loading="lazy" />
+                        }
+                        else
+                        {
+                            <MudIcon Icon="@Icons.Material.Outlined.HomeRepairService" />
+                        }
+                    </a>
+                    <div class="service-row-body">
+                        <a href="@($"/services/{service.Slug}")" class="service-row-title">@service.Title</a>
+                        <span class="service-row-meta">
+                            @_categoryTitlesById.GetValueOrDefault(service.CategoryId)
+                            @if (service.IsEmergencyAvailable)
+                            {
+                                <span class="service-row-emergency">· 24/7</span>
+                            }
+                        </span>
+                        <span class="service-row-desc">@service.Description</span>
+                        <div class="service-row-footer">
+                            <span class="service-row-price">
+                                @ServicePriceFormat.Display(service)
+                                @if (ServicePriceFormat.HasDiscount(service))
+                                {
+                                    <span class="service-rail-price-old">@CurrencyFormat.Format(service.Price)</span>
+                                    <span class="service-row-off">@service.DiscountRate% off</span>
+                                }
+                            </span>
+                            <MudButton Href="@ServicePriceFormat.BookingHref(service)" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small">
+                                @(service.PriceType == ServicePriceTypes.Fixed ? "Book" : "Quote")
+                            </MudButton>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <MudGrid Class="hide-on-phone">
             @foreach (var service in _services)
             {
                 <MudItem xs="12" sm="6" md="4">

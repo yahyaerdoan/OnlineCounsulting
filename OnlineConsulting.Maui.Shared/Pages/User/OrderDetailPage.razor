@@ -1,6 +1,6 @@
 @* Read-only order detail/invoice view - no separate Invoice entity exists in this stack.
    Full page (not a dialog) - the dialog-to-page threshold applies once content grows past a
-   couple of fields, and this shows a header block plus a full line-item table. *@
+   couple of fields, and this shows a header block plus a full line-item table (a stacked item list on phones). *@
 @page "/user/orders/{OrderId:guid}"
 @attribute [Authorize(Roles = AppRoles.User)]
 @layout OnlineConsulting.Maui.Shared.Layout.DashboardLayout
@@ -19,14 +19,39 @@
 }
 else if (_detail is not null)
 {
-    <MudStack Spacing="1" Class="mb-4">
-        <MudText Typo="Typo.body2">Order #: @_detail.Order.OrderNumber</MudText>
-        <MudText Typo="Typo.body2">Placed: @DateTimeFormat.FormatDateTime(_detail.Order.CreatedDate)</MudText>
-        <MudText Typo="Typo.body2">Status: @_detail.Order.OrderStatus</MudText>
-        <MudText Typo="Typo.body2">Payment: @_detail.Order.PaymentStatus</MudText>
-    </MudStack>
+    <MudPaper Outlined="true" Class="order-detail-card mb-4">
+        <div class="order-detail-header">
+            <span class="tone-bubble @AccentTone.Orange"><MudIcon Icon="@Icons.Material.Outlined.ReceiptLong" /></span>
+            <div class="min-w-0">
+                <MudText Typo="Typo.subtitle1" Class="text-strong">#@_detail.Order.OrderNumber</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">Placed @DateTimeFormat.FormatDateTime(_detail.Order.CreatedDate)</MudText>
+            </div>
+        </div>
+        <MudStack Row="true" Spacing="2" Wrap="Wrap.Wrap" Class="mt-3">
+            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Class="ml-0">Status: @_detail.Order.OrderStatus</MudChip>
+            <MudChip T="string" Size="Size.Small" Color="@OrdersList.PaymentColor(_detail.Order.PaymentStatus)">Payment: @_detail.Order.PaymentStatus</MudChip>
+        </MudStack>
+    </MudPaper>
 
-    <MudSimpleTable Dense="true">
+    <MudPaper Outlined="true" Class="order-detail-card mobile-only">
+        <MudText Typo="Typo.subtitle2" Class="mb-2">Items</MudText>
+        @foreach (var item in _detail.Items)
+        {
+            <div class="order-detail-item">
+                <div class="min-w-0">
+                    <MudText Typo="Typo.body2" Class="text-strong">@(_serviceNames.GetValueOrDefault(item.ServiceId) ?? "Service")</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">@item.Quantity &times; @CurrencyFormat.Format(item.UnitPrice) · tax @CurrencyFormat.Format(item.TaxAmount)</MudText>
+                </div>
+                <MudText Typo="Typo.body2" Class="text-strong">@CurrencyFormat.Format(item.TotalPrice)</MudText>
+            </div>
+        }
+        <div class="order-detail-total">
+            <MudText Typo="Typo.subtitle1">Total</MudText>
+            <MudText Typo="Typo.subtitle1" Color="Color.Primary" Class="text-strong">@CurrencyFormat.Format(_detail.Order.TotalPrice)</MudText>
+        </div>
+    </MudPaper>
+
+    <MudSimpleTable Dense="true" Class="hide-on-phone">
         <thead>
             <tr>
                 <th>Service</th>
@@ -50,11 +75,12 @@ else if (_detail is not null)
         </tbody>
     </MudSimpleTable>
 
-    <MudStack Row="true" Justify="Justify.FlexEnd" Class="mt-3">
+    <MudStack Row="true" Justify="Justify.FlexEnd" Class="mt-3 hide-on-phone">
         <MudText Typo="Typo.subtitle1">Total: @CurrencyFormat.Format(_detail.Order.TotalPrice)</MudText>
     </MudStack>
 
-    <MudButton Href="/user/orders" Variant="Variant.Outlined" Color="Color.Primary" Class="mt-4">Back to Orders</MudButton>
+    <MudButton Href="/user/orders" Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowBack"
+               Class="mt-4 order-detail-back">Back to orders</MudButton>
 }
 
 @code {

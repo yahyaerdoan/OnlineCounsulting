@@ -223,7 +223,11 @@
         {
             _cardElementMounted = true;
             var publishableKey = Configuration["Stripe:PublishableKey"];
-            await JsRuntime.InvokeVoidAsync("subscribeStripe.init", publishableKey, "tenancy-signup-card-element");
+            _paymentError = await JsRuntime.InvokeAsync<string?>("subscribeStripe.init", publishableKey, "tenancy-signup-card-element");
+            if (_paymentError is not null)
+            {
+                StateHasChanged();
+            }
         }
     }
 

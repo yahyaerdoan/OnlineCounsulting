@@ -1,4 +1,6 @@
-﻿@* Shows the first slide (by DisplayOrder) as a static banner - no carousel rotation. *@
+﻿@* Shows the first slide (by DisplayOrder) as a static banner - no carousel rotation. On phones the text sits at the
+   bottom over a darkening gradient with one full-width booking button; the finder and call actions are left to
+   HomeQuickStart right below, which already offers both. *@
 @using OnlineConsulting.Maui.Shared.Infrastructure.Api
 @inject IApiClient ApiClient
 
@@ -13,16 +15,14 @@
                 {
                     <MudLink Href="/about" Class="marketing-hero-learn-more">Learn more about us &rarr;</MudLink>
                 }
-                <MudStack Row="true" Spacing="3" Class="mt-4" Wrap="Wrap.Wrap">
-                    <MudButton Href="/appointment" Variant="Variant.Filled" Color="Color.Primary">Schedule Service</MudButton>
+                <MudStack Row="true" Spacing="3" Class="mt-4 marketing-hero-actions" Wrap="Wrap.Wrap">
+                    <MudButton Href="/appointment" Variant="Variant.Filled" Color="Color.Primary" Class="marketing-hero-primary-cta">Schedule Service</MudButton>
+                    <MudButton Href="/service-finder" Variant="Variant.Outlined" Class="marketing-hero-secondary-cta hide-on-phone"
+                               EndIcon="@Icons.Material.Filled.ArrowForward">Not sure what you need?</MudButton>
                     @if (!string.IsNullOrWhiteSpace(_phone))
                     {
-                        <MudButton Href="@($"tel:{_phone}")" Variant="Variant.Filled" Color="Color.Primary"
+                        <MudButton Href="@($"tel:{_phone}")" Variant="Variant.Text" Class="marketing-hero-secondary-cta hide-on-phone"
                                    StartIcon="@Icons.Material.Filled.Phone">Call @_phone</MudButton>
-                    }
-                    else
-                    {
-                        <MudButton Href="/about" Variant="Variant.Filled" Color="Color.Primary">About Us</MudButton>
                     }
                 </MudStack>
             </MudContainer>

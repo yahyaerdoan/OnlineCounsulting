@@ -60,12 +60,7 @@
     [Parameter, EditorRequired]
     public string DetailUrl { get; set; } = default!;
 
-    private string FormattedPrice => Service.PriceType switch
-    {
-        ServicePriceTypes.StartingAt => $"From {CurrencyFormat.Format(Service.Price)}",
-        ServicePriceTypes.Range when Service.PriceMax is not null => $"{CurrencyFormat.Format(Service.Price)} - {CurrencyFormat.Format(Service.PriceMax.Value)}",
-        _ => CurrencyFormat.Format(Service.Price),
-    };
+    private string FormattedPrice => ServicePriceFormat.Display(Service);
 
     /// <summary>Mirrors the legacy card's exact truncation (80 chars + "...").</summary>
     private string TruncatedDescription => Service.Description.Length > 80

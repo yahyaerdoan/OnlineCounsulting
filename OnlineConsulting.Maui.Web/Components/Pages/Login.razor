@@ -120,10 +120,7 @@
         await httpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity),
             new AuthenticationProperties { IsPersistent = _model.RememberMe });
 
-        var isUserOnly = userResult.ResultData.Roles.Count == 1
-            && userResult.ResultData.Roles[0].Equals(AppRoles.User, StringComparison.OrdinalIgnoreCase);
-        var homeRoute = isUserOnly ? "/user/dashboard" : AppRoutes.AdminHome;
-        var target = string.IsNullOrEmpty(ReturnUrl) ? homeRoute : ReturnUrl;
+        var target = SignInRedirect.Target(userResult.ResultData.Roles, ReturnUrl);
         Navigation.NavigateTo(target.Contains('?') ? $"{target}&welcome=true" : $"{target}?welcome=true", forceLoad: true);
     });
 }

@@ -1,11 +1,13 @@
-@* Booking flow: pick a date/slot (browsing is public), sign-in prompt replaces submit for anonymous
-   visitors - same browse-then-sign-in pattern as Cart/Checkout. *@
+@* Booking flow in three steps (service, time, details); browsing is public and the sign-in prompt replaces the
+   confirm button for anonymous visitors - same browse-then-sign-in pattern as Cart/Checkout. ?service={id} preselects
+   a service and starts at the time step. The time step is a month calendar; picking a day loads its open times,
+   grouped by part of day, beside the calendar on wide screens and below it (scrolled into view) on phones. *@
 @page "/appointment"
 @using OnlineConsulting.Maui.Shared.Infrastructure.Forms
 @layout OnlineConsulting.Maui.Shared.Layout.MarketingLayout
 @inject IApiClient ApiClient
-@inject NavigationManager Navigation
 @inject ISnackbar Snackbar
+@inject IJSRuntime JsRuntime
 @inject FormState<AppointmentModel> Form
 
 <PageTitle>Book an Appointment</PageTitle>
@@ -13,77 +15,147 @@
 <MudContainer MaxWidth="MaxWidth.Medium" Class="marketing-section">
     <MudText Typo="Typo.h4" Class="mb-2">Book an Appointment</MudText>
     <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-6">
-        Pick a date to see open times, or reach out through the <MudLink Href="/contact">Contact page</MudLink> instead.
+        Three quick steps. Prefer to talk first? Use the <MudLink Href="/contact">Contact page</MudLink>.
     </MudText>
 
-    @if (_confirmed)
+    @if (_confirmedSlot is not null)
     {
-        <MudAlert Severity="Severity.Success" Class="mb-4">
-            Appointment requested for @DateTimeFormat.FormatDateTime(_selectedSlot!.Start). We've sent a confirmation email.
-        </MudAlert>
-        <MudButton Href="/user/appointments" Variant="Variant.Filled" Color="Color.Primary">View My Appointments</MudButton>
+        <div class="booking-confirmed">
+            <MudIcon Icon="@Icons.Material.Outlined.CheckCircle" Color="Color.Success" Style="font-size: 3rem;" />
+            <MudText Typo="Typo.h5" Class="mt-2">You're booked</MudText>
+            <MudText Color="Color.Secondary" Class="mb-4">
+                @SelectedServiceTitle on @DateTimeFormat.FormatDateTime(_confirmedSlot.Start). We've sent a confirmation email.
+            </MudText>
+            <MudButton Href="/user/appointments" Variant="Variant.Filled" Color="Color.Primary">View my appointments</MudButton>
+        </div>
     }
     else
     {
-        <MudGrid>
-            <MudItem xs="12" sm="6">
-                <MudDatePicker Label="Date" Date="_date" DateChanged="OnDateChangedAsync" MinDate="@DateTime.Today.AddDays(1)" Variant="Variant.Outlined" Margin="Margin.Dense" />
-            </MudItem>
-            <MudItem xs="12" sm="6">
-                <MudSelect T="Guid?" Label="Service (optional)" @bind-Value="_serviceId" Variant="Variant.Outlined" Margin="Margin.Dense" Clearable="true">
-                    @foreach (var service in _services)
-                    {
-                        <MudSelectItem T="Guid?" Value="@((Guid?)service.Id)">@service.Title</MudSelectItem>
-                    }
-                </MudSelect>
-            </MudItem>
-        </MudGrid>
+        <StepIndicator Steps="StepNames" @bind-Current="_step" />
 
-        <ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
-
-        @if (_date is not null)
+        @if (_step == 0)
         {
-            <MudText Typo="Typo.subtitle2" Class="mt-4 mb-2">Available Times</MudText>
-
-            @if (_loadingSlots)
-            {
-                <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
-            }
-            else if (_slots.Count == 0)
-            {
-                <MudText Color="Color.Secondary">No open times on this date - try another day.</MudText>
-            }
-            else
-            {
-                <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="2">
-                    @foreach (var slot in _slots)
-                    {
-                        <MudButton Variant="@(_selectedSlot == slot ? Variant.Filled : Variant.Outlined)" Color="Color.Primary" Size="Size.Small"
-                                   OnClick="@(() => _selectedSlot = slot)">
-                            @slot.Start.ToString("h:mm tt")
-                        </MudButton>
-                    }
-                </MudStack>
-            }
+            <div class="d-flex flex-wrap align-center justify-space-between gap-2 mb-3">
+                <MudText Typo="Typo.subtitle1">What do you need?</MudText>
+                <MudLink Href="/service-finder" Typo="Typo.body2">Not sure? Answer 3 quick questions</MudLink>
+            </div>
+            <div class="booking-choice-grid" role="radiogroup" aria-label="Service">
+                <button type="button" class="booking-choice @(_serviceId is null ? "selected" : null)" role="radio" aria-checked="@(_serviceId is null)"
+                        @onclick="@(() => _serviceId = null)">
+                    <MudIcon Icon="@Icons.Material.Outlined.HelpOutline" />
+                    <span class="booking-choice-title">Not sure yet</span>
+                    <span class="booking-choice-text">A technician will assess it on site.</span>
+                </button>
+                @foreach (var service in _services)
+                {
+                    var id = service.Id;
+                    <button type="button" class="booking-choice @(_serviceId == id ? "selected" : null)" role="radio" aria-checked="@(_serviceId == id)"
+                            @onclick="@(() => _serviceId = id)">
+                        <MudIcon Icon="@Icons.Material.Outlined.HomeRepairService" />
+                        <span class="booking-choice-title">@service.Title</span>
+                        <span class="booking-choice-text">@service.Description</span>
+                    </button>
+                }
+            </div>
+            <div class="booking-actions">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => _step = 1)">Continue</MudButton>
+            </div>
         }
-
-        @if (_selectedSlot is not null)
+        else if (_step == 1)
         {
+            <div class="booking-schedule">
+                <div class="booking-calendar-panel">
+                    <MudText Typo="Typo.subtitle2" Class="mb-2">Pick a day</MudText>
+                    <MudDatePicker PickerVariant="PickerVariant.Static" Date="_date" DateChanged="OnDateChangedAsync"
+                                   MinDate="@FirstBookableDay" MaxDate="@LastBookableDay" ShowToolbar="false" Elevation="0"
+                                   Class="booking-calendar" />
+                </div>
+
+                <div id="booking-times" class="booking-times-panel">
+                    <ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+                    @if (_date is not { } date)
+                    {
+                        <div class="booking-times-hint">
+                            <span class="tone-bubble @AccentTone.Blue"><MudIcon Icon="@Icons.Material.Outlined.EventAvailable" /></span>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">Choose a day on the calendar to see the open times.</MudText>
+                        </div>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.subtitle2" Class="mb-3">@date.ToString("dddd, MMMM d")</MudText>
+
+                        @if (_loadingSlots)
+                        {
+                            <div class="booking-slot-grid" aria-busy="true">
+                                @for (var i = 0; i < 6; i++)
+                                {
+                                    <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="44px" Class="rounded" />
+                                }
+                            </div>
+                        }
+                        else if (_slots.Count == 0)
+                        {
+                            <div class="booking-empty">
+                                <MudText Color="Color.Secondary">No open times on this date.</MudText>
+                                <MudButton Variant="Variant.Text" Color="Color.Primary" EndIcon="@Icons.Material.Filled.ArrowForward"
+                                           OnClick="@(() => OnDateChangedAsync(date.AddDays(1)))">Try the next day</MudButton>
+                            </div>
+                        }
+                        else
+                        {
+                            @foreach (var (period, slots) in SlotsByPeriod)
+                            {
+                                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="booking-slot-period">@period</MudText>
+                                <div class="booking-slot-grid" role="listbox" aria-label="@($"{period} times")">
+                                    @foreach (var slot in slots)
+                                    {
+                                        var isSelected = _selectedSlot == slot;
+                                        <button type="button" role="option" aria-selected="@isSelected" class="booking-slot @(isSelected ? "selected" : null)"
+                                                @onclick="@(() => _selectedSlot = slot)">
+                                            @slot.Start.ToString("h:mm tt")
+                                        </button>
+                                    }
+                                </div>
+                            }
+                        }
+                    }
+                </div>
+            </div>
+
+            <div class="booking-actions">
+                <MudButton Variant="Variant.Text" OnClick="@(() => _step = 0)">Back</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(_selectedSlot is null)" OnClick="@(() => _step = 2)">Continue</MudButton>
+            </div>
+        }
+        else if (_selectedSlot is { } selected)
+        {
+            <MudPaper Outlined="true" Class="pa-4 mb-4">
+                <MudText Typo="Typo.overline" Color="Color.Secondary">Your visit</MudText>
+                <MudText Typo="Typo.subtitle1">@SelectedServiceTitle</MudText>
+                <MudText Color="Color.Secondary">@selected.Start.ToString("dddd, MMM d") at @selected.Start.ToString("h:mm tt")</MudText>
+            </MudPaper>
+
             <EditForm EditContext="@Form.EditContext">
-                <MudTextField @bind-Value="_model.CustomerNote" For="@(() => _model.CustomerNote)" Label="Note (optional)" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="2" Class="mt-4" />
-                <MudTextField @bind-Value="_model.ServiceAddress" For="@(() => _model.ServiceAddress)" Label="Service address (optional)" Variant="Variant.Outlined" Margin="Margin.Dense" Class="mt-2" />
+                <MudTextField @bind-Value="_model.ServiceAddress" For="@(() => _model.ServiceAddress)" Label="Service address (optional)" Variant="Variant.Outlined" Margin="Margin.Dense"
+                              Lines="1" Sizing="InputSizing.Auto" autocomplete="street-address" />
+                <MudTextField @bind-Value="_model.CustomerNote" For="@(() => _model.CustomerNote)" Label="Anything we should know? (optional)" Variant="Variant.Outlined" Margin="Margin.Dense"
+                              Lines="2" Sizing="InputSizing.Auto" Class="mt-2" />
 
                 <AuthorizeView Context="authContext">
                     <Authorized>
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mt-4" Disabled="@_submitting" OnClick="SubmitAsync">
-                            Confirm Booking - @_selectedSlot.Start.ToString("MMM d, h:mm tt")
-                        </MudButton>
+                        <div class="booking-actions">
+                            <MudButton Variant="Variant.Text" OnClick="@(() => _step = 1)">Back</MudButton>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@_submitting" OnClick="@(() => SubmitAsync(selected))">
+                                @(_submitting ? "Booking..." : "Confirm booking")
+                            </MudButton>
+                        </div>
                     </Authorized>
                     <NotAuthorized>
                         <MudAlert Severity="Severity.Info" Class="mt-4">
                             Sign in to confirm this booking.
                             <div class="mt-2">
-                                <MudButton Href="@($"/login?ReturnUrl=/appointment")" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small">Sign In</MudButton>
+                                <MudButton Href="/login?ReturnUrl=/appointment" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small">Sign In</MudButton>
                                 <MudButton Href="/register" Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" Class="ml-2">Register</MudButton>
                             </div>
                         </MudAlert>
@@ -95,16 +167,33 @@
 </MudContainer>
 
 @code {
+    private static readonly string[] StepNames = ["Service", "Date & time", "Details"];
+
+    private int _step;
     private DateTime? _date;
     private Guid? _serviceId;
     private List<ServiceResponse> _services = [];
     private List<AvailableSlotResponse> _slots = [];
     private AvailableSlotResponse? _selectedSlot;
+    private AvailableSlotResponse? _confirmedSlot;
     private readonly AppointmentModel _model = new();
     private bool _loadingSlots;
+    private bool _scrollToTimes;
     private bool _submitting;
-    private bool _confirmed;
     private string? _loadError;
+
+    private static DateTime FirstBookableDay => DateTime.Today.AddDays(1);
+
+    private static DateTime LastBookableDay => DateTime.Today.AddDays(90);
+
+    private IEnumerable<(string Period, List<AvailableSlotResponse> Slots)> SlotsByPeriod =>
+        _slots.GroupBy(slot => slot.Start.Hour switch { < 12 => "Morning", < 17 => "Afternoon", _ => "Evening" })
+              .Select(group => (group.Key, group.OrderBy(slot => slot.Start).ToList()));
+
+    [SupplyParameterFromQuery(Name = "service")]
+    public Guid? PreselectedServiceId { get; set; }
+
+    private string SelectedServiceTitle => _services.FirstOrDefault(s => s.Id == _serviceId)?.Title ?? "Service visit";
 
     protected override async Task OnInitializedAsync()
     {
@@ -112,21 +201,26 @@
 
         var result = await ApiClient.GetAsync<PaginatedResponse<ServiceResponse>>($"{ApiRoutes.Services.Base}?size=100");
         _services = result.IsSuccessful && result.ResultData is not null ? result.ResultData.Items : [];
+
+        if (PreselectedServiceId is { } preselected && _services.Any(s => s.Id == preselected))
+        {
+            _serviceId = preselected;
+            _step = 1;
+        }
     }
 
     private async Task OnDateChangedAsync(DateTime? newDate)
     {
         _date = newDate;
+        _selectedSlot = null;
 
         if (_date is null)
         {
             _slots = [];
-            _selectedSlot = null;
             return;
         }
 
         _loadingSlots = true;
-        _selectedSlot = null;
         _loadError = null;
         StateHasChanged();
 
@@ -143,36 +237,48 @@
         }
 
         _loadingSlots = false;
+        _scrollToTimes = true;
     }
 
-    private async Task SubmitAsync()
+    /// <summary>Scrolls only after the times have rendered - scrolling from the load handler ran before the new list existed.</summary>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (_selectedSlot is null)
+        if (_scrollToTimes)
         {
-            return;
+            _scrollToTimes = false;
+            await JsRuntime.InvokeVoidAsync("comfortProScrollIntoView", "booking-times");
         }
+    }
 
+    private async Task SubmitAsync(AvailableSlotResponse slot)
+    {
         _submitting = true;
 
         var body = new
         {
             serviceId = _serviceId,
-            scheduledStart = _selectedSlot.Start,
-            scheduledEnd = _selectedSlot.End,
+            scheduledStart = slot.Start,
+            scheduledEnd = slot.End,
             customerNote = _model.CustomerNote,
             serviceAddress = _model.ServiceAddress,
         };
 
         var result = await ApiClient.PostAsync<Guid>(ApiRoutes.Operations.Appointments.Base, body);
+        _submitting = false;
+
         if (!result.IsSuccessful)
         {
             Form.DisplayErrors(result, Snackbar);
-            _submitting = false;
+            if (result.StatusCode == 409)
+            {
+                _step = 1;
+                await OnDateChangedAsync(_date);
+            }
+
             return;
         }
 
-        _confirmed = true;
-        _submitting = false;
+        _confirmedSlot = slot;
     }
 
     private sealed class AppointmentModel

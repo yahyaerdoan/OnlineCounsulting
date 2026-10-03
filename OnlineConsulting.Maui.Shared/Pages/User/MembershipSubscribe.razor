@@ -46,19 +46,27 @@
                     <MudDivider />
                     <MudStack Row="true" Justify="Justify.SpaceBetween" Class="pa-3">
                         <MudText Typo="Typo.body2">Billing</MudText>
-                        <MudText Typo="Typo.body2" Color="Color.Secondary">@_plan.Price.ToString("C") / @(_plan.BillingCycle == "Annual" ? "year" : "month")</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">@CurrencyFormat.Format(_plan.Price) / @(_plan.BillingCycle == "Annual" ? "year" : "month")</MudText>
                     </MudStack>
+                    @if (_plan.TrialDays is > 0)
+                    {
+                        <MudDivider />
+                        <MudStack Row="true" Justify="Justify.SpaceBetween" Class="pa-3">
+                            <MudText Typo="Typo.body2" Color="Color.Success">Free trial</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Success">@_plan.TrialDays days free</MudText>
+                        </MudStack>
+                    }
                     @if (_appliedPromo is { IsValid: true } applied)
                     {
                         <MudDivider />
                         <MudStack Row="true" Justify="Justify.SpaceBetween" Class="pa-3">
                             <MudText Typo="Typo.body2" Color="Color.Success">Discount</MudText>
-                            <MudText Typo="Typo.body2" Color="Color.Success">-@applied.DiscountAmount.ToString("C")</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Success">-@CurrencyFormat.Format(applied.DiscountAmount)</MudText>
                         </MudStack>
                         <MudDivider />
                         <MudStack Row="true" Justify="Justify.SpaceBetween" Class="pa-3">
                             <MudText Typo="Typo.subtitle2" Class="text-strong">Total due today</MudText>
-                            <MudText Typo="Typo.subtitle2" Class="text-strong">@applied.FinalPrice.ToString("C")</MudText>
+                            <MudText Typo="Typo.subtitle2" Class="text-strong">@CurrencyFormat.Format(applied.FinalPrice)</MudText>
                         </MudStack>
                     }
                 </MudPaper>
@@ -87,8 +95,12 @@
 
                         <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Size="Size.Large" Class="mt-4"
                                    Disabled="@_isBusy" OnClick="SubscribeAsync">
-                            Subscribe
+                            @(_plan.TrialDays is > 0 ? "Start free trial" : "Subscribe")
                         </MudButton>
+                        <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center" Justify="Justify.Center" Class="mt-3">
+                            <MudIcon Icon="@Icons.Material.Outlined.Lock" Size="Size.Small" Color="Color.Secondary" />
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">Secure payment by Stripe. Cancel anytime from your account.</MudText>
+                        </MudStack>
                     </Authorized>
                     <NotAuthorized>
                         <MudAlert Severity="Severity.Info" Class="mt-2">
@@ -150,7 +162,11 @@
 
         _cardElementMounted = true;
         var publishableKey = Configuration["Stripe:PublishableKey"];
-        await JsRuntime.InvokeVoidAsync("subscribeStripe.init", publishableKey, "membership-card-element");
+        _paymentError = await JsRuntime.InvokeAsync<string?>("subscribeStripe.init", publishableKey, "membership-card-element");
+        if (_paymentError is not null)
+        {
+            StateHasChanged();
+        }
     }
 
     private async Task ApplyPromoCodeAsync()

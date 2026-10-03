@@ -1,0 +1,66 @@
+@* Slim, dismissible strip announcing the current promotion on every marketing page; a dismissed promotion stays hidden (localStorage), a new one shows again.
+   On the home page it shows on phones only, since wide screens get the full promotions section there. *@
+@implements IDisposable
+@inject IApiClient ApiClient
+@inject IJSRuntime JsRuntime
+@inject NavigationManager Navigation
+
+@if (_promotion is { } promotion && !_dismissed)
+{
+    <div class="promotion-banner @(IsHomePage ? "promotion-banner-home" : null)" role="region" aria-label="Current offer">
+        <MudIcon Icon="@Icons.Material.Outlined.LocalOffer" Size="Size.Small" />
+        <span class="promotion-banner-text"><strong>@promotion.Title</strong> @promotion.Description</span>
+        @if (!string.IsNullOrWhiteSpace(promotion.CtaUrl))
+        {
+            <MudLink Href="@promotion.CtaUrl" Class="promotion-banner-cta">@(promotion.CtaText ?? "Learn more")</MudLink>
+        }
+        <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" Color="Color.Inherit" aria-label="Dismiss offer" OnClick="DismissAsync" />
+    </div>
+}
+
+@code {
+    private const string DismissedKey = "comfortpro-dismissed-promotion";
+
+    private PromotionResponse? _promotion;
+    private bool _dismissed = true;
+
+    private bool IsHomePage => Navigation.ToBaseRelativePath(Navigation.Uri).Split('?', '#')[0].Length == 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Navigation.LocationChanged += OnLocationChanged;
+
+        var result = await ApiClient.GetAsync<List<PromotionResponse>>(ApiRoutes.Growth.Promotions.Base);
+        _promotion = result.IsSuccessful
+            ? result.ResultData?
+                .Where(p => p.ExpiresAt is null || p.ExpiresAt > DateTimeOffset.UtcNow)
+                .OrderBy(p => p.DisplayOrder)
+                .FirstOrDefault()
+            : null;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender || _promotion is null)
+        {
+            return;
+        }
+
+        var dismissedId = await JsRuntime.InvokeAsync<string?>("localStorage.getItem", DismissedKey);
+        _dismissed = dismissedId == _promotion.Id.ToString();
+        StateHasChanged();
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e) => InvokeAsync(StateHasChanged);
+
+    private async Task DismissAsync()
+    {
+        _dismissed = true;
+        if (_promotion is not null)
+        {
+            await JsRuntime.InvokeVoidAsync("localStorage.setItem", DismissedKey, _promotion.Id.ToString());
+        }
+    }
+
+    public void Dispose() => Navigation.LocationChanged -= OnLocationChanged;
+}

@@ -1,5 +1,7 @@
 ﻿@* Storefront cart - basket ownership is implicit (JWT or guest_id cookie), never passed by the
-   client. Interactive (no [ExcludeFromInteractiveRouting]), so quantity/removal updates live. *@
+   client. Interactive (no [ExcludeFromInteractiveRouting]), so quantity/removal updates live. Wide screens get the
+   line-item table; phones get one card per item with a thumb-sized quantity stepper, then the totals, then
+   "Continue shopping" as a secondary full-width button. *@
 @page "/user/cart"
 @using Microsoft.AspNetCore.Http
 @using OnlineConsulting.Maui.Shared.Components.Marketing
@@ -30,7 +32,49 @@
     }
     else if (_basket is not null)
     {
-        <MudPaper Class="mb-4" Outlined="true">
+        <div class="cart-item-cards mobile-only" role="list">
+            @foreach (var item in _items)
+            {
+                var info = _serviceInfo.GetValueOrDefault(item.ServiceId);
+                var detailUrl = info is not null ? $"/services/{info.Slug}" : null;
+                <div class="cart-item-card" role="listitem">
+                    <a href="@detailUrl" class="cart-item-thumb" aria-label="@(info?.Title ?? "Service")">
+                        @if (info?.ImageUrl is { Length: > 0 } imageUrl)
+                        {
+                            <img src="@imageUrl" alt="" loading="lazy" />
+                        }
+                        else
+                        {
+                            <MudIcon Icon="@Icons.Material.Outlined.HomeRepairService" />
+                        }
+                    </a>
+                    <div class="cart-item-body">
+                        <div class="cart-item-top">
+                            <a href="@detailUrl" class="cart-item-title">@(info?.Title ?? "Service")</a>
+                            <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" Size="Size.Small"
+                                           Disabled="@_isBusy" OnClick="@(() => RemoveItemAsync(item))" aria-label="Remove from cart" />
+                        </div>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">@CurrencyFormat.Format(item.Price) each · tax @(item.TaxRate)%</MudText>
+                        <div class="cart-item-bottom">
+                            <div class="cart-qty" role="group" aria-label="Quantity">
+                                <button type="button" class="cart-qty-button" aria-label="Decrease quantity"
+                                        disabled="@(_isBusy || item.Quantity <= 1)" @onclick="@(() => ChangeQuantityAsync(item, item.Quantity - 1))">
+                                    <MudIcon Icon="@Icons.Material.Outlined.Remove" Size="Size.Small" />
+                                </button>
+                                <span class="cart-qty-value" aria-live="polite">@item.Quantity</span>
+                                <button type="button" class="cart-qty-button" aria-label="Increase quantity"
+                                        disabled="@_isBusy" @onclick="@(() => ChangeQuantityAsync(item, item.Quantity + 1))">
+                                    <MudIcon Icon="@Icons.Material.Outlined.Add" Size="Size.Small" />
+                                </button>
+                            </div>
+                            <span class="cart-item-total">@CurrencyFormat.Format(item.TotalPrice)</span>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <MudPaper Class="mb-4 hide-on-phone" Outlined="true">
             <MudTable Items="@_items" Hover="true" Elevation="0" Class="cart-items-table">
                 <HeaderContent>
                     <MudTh>#</MudTh>
@@ -84,12 +128,13 @@
         </MudPaper>
 
         <MudGrid>
-            <MudItem xs="12" md="8" Class="d-flex align-center">
-                <MudButton Href="/services" Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.ArrowBack">
-                    Continue Shopping
+            <MudItem xs="12" md="8" Class="d-flex align-center cart-continue-col">
+                <MudButton Href="/services" Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.ArrowBack"
+                           Class="cart-continue-button">
+                    Continue shopping
                 </MudButton>
             </MudItem>
-            <MudItem xs="12" md="4">
+            <MudItem xs="12" md="4" Class="cart-summary-col">
                 <CartSummary SubTotal="@_basket.SubTotalPrice" TaxTotal="@_taxTotal" Total="@_basket.TotalPrice" Disabled="@_isBusy" />
             </MudItem>
         </MudGrid>
@@ -108,11 +153,16 @@
 
     private decimal _taxTotal => _items.Sum(i => i.TaxAmount);
 
-    protected override Task OnInitializedAsync() => LoadBasketAsync();
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadBasketAsync();
+        _loading = false;
+    }
 
+    /// <summary>Refreshes the basket in place. The full-page progress bar is only for the first load - showing it on every
+    /// quantity change swapped the whole cart out for a moment, and the page jumped.</summary>
     private async Task LoadBasketAsync()
     {
-        _loading = true;
         var result = await ApiClient.GetAsync<BasketResponse>(ApiRoutes.Commerce.Baskets.Base);
         if (!result.IsSuccessful || result.ResultData is null)
         {
@@ -125,7 +175,6 @@
             _basket = null;
             _items = [];
             CartState.SetCount(0);
-            _loading = false;
             return;
         }
 
@@ -133,12 +182,13 @@
         _items = [.. _basket.Items];
         CartState.SetCount(_items.Count);
         await LoadServiceInfoAsync();
-        _loading = false;
     }
 
+    /// <summary>Fetches title/slug/image only for services not already known, so a quantity change doesn't refetch every line.</summary>
     private async Task LoadServiceInfoAsync()
     {
-        var lookups = await Task.WhenAll(_items.Select(async item =>
+        var unknownItems = _items.Where(i => !_serviceInfo.ContainsKey(i.ServiceId)).DistinctBy(i => i.ServiceId);
+        var lookups = await Task.WhenAll(unknownItems.Select(async item =>
         {
             var serviceResult = await ApiClient.GetAsync<ServiceDetailResponse>(ApiRoutes.Services.ById(item.ServiceId));
             if (!serviceResult.IsSuccessful || serviceResult.ResultData is null)
@@ -154,7 +204,13 @@
             return (item.ServiceId, Info: (ServiceLineInfo?)new ServiceLineInfo(service.Title, service.Slug, imageUrl));
         }));
 
-        _serviceInfo = lookups.Where(l => l.Info is not null).ToDictionary(l => l.ServiceId, l => l.Info!);
+        foreach (var (serviceId, info) in lookups)
+        {
+            if (info is not null)
+            {
+                _serviceInfo[serviceId] = info;
+            }
+        }
     }
 
     private async Task ChangeQuantityAsync(BasketItemResponse item, int newQuantity)

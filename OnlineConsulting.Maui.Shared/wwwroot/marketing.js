@@ -9,17 +9,30 @@ window.copyToClipboard = function (text) {
     return true;
 };
 
+// Returns why the Stripe form can't mount (script blocked/offline, key not configured), or null when it can.
+function stripeUnavailableReason(publishableKey) {
+    if (typeof Stripe === 'undefined') {
+        return 'The payment form could not load. Check your internet connection and try again.';
+    }
+    return publishableKey ? null : 'Online payments are not configured yet.';
+}
+
 // In-page Stripe Payment Element for Checkout.razor - stripe/elements are module-scoped since
-// only one checkout flow is active per tab.
+// only one checkout flow is active per tab. init returns an error message, or null once mounted.
 window.checkoutStripe = (function () {
     let stripe = null;
     let elements = null;
 
     return {
         init: function (publishableKey, clientSecret) {
+            const unavailable = stripeUnavailableReason(publishableKey);
+            if (unavailable) {
+                return unavailable;
+            }
             stripe = Stripe(publishableKey);
             elements = stripe.elements({ clientSecret: clientSecret });
             elements.create('payment').mount('#payment-element');
+            return null;
         },
         confirmPayment: async function () {
             if (!stripe || !elements) {
@@ -39,16 +52,21 @@ window.checkoutStripe = (function () {
 
 // In-page Stripe Card Element for MembershipSubscribe.razor/Tenancy Signup.razor - tokenizes a card into a
 // PaymentMethodId before the subscribe/signup API call, unlike checkoutStripe which confirms an
-// already-created PaymentIntent.
+// already-created PaymentIntent. init returns an error message, or null once mounted.
 window.subscribeStripe = (function () {
     let stripe = null;
     let cardElement = null;
 
     return {
         init: function (publishableKey, elementId) {
+            const unavailable = stripeUnavailableReason(publishableKey);
+            if (unavailable) {
+                return unavailable;
+            }
             stripe = Stripe(publishableKey);
             cardElement = stripe.elements().create('card');
             cardElement.mount('#' + elementId);
+            return null;
         },
         createPaymentMethod: async function () {
             if (!stripe || !cardElement) {
@@ -64,32 +82,6 @@ window.subscribeStripe = (function () {
 })();
 
 (function () {
-    function initMobileNav() {
-        var toggle = document.querySelector('.marketing-nav-toggle');
-        var close = document.querySelector('.marketing-nav-close');
-        var nav = document.querySelector('.marketing-nav-mobile');
-        if (!toggle || !nav || toggle.dataset.bound) {
-            return;
-        }
-        toggle.dataset.bound = 'true';
-
-        var setOpen = function (open) {
-            nav.classList.toggle('marketing-nav-open', open);
-            toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-            document.body.classList.toggle('marketing-nav-lock', open);
-        };
-
-        toggle.addEventListener('click', function () {
-            setOpen(!nav.classList.contains('marketing-nav-open'));
-        });
-        if (close) {
-            close.addEventListener('click', function () { setOpen(false); });
-        }
-        nav.querySelectorAll('a').forEach(function (link) {
-            link.addEventListener('click', function () { setOpen(false); });
-        });
-    }
-
     // Bound on window (not the header node) and re-queried each time - survives the header
     // element getting swapped out by an interactive render or enhanced nav.
     function initStickyHeader() {
@@ -104,6 +96,11 @@ window.subscribeStripe = (function () {
             var shouldStick = window.scrollY > stickyThreshold;
             header.classList.toggle('is-sticky', shouldStick);
             spacer.classList.toggle('is-active', shouldStick);
+
+            var isPhone = window.matchMedia('(max-width: 959.98px)').matches;
+            var scrollingDown = window.scrollY > (window.__lastScrollY || 0);
+            header.classList.toggle('is-hidden', isPhone && scrollingDown && window.scrollY > 160);
+            window.__lastScrollY = window.scrollY;
         };
 
         if (!window.__stickyHeaderBound) {
@@ -115,9 +112,12 @@ window.subscribeStripe = (function () {
     }
 
     // Apple-style subtle fade+rise as sections enter the viewport. No-op for
-    // prefers-reduced-motion and for browsers without IntersectionObserver.
+    // prefers-reduced-motion, for browsers without IntersectionObserver, and on phone-sized
+    // screens, where a fast flick would briefly show empty space and read as slow loading.
     function initScrollReveal() {
-        if (!('IntersectionObserver' in window) || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        if (!('IntersectionObserver' in window)
+            || window.matchMedia('(prefers-reduced-motion: reduce)').matches
+            || window.matchMedia('(max-width: 959.98px)').matches) {
             return;
         }
 
@@ -250,7 +250,6 @@ window.subscribeStripe = (function () {
     }
 
     function init() {
-        initMobileNav();
         initStickyHeader();
         initScrollReveal();
         initServiceGallery();
@@ -265,4 +264,41 @@ window.subscribeStripe = (function () {
 
     document.addEventListener('DOMContentLoaded', init);
     document.addEventListener('enhancedload', init);
+})();
+
+// Ctrl+K / Cmd+K opens the admin command palette (CommandPaletteButton registers itself after first render).
+// Brings a section into view after Blazor renders it (e.g. the booking times under the calendar). Phones align it
+// to the top, since it sits below the calendar; wider screens use "nearest", a no-op when it is already visible.
+window.comfortProScrollIntoView = function (id) {
+    var element = document.getElementById(id);
+    if (element) {
+        var isPhone = window.matchMedia('(max-width: 759.98px)').matches;
+        element.scrollIntoView({ behavior: 'smooth', block: isPhone ? 'start' : 'nearest' });
+    }
+};
+
+window.comfortProShortcuts = (function () {
+    let handler = null;
+
+    return {
+        registerCommandPalette(dotNetReference) {
+            if (handler) {
+                document.removeEventListener('keydown', handler);
+            }
+
+            handler = function (event) {
+                if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+                    event.preventDefault();
+                    dotNetReference.invokeMethodAsync('OpenAsync');
+                }
+            };
+            document.addEventListener('keydown', handler);
+        },
+        unregisterCommandPalette() {
+            if (handler) {
+                document.removeEventListener('keydown', handler);
+                handler = null;
+            }
+        },
+    };
 })();

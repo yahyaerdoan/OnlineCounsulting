@@ -1,8 +1,6 @@
-﻿@* Mirrors the legacy footer (UserInterface's LayoutFooterTopArea* ViewComponents) - newsletter form
-   posts for real to Inquiries.Newsletter.Subscribe, unlike the legacy action="#". *@
+﻿@* Wide-screen footer; hidden on phones, where the Menu page carries the social links, newsletter and "For businesses" link. *@
 @using OnlineConsulting.Maui.Shared.Infrastructure.Api
 @inject IApiClient ApiClient
-@inject ISnackbar Snackbar
 
 <MudContainer MaxWidth="MaxWidth.False" Class="marketing-footer pa-0">
     <MudContainer MaxWidth="MaxWidth.Large" Class="py-8">
@@ -22,6 +20,17 @@
                         <MudIcon Icon="@Icons.Material.Filled.AccessTime" Size="Size.Small" />
                         <MudText Typo="Typo.body2">Mon&ndash;Sat: 7am&ndash;8pm &bull; 24/7 Emergency Line</MudText>
                     </MudStack>
+                    @if (_contact is not null)
+                    {
+                        <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
+                            <MudIcon Icon="@Icons.Material.Filled.Phone" Size="Size.Small" />
+                            <MudLink Href="@($"tel:{_contact.Phone}")" Color="Color.Inherit" Typo="Typo.body2">@_contact.Phone</MudLink>
+                        </MudStack>
+                        <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
+                            <MudIcon Icon="@Icons.Material.Filled.Email" Size="Size.Small" />
+                            <MudLink Href="@($"mailto:{_contact.Email}")" Color="Color.Inherit" Typo="Typo.body2">@_contact.Email</MudLink>
+                        </MudStack>
+                    }
                 </MudStack>
                 @if (_socialLinks is { Count: > 0 })
                 {
@@ -38,12 +47,20 @@
             <MudItem xs="12" sm="6" md="2">
                 <MudText Typo="Typo.subtitle1" Class="marketing-display marketing-footer-heading mb-2">Quick Links</MudText>
                 <MudStack Spacing="1">
-                    <MudLink Href="/" Color="Color.Inherit">Home</MudLink>
-                    <MudLink Href="/about" Color="Color.Inherit">About Us</MudLink>
-                    <MudLink Href="/gallery" Color="Color.Inherit">Gallery</MudLink>
                     <MudLink Href="/services" Color="Color.Inherit">Services</MudLink>
+                    <MudLink Href="/membership" Color="Color.Inherit">Membership</MudLink>
+                    <MudLink Href="/gallery" Color="Color.Inherit">Our work</MudLink>
+                    <MudLink Href="/about" Color="Color.Inherit">About Us</MudLink>
                     <MudLink Href="/contact" Color="Color.Inherit">Contact</MudLink>
-                    <MudLink Href="/login" Color="Color.Inherit">Login</MudLink>
+                    <AuthorizeView>
+                        <Authorized>
+                            <MudLink Href="/user/dashboard" Color="Color.Inherit">My account</MudLink>
+                        </Authorized>
+                        <NotAuthorized>
+                            <MudLink Href="/login" Color="Color.Inherit">Sign in</MudLink>
+                        </NotAuthorized>
+                    </AuthorizeView>
+                    <MudLink Href="/pricing" Color="Color.Inherit">For businesses</MudLink>
                 </MudStack>
             </MudItem>
 
@@ -66,14 +83,8 @@
 
             <MudItem xs="12" sm="6" md="3">
                 <MudText Typo="Typo.subtitle1" Class="marketing-display marketing-footer-heading mb-2">Newsletter</MudText>
-                <MudText Typo="Typo.body2" Class="mb-2">Enter your email and we'll send you more information of.</MudText>
-                <EditForm Model="_newsletterModel" method="post" FormName="marketing-newsletter" OnValidSubmit="SubscribeAsync">
-                    <div class="newsletter-input-box">
-                        <InputText @bind-Value="_newsletterModel.Email" name="email" class="newsletter-input" placeholder="Your email address" />
-                        <MudIconButton ButtonType="ButtonType.Submit" Icon="@Icons.Material.Filled.Send" Size="Size.Small"
-                                       Class="newsletter-button" Disabled="@_isSubscribing" />
-                    </div>
-                </EditForm>
+                <MudText Typo="Typo.body2" Class="mb-2">Seasonal maintenance tips and offers, straight to your inbox.</MudText>
+                <NewsletterForm FormName="footer-newsletter" />
             </MudItem>
         </MudGrid>
     </MudContainer>
@@ -95,12 +106,9 @@
 @code {
     private List<FooterInfoResponse> _footerInfos = [];
     private List<SocialLinkResponse>? _socialLinks;
+    private CompanyContactResponse? _contact;
     private List<ServiceResponse> _popularServices = [];
     private Dictionary<Guid, string?> _imageUrlsByServiceId = [];
-    private bool _isSubscribing;
-
-    [SupplyParameterFromForm]
-    private NewsletterModel _newsletterModel { get => field ??= new(); set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -109,6 +117,9 @@
 
         var socialLinksResult = await ApiClient.GetAsync<List<SocialLinkResponse>>(ApiRoutes.SiteContent.SocialLink.Base);
         _socialLinks = socialLinksResult.IsSuccessful ? socialLinksResult.ResultData : null;
+
+        var contactResult = await ApiClient.GetAsync<CompanyContactResponse>(ApiRoutes.Inquiries.Contact.Get);
+        _contact = contactResult.IsSuccessful ? contactResult.ResultData : null;
 
         await LoadPopularServicesAsync();
     }
@@ -126,28 +137,5 @@
             (service.Id, Url: service.CoverMediaAssetId is Guid mediaId ? await MediaUploadHelper.GetUrlAsync(ApiClient, mediaId) : null)));
 
         _imageUrlsByServiceId = lookups.ToDictionary(l => l.Id, l => l.Url);
-    }
-
-    private async Task SubscribeAsync()
-    {
-        _isSubscribing = true;
-
-        var result = await ApiClient.PostAsync(ApiRoutes.Inquiries.Newsletter.Subscribe, new { email = _newsletterModel.Email });
-
-        _isSubscribing = false;
-
-        Snackbar.Add(result.DisplayMessage, result.IsSuccessful ? Severity.Success : Severity.Error);
-
-        if (result.IsSuccessful)
-        {
-            _newsletterModel.Email = string.Empty;
-        }
-
-        StateHasChanged();
-    }
-
-    private sealed class NewsletterModel
-    {
-        public string Email { get; set; } = string.Empty;
     }
 }

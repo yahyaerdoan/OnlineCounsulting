@@ -14,7 +14,7 @@
 
     @if (_loading)
     {
-        <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+        <ListSkeleton Rows="3" />
     }
     else
     {
@@ -48,7 +48,8 @@
                 </MudTd>
             </RowTemplate>
             <NoRecordsContent>
-                <MudText>No saved addresses yet.</MudText>
+                <EmptyState Icon="@Icons.Material.Outlined.Home" Title="No saved addresses yet"
+                            Text="Save your home address once and pick it when you book or check out." ActionText="Add address" ActionHref="/user/addresses/new" />
             </NoRecordsContent>
         </SearchableTable>
     }

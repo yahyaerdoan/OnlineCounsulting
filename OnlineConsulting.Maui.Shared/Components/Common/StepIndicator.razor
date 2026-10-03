@@ -1,0 +1,45 @@
+@* Numbered progress header for multi-step flows; completed steps are buttons so the user can jump back, unless the flow can't go back (CurrentChanged unset). *@
+
+<ol class="step-indicator" aria-label="Progress">
+    @for (var index = 0; index < Steps.Count; index++)
+    {
+        var step = index;
+        var state = step < Current ? "done" : step == Current ? "current" : "upcoming";
+        <li class="step-indicator-item @state" aria-current="@(step == Current ? "step" : null)">
+            @if (step < Current && CurrentChanged.HasDelegate)
+            {
+                <button type="button" class="step-indicator-button" @onclick="@(() => CurrentChanged.InvokeAsync(step))">
+                    <span class="step-indicator-dot"><MudIcon Icon="@Icons.Material.Filled.Check" Size="Size.Small" /></span>
+                    <span class="step-indicator-label">@Steps[step]</span>
+                </button>
+            }
+            else
+            {
+                <span class="step-indicator-button">
+                    <span class="step-indicator-dot">
+                        @if (step < Current)
+                        {
+                            <MudIcon Icon="@Icons.Material.Filled.Check" Size="Size.Small" />
+                        }
+                        else
+                        {
+                            @(step + 1)
+                        }
+                    </span>
+                    <span class="step-indicator-label">@Steps[step]</span>
+                </span>
+            }
+        </li>
+    }
+</ol>
+
+@code {
+    [Parameter, EditorRequired]
+    public IReadOnlyList<string> Steps { get; set; } = [];
+
+    [Parameter]
+    public int Current { get; set; }
+
+    [Parameter]
+    public EventCallback<int> CurrentChanged { get; set; }
+}

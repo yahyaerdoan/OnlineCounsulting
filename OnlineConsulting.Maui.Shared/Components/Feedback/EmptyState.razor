@@ -1,0 +1,31 @@
+@* Friendly "nothing here yet" panel with an optional next step, instead of a bare sentence. *@
+
+<div class="empty-state">
+    <span class="empty-state-icon"><MudIcon Icon="@Icon" /></span>
+    <MudText Typo="Typo.subtitle1" Class="mt-3">@Title</MudText>
+    @if (!string.IsNullOrWhiteSpace(Text))
+    {
+        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-1">@Text</MudText>
+    }
+    @if (ActionHref is not null && ActionText is not null)
+    {
+        <MudButton Href="@ActionHref" Variant="Variant.Filled" Color="Color.Primary" Class="mt-4">@ActionText</MudButton>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string Icon { get; set; } = Icons.Material.Outlined.Inbox;
+
+    [Parameter, EditorRequired]
+    public string Title { get; set; } = string.Empty;
+
+    [Parameter]
+    public string? Text { get; set; }
+
+    [Parameter]
+    public string? ActionText { get; set; }
+
+    [Parameter]
+    public string? ActionHref { get; set; }
+}

@@ -4,6 +4,7 @@ using OnlineConsulting.Maui.Shared.Infrastructure.Commerce;
 using OnlineConsulting.Maui.Shared.Infrastructure.Forms;
 using OnlineConsulting.Maui.Shared.Infrastructure.Navigation;
 using OnlineConsulting.Maui.Shared.Layout;
+using OnlineConsulting.Maui.Shared.Theme;
 using System.Reflection;
 
 namespace OnlineConsulting.Maui.Shared;
@@ -24,6 +25,7 @@ public static class ServiceCollectionExtensions
         _ = services.AddCascadingAuthenticationState();
 
         _ = services.AddScoped<AuthenticationExpiredNotifier>();
+        _ = services.AddScoped<ThemeModeState>();
         _ = services.AddScoped<TokenRefresher>();
         _ = services.AddScoped<BreadcrumbState>();
         _ = services.AddScoped<CartState>();

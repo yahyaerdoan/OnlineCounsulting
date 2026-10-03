@@ -15,7 +15,7 @@ public class GetOrders : IEndpoint
             .WithTags("Commerce/Orders")
             .RequireAuthorization()
             .WithName("GetOrders")
-            .WithDescription("Returns the current user's orders, with per-order totals.");
+            .WithDescription("Returns the current user's orders, newest first, with per-order totals.");
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext)
