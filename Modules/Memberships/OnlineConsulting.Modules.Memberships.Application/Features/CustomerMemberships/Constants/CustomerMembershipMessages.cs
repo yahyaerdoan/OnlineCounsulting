@@ -11,6 +11,9 @@ public static class CustomerMembershipMessages
     public const string PlanChangeFailed = "We couldn't change your plan with the payment provider. Please try again in a few minutes.";
     public const string NotPausable = "Only active memberships can be paused.";
     public const string NotResumable = "Only paused memberships can be resumed.";
+    public const string NotReactivatable = "This membership isn't set to end, so there is nothing to undo.";
+    public const string ReactivateFailed = "We couldn't restore your membership with the payment provider. Please try again in a few minutes.";
+    public const string NoPreviousMembership = "There is no ended membership to rejoin.";
     public const string PauseFailed = "We couldn't pause your membership with the payment provider. Please try again in a few minutes.";
     public const string ResumeFailed = "We couldn't resume your membership with the payment provider. Please try again in a few minutes.";
     public const string PreviousAttemptNeedsSupport = "Your previous subscription attempt is in an inconsistent state and needs manual attention. Please contact support before trying again.";

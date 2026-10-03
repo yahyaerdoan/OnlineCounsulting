@@ -1,6 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
-using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems;
+using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.RemoveModule;
 using ResultHandler.AspNetCore.Extensions;
 
 namespace OnlineConsulting.Api.Features.Tenancy;

@@ -2,6 +2,7 @@ using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.Partnerships.Abstractions;
+using OnlineConsulting.Modules.SiteContent.Domain.Partnerships;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -9,8 +10,8 @@ using System.Text.Json.Serialization;
 namespace OnlineConsulting.Modules.SiteContent.Application.Features.Partnerships.UpdatePartnership;
 
 public record UpdatePartnershipCommand(
-    Guid Id, string FirstName, string LastName, string Email, string Title, string CompanyName, string Description, string WebsiteUrl,
-    Guid? PhotoMediaAssetId = null, int DisplayOrder = 0, Dictionary<string, object>? Metadata = null)
+    Guid Id, string FirstName, string LastName, string? Email, string Title, string? CompanyName, string Description, string? WebsiteUrl,
+    Guid? PhotoMediaAssetId = null, int DisplayOrder = 0, Dictionary<string, object>? Metadata = null, string Kind = PartnershipKinds.Partner)
     : IRequest<OperationResult>, ISecureAddRequest
 {
     [JsonIgnore]
@@ -29,11 +30,12 @@ public class UpdatePartnershipHandler(IPartnershipRepository repository) : IRequ
 
         entity.FirstName = request.FirstName;
         entity.LastName = request.LastName;
-        entity.Email = request.Email;
+        entity.Email = request.Email?.Trim() ?? string.Empty;
         entity.Title = request.Title;
-        entity.CompanyName = request.CompanyName;
+        entity.CompanyName = request.CompanyName?.Trim() ?? string.Empty;
         entity.Description = request.Description;
-        entity.WebsiteUrl = request.WebsiteUrl;
+        entity.WebsiteUrl = request.WebsiteUrl?.Trim() ?? string.Empty;
+        entity.Kind = request.Kind;
         entity.PhotoMediaAssetId = request.PhotoMediaAssetId;
         entity.DisplayOrder = request.DisplayOrder;
         entity.Metadata = MetadataSerializer.Serialize(request.Metadata);

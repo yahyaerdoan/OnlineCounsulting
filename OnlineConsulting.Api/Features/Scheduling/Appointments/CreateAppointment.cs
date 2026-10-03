@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using Hateoas.AspNetCore;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
@@ -16,11 +17,12 @@ public class CreateAppointment : IEndpoint
             .WithTags("Scheduling/Appointments")
             .RequireAuthorization()
             .WithName("CreateAppointment")
+            .WithCreatedLocation("GetAppointmentById")
             .WithDescription("Books a service (pass serviceId) or requests a generic meeting with the tenant (omit serviceId).");
     }
 
     private static async Task<IResult> Handle([FromBody] CreateAppointmentCommand command, ISender sender, HttpContext httpContext)
         => (await sender.Send(new GetCurrentUserQuery())
-                .BindAsync(user => sender.Send(command with { UserId = user.Id, Email = user.Email })))
+                .BindAsync(user => sender.Send(command with { UserId = user.Id })))
             .ToEnvelopedResult(httpContext);
 }

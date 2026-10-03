@@ -10,3 +10,7 @@ public interface IInquiriesOutboxModule;
 public interface ISchedulingOutboxModule;
 
 public interface ITenancyOutboxModule;
+
+public interface IMembershipsOutboxModule;
+
+public interface IReferralsOutboxModule;

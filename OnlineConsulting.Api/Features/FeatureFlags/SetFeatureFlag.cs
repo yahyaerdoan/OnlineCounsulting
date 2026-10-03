@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
-using OnlineConsulting.Modules.FeatureFlags.Application.Features.SetFeatureFlag;
+using OnlineConsulting.Modules.FeatureFlags.Application.Features.FeatureFlags.SetFeatureFlag;
 using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.AspNetCore.Extensions;
 

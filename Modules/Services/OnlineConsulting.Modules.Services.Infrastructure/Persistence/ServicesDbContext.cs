@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OnlineConsulting.Modules.Services.Domain;
 using OnlineConsulting.SharedKernel.Tenancy;
+using OnlineConsulting.SharedKernel.Catalog;
 
 namespace OnlineConsulting.Modules.Services.Infrastructure.Persistence;
 
@@ -21,6 +22,7 @@ public class ServicesDbContext(DbContextOptions<ServicesDbContext> options, ITen
             _ = builder.Property(s => s.DetailedDescription).HasMaxLength(4000).IsRequired();
             _ = builder.Property(s => s.Price).HasColumnType("decimal(18,2)");
             _ = builder.Property(s => s.PriceType).HasMaxLength(20).IsRequired();
+            _ = builder.Property(s => s.Kind).HasMaxLength(20).IsRequired().HasDefaultValue(ServiceKinds.Booking);
             _ = builder.Property(s => s.PriceMax).HasColumnType("decimal(18,2)");
             _ = builder.Property(s => s.DiscountedPrice).HasColumnType("decimal(18,2)");
             _ = builder.Property(s => s.RowVersion).IsRowVersion();

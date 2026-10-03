@@ -1,3 +1,5 @@
+using OnlineConsulting.Modules.Identity.Application.Features.Auth;
+
 namespace OnlineConsulting.Modules.Identity.Application.Features.Users.Contracts;
 
 /// <summary>Effective permissions = RolePermissions minus DeniedPermissions (see RolePermissionResolver.ApplyUserOverridesAsync).</summary>

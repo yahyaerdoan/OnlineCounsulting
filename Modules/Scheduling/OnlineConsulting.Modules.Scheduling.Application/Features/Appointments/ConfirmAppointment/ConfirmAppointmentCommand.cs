@@ -17,7 +17,7 @@ public record ConfirmAppointmentCommand(Guid Id) : IRequest<OperationResult>, IS
     public string[] Roles => [SchedulingOperationClaims.Admin, SchedulingOperationClaims.Write, SchedulingOperationClaims.Update];
 }
 
-public class ConfirmAppointmentHandler(IAppointmentRepository repository) : IRequestHandler<ConfirmAppointmentCommand, OperationResult>
+public class ConfirmAppointmentHandler(IAppointmentRepository repository, IAppointmentNotifier notifier) : IRequestHandler<ConfirmAppointmentCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(ConfirmAppointmentCommand request, CancellationToken cancellationToken)
     {
@@ -34,6 +34,8 @@ public class ConfirmAppointmentHandler(IAppointmentRepository repository) : IReq
 
         appointment.Status = AppointmentStatuses.Confirmed;
         _ = await repository.UpdateAsync(appointment);
+
+        await notifier.ConfirmedAsync(appointment, cancellationToken);
 
         return Result.Success("Appointment confirmed successfully.");
     }

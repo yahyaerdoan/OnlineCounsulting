@@ -43,6 +43,7 @@ public static class TenancyModule
         _ = services.AddScoped<ITenantModulePricingReader, TenantModulePricingReader>();
         _ = services.AddScoped<ITenantOwnershipReader, TenantOwnershipReader>();
         _ = services.AddScoped<IEmailOutboxWriter<ITenancyOutboxModule>, EmailOutboxWriter>();
+        _ = services.AddScoped<OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.TenantReceiptSender>();
 
         _ = services.Configure<TenancyCleanupOptions>(configuration.GetSection("Tenancy:OrphanCleanup"));
         _ = services.AddHostedService<OrphanedTenantCleanupService>();

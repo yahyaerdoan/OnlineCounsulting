@@ -23,6 +23,8 @@ public class SchedulingDbContext(DbContextOptions<SchedulingDbContext> options, 
             _ = builder.Property(a => a.Status).HasMaxLength(30).IsRequired();
             _ = builder.Property(a => a.CustomerNote).HasMaxLength(1000);
             _ = builder.Property(a => a.ServiceAddress).HasMaxLength(500);
+            _ = builder.Property(a => a.MeetingType).HasMaxLength(20).IsRequired().HasDefaultValue("InPerson");
+            _ = builder.Property(a => a.Topic).HasMaxLength(200);
             _ = builder.Property(a => a.RowVersion).IsRowVersion();
             _ = builder.HasIndex(a => a.UserId);
             _ = builder.HasIndex(a => a.ServiceId);

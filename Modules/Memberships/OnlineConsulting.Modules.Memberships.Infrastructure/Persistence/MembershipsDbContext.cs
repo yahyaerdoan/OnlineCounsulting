@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OnlineConsulting.Modules.Memberships.Domain;
+using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Memberships.Infrastructure.Persistence;
@@ -9,6 +10,7 @@ public class MembershipsDbContext(DbContextOptions<MembershipsDbContext> options
     public DbSet<MembershipPlan> MembershipPlans => Set<MembershipPlan>();
     public DbSet<CustomerMembership> CustomerMemberships => Set<CustomerMembership>();
     public DbSet<PromoCode> PromoCodes => Set<PromoCode>();
+    public DbSet<OutboxEmail> OutboxEmails => Set<OutboxEmail>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -44,6 +46,8 @@ public class MembershipsDbContext(DbContextOptions<MembershipsDbContext> options
             _ = builder.HasIndex(p => new { p.TenantId, p.Code }).IsUnique();
             _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
+
+        modelBuilder.ConfigureOutboxEmail(ownsMigration: false);
 
         base.OnModelCreating(modelBuilder);
     }

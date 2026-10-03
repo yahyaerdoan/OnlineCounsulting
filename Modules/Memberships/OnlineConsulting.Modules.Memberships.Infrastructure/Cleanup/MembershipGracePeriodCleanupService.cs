@@ -4,7 +4,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Abstractions;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Constants;
-using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Payments;
 using OnlineConsulting.SharedKernel.Persistence;
 
@@ -49,7 +48,7 @@ public class MembershipGracePeriodCleanupService(IServiceScopeFactory scopeFacto
             return;
         }
 
-        var pushNotificationSender = scope.ServiceProvider.GetRequiredService<IPushNotificationSender>();
+        var notifier = scope.ServiceProvider.GetRequiredService<IMembershipNotifier>();
         var cancelledCount = 0;
 
         foreach (var membership in candidates.Items)
@@ -66,9 +65,7 @@ public class MembershipGracePeriodCleanupService(IServiceScopeFactory scopeFacto
 
             cancelledCount++;
 
-            await pushNotificationSender.SendToUserAsync(membership.UserId,
-                "Membership cancelled", "Your membership was cancelled after repeated payment failures. Subscribe again anytime to restore your benefits.",
-                new Dictionary<string, string> { ["customerMembershipId"] = membership.Id.ToString() }, cancellationToken);
+            await notifier.CancelledAfterFailuresAsync(membership, cancellationToken);
         }
 
         if (logger.IsEnabled(LogLevel.Information))

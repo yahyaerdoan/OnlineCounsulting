@@ -6,7 +6,6 @@ using OnlineConsulting.Modules.Referrals.Application.Features.AccountCredits.Abs
 using OnlineConsulting.Modules.Referrals.Application.Features.Referrals.Abstractions;
 using OnlineConsulting.Modules.Referrals.Application.Features.Referrals.Constants;
 using OnlineConsulting.Modules.Referrals.Domain;
-using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Referrals;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -21,7 +20,7 @@ public record CompleteReferralCommand(Guid Id, decimal RewardAmount) : IRequest<
     public string[] Roles => [ReferralsOperationClaims.Admin, ReferralsOperationClaims.Write];
 }
 
-public class CompleteReferralHandler(IReferralRepository referralRepository, IAccountCreditRepository creditRepository, IPushNotificationSender pushNotificationSender) : IRequestHandler<CompleteReferralCommand, OperationResult>
+public class CompleteReferralHandler(IReferralRepository referralRepository, IAccountCreditRepository creditRepository, IReferralNotifier notifier) : IRequestHandler<CompleteReferralCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(CompleteReferralCommand request, CancellationToken cancellationToken)
     {
@@ -52,9 +51,7 @@ public class CompleteReferralHandler(IReferralRepository referralRepository, IAc
             SourceId = referral.Id,
         });
 
-        await pushNotificationSender.SendToUserAsync(referral.ReferrerUserId,
-            "Referral reward earned", $"You've earned ${request.RewardAmount:0.##} in account credit for your referral!",
-            new Dictionary<string, string> { ["referralId"] = referral.Id.ToString() }, cancellationToken);
+        await notifier.RewardEarnedAsync(referral, request.RewardAmount, cancellationToken);
 
         return Result.Success("Referral rewarded successfully.");
     }

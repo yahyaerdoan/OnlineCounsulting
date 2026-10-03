@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.GetAllUsers;
 using ResultHandler.AspNetCore.Extensions;
-using ResultHandler.Functional;
 
 namespace OnlineConsulting.Api.Features.Identity.Users;
 
@@ -16,21 +15,14 @@ public class GetAllUsers : IEndpoint
             .WithTags("Identity/Users")
             .RequireAuthorization()
             .WithName("GetAllUsers")
-            .WithDescription("Returns users, paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body. POST rather than HTTP QUERY, since Swagger can't document that verb.");
+            .WithDescription("Returns users, paginated (?index=&size=), optionally narrowed to one role (?role=) and filtered/sorted via a DynamicQuery body. POST rather than HTTP QUERY, since Swagger can't document that verb.");
     }
 
-    private static async Task<IResult> Handle(ISender sender, LinkGenerator linkGenerator, HttpContext httpContext, [AsParameters] ListQueryParameters query, [FromBody] DynamicQuery? dynamicQuery)
+    private static async Task<IResult> Handle(ISender sender, HttpContext httpContext, [AsParameters] ListQueryParameters query, [FromBody] DynamicQuery? dynamicQuery,
+        [FromQuery] string? role = null)
     {
-        var result = await sender.Send(new GetAllUsersQuery(query.ToPageRequest(), dynamicQuery));
+        var result = await sender.Send(new GetAllUsersQuery(query.ToPageRequest(), dynamicQuery, role));
 
-        return result
-            .OnSuccess(page =>
-            {
-                foreach (var user in page.Items)
-                {
-                    user.Links = GetCurrentUser.BuildLinks(httpContext, linkGenerator, user.Id, includeSelf: false);
-                }
-            })
-            .ToEnvelopedResult(httpContext);
+        return result.ToEnvelopedResult(httpContext);
     }
 }

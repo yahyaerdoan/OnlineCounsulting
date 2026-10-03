@@ -15,12 +15,13 @@ public class GetAllTenantsPaged : IEndpoint
             .WithTags("Tenancy")
             .RequireAuthorization()
             .WithName("GetAllTenantsPaged")
-            .WithDescription("Returns every tenant on the platform, paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body, with active module and pricing summary (SuperAdmin).");
+            .WithDescription("Returns every tenant on the platform, paginated (?index=&size=), optionally narrowed to one status (?status=) and filtered/sorted via a DynamicQuery body, with active module and pricing summary (SuperAdmin).");
     }
 
-    private static async Task<IResult> Handle(ISender sender, HttpContext httpContext, [AsParameters] ListQueryParameters query, [FromBody] DynamicQuery? dynamicQuery)
+    private static async Task<IResult> Handle(ISender sender, HttpContext httpContext, [AsParameters] ListQueryParameters query, [FromBody] DynamicQuery? dynamicQuery,
+        [FromQuery] string? status = null)
     {
-        var result = await sender.Send(new GetAllTenantsPagedQuery(query.ToPageRequest(), dynamicQuery));
+        var result = await sender.Send(new GetAllTenantsPagedQuery(query.ToPageRequest(), dynamicQuery, status));
         return result.ToEnvelopedResult(httpContext);
     }
 }

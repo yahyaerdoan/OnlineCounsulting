@@ -18,7 +18,7 @@ namespace OnlineConsulting.Modules.Services.Infrastructure.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("Services")
-                .HasAnnotation("ProductVersion", "10.0.10")
+                .HasAnnotation("ProductVersion", "10.0.12")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -68,6 +68,13 @@ namespace OnlineConsulting.Modules.Services.Infrastructure.Migrations
 
                     b.Property<bool>("IsEmergencyAvailable")
                         .HasColumnType("bit");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("Booking");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");

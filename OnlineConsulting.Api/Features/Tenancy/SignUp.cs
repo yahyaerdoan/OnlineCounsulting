@@ -3,7 +3,12 @@ using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Api.Configurations.Extensions;
 using OnlineConsulting.Modules.Identity.Application.Features.Auth.CreateTenantAdmin;
-using OnlineConsulting.Modules.Tenancy.Application.Features.Signup;
+using OnlineConsulting.Modules.Identity.Application.Features.Auth.ValidateTenantAdmin;
+using OnlineConsulting.Modules.Tenancy.Application.Features.Signup.ActivateTenantSubscription;
+using OnlineConsulting.Modules.Tenancy.Application.Features.Signup.ReserveTenant;
+using OnlineConsulting.Modules.Tenancy.Application.Features.Signup.RollbackTenantSignup;
+using OnlineConsulting.Modules.Tenancy.Application.Features.Signup.SetTenantOwner;
+using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.SendTenantSignupReceipt;
 using ResultHandler.AspNetCore.Extensions;
 
 namespace OnlineConsulting.Api.Features.Tenancy;
@@ -11,7 +16,8 @@ namespace OnlineConsulting.Api.Features.Tenancy;
 /// <summary>Bundles ReserveTenant/CreateTenantAdmin/ActivateTenantSubscription into one wire contract; the Api layer chains them as three ISender.Send calls, same pattern as SubscribeToMembership.cs.</summary>
 public record SignUpTenantRequest(string CompanyName, string AdminFirstName, string AdminLastName, string AdminEmail, string AdminPassword, List<string> ModuleKeys, string PaymentMethodId, string? AdminPhoneNumber = null);
 
-/// <summary>Pay-first: charges the card before creating any user, so a decline never leaves an orphan account; a rare post-charge user-creation failure triggers RollbackTenantSignupCommand to refund it.</summary>
+/// <summary>Pay-first: charges the card before creating any user, so a decline never leaves an orphan account. The admin account's fields are
+/// validated before anything is charged; a rare post-charge user-creation failure (e.g. a race) triggers RollbackTenantSignupCommand, which refunds it.</summary>
 public class SignUp : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
@@ -25,6 +31,13 @@ public class SignUp : IEndpoint
 
     private static async Task<IResult> Handle([FromBody] SignUpTenantRequest request, ISender sender, HttpContext httpContext)
     {
+        var accountCheck = await sender.Send(new ValidateTenantAdminQuery(request.AdminFirstName, request.AdminLastName, request.AdminEmail, request.AdminPassword));
+
+        if (!accountCheck.IsSuccessful)
+        {
+            return accountCheck.ToEnvelopedResult(httpContext);
+        }
+
         var reserveResult = await sender.Send(new ReserveTenantCommand(request.CompanyName, request.ModuleKeys, request.AdminEmail));
 
         if (!reserveResult.IsSuccessful || reserveResult.Data is null)
@@ -50,6 +63,11 @@ public class SignUp : IEndpoint
         }
 
         var ownerResult = await sender.Send(new SetTenantOwnerCommand(tenantId, adminResult.Data.UserId));
+
+        if (ownerResult.IsSuccessful)
+        {
+            _ = await sender.Send(new SendTenantSignupReceiptCommand(tenantId));
+        }
 
         return ownerResult.ToEnvelopedResult(httpContext);
     }

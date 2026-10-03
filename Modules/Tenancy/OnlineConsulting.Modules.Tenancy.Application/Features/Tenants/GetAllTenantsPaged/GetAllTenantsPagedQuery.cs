@@ -17,7 +17,7 @@ using System.Text.Json.Serialization;
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.GetAllTenantsPaged;
 
 /// <summary>Paginated sibling of GetAllTenantsQuery, filterable/sortable via DynamicQuery - backs the ServerDataTable-driven Tenants admin screen. Same active-module/price enrichment join as GetAllTenantsQuery.</summary>
-public record GetAllTenantsPagedQuery(PageRequest PageRequest, DynamicQuery? DynamicQuery = null)
+public record GetAllTenantsPagedQuery(PageRequest PageRequest, DynamicQuery? DynamicQuery = null, string? Status = null)
     : IRequest<OperationDataResult<Paginate<TenantSummaryResponse>>>, ISecureAddRequest
 {
     [JsonIgnore]
@@ -33,7 +33,9 @@ public class GetAllTenantsPagedHandler(ITenantRepository tenantRepository, ITena
 {
     public async Task<OperationDataResult<Paginate<TenantSummaryResponse>>> Handle(GetAllTenantsPagedQuery request, CancellationToken cancellationToken)
     {
-        var tenants = await tenantRepository.Query().ToDynamicPaginateAsync(request.PageRequest, request.DynamicQuery, defaultOrderBy: t => t.Name, tieBreaker: t => t.Id, cancellationToken);
+        var query = string.IsNullOrWhiteSpace(request.Status) ? tenantRepository.Query() : tenantRepository.Query().Where(t => t.Status == request.Status);
+
+        var tenants = await query.ToDynamicPaginateAsync(request.PageRequest, request.DynamicQuery, defaultOrderBy: t => t.Name, tieBreaker: t => t.Id, cancellationToken);
 
         if (tenants.Items.Count == 0)
         {

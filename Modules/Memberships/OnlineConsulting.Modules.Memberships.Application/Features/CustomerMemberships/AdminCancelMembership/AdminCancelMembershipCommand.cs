@@ -18,7 +18,7 @@ public record AdminCancelMembershipCommand(Guid MembershipId) : IRequest<Operati
     public string[] Roles => [MembershipsOperationClaims.Admin, MembershipsOperationClaims.Write, MembershipsOperationClaims.Update];
 }
 
-public class AdminCancelMembershipHandler(ICustomerMembershipRepository repository, ISubscriptionGateway subscriptionGateway) : IRequestHandler<AdminCancelMembershipCommand, OperationResult>
+public class AdminCancelMembershipHandler(ICustomerMembershipRepository repository, ISubscriptionGateway subscriptionGateway, IMembershipNotifier notifier) : IRequestHandler<AdminCancelMembershipCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(AdminCancelMembershipCommand request, CancellationToken cancellationToken)
     {
@@ -42,6 +42,7 @@ public class AdminCancelMembershipHandler(ICustomerMembershipRepository reposito
         membership.Status = CustomerMembershipStatuses.Cancelled;
 
         _ = await repository.UpdateAsync(membership);
+        await notifier.CancelledByStaffAsync(membership, cancellationToken);
 
         return Result.Success("Membership cancelled successfully.");
     }

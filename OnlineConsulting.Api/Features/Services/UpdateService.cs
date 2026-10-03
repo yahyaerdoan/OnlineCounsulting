@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
-using OnlineConsulting.Modules.Services.Application.Features.UpdateService;
+using OnlineConsulting.Modules.Services.Application.Features.Services.UpdateService;
 using ResultHandler.AspNetCore.Extensions;
 
 namespace OnlineConsulting.Api.Features.Services;

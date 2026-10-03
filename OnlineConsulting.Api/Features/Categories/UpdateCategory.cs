@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
-using OnlineConsulting.Modules.Categories.Application.Features.UpdateCategory;
+using OnlineConsulting.Modules.Categories.Application.Features.Categories.UpdateCategory;
 using ResultHandler.AspNetCore.Extensions;
 
 namespace OnlineConsulting.Api.Features.Categories;

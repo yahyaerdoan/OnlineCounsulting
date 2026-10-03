@@ -1,4 +1,5 @@
 ﻿using Core.ApplicationLayer.Requests.Page;
+using Hateoas;
 using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.GetAllOrdersAdmin;
@@ -9,7 +10,7 @@ using ResultHandler.Facade;
 namespace OnlineConsulting.Api.Features.Commerce.Orders;
 
 /// <summary>Admin-scoped list of every user's orders, with basic owner display info joined in from Identity.</summary>
-public record AdminOrderResponse(Guid Id, string OrderNumber, string OrderStatus, string PaymentStatus, decimal TotalPrice, DateTimeOffset CreatedDate, Guid UserId, string? UserEmail, string? UserName);
+public record AdminOrderResponse(Guid Id, string OrderNumber, string OrderStatus, string PaymentStatus, decimal TotalPrice, DateTimeOffset CreatedDate, Guid UserId, string? UserEmail, string? UserName) : LinkedRecord;
 
 public class GetAllOrdersAdmin : IEndpoint
 {

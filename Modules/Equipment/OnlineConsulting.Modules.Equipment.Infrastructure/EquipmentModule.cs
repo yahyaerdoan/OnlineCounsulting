@@ -5,10 +5,12 @@ using Microsoft.Extensions.DependencyInjection;
 using OnlineConsulting.Modules.Equipment.Application;
 using OnlineConsulting.Modules.Equipment.Application.Common;
 using OnlineConsulting.Modules.Equipment.Application.Features.EquipmentItems.Abstractions;
+using OnlineConsulting.Modules.Equipment.Infrastructure.LiveUpdates;
 using OnlineConsulting.Modules.Equipment.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Equipment.Infrastructure.Repositories;
 using OnlineConsulting.SharedKernel.Auditing;
 using OnlineConsulting.SharedKernel.Authorization;
+using OnlineConsulting.SharedKernel.LiveUpdates;
 using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Equipment.Infrastructure;
@@ -22,8 +24,10 @@ public static class EquipmentModule
         _ = services.AddScoped<TenantSaveChangesInterceptor>();
         _ = services.AddScoped<AuditSaveChangesInterceptor>();
 
+        _ = services.AddUserDataChangeRules(EquipmentUserDataChangeRules.Configure);
         _ = services.AddDbContext<EquipmentDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
-            .AddInterceptors(serviceProvider.GetRequiredService<TenantSaveChangesInterceptor>(), serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>()));
+            .AddInterceptors(serviceProvider.GetRequiredService<TenantSaveChangesInterceptor>(), serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>())
+            .AddUserDataChangeInterceptors(serviceProvider));
 
         _ = services.AddScoped<IEquipmentItemRepository, EquipmentItemRepository>();
 

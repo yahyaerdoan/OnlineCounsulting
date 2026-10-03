@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using OnlineConsulting.Modules.Identity.Application.Common;
 using OnlineConsulting.Modules.Identity.Application.Common.Templates;
+using OnlineConsulting.Modules.Identity.Application.Features.Auth.Abstractions;
+using OnlineConsulting.Modules.Identity.Application.Features.Auth.Contracts;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
@@ -16,9 +18,7 @@ namespace OnlineConsulting.Modules.Identity.Application.Features.Auth.CreateTena
 
 /// <summary>Creates a tenant's first user. Runs before billing so a duplicate-email rejection never leaves an orphaned charge. Server-side only, no public route.</summary>
 public record CreateTenantAdminCommand(Guid TenantId, string FirstName, string LastName, string Email, string Password, string? PhoneNumber = null)
-    : IRequest<OperationDataResult<CreateTenantAdminResult>>, ITransactionAddRequest;
-
-public record CreateTenantAdminResult(Guid UserId);
+    : IRequest<OperationDataResult<CreateTenantAdminResult>>, ITransactionAddRequest, ITenantAdminFields;
 
 public class CreateTenantAdminHandler(UserManager<User> userManager, IEmailOutboxWriter<IIdentityOutboxModule> outboxWriter, IEmailTemplate<ConfirmEmailEmailModel> confirmEmailTemplate, IOptions<AuthEmailOptions> emailOptions)
     : IRequestHandler<CreateTenantAdminCommand, OperationDataResult<CreateTenantAdminResult>>

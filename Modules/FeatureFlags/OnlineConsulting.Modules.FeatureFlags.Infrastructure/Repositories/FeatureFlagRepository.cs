@@ -1,5 +1,5 @@
 ﻿using Core.PersistenceLayer.Repositories.EfRepositories;
-using OnlineConsulting.Modules.FeatureFlags.Application.Abstractions;
+using OnlineConsulting.Modules.FeatureFlags.Application.Features.FeatureFlags.Abstractions;
 using OnlineConsulting.Modules.FeatureFlags.Domain;
 using OnlineConsulting.Modules.FeatureFlags.Infrastructure.Persistence;
 

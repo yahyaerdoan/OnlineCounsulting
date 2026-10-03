@@ -40,7 +40,7 @@ public class SubscriptionWebhook : IEndpoint
         switch (webhookEvent.EventKind)
         {
             case SubscriptionEventKinds.Renewed:
-                await publisher.Publish(new SubscriptionRenewedNotification(webhookEvent.ReferenceId, webhookEvent.ProviderSubscriptionId, webhookEvent.NewRenewalDate ?? DateTimeOffset.UtcNow), cancellationToken);
+                await publisher.Publish(new SubscriptionRenewedNotification(webhookEvent.ReferenceId, webhookEvent.ProviderSubscriptionId, webhookEvent.NewRenewalDate ?? DateTimeOffset.UtcNow, webhookEvent.Invoice), cancellationToken);
                 break;
             case SubscriptionEventKinds.Cancelled:
                 await publisher.Publish(new SubscriptionCancelledNotification(webhookEvent.ReferenceId, webhookEvent.ProviderSubscriptionId), cancellationToken);

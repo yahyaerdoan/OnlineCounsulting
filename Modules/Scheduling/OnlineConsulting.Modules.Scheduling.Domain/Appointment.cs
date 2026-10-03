@@ -16,6 +16,12 @@ public class Appointment : SequentialGuidTenantEntity
     public required string Status { get; set; }
     public string? CustomerNote { get; set; }
 
+    /// <summary>InPerson (at the customer's address) or Online (video call) - see AppointmentMeetingTypes.</summary>
+    public string MeetingType { get; set; } = "InPerson";
+
+    /// <summary>What an online meeting is about - required for Online, unused for InPerson.</summary>
+    public string? Topic { get; set; }
+
     /// <summary>Freeform customer-entered address - kept as plain text since its only consumer is a maps deep link.</summary>
     public string? ServiceAddress { get; set; }
 

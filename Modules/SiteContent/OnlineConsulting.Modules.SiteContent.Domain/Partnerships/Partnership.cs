@@ -17,6 +17,10 @@ public class Partnership : SequentialGuidTenantEntity
 
     public int DisplayOrder { get; set; }
 
+    /// <summary>PartnershipKinds: a brand partner or one of the business's own team (owner, technicians). Team members need no
+    /// email, company or website; partners do.</summary>
+    public string Kind { get; set; } = PartnershipKinds.Partner;
+
     /// <summary>Free-form JSON for template-specific extras - keeps this entity from needing a new migration every time a different UI template wants a different field (Testimonial precedent).</summary>
     public string? Metadata { get; set; }
 }

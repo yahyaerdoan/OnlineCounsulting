@@ -1,8 +1,9 @@
-﻿using MediatR;
+﻿using Hateoas.AspNetCore;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
-using OnlineConsulting.Modules.Media.Application.Features.Constants;
-using OnlineConsulting.Modules.Media.Application.Features.UploadMediaAsset;
+using OnlineConsulting.Modules.Media.Application.Features.MediaAssets.Constants;
+using OnlineConsulting.Modules.Media.Application.Features.MediaAssets.UploadMediaAsset;
 using ResultHandler.AspNetCore.Extensions;
 
 namespace OnlineConsulting.Api.Features.Media;
@@ -16,6 +17,7 @@ public class UploadMediaAsset : IEndpoint
             .RequireAuthorization()
             .DisableAntiforgery()
             .WithName("UploadMediaAsset")
+            .WithCreatedLocation("GetMediaAsset")
             .WithDescription("Uploads a file (image) and registers it as a MediaAsset - the returned id can be referenced from any module that needs to show an image.");
     }
 

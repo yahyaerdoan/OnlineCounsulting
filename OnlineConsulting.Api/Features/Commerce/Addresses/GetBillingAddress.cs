@@ -18,9 +18,8 @@ public class GetBillingAddress : IEndpoint
             .WithDescription("Returns the current user's billing address.");
     }
 
-    private static async Task<IResult> Handle(ISender sender, LinkGenerator linkGenerator, HttpContext httpContext)
+    private static async Task<IResult> Handle(ISender sender, HttpContext httpContext)
         => (await sender.Send(new GetCurrentUserQuery())
-                .BindAsync(user => sender.Send(new GetBillingAddressQuery(user.Id)))
-                .OnSuccessAsync(address => address.Links = AddressLinks.Build(httpContext, linkGenerator, address.Id)))
+                .BindAsync(user => sender.Send(new GetBillingAddressQuery(user.Id))))
             .ToEnvelopedResult(httpContext);
 }

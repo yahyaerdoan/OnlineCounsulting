@@ -22,8 +22,8 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Identity.Application.Features.Users.GetAllUsers;
 
-/// <summary>DynamicQuery carries filter+sort. Tenant scoping stays a separate .Where(), applied first.</summary>
-public record GetAllUsersQuery(PageRequest PageRequest, DynamicQuery? DynamicQuery = null) : IRequest<OperationDataResult<Paginate<UserResponse>>>, ISecureAddRequest
+/// <summary>DynamicQuery carries filter+sort. Tenant scoping stays a separate .Where(), applied first. Role, when set, keeps only users holding it.</summary>
+public record GetAllUsersQuery(PageRequest PageRequest, DynamicQuery? DynamicQuery = null, string? Role = null) : IRequest<OperationDataResult<Paginate<UserResponse>>>, ISecureAddRequest
 {
     [JsonIgnore]
     public string[] Roles => [UsersOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, UsersOperationClaims.Read];
@@ -54,6 +54,12 @@ public class GetAllUsersHandler(UserManager<User> userManager, RoleManager<Role>
             {
                 usersQuery = usersQuery.Where(u => !superAdminIds.Contains(u.Id));
             }
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Role))
+        {
+            var roleUserIds = (await userManager.GetUsersInRoleAsync(request.Role)).Select(u => u.Id).ToList();
+            usersQuery = usersQuery.Where(u => roleUserIds.Contains(u.Id));
         }
 
         var pagedUsers = await usersQuery.ToDynamicPaginateAsync(request.PageRequest, request.DynamicQuery, defaultOrderBy: u => u.LastName, tieBreaker: u => u.Id, cancellationToken);
@@ -91,6 +97,7 @@ public class GetAllUsersHandler(UserManager<User> userManager, RoleManager<Role>
                 IsActive = user.IsActive,
                 Roles = [.. roles],
                 Permissions = permissions,
+                CreatedDate = user.CreatedDate,
             });
         }
 

@@ -2,9 +2,10 @@
 using MediatR;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Abstractions;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Constants;
+using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Contracts;
 using OnlineConsulting.Modules.Memberships.Application.Features.MembershipPlans.Abstractions;
 using OnlineConsulting.Modules.Memberships.Application.Features.PromoCodes.Abstractions;
-using OnlineConsulting.Modules.Memberships.Application.Features.PromoCodes.Common;
+using OnlineConsulting.Modules.Memberships.Application.Features.PromoCodes;
 using OnlineConsulting.Modules.Memberships.Domain;
 using OnlineConsulting.SharedKernel.Payments;
 using OnlineConsulting.SharedKernel.Referrals;
@@ -23,7 +24,8 @@ public record SubscribeToMembershipCommand(Guid UserId, string Email, Guid Membe
 }
 
 /// <summary>Deliberately not ITransactionAddRequest - a real card charge happens partway through, so each repository call saves immediately instead of rolling back and losing the charge's trace. Account credit is reserved before the charge and reversed if the charge fails.</summary>
-public class SubscribeToMembershipHandler(ICustomerMembershipRepository membershipRepository, IMembershipPlanRepository planRepository, IPromoCodeRepository promoCodeRepository, ISubscriptionGateway subscriptionGateway, IAccountCreditLedger creditLedger)
+public class SubscribeToMembershipHandler(ICustomerMembershipRepository membershipRepository, IMembershipPlanRepository planRepository, IPromoCodeRepository promoCodeRepository, ISubscriptionGateway subscriptionGateway, IAccountCreditLedger creditLedger,
+    MembershipReceiptSender receiptSender, IMembershipNotifier notifier)
     : IRequestHandler<SubscribeToMembershipCommand, OperationDataResult<SubscribeToMembershipResult>>
 {
     /// <summary>Creates or resumes a pending subscription attempt; a Failed status is only stale here since ProviderSubscriptionId is set only after CreateSubscriptionAsync genuinely succeeds.</summary>
@@ -104,6 +106,7 @@ public class SubscribeToMembershipHandler(ICustomerMembershipRepository membersh
         string? clientSecret;
         decimal? appliedCreditAmount;
         var creditReserved = false;
+        var subscriptionCreated = false;
         try
         {
             string providerCustomerId;
@@ -135,9 +138,10 @@ public class SubscribeToMembershipHandler(ICustomerMembershipRepository membersh
 
                 var subscription = await subscriptionGateway
                     .CreateSubscriptionAsync(new CreateSubscriptionRequest(providerCustomerId, plan.ProviderPriceId, request.PaymentMethodId, membership.Id.ToString(),
-                    totalDiscountAmount is > 0 ? totalDiscountAmount : null, plan.TrialDays), idempotencyKey: $"membership-signup-subscription:{membership.Id}", cancellationToken: cancellationToken);
+                    totalDiscountAmount is > 0 ? totalDiscountAmount : null, plan.TrialDays), idempotencyKey: $"membership-signup-subscription:{membership.Id}:{request.PaymentMethodId}", cancellationToken: cancellationToken);
 
                 creditReserved = false;
+                subscriptionCreated = true;
                 membership.ProviderSubscriptionId = subscription.ProviderSubscriptionId;
                 membership.RenewalDate = subscription.CurrentPeriodEnd;
                 membership.TrialEndDate = plan.TrialDays is > 0 ? DateTimeOffset.UtcNow.AddDays(plan.TrialDays.Value) : null;
@@ -188,6 +192,12 @@ public class SubscribeToMembershipHandler(ICustomerMembershipRepository membersh
             }
 
             return Result.BadGateway<SubscribeToMembershipResult>(CustomerMembershipMessages.PaymentSetupFailed);
+        }
+
+        if (subscriptionCreated && membership.Status == CustomerMembershipStatuses.Active)
+        {
+            await receiptSender.SendLatestAsync(membership, cancellationToken);
+            await notifier.StartedAsync(membership, cancellationToken);
         }
 
         return Result.Created(new SubscribeToMembershipResult(membership.Id, clientSecret, appliedCreditAmount, promo is not null ? promoDiscountAmount : null), "Subscribed to membership plan successfully.");

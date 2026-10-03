@@ -3,8 +3,8 @@ using MediatR;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Abstractions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using OrderPaymentStatuses = OnlineConsulting.Modules.Commerce.Application.Features.Orders.Contracts.PaymentStatuses;
-using OrderStatuses = OnlineConsulting.Modules.Commerce.Application.Features.Orders.Contracts.OrderStatuses;
+using OrderPaymentStatuses = OnlineConsulting.Modules.Commerce.Application.Features.Orders.Constants.PaymentStatuses;
+using OrderStatuses = OnlineConsulting.Modules.Commerce.Application.Features.Orders.Constants.OrderStatuses;
 
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Orders.CancelPendingOrder;
 

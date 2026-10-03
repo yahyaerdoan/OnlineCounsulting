@@ -8,7 +8,8 @@ using ResultHandler.AspNetCore.Extensions;
 namespace OnlineConsulting.Api.Features.Scheduling.WorkOrders;
 
 /// <summary>Wraps CreateWorkOrderCommand with an optional NewEquipment sub-request so one call can record both; orchestration lives here to keep Equipment and Scheduling modules decoupled.</summary>
-public record CreateWorkOrderRequest(Guid AppointmentId, Guid TechnicianUserId, string? PartsUsed, string? TechnicianNotes, DateTimeOffset? CompletedAt, Guid? EquipmentId, NewEquipmentRequest? NewEquipment);
+public record CreateWorkOrderRequest(Guid AppointmentId, Guid TechnicianUserId, string? PartsUsed, string? TechnicianNotes, DateTimeOffset? CompletedAt, Guid? EquipmentId, NewEquipmentRequest? NewEquipment,
+    List<WorkOrderChargeInput>? Charges = null);
 
 public record NewEquipmentRequest(Guid CustomerUserId, string Type, string? Brand, string? Model, string? SerialNumber, DateTimeOffset? InstallDate, DateTimeOffset? WarrantyExpiresAt, string? Notes);
 
@@ -42,7 +43,7 @@ public class CreateWorkOrder : IEndpoint
             equipmentId = createEquipmentResult.Data;
         }
 
-        var command = new CreateWorkOrderCommand(request.AppointmentId, request.TechnicianUserId, request.PartsUsed, request.TechnicianNotes, request.CompletedAt, equipmentId);
+        var command = new CreateWorkOrderCommand(request.AppointmentId, request.TechnicianUserId, request.PartsUsed, request.TechnicianNotes, request.CompletedAt, equipmentId, request.Charges);
 
         var result = await sender.Send(command);
 

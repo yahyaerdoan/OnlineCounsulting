@@ -15,6 +15,7 @@ public class UserResponse : LinkedResponse
     public required bool IsActive { get; init; }
     public required IReadOnlyList<string> Roles { get; init; }
     public IReadOnlyList<string> Permissions { get; init; } = [];
+    public DateTimeOffset? CreatedDate { get; init; }
 
     /// <summary>Computed, not client-checked - clients should never string-match role names.</summary>
     public bool IsSuperAdmin => Roles.Contains(GlobalOperationClaims.SuperAdmin);

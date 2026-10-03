@@ -11,6 +11,7 @@ public class AppIdentityDbContext(DbContextOptions<AppIdentityDbContext> options
 {
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<DeviceToken> DeviceTokens => Set<DeviceToken>();
+    public DbSet<UserNotification> UserNotifications => Set<UserNotification>();
     public DbSet<OutboxEmail> OutboxEmails => Set<OutboxEmail>();
     public DbSet<Invite> Invites => Set<Invite>();
 
@@ -32,6 +33,15 @@ public class AppIdentityDbContext(DbContextOptions<AppIdentityDbContext> options
             _ = builder.Property(d => d.Platform).HasMaxLength(20).IsRequired();
             _ = builder.HasIndex(d => d.Token).IsUnique();
             _ = builder.HasIndex(d => d.UserId);
+        });
+
+        _ = modelBuilder.Entity<UserNotification>(builder =>
+        {
+            _ = builder.Property(n => n.Title).HasMaxLength(200).IsRequired();
+            _ = builder.Property(n => n.Body).HasMaxLength(1000).IsRequired();
+            _ = builder.Property(n => n.DataJson).HasMaxLength(2000);
+            _ = builder.HasIndex(n => new { n.UserId, n.CreatedAt });
+            _ = builder.HasIndex(n => new { n.UserId, n.ReadAt });
         });
 
         _ = modelBuilder.Entity<Invite>(builder =>

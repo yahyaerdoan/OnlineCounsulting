@@ -17,7 +17,7 @@ public record CreateServiceAreaCommand(string Name, string State, string? IntroT
     public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Add];
 }
 
-public class CreateServiceAreaHandler(IServiceAreaRepository repository) : IRequestHandler<CreateServiceAreaCommand, OperationDataResult<Guid>>
+public class CreateServiceAreaHandler(IServiceAreaRepository repository, ICityGeocoder geocoder) : IRequestHandler<CreateServiceAreaCommand, OperationDataResult<Guid>>
 {
     public async Task<OperationDataResult<Guid>> Handle(CreateServiceAreaCommand request, CancellationToken cancellationToken)
     {
@@ -31,6 +31,12 @@ public class CreateServiceAreaHandler(IServiceAreaRepository repository) : IRequ
             IntroText = request.IntroText,
             DisplayOrder = request.DisplayOrder,
         };
+
+        if (await geocoder.GeocodeAsync(request.Name, request.State, cancellationToken) is { } point)
+        {
+            entity.Latitude = point.Latitude;
+            entity.Longitude = point.Longitude;
+        }
 
         _ = await repository.AddAsync(entity);
 

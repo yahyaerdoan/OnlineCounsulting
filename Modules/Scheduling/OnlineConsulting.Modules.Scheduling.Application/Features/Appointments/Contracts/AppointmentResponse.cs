@@ -17,6 +17,8 @@ public class AppointmentResponse : LinkedResponse
     public required bool RequiresPrepayment { get; init; }
     public Guid? AssignedTechnicianUserId { get; init; }
     public string? ServiceAddress { get; init; }
+    public required string MeetingType { get; init; }
+    public string? Topic { get; init; }
 
     /// <summary>Maps deep link built from free-text ServiceAddress - no geocoding, the device's maps app resolves it.</summary>
     public string? NavigationUrl { get; init; }
@@ -36,6 +38,8 @@ public class AppointmentResponse : LinkedResponse
         RequiresPrepayment = appointment.RequiresPrepayment,
         AssignedTechnicianUserId = appointment.AssignedTechnicianUserId,
         ServiceAddress = appointment.ServiceAddress,
+        MeetingType = appointment.MeetingType,
+        Topic = appointment.Topic,
         NavigationUrl = string.IsNullOrWhiteSpace(appointment.ServiceAddress)
             ? null
             : $"https://www.google.com/maps/dir/?api=1&destination={Uri.EscapeDataString(appointment.ServiceAddress)}",

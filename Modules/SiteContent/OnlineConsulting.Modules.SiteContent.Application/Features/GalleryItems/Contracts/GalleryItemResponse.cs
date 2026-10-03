@@ -1,4 +1,5 @@
-﻿using OnlineConsulting.Modules.SiteContent.Application.Common;
+﻿using Hateoas;
+using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryCategories.Contracts;
 using OnlineConsulting.Modules.SiteContent.Domain.Gallery;
 
@@ -10,7 +11,7 @@ public record GalleryItemResponse(
     Guid? PhotoMediaAssetId,
     int DisplayOrder,
     Dictionary<string, object>? Metadata,
-    List<GalleryCategoryResponse> Categories)
+    List<GalleryCategoryResponse> Categories) : LinkedRecord
 {
     public static GalleryItemResponse FromDomain(GalleryItem entity, List<GalleryCategoryResponse> categories) => new(
         entity.Id, entity.Description, entity.PhotoMediaAssetId, entity.DisplayOrder,

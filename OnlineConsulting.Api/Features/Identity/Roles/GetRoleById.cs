@@ -1,10 +1,7 @@
-﻿using Hateoas;
-using Hateoas.AspNetCore;
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Identity.Application.Features.Roles.GetRoleById;
 using ResultHandler.AspNetCore.Extensions;
-using ResultHandler.Functional;
 
 namespace OnlineConsulting.Api.Features.Identity.Roles;
 
@@ -19,18 +16,9 @@ public class GetRoleById : IEndpoint
             .WithDescription("Returns a single role by id.");
     }
 
-    private static async Task<IResult> Handle(Guid id, ISender sender, LinkGenerator linkGenerator, HttpContext httpContext)
+    private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)
     {
         var result = await sender.Send(new GetRoleByIdQuery(id));
-        return result
-            .OnSuccess(role => role.Links = BuildLinks(httpContext, linkGenerator, role.Id))
-            .ToEnvelopedResult(httpContext);
+        return result.ToEnvelopedResult(httpContext);
     }
-
-    internal static Dictionary<string, Link> BuildLinks(HttpContext httpContext, LinkGenerator linkGenerator, Guid id)
-        => httpContext.Links(linkGenerator)
-            .Add("self", "GetRoleById", HttpMethods.Get, new { id })
-            .Add("edit", "UpdateRole", HttpMethods.Put, new { id })
-            .AddCustom("delete", "DeleteRole", HttpMethods.Delete, new { id })
-            .Build();
 }

@@ -1,8 +1,7 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
-using OnlineConsulting.Modules.Services.Application.Features.SearchServices;
+using OnlineConsulting.Modules.Services.Application.Features.Services.SearchServices;
 using ResultHandler.AspNetCore.Extensions;
-using ResultHandler.Functional;
 
 namespace OnlineConsulting.Api.Features.Services;
 
@@ -16,17 +15,9 @@ public class SearchServices : IEndpoint
             .WithDescription("Searches services by title/description. Public - no login required.");
     }
 
-    private static async Task<IResult> Handle(string query, ISender sender, LinkGenerator linkGenerator, HttpContext httpContext)
+    private static async Task<IResult> Handle(string query, ISender sender, HttpContext httpContext)
     {
         var result = await sender.Send(new SearchServicesQuery(query));
-        return result
-            .OnSuccess(items =>
-            {
-                foreach (var service in items)
-                {
-                    service.Links = GetServiceById.BuildLinks(httpContext, linkGenerator, service.Id);
-                }
-            })
-            .ToEnvelopedResult(httpContext);
+        return result.ToEnvelopedResult(httpContext);
     }
 }
