@@ -1,19 +1,15 @@
-using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Abstractions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using OrderPaymentStatuses = OnlineConsulting.Modules.Commerce.Application.Features.Orders.Constants.PaymentStatuses;
-using OrderStatuses = OnlineConsulting.Modules.Commerce.Application.Features.Orders.Constants.OrderStatuses;
 
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Orders.CancelPendingOrder;
 
-/// <summary>Cancels a pending order. The basket was never touched by checkout (CreateOrderFromBasketHandler
-/// only clears it once payment is actually confirmed), so there's nothing left to restore here.</summary>
+/// <summary>Cancels the caller's unpaid order; the basket is left as is.</summary>
 public record CancelPendingOrderCommand(Guid OrderId, Guid UserId) : IRequest<OperationResult>, ITransactionAddRequest;
 
-public class CancelPendingOrderHandler(IOrderRepository orderRepository)
-    : IRequestHandler<CancelPendingOrderCommand, OperationResult>
+public class CancelPendingOrderHandler(IOrderRepository orderRepository) : IRequestHandler<CancelPendingOrderCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(CancelPendingOrderCommand request, CancellationToken cancellationToken)
     {
@@ -23,13 +19,13 @@ public class CancelPendingOrderHandler(IOrderRepository orderRepository)
             return Result.NotFound($"Order {request.OrderId} was not found.");
         }
 
-        if (order.PaymentStatus != OrderPaymentStatuses.Pending)
+        if (!order.IsAwaitingPayment)
         {
             return Result.Conflict("Only a pending, unpaid order can be cancelled this way.");
         }
 
-        order.PaymentStatus = OrderPaymentStatuses.Cancelled;
-        order.OrderStatus = OrderStatuses.Cancelled;
+        order.Cancel();
+
         _ = await orderRepository.UpdateAsync(order);
 
         return Result.Success("Order cancelled - your cart is unchanged.");

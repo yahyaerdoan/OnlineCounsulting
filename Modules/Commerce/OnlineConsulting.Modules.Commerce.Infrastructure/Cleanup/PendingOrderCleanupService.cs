@@ -7,12 +7,10 @@ using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Abstractions
 using OnlineConsulting.Modules.Commerce.Domain;
 using OnlineConsulting.SharedKernel.Payments;
 using OnlineConsulting.SharedKernel.Persistence;
-using OrderPaymentStatuses = OnlineConsulting.Modules.Commerce.Application.Features.Orders.Constants.PaymentStatuses;
-using OrderStatuses = OnlineConsulting.Modules.Commerce.Application.Features.Orders.Constants.OrderStatuses;
 
 namespace OnlineConsulting.Modules.Commerce.Infrastructure.Cleanup;
 
-/// <summary>Reconciles Pending orders against the payment provider (catches lost webhooks) and cancels ones abandoned past ExpireAfter.</summary>
+/// <summary>Settles pending orders whose webhook was missed and abandons those older than ExpireAfter.</summary>
 public class PendingOrderCleanupService(IServiceScopeFactory scopeFactory, IOptions<PendingOrderCleanupOptions> options, ILogger<PendingOrderCleanupService> logger) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -63,8 +61,7 @@ public class PendingOrderCleanupService(IServiceScopeFactory scopeFactory, IOpti
 
             if (order.CreatedDate <= expireCutoff)
             {
-                order.PaymentStatus = OrderPaymentStatuses.Cancelled;
-                order.OrderStatus = OrderStatuses.Cancelled;
+                order.Abandon();
 
                 _ = await orderRepository.UpdateAsync(order);
 
@@ -85,11 +82,6 @@ public class PendingOrderCleanupService(IServiceScopeFactory scopeFactory, IOpti
         }
     }
 
-    /// <summary>
-    /// Returns true if the provider already settled the payment (succeeded or failed), so the caller skips the expiry check. The outcome is
-    /// published exactly like the provider's webhook would, so OnPaymentStatusChangedHandler settles the order, issues the receipt and
-    /// notifies the customer the same way whichever path got there first.
-    /// </summary>
     private async Task<bool> TryReconcileAsync(IServiceProvider serviceProvider, Order order, CancellationToken cancellationToken)
     {
         if (order.PaymentProvider is null || order.ProviderPaymentId is null)

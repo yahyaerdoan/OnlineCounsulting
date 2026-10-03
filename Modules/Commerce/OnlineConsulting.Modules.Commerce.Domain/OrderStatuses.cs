@@ -1,5 +1,6 @@
-namespace OnlineConsulting.Modules.Commerce.Application.Features.Orders.Constants;
+namespace OnlineConsulting.Modules.Commerce.Domain;
 
+/// <summary>Values of <see cref="Order.OrderStatus"/>.</summary>
 public static class OrderStatuses
 {
     public const string Pending = "Pending";
