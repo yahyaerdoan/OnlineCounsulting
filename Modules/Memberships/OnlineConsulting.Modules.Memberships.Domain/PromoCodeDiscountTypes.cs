@@ -1,5 +1,6 @@
-namespace OnlineConsulting.Modules.Memberships.Application.Common;
+namespace OnlineConsulting.Modules.Memberships.Domain;
 
+/// <summary>Values of <see cref="PromoCode.DiscountType"/>.</summary>
 public static class PromoCodeDiscountTypes
 {
     public const string Percent = "Percent";

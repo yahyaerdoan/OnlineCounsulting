@@ -4,7 +4,6 @@ using MediatR;
 using OnlineConsulting.Modules.Referrals.Application.Common;
 using OnlineConsulting.Modules.Referrals.Application.Features.AccountCredits.Abstractions;
 using OnlineConsulting.Modules.Referrals.Application.Features.Referrals.Abstractions;
-using OnlineConsulting.Modules.Referrals.Application.Features.Referrals.Constants;
 using OnlineConsulting.Modules.Referrals.Domain;
 using OnlineConsulting.SharedKernel.Referrals;
 using ResultHandler.Core.Base;
@@ -31,14 +30,12 @@ public class CompleteReferralHandler(IReferralRepository referralRepository, IAc
             return Result.NotFound(string.Format(ReferralsMessages.ReferralNotFoundFormat, request.Id));
         }
 
-        if (referral.Status == ReferralStatuses.Rewarded)
+        if (referral.IsRewarded)
         {
             return Result.Conflict(ReferralsMessages.AlreadyRewarded);
         }
 
-        referral.Status = ReferralStatuses.Rewarded;
-        referral.RewardAmount = request.RewardAmount;
-        referral.RewardedAt = DateTimeOffset.UtcNow;
+        referral.Reward(request.RewardAmount, DateTimeOffset.UtcNow);
 
         _ = await referralRepository.UpdateAsync(referral);
 

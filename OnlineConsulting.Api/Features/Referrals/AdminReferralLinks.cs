@@ -1,7 +1,7 @@
 using Hateoas.AspNetCore;
 using OnlineConsulting.Api.Common.Hateoas;
 using OnlineConsulting.Modules.Referrals.Application.Features.Referrals.CompleteReferral;
-using OnlineConsulting.Modules.Referrals.Application.Features.Referrals.Constants;
+using OnlineConsulting.Modules.Referrals.Domain;
 
 namespace OnlineConsulting.Api.Features.Referrals;
 

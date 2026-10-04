@@ -3,7 +3,6 @@ using MediatR;
 using OnlineConsulting.Modules.Referrals.Application.Common;
 using OnlineConsulting.Modules.Referrals.Application.Features.ReferralCodes.Abstractions;
 using OnlineConsulting.Modules.Referrals.Application.Features.Referrals.Abstractions;
-using OnlineConsulting.Modules.Referrals.Application.Features.Referrals.Constants;
 using OnlineConsulting.Modules.Referrals.Domain;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -41,13 +40,7 @@ public class RedeemReferralCodeHandler(IReferralRepository referralRepository, I
             return Result.Conflict<Guid>(ReferralsMessages.AlreadyReferred);
         }
 
-        var referral = new Referral
-        {
-            ReferrerUserId = referralCode.UserId,
-            ReferredUserId = request.ReferredUserId,
-            Code = request.Code,
-            Status = ReferralStatuses.Pending,
-        };
+        var referral = Referral.Create(referralCode.UserId, request.ReferredUserId, request.Code);
 
         _ = await referralRepository.AddAsync(referral);
 

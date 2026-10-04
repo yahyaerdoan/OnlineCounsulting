@@ -21,7 +21,7 @@ public class CreatePromoCodeHandler(IPromoCodeRepository repository) : IRequestH
 {
     public async Task<OperationDataResult<Guid>> Handle(CreatePromoCodeCommand request, CancellationToken cancellationToken)
     {
-        var normalizedCode = request.Code.Trim().ToUpperInvariant();
+        var normalizedCode = PromoCode.Normalize(request.Code);
 
         var exists = await repository.AnyAsync(p => p.Code == normalizedCode, cancellationToken: cancellationToken);
 
@@ -30,15 +30,7 @@ public class CreatePromoCodeHandler(IPromoCodeRepository repository) : IRequestH
             return Result.Conflict<Guid>(PromoCodeMessages.CodeAlreadyExists);
         }
 
-        var promoCode = new PromoCode
-        {
-            Code = normalizedCode,
-            DiscountType = request.DiscountType,
-            DiscountValue = request.DiscountValue,
-            MaxRedemptions = request.MaxRedemptions,
-            ExpiresAt = request.ExpiresAt,
-            MembershipPlanId = request.MembershipPlanId,
-        };
+        var promoCode = PromoCode.Create(request.Code, request.DiscountType, request.DiscountValue, request.MaxRedemptions, request.ExpiresAt, request.MembershipPlanId);
 
         _ = await repository.AddAsync(promoCode);
 

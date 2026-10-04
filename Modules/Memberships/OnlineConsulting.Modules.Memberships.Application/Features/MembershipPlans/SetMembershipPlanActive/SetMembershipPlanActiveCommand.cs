@@ -27,7 +27,7 @@ public class SetMembershipPlanActiveHandler(IMembershipPlanRepository repository
             return Result.NotFound(string.Format(MembershipPlanMessages.MembershipPlanNotFoundFormat, request.Id));
         }
 
-        plan.IsActive = request.IsActive;
+        plan.SetActive(request.IsActive);
 
         _ = await repository.UpdateAsync(plan);
 

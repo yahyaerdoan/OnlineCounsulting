@@ -48,18 +48,19 @@ public class SubscribeToMembershipHandler(ICustomerMembershipRepository membersh
             return Result.NotFound<SubscribeToMembershipResult>(string.Format(CustomerMembershipMessages.MembershipPlanNotFoundFormat, request.MembershipPlanId));
         }
 
+        var now = DateTimeOffset.UtcNow;
         PromoCode? promo = null;
         decimal promoDiscountAmount = 0;
 
         if (request.PromoCode is not null)
         {
-            var normalizedCode = request.PromoCode.Trim().ToUpperInvariant();
+            var normalizedCode = PromoCode.Normalize(request.PromoCode);
 
             promo = await promoCodeRepository.GetAsync(p => p.Code == normalizedCode, cancellationToken: cancellationToken);
 
             var alreadyRedeemed = promo is not null && await membershipRepository.AnyAsync(m => m.UserId == request.UserId && m.PromoCodeId == promo.Id, cancellationToken: cancellationToken);
 
-            var (isValid, error, amount) = PromoCodeEvaluator.Evaluate(promo, plan, alreadyRedeemed);
+            var (isValid, error, amount) = PromoCodeEvaluator.Evaluate(promo, plan, alreadyRedeemed, now);
 
             if (!isValid)
             {
@@ -163,7 +164,7 @@ public class SubscribeToMembershipHandler(ICustomerMembershipRepository membersh
 
                 if (promo is not null)
                 {
-                    promo.RedemptionCount++;
+                    promo.Redeem(plan.Id, now);
 
                     _ = await promoCodeRepository.UpdateAsync(promo);
                 }

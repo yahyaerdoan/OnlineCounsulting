@@ -1,5 +1,5 @@
 using FluentValidation;
-using OnlineConsulting.Modules.Memberships.Application.Common;
+using OnlineConsulting.Modules.Memberships.Domain;
 
 namespace OnlineConsulting.Modules.Memberships.Application.Features.PromoCodes.CreatePromoCode;
 

@@ -27,14 +27,15 @@ public class AcceptInviteHandler(IInviteRepository inviteRepository, UserManager
             return Result.NotFound(InviteMessages.InviteNotFound);
         }
 
-        if (invite.Status != InviteStatuses.Pending)
+        if (!invite.IsPending)
         {
             return Result.Conflict(InviteMessages.InviteNotUsable);
         }
 
-        if (invite.ExpiresAt < DateTime.UtcNow)
+        var now = DateTime.UtcNow;
+        if (invite.IsExpiredAt(now))
         {
-            invite.Status = InviteStatuses.Expired;
+            invite.Expire();
 
             _ = await inviteRepository.UpdateAsync(invite);
 
@@ -73,8 +74,7 @@ public class AcceptInviteHandler(IInviteRepository inviteRepository, UserManager
             return Result.InternalServerError();
         }
 
-        invite.Status = InviteStatuses.Accepted;
-        invite.AcceptedAt = DateTime.UtcNow;
+        invite.Accept(now);
 
         _ = await inviteRepository.UpdateAsync(invite);
 

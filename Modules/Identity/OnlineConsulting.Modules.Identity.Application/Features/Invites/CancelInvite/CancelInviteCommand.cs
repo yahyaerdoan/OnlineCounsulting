@@ -34,12 +34,12 @@ public class CancelInviteHandler(IInviteRepository inviteRepository, ITenantProv
             return Result.Forbidden(InviteMessages.NotAuthorizedForOtherTenant);
         }
 
-        if (invite.Status != InviteStatuses.Pending)
+        if (!invite.IsPending)
         {
             return Result.Conflict(InviteMessages.InviteNotCancellable);
         }
 
-        invite.Status = InviteStatuses.Revoked;
+        invite.Revoke();
         _ = await inviteRepository.UpdateAsync(invite);
 
         return Result.Success(InviteMessages.InviteCancelled);

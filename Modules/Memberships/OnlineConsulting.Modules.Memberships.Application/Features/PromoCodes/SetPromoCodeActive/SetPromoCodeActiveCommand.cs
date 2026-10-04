@@ -26,7 +26,7 @@ public class SetPromoCodeActiveHandler(IPromoCodeRepository repository) : IReque
             return Result.NotFound(string.Format(PromoCodeMessages.PromoCodeNotFoundFormat, request.Id));
         }
 
-        promoCode.IsActive = request.IsActive;
+        promoCode.SetActive(request.IsActive);
 
         _ = await repository.UpdateAsync(promoCode);
 

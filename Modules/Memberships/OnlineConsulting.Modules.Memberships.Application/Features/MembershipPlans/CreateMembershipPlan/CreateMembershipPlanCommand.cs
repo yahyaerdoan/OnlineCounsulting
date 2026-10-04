@@ -22,22 +22,12 @@ public class CreateMembershipPlanHandler(IMembershipPlanRepository repository, I
 {
     public async Task<OperationDataResult<Guid>> Handle(CreateMembershipPlanCommand request, CancellationToken cancellationToken)
     {
-        var plan = new MembershipPlan
-        {
-            Name = request.Name,
-            BillingCycle = request.BillingCycle,
-            Price = request.Price,
-            IncludedVisitsPerYear = request.IncludedVisitsPerYear,
-            DiscountPercent = request.DiscountPercent,
-            CreditAmount = request.CreditAmount,
-            Benefits = request.Benefits,
-            TrialDays = request.TrialDays,
-        };
+        var plan = MembershipPlan.Create(request.Name, request.BillingCycle, request.Price, request.IncludedVisitsPerYear, request.DiscountPercent,
+            request.CreditAmount, request.Benefits, request.TrialDays);
 
         var priceResult = await subscriptionGateway.EnsurePriceAsync(new EnsurePriceRequest(plan.Id.ToString(), plan.Name, plan.Price, "usd", plan.BillingCycle), cancellationToken);
 
-        plan.ProviderProductId = priceResult.ProviderProductId;
-        plan.ProviderPriceId = priceResult.ProviderPriceId;
+        plan.AttachProviderPrice(priceResult.ProviderProductId, priceResult.ProviderPriceId);
 
         _ = await repository.AddAsync(plan);
 

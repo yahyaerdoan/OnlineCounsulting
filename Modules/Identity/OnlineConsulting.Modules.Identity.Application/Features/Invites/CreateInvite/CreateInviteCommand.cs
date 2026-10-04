@@ -66,15 +66,8 @@ public class CreateInviteHandler(IInviteRepository inviteRepository, RoleManager
             ? parsedUserId
             : throw new InvalidOperationException("Authenticated request is missing a valid user id claim.");
 
-        var invite = new Invite
-        {
-            TenantId = tenantId,
-            Email = request.Email,
-            Token = SecureTokenGenerator.GenerateUrlSafeToken(),
-            RoleName = role.Name ?? requestedRoleName,
-            ExpiresAt = DateTime.UtcNow.AddDays(_inviteValidityDays),
-            InvitedByUserId = invitedByUserId,
-        };
+        var invite = Invite.Create(tenantId, request.Email, SecureTokenGenerator.GenerateUrlSafeToken(), role.Name ?? requestedRoleName,
+            DateTime.UtcNow.AddDays(_inviteValidityDays), invitedByUserId);
 
         var inviteUrl = $"{emailOptions.Value.ClientOrigin}/accept-invite?token={Uri.EscapeDataString(invite.Token)}";
         var inviteModel = new InviteEmailModel(inviteUrl);

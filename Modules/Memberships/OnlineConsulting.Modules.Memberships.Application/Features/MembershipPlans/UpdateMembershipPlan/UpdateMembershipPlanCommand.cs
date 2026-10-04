@@ -27,11 +27,7 @@ public class UpdateMembershipPlanHandler(IMembershipPlanRepository repository) :
             return Result.NotFound(string.Format(MembershipPlanMessages.MembershipPlanNotFoundFormat, request.Id));
         }
 
-        plan.Name = request.Name;
-        plan.IncludedVisitsPerYear = request.IncludedVisitsPerYear;
-        plan.DiscountPercent = request.DiscountPercent;
-        plan.CreditAmount = request.CreditAmount;
-        plan.Benefits = request.Benefits;
+        plan.UpdateDetails(request.Name, request.IncludedVisitsPerYear, request.DiscountPercent, request.CreditAmount, request.Benefits);
 
         _ = await repository.UpdateAsync(plan);
 
