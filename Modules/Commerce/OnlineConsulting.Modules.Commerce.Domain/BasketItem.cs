@@ -2,17 +2,48 @@ using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Commerce.Domain;
 
-public class BasketItem : SequentialGuidTenantEntity
+/// <summary>One line of a <see cref="Basket"/>; created and changed only through the basket. Its id is assigned when it is saved.</summary>
+public class BasketItem : TenantEntity<Guid>
 {
-    public required Guid BasketId { get; set; }
+    private BasketItem()
+    {
+    }
 
-    /// <summary>Plain id, no navigation - Service lives in the not-yet-migrated legacy catalog, and modules only reference each other by id.</summary>
-    public required Guid ServiceId { get; set; }
+    public Guid BasketId { get; private set; }
 
-    public required int Quantity { get; set; }
-    public required decimal Price { get; set; }
-    public required int TaxRate { get; set; }
-    public decimal TaxAmount { get; set; }
-    public decimal SubTotalPrice { get; set; }
-    public decimal TotalPrice { get; set; }
+    /// <summary>Catalog service id, no navigation.</summary>
+    public Guid ServiceId { get; private set; }
+
+    public int Quantity { get; private set; }
+    public decimal Price { get; private set; }
+    public int TaxRate { get; private set; }
+    public decimal TaxAmount { get; private set; }
+    public decimal SubTotalPrice { get; private set; }
+    public decimal TotalPrice { get; private set; }
+
+    internal static BasketItem Create(Guid basketId, Guid serviceId, int quantity, decimal unitPrice, int taxRate)
+    {
+        var item = new BasketItem { BasketId = basketId, ServiceId = serviceId };
+        item.SetPrice(unitPrice, taxRate);
+        item.SetQuantity(quantity);
+        return item;
+    }
+
+    internal void SetQuantity(int quantity)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(quantity);
+        Quantity = quantity;
+        Recalculate();
+    }
+
+    internal void SetPrice(decimal unitPrice, int taxRate)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(unitPrice);
+        ArgumentOutOfRangeException.ThrowIfNegative(taxRate);
+        Price = unitPrice;
+        TaxRate = taxRate;
+        Recalculate();
+    }
+
+    private void Recalculate() => (SubTotalPrice, TaxAmount, TotalPrice) = LineAmounts.Calculate(Price, Quantity, TaxRate);
 }

@@ -42,6 +42,7 @@ public class CommerceDbContext(DbContextOptions<CommerceDbContext> options, ITen
             _ = builder.Property(b => b.RowVersion).IsRowVersion();
             _ = builder.HasIndex(b => b.UserId);
             _ = builder.HasIndex(b => b.GuestId);
+            _ = builder.HasMany(b => b.Items).WithOne().HasForeignKey(i => i.BasketId).OnDelete(DeleteBehavior.Cascade);
             _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 

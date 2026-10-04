@@ -5,4 +5,6 @@ namespace OnlineConsulting.Modules.Commerce.Application.Features.Baskets.Abstrac
 
 public interface IBasketRepository : IAsyncRepository<Basket, Guid>
 {
+    /// <summary>The basket of a user or a guest (exactly one given), loaded with its items.</summary>
+    Task<Basket?> GetForOwnerAsync(Guid? userId, Guid? guestId, bool enableTracking = true, CancellationToken cancellationToken = default);
 }

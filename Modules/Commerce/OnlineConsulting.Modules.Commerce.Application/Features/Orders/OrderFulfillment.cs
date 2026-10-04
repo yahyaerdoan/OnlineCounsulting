@@ -7,7 +7,7 @@ using OnlineConsulting.SharedKernel.Persistence;
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Orders;
 
 /// <summary>The basket is left alone at checkout for an asynchronous payment, so completing the paid order is what finally clears it.</summary>
-public class OrderFulfillment(IBasketRepository basketRepository, IBasketItemRepository basketItemRepository, IOrderItemRepository orderItemRepository,
+public class OrderFulfillment(IBasketRepository basketRepository, IOrderItemRepository orderItemRepository,
     IInvoiceService invoiceService, IOrderNotifier notifier) : IOrderFulfillment
 {
     public async Task CompletePaidAsync(Order order, CancellationToken cancellationToken = default)
@@ -22,18 +22,13 @@ public class OrderFulfillment(IBasketRepository basketRepository, IBasketItemRep
 
     private async Task ClearBasketAsync(Guid userId, CancellationToken cancellationToken)
     {
-        var basket = await basketRepository.GetAsync(b => b.UserId == userId, cancellationToken: cancellationToken);
+        var basket = await basketRepository.GetForOwnerAsync(userId, null, cancellationToken: cancellationToken);
         if (basket is null)
         {
             return;
         }
 
-        var basketItems = await basketItemRepository.GetListAsync(i => i.BasketId == basket.Id, orderBy: q => q.OrderBy(i => i.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
-        foreach (var basketItem in basketItems.Items)
-        {
-            _ = await basketItemRepository.DeleteAsync(basketItem);
-        }
-
+        basket.Clear();
         _ = await basketRepository.DeleteAsync(basket);
     }
 }

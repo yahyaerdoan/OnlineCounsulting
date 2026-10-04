@@ -54,7 +54,6 @@ public static class CommerceModule
         });
         _ = services.AddScoped<IAddressSuggestionProvider, GeoapifyAddressSuggestionProvider>();
         _ = services.AddScoped<IBasketRepository, BasketRepository>();
-        _ = services.AddScoped<IBasketItemRepository, BasketItemRepository>();
         _ = services.AddScoped<IOrderRepository, OrderRepository>();
         _ = services.AddScoped<IOrderItemRepository, OrderItemRepository>();
         _ = services.AddScoped<IEmailOutboxWriter<ICommerceOutboxModule>, EmailOutboxWriter>();

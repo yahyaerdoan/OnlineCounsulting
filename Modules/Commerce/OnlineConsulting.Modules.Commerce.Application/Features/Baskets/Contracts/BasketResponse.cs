@@ -5,6 +5,6 @@ namespace OnlineConsulting.Modules.Commerce.Application.Features.Baskets.Contrac
 
 public record BasketResponse(Guid Id, int Quantity, decimal SubTotalPrice, decimal TotalPrice, IReadOnlyList<BasketItemResponse> Items) : LinkedRecord
 {
-    public static BasketResponse FromDomain(Basket basket, IEnumerable<BasketItem> items) => new(
-        basket.Id, basket.Quantity, basket.SubTotalPrice, basket.TotalPrice, [.. items.Select(BasketItemResponse.FromDomain)]);
+    public static BasketResponse FromDomain(Basket basket) => new(
+        basket.Id, basket.Quantity, basket.SubTotalPrice, basket.TotalPrice, [.. basket.Items.Select(BasketItemResponse.FromDomain)]);
 }

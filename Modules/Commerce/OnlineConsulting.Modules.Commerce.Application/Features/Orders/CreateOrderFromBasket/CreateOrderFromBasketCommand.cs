@@ -28,7 +28,6 @@ public record CreateOrderFromBasketCommand(Guid UserId, string Email) : IRequest
 }
 
 public class CreateOrderFromBasketHandler(IBasketRepository basketRepository,
-                                          IBasketItemRepository basketItemRepository,
                                           IUserAddressRepository userAddressRepository,
                                           IOrderRepository orderRepository,
                                           IOrderItemRepository orderItemRepository,
@@ -39,33 +38,28 @@ public class CreateOrderFromBasketHandler(IBasketRepository basketRepository,
 {
     public async Task<OperationDataResult<CreateOrderResult>> Handle(CreateOrderFromBasketCommand request, CancellationToken cancellationToken)
     {
-        var basket = await basketRepository.GetAsync(b => b.UserId == request.UserId, cancellationToken: cancellationToken);
+        var basket = await basketRepository.GetForOwnerAsync(request.UserId, null, enableTracking: false, cancellationToken);
 
         if (basket is null)
         {
             return Result.NotFound<CreateOrderResult>(BasketMessages.BasketNotFoundOrEmpty);
         }
 
-        var basketItems = await basketItemRepository.GetListAsync(i => i.BasketId == basket.Id, orderBy: q => q.OrderBy(i => i.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
-
-        if (basketItems.Items.Count == 0)
+        if (basket.IsEmpty)
         {
             return Result.Conflict<CreateOrderResult>(BasketMessages.BasketNotFoundOrEmpty);
         }
 
-        var catalog = await catalogReader.GetManyAsync(basketItems.Items.Select(i => i.ServiceId), cancellationToken);
+        var catalog = await catalogReader.GetManyAsync(basket.Items.Select(i => i.ServiceId), cancellationToken);
 
-        foreach (var basketItem in basketItems.Items)
+        foreach (var basketItem in basket.Items)
         {
             if (!catalog.TryGetValue(basketItem.ServiceId, out var entry) || entry.Kind != ServiceKinds.Product)
             {
                 return Result.Conflict<CreateOrderResult>(BasketMessages.ItemNoLongerPurchasable);
             }
 
-            basketItem.Price = entry.UnitPrice;
-            basketItem.TaxRate = entry.TaxRate;
-
-            TaxCalculator.Apply(basketItem);
+            basket.Reprice(basketItem.ServiceId, entry.UnitPrice, entry.TaxRate);
         }
 
         var shippingAddress = await userAddressRepository.GetAsync(a => a.UserId == request.UserId && a.IsShippingAddress, enableTracking: false, cancellationToken: cancellationToken);
@@ -83,7 +77,7 @@ public class CreateOrderFromBasketHandler(IBasketRepository basketRepository,
         }
 
         var orderId = SequentialGuidTenantEntity.NewId();
-        var total = basketItems.Items.Sum(i => TaxCalculator.Calculate(i.Price, i.Quantity, i.TaxRate).TotalPrice);
+        var total = basket.TotalPrice;
 
         var (failure, paymentIntent) = await PaymentGatewayCall.RunWithResultAsync(() =>
         paymentGateway.CreatePaymentIntentAsync(new CreatePaymentIntentRequest(total, "usd", orderId.ToString(), request.Email, IdempotencyKey: orderId.ToString()), cancellationToken), "Could not start payment for your order. Please try again.");
@@ -93,7 +87,7 @@ public class CreateOrderFromBasketHandler(IBasketRepository basketRepository,
             return Result.BadGateway<CreateOrderResult>(failure?.Detail ?? "Could not start payment for your order.");
         }
 
-        var (order, _) = await CreateOrderWithItemsAsync(orderId, request.UserId, shippingAddress.Id, billingAddress.Id, basketItems.Items, paymentIntent);
+        var (order, _) = await CreateOrderWithItemsAsync(orderId, request.UserId, shippingAddress.Id, billingAddress.Id, basket.Items, paymentIntent);
 
         if (order.PaymentStatus == OrderPaymentStatuses.Paid)
         {
