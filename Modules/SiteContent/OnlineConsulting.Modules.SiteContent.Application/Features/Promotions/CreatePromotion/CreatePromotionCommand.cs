@@ -29,7 +29,7 @@ public class CreatePromotionHandler(IPromotionRepository repository) : IRequestH
             DisplayOrder = request.DisplayOrder,
         };
 
-        _ = await repository.AddAsync(entity);
+        _ = await repository.AddAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Created(entity.Id, "Promotion created successfully.");
     }

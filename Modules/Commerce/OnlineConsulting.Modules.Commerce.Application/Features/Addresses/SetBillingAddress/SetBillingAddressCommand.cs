@@ -28,7 +28,7 @@ public class SetBillingAddressHandler(IUserAddressRepository repository) : IRequ
         await UserAddressDefaultFlag.ClearPreviousBillingHolderAsync(repository, request.UserId, newAddress.Id, cancellationToken);
 
         newAddress.IsBillingAddress = true;
-        _ = await repository.UpdateAsync(newAddress);
+        _ = await repository.UpdateAsync(newAddress, cancellationToken: cancellationToken);
 
         return Result.Success("Billing address set successfully.");
     }

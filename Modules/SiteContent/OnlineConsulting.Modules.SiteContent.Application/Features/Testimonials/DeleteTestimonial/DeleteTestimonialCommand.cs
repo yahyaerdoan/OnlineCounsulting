@@ -24,7 +24,7 @@ public class DeleteTestimonialHandler(ITestimonialRepository repository) : IRequ
             return SiteContentBusinessRules.NotFound("Testimonial", request.Id);
         }
 
-        _ = await repository.DeleteAsync(entity);
+        _ = await repository.DeleteAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Success("Testimonial deleted successfully.");
     }

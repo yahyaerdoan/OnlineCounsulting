@@ -23,6 +23,6 @@ public class OnSubscriptionCancelledHandler(ICustomerMembershipRepository reposi
 
         membership.Cancel();
 
-        _ = await repository.UpdateAsync(membership);
+        _ = await repository.UpdateAsync(membership, cancellationToken: cancellationToken);
     }
 }

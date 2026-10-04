@@ -23,8 +23,8 @@ public class MergeGuestBasketHandler(IBasketRepository basketRepository) : IRequ
         var userBasket = await BasketOwnerLookup.GetOrOpenAsync(basketRepository, request.UserId, null, cancellationToken);
         userBasket.MergeFrom(guestBasket);
 
-        _ = await basketRepository.UpdateAsync(userBasket);
-        _ = await basketRepository.DeleteAsync(guestBasket);
+        _ = await basketRepository.UpdateAsync(userBasket, cancellationToken: cancellationToken);
+        _ = await basketRepository.DeleteAsync(guestBasket, cancellationToken: cancellationToken);
 
         return Result.Success("Guest basket merged successfully.");
     }

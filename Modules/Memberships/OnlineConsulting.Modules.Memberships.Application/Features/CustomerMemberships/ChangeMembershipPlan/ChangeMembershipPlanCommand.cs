@@ -59,7 +59,7 @@ public class ChangeMembershipPlanHandler(ICustomerMembershipRepository membershi
 
         membership.ChangePlan(newPlan.Id);
 
-        _ = await membershipRepository.UpdateAsync(membership);
+        _ = await membershipRepository.UpdateAsync(membership, cancellationToken: cancellationToken);
 
         return Result.Success($"Switched to the {newPlan.Name} plan successfully.");
     }

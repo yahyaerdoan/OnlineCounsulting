@@ -5,7 +5,6 @@ using OnlineConsulting.Modules.Tenancy.Application.Features.Bundles.Constants;
 using OnlineConsulting.Modules.Tenancy.Application.Features.ModuleOfferings.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
-using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -29,8 +28,8 @@ public class CreateBundleHandler(IBundleRepository repository, IModuleOfferingRe
         var moduleKeys = request.ModuleKeys.Distinct().ToList();
 
         var existingKeys = (await moduleOfferingRepository
-            .GetListAsync(m => moduleKeys.Contains(m.Key), orderBy: q => q.OrderBy(m => m.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken))
-            .Items.Select(m => m.Key).ToHashSet();
+            .GetAllAsync(m => moduleKeys.Contains(m.Key), cancellationToken: cancellationToken))
+            .Select(m => m.Key).ToHashSet();
 
         var unknownKeys = moduleKeys.Where(k => !existingKeys.Contains(k)).ToList();
 
@@ -46,7 +45,7 @@ public class CreateBundleHandler(IBundleRepository repository, IModuleOfferingRe
             IsPubliclyVisible = request.IsPubliclyVisible,
         };
 
-        _ = await repository.AddAsync(bundle);
+        _ = await repository.AddAsync(bundle, cancellationToken: cancellationToken);
 
         return Result.Created(bundle.Id, "Bundle created successfully.");
     }

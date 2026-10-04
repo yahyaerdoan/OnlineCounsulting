@@ -37,7 +37,7 @@ public class CompleteReferralHandler(IReferralRepository referralRepository, IAc
 
         referral.Reward(request.RewardAmount, DateTimeOffset.UtcNow);
 
-        _ = await referralRepository.UpdateAsync(referral);
+        _ = await referralRepository.UpdateAsync(referral, cancellationToken: cancellationToken);
 
         _ = await creditRepository.AddAsync(new AccountCredit
         {
@@ -46,7 +46,7 @@ public class CompleteReferralHandler(IReferralRepository referralRepository, IAc
             Reason = "Referral reward",
             SourceType = AccountCreditSourceTypes.Referral,
             SourceId = referral.Id,
-        });
+        }, cancellationToken: cancellationToken);
 
         await notifier.RewardEarnedAsync(referral, request.RewardAmount, cancellationToken);
 

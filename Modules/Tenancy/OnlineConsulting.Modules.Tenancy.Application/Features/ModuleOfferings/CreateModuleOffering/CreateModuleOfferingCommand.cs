@@ -48,7 +48,7 @@ public class CreateModuleOfferingHandler(IModuleOfferingRepository repository, I
         offering.ProviderProductId = priceResult.ProviderProductId;
         offering.ProviderPriceId = priceResult.ProviderPriceId;
 
-        _ = await repository.AddAsync(offering);
+        _ = await repository.AddAsync(offering, cancellationToken: cancellationToken);
 
         return Result.Created(offering.Id, "Module offering created successfully.");
     }

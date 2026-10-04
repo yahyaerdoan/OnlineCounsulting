@@ -3,7 +3,6 @@ using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryCategorie
 using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryCategories.Contracts;
 using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryItems.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryItems.Contracts;
-using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
@@ -17,14 +16,14 @@ public class GetAllGalleryItemsHandler(IGalleryItemRepository itemRepository, IG
 {
     public async Task<OperationDataResult<List<GalleryItemResponse>>> Handle(GetAllGalleryItemsQuery request, CancellationToken cancellationToken)
     {
-        var items = await itemRepository.GetListAsync(orderBy: q => q.OrderBy(x => x.DisplayOrder), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
-        var links = await linkRepository.GetListAsync(orderBy: q => q.OrderBy(x => x.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
-        var categories = await categoryRepository.GetListAsync(orderBy: q => q.OrderBy(x => x.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+        var items = await itemRepository.GetAllAsync(orderBy: q => q.OrderBy(x => x.DisplayOrder), cancellationToken: cancellationToken);
+        var links = await linkRepository.GetAllAsync(cancellationToken: cancellationToken);
+        var categories = await categoryRepository.GetAllAsync(cancellationToken: cancellationToken);
 
-        var categoriesById = categories.Items.ToDictionary(c => c.Id);
-        var linksByItemId = links.Items.ToLookup(l => l.GalleryItemId);
+        var categoriesById = categories.ToDictionary(c => c.Id);
+        var linksByItemId = links.ToLookup(l => l.GalleryItemId);
 
-        var response = items.Items
+        var response = items
             .Select(item =>
             {
                 var itemCategories = linksByItemId[item.Id]

@@ -33,7 +33,7 @@ public class AddServiceMediaItemHandler(IServiceMediaItemRepository repository, 
 
         var entity = new ServiceMediaItem { ServiceId = request.ServiceId, MediaAssetId = request.MediaAssetId, DisplayOrder = request.DisplayOrder };
 
-        _ = await repository.AddAsync(entity);
+        _ = await repository.AddAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Created(entity.Id, "Service media item added successfully.");
     }

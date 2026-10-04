@@ -22,6 +22,6 @@ public static class UserAddressDefaultFlag
         }
 
         clearFlag(oldHolder);
-        _ = await repository.UpdateAsync(oldHolder);
+        _ = await repository.UpdateAsync(oldHolder, cancellationToken: cancellationToken);
     }
 }

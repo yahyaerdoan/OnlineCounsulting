@@ -40,7 +40,7 @@ public class CancelInviteHandler(IInviteRepository inviteRepository, ITenantProv
         }
 
         invite.Revoke();
-        _ = await inviteRepository.UpdateAsync(invite);
+        _ = await inviteRepository.UpdateAsync(invite, cancellationToken: cancellationToken);
 
         return Result.Success(InviteMessages.InviteCancelled);
     }

@@ -27,7 +27,7 @@ public class UpdateGalleryCategoryHandler(IGalleryCategoryRepository repository)
         entity.Name = request.Name;
         entity.Description = request.Description;
 
-        _ = await repository.UpdateAsync(entity);
+        _ = await repository.UpdateAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Success("Gallery category updated successfully.");
     }

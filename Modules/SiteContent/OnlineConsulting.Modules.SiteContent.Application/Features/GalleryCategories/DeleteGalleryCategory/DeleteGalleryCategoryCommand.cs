@@ -25,7 +25,7 @@ public class DeleteGalleryCategoryHandler(IGalleryCategoryRepository repository)
             return SiteContentBusinessRules.NotFound("Gallery category", request.Id);
         }
 
-        _ = await repository.DeleteAsync(entity);
+        _ = await repository.DeleteAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Success("Gallery category deleted successfully.");
     }

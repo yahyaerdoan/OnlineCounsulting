@@ -23,7 +23,7 @@ public class DeleteUserAddressHandler(IUserAddressRepository repository) : IRequ
             return Result.NotFound($"Address {request.Id} was not found.");
         }
 
-        _ = await repository.DeleteAsync(address);
+        _ = await repository.DeleteAsync(address, cancellationToken: cancellationToken);
 
         return Result.Success("Address deleted successfully.");
     }

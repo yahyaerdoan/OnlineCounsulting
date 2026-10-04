@@ -22,7 +22,7 @@ public class CreateFooterInfoHandler(IFooterInfoRepository repository, IStorageS
     {
         var entity = new FooterInfo { ImageUrl = storageService.ToStoredUrl(request.ImageUrl), Description = request.Description, DisplayOrder = request.DisplayOrder, Metadata = MetadataSerializer.Serialize(request.Metadata) };
 
-        _ = await repository.AddAsync(entity);
+        _ = await repository.AddAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Created(entity.Id, "Footer info created successfully.");
     }

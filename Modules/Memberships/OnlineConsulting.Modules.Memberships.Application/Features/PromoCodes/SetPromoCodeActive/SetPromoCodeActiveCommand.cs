@@ -28,7 +28,7 @@ public class SetPromoCodeActiveHandler(IPromoCodeRepository repository) : IReque
 
         promoCode.SetActive(request.IsActive);
 
-        _ = await repository.UpdateAsync(promoCode);
+        _ = await repository.UpdateAsync(promoCode, cancellationToken: cancellationToken);
 
         return Result.Success(request.IsActive ? "Promo code activated successfully." : "Promo code deactivated successfully.");
     }

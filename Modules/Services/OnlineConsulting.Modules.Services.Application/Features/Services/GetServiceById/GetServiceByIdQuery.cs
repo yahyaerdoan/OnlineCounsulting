@@ -4,7 +4,6 @@ using OnlineConsulting.Modules.Services.Application.Features.ServiceMediaItems.C
 using OnlineConsulting.Modules.Services.Application.Features.Services.Abstractions;
 using OnlineConsulting.Modules.Services.Application.Features.Services.Constants;
 using OnlineConsulting.Modules.Services.Application.Features.Services.Contracts;
-using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
@@ -23,10 +22,8 @@ public class GetServiceByIdHandler(IServiceRepository repository, IServiceMediaI
             return Result.NotFound<ServiceResponse>(string.Format(ServiceMessages.ServiceNotFoundFormat, request.Id));
         }
 
-        var mediaItems = await mediaItemRepository.GetListAsync(
-            m => m.ServiceId == service.Id, orderBy: q => q.OrderBy(m => m.DisplayOrder),
-            size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+        var mediaItems = await mediaItemRepository.GetAllAsync(m => m.ServiceId == service.Id, orderBy: q => q.OrderBy(m => m.DisplayOrder), cancellationToken: cancellationToken);
 
-        return Result.Success(ServiceResponse.FromDomain(service, [.. mediaItems.Items.Select(ServiceMediaItemResponse.FromDomain)]), "Service retrieved successfully.");
+        return Result.Success(ServiceResponse.FromDomain(service, [.. mediaItems.Select(ServiceMediaItemResponse.FromDomain)]), "Service retrieved successfully.");
     }
 }

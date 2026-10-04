@@ -56,7 +56,7 @@ public class RefundOrderHandler(IOrderRepository orderRepository, IServiceProvid
 
         order.Refund();
 
-        _ = await orderRepository.UpdateAsync(order);
+        _ = await orderRepository.UpdateAsync(order, cancellationToken: cancellationToken);
 
         await notifier.RefundedAsync(order, request.Amount, cancellationToken);
 

@@ -8,7 +8,6 @@ using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionIt
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Domain;
 using OnlineConsulting.SharedKernel.Payments;
-using OnlineConsulting.SharedKernel.Persistence;
 using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -43,16 +42,16 @@ public class ActivateTenantSubscriptionHandler(ITenantRepository tenantRepositor
             ?? throw new InvalidOperationException($"Tenant {tenant.Id} has no TenantSubscription row.");
 
         var itemsPage = await tenantSubscriptionItemRepository
-            .GetListAsync(predicate: i => i.TenantSubscriptionId == tenantSubscription.Id, orderBy: q => q.OrderBy(i => i.Id), size: RepositoryQuerySize.Unbounded, enableTracking: true, cancellationToken: cancellationToken);
+            .GetAllAsync(predicate: i => i.TenantSubscriptionId == tenantSubscription.Id, enableTracking: true, cancellationToken: cancellationToken);
 
-        var pendingItems = itemsPage.Items.Where(i => i.IsAwaitingBilling).ToList();
+        var pendingItems = itemsPage.Where(i => i.IsAwaitingBilling).ToList();
 
         var pendingModuleKeys = pendingItems.Select(i => i.ModuleKey).ToList();
 
         var offerings = await moduleOfferingRepository
-            .GetListAsync(predicate: m => pendingModuleKeys.Contains(m.Key), orderBy: q => q.OrderBy(m => m.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+            .GetAllAsync(predicate: m => pendingModuleKeys.Contains(m.Key), cancellationToken: cancellationToken);
 
-        var offeringsByKey = offerings.Items.ToDictionary(m => m.Key);
+        var offeringsByKey = offerings.ToDictionary(m => m.Key);
 
         string? clientSecret = null;
         try
@@ -70,7 +69,7 @@ public class ActivateTenantSubscriptionHandler(ITenantRepository tenantRepositor
                 providerCustomerId = customer.ProviderCustomerId;
                 tenant.LinkProviderCustomer(providerCustomerId);
 
-                _ = await tenantRepository.UpdateAsync(tenant);
+                _ = await tenantRepository.UpdateAsync(tenant, cancellationToken: cancellationToken);
             }
 
             if (tenantSubscription.ProviderSubscriptionId is null)
@@ -92,17 +91,17 @@ public class ActivateTenantSubscriptionHandler(ITenantRepository tenantRepositor
                 {
                     tenant.FailSignup();
                     tenantSubscription.MarkFailed();
-                    _ = await tenantRepository.UpdateAsync(tenant);
-                    _ = await tenantSubscriptionRepository.UpdateAsync(tenantSubscription);
+                    _ = await tenantRepository.UpdateAsync(tenant, cancellationToken: cancellationToken);
+                    _ = await tenantSubscriptionRepository.UpdateAsync(tenantSubscription, cancellationToken: cancellationToken);
                     return Result.BadGateway<ActivateTenantSubscriptionResult>(SignupMessages.PaymentSetupFailed);
                 }
 
                 tenantSubscription.AttachProviderSubscription(subscription.ProviderSubscriptionId, subscription.CurrentPeriodEnd.UtcDateTime,
                     paid: subscription.Status == PaymentStatuses.Succeeded);
-                _ = await tenantSubscriptionRepository.UpdateAsync(tenantSubscription);
+                _ = await tenantSubscriptionRepository.UpdateAsync(tenantSubscription, cancellationToken: cancellationToken);
 
                 firstItem.Activate(subscription.FirstItemProviderId);
-                _ = await tenantSubscriptionItemRepository.UpdateAsync(firstItem);
+                _ = await tenantSubscriptionItemRepository.UpdateAsync(firstItem, cancellationToken: cancellationToken);
 
                 clientSecret = subscription.ClientSecret;
                 _ = pendingItems.Remove(firstItem);
@@ -110,7 +109,7 @@ public class ActivateTenantSubscriptionHandler(ITenantRepository tenantRepositor
             else if (tenantSubscription.Status == TenantSubscriptionStatuses.Failed)
             {
                 tenantSubscription.RecoverFromFailure();
-                _ = await tenantSubscriptionRepository.UpdateAsync(tenantSubscription);
+                _ = await tenantSubscriptionRepository.UpdateAsync(tenantSubscription, cancellationToken: cancellationToken);
             }
 
             var activeProviderSubscriptionId = tenantSubscription.ProviderSubscriptionId
@@ -133,7 +132,7 @@ public class ActivateTenantSubscriptionHandler(ITenantRepository tenantRepositor
                 }
 
                 item.Activate(providerSubscriptionItemId);
-                _ = await tenantSubscriptionItemRepository.UpdateAsync(item);
+                _ = await tenantSubscriptionItemRepository.UpdateAsync(item, cancellationToken: cancellationToken);
             }
         }
         catch (Exception exception)
@@ -141,13 +140,13 @@ public class ActivateTenantSubscriptionHandler(ITenantRepository tenantRepositor
             logger.LogError(exception, "Tenant {TenantId}: activating the subscription failed.", tenant.Id);
             tenant.FailSignup();
             tenantSubscription.MarkFailed();
-            _ = await tenantRepository.UpdateAsync(tenant);
-            _ = await tenantSubscriptionRepository.UpdateAsync(tenantSubscription);
+            _ = await tenantRepository.UpdateAsync(tenant, cancellationToken: cancellationToken);
+            _ = await tenantSubscriptionRepository.UpdateAsync(tenantSubscription, cancellationToken: cancellationToken);
             return Result.BadGateway<ActivateTenantSubscriptionResult>(SignupMessages.PaymentSetupFailed);
         }
 
         tenant.CompleteSignup(tenantSubscription.Status);
-        _ = await tenantRepository.UpdateAsync(tenant);
+        _ = await tenantRepository.UpdateAsync(tenant, cancellationToken: cancellationToken);
 
         return Result.Created(new ActivateTenantSubscriptionResult(tenant.Id, clientSecret), "Tenant subscription activated successfully.");
     }

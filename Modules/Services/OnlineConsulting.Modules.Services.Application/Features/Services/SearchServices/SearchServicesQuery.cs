@@ -1,7 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Modules.Services.Application.Features.Services.Abstractions;
 using OnlineConsulting.Modules.Services.Application.Features.Services.Contracts;
-using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
@@ -18,9 +17,9 @@ public class SearchServicesHandler(IServiceRepository repository) : IRequestHand
             return Result.Success(new List<ServiceResponse>(), "No search query provided.");
         }
 
-        var services = await repository.GetListAsync(s => s.Title.Contains(request.Query) || s.Description.Contains(request.Query), orderBy: q => q.OrderBy(s => s.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+        var services = await repository.GetAllAsync(s => s.Title.Contains(request.Query) || s.Description.Contains(request.Query), cancellationToken: cancellationToken);
 
-        List<ServiceResponse> response = [.. services.Items.Select(s => ServiceResponse.FromDomain(s))];
+        List<ServiceResponse> response = [.. services.Select(s => ServiceResponse.FromDomain(s))];
 
         return Result.Success(response, response.Count == 0 ? "No services matched the search query." : "Services retrieved successfully.");
     }

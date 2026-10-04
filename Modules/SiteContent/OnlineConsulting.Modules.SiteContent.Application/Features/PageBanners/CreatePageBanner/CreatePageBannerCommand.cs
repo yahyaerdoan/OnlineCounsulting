@@ -22,7 +22,7 @@ public class CreatePageBannerHandler(IPageBannerRepository repository, IStorageS
     {
         var entity = new PageBanner { Title = request.Title, Description = request.Description, ImageUrl = storageService.ToStoredUrl(request.ImageUrl), DisplayOrder = request.DisplayOrder, Metadata = MetadataSerializer.Serialize(request.Metadata) };
 
-        _ = await repository.AddAsync(entity);
+        _ = await repository.AddAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Created(entity.Id, "Page banner created successfully.");
     }

@@ -22,7 +22,7 @@ public class CreateHeroSlideHandler(IHeroSlideRepository repository, IStorageSer
     {
         var entity = new HeroSlide { Title = request.Title, Description = request.Description, ImageUrl = storageService.ToStoredUrl(request.ImageUrl), DisplayOrder = request.DisplayOrder, Metadata = MetadataSerializer.Serialize(request.Metadata) };
 
-        _ = await repository.AddAsync(entity);
+        _ = await repository.AddAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Created(entity.Id, "Hero slide created successfully.");
     }

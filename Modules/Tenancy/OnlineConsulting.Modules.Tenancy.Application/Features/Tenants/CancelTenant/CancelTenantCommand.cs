@@ -54,12 +54,12 @@ public class CancelTenantHandler(ITenantRepository tenantRepository, ITenantSubs
 
             subscription.Cancel();
 
-            _ = await tenantSubscriptionRepository.UpdateAsync(subscription);
+            _ = await tenantSubscriptionRepository.UpdateAsync(subscription, cancellationToken: cancellationToken);
         }
 
         tenant.Cancel();
 
-        _ = await tenantRepository.UpdateAsync(tenant);
+        _ = await tenantRepository.UpdateAsync(tenant, cancellationToken: cancellationToken);
 
         return Result.Success("Tenant cancelled.");
     }

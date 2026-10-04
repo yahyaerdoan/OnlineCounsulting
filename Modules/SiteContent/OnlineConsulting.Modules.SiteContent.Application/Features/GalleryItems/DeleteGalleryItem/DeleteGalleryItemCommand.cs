@@ -3,7 +3,6 @@ using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryItems.Abstractions;
-using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -28,13 +27,13 @@ public class DeleteGalleryItemHandler(IGalleryItemRepository repository, IGaller
             return SiteContentBusinessRules.NotFound("Gallery item", request.Id);
         }
 
-        var links = await categoryLinkRepository.GetListAsync(x => x.GalleryItemId == request.Id, orderBy: q => q.OrderBy(x => x.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
-        foreach (var link in links.Items)
+        var links = await categoryLinkRepository.GetAllAsync(x => x.GalleryItemId == request.Id, cancellationToken: cancellationToken);
+        foreach (var link in links)
         {
-            _ = await categoryLinkRepository.DeleteAsync(link);
+            _ = await categoryLinkRepository.DeleteAsync(link, cancellationToken: cancellationToken);
         }
 
-        _ = await repository.DeleteAsync(entity);
+        _ = await repository.DeleteAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Success("Gallery item deleted successfully.");
     }

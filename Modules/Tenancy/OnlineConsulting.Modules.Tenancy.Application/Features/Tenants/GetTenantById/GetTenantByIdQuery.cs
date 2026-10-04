@@ -6,7 +6,6 @@ using OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.Contracts;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.Abstractions;
 using OnlineConsulting.SharedKernel.Authorization;
-using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -40,7 +39,7 @@ public class GetTenantByIdHandler(ITenantRepository tenantRepository, ITenantSub
 
         var items = subscription is null
             ? []
-            : (await tenantSubscriptionItemRepository.GetListAsync(i => i.TenantSubscriptionId == subscription.Id, orderBy: q => q.OrderBy(i => i.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken)).Items.ToList();
+            : (await tenantSubscriptionItemRepository.GetAllAsync(i => i.TenantSubscriptionId == subscription.Id, cancellationToken: cancellationToken)).ToList();
 
         return Result.Success(TenantDetailResponse.FromDomain(tenant, subscription, items), "Tenant retrieved successfully.");
     }

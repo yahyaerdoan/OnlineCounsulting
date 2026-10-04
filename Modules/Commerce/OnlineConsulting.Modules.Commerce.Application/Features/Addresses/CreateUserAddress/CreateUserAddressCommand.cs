@@ -40,7 +40,7 @@ public class CreateUserAddressHandler(IUserAddressRepository repository) : IRequ
             IsBillingAddress = request.IsBillingAddress,
         };
 
-        _ = await repository.AddAsync(address);
+        _ = await repository.AddAsync(address, cancellationToken: cancellationToken);
 
         if (request.IsShippingAddress)
         {

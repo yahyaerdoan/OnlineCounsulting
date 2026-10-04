@@ -34,7 +34,7 @@ public class CancelAppointmentByStaffHandler(IAppointmentRepository repository, 
 
         appointment.Cancel();
 
-        _ = await repository.UpdateAsync(appointment);
+        _ = await repository.UpdateAsync(appointment, cancellationToken: cancellationToken);
 
         await notifier.CancelledByStaffAsync(appointment, request.Reason, cancellationToken);
 

@@ -8,7 +8,6 @@ using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionIt
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Domain;
 using OnlineConsulting.SharedKernel.Payments;
-using OnlineConsulting.SharedKernel.Persistence;
 using OnlineConsulting.SharedKernel.Slugs;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -30,9 +29,9 @@ public class ReserveTenantHandler(ITenantRepository tenantRepository, ITenantSub
             return Result.UnprocessableContent<ReserveTenantResult>(SignupMessages.MultipleModulesNotSupportedByProvider);
         }
 
-        var offerings = await moduleOfferingRepository.GetListAsync(predicate: m => requestedKeys.Contains(m.Key) && m.IsPubliclyVisible, orderBy: q => q.OrderBy(m => m.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+        var offerings = await moduleOfferingRepository.GetAllAsync(predicate: m => requestedKeys.Contains(m.Key) && m.IsPubliclyVisible, cancellationToken: cancellationToken);
 
-        var offeringsByKey = offerings.Items.ToDictionary(m => m.Key);
+        var offeringsByKey = offerings.ToDictionary(m => m.Key);
 
         var missingKeys = requestedKeys.Where(k => !offeringsByKey.ContainsKey(k)).ToList();
 
@@ -73,9 +72,9 @@ public class ReserveTenantHandler(ITenantRepository tenantRepository, ITenantSub
             tenant = Tenant.Reserve(request.CompanyName, slug, request.AdminEmail);
             tenantSubscription = TenantSubscription.Start(tenant.Id, DateTime.UtcNow);
 
-            _ = await tenantRepository.AddAsync(tenant);
+            _ = await tenantRepository.AddAsync(tenant, cancellationToken: cancellationToken);
 
-            _ = await tenantSubscriptionRepository.AddAsync(tenantSubscription);
+            _ = await tenantSubscriptionRepository.AddAsync(tenantSubscription, cancellationToken: cancellationToken);
 
             existingItems = [];
         }
@@ -85,20 +84,20 @@ public class ReserveTenantHandler(ITenantRepository tenantRepository, ITenantSub
                 ?? throw new InvalidOperationException($"Tenant {tenant.Id} is pending/failed but has no TenantSubscription row.");
 
             var existingItemsPage = await tenantSubscriptionItemRepository
-                .GetListAsync(predicate: i => i.TenantSubscriptionId == tenantSubscription.Id, orderBy: q => q.OrderBy(i => i.Id), size: RepositoryQuerySize.Unbounded, enableTracking: true, cancellationToken: cancellationToken);
+                .GetAllAsync(predicate: i => i.TenantSubscriptionId == tenantSubscription.Id, enableTracking: true, cancellationToken: cancellationToken);
 
-            existingItems = [.. existingItemsPage.Items];
+            existingItems = [.. existingItemsPage];
 
             if (tenantSubscription.ProviderSubscriptionId is null)
             {
                 foreach (var dropped in existingItems.Where(i => !requestedKeys.Contains(i.ModuleKey)).ToList())
                 {
-                    _ = await tenantSubscriptionItemRepository.DeleteAsync(dropped);
+                    _ = await tenantSubscriptionItemRepository.DeleteAsync(dropped, cancellationToken: cancellationToken);
                     _ = existingItems.Remove(dropped);
                 }
 
                 tenantSubscription.RestartSignup();
-                _ = await tenantSubscriptionRepository.UpdateAsync(tenantSubscription);
+                _ = await tenantSubscriptionRepository.UpdateAsync(tenantSubscription, cancellationToken: cancellationToken);
             }
         }
 
@@ -108,7 +107,7 @@ public class ReserveTenantHandler(ITenantRepository tenantRepository, ITenantSub
         {
             var item = TenantSubscriptionItem.Add(tenantSubscription.Id, offering.Key, offering.Price, DateTime.UtcNow);
 
-            _ = await tenantSubscriptionItemRepository.AddAsync(item);
+            _ = await tenantSubscriptionItemRepository.AddAsync(item, cancellationToken: cancellationToken);
         }
 
         return Result.Created(new ReserveTenantResult(tenant.Id), "Tenant reserved successfully.");

@@ -33,7 +33,7 @@ public class UpdateEquipmentItemHandler(IEquipmentItemRepository repository) : I
         entity.WarrantyExpiresAt = request.WarrantyExpiresAt;
         entity.Notes = request.Notes;
 
-        _ = await repository.UpdateAsync(entity);
+        _ = await repository.UpdateAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Success("Equipment item updated successfully.");
     }

@@ -1,7 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Modules.SiteContent.Application.Features.Testimonials.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Application.Features.Testimonials.Contracts;
-using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
@@ -13,8 +12,8 @@ public class GetAllTestimonialsHandler(ITestimonialRepository repository) : IReq
 {
     public async Task<OperationDataResult<List<TestimonialResponse>>> Handle(GetAllTestimonialsQuery request, CancellationToken cancellationToken)
     {
-        var entities = await repository.GetListAsync(orderBy: q => q.OrderBy(x => x.DisplayOrder), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
-        var response = entities.Items.Select(TestimonialResponse.FromDomain).ToList();
+        var entities = await repository.GetAllAsync(orderBy: q => q.OrderBy(x => x.DisplayOrder), cancellationToken: cancellationToken);
+        var response = entities.Select(TestimonialResponse.FromDomain).ToList();
 
         return Result.Success(response, "Testimonials retrieved successfully.");
     }

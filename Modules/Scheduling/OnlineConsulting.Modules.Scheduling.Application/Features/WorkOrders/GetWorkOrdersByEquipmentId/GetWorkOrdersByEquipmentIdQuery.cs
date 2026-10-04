@@ -1,7 +1,6 @@
 using MediatR;
 using OnlineConsulting.Modules.Scheduling.Application.Features.WorkOrders.Abstractions;
 using OnlineConsulting.Modules.Scheduling.Application.Features.WorkOrders.Contracts;
-using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
@@ -14,11 +13,9 @@ public class GetWorkOrdersByEquipmentIdHandler(IWorkOrderRepository repository) 
 {
     public async Task<OperationDataResult<List<WorkOrderResponse>>> Handle(GetWorkOrdersByEquipmentIdQuery request, CancellationToken cancellationToken)
     {
-        var workOrders = await repository.GetListAsync(
-            w => w.EquipmentId == request.EquipmentId, orderBy: q => q.OrderByDescending(w => w.CompletedAt),
-            size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+        var workOrders = await repository.GetAllAsync(w => w.EquipmentId == request.EquipmentId, orderBy: q => q.OrderByDescending(w => w.CompletedAt), cancellationToken: cancellationToken);
 
-        var response = workOrders.Items.Select(w => WorkOrderResponse.FromDomain(w, [])).ToList();
+        var response = workOrders.Select(w => WorkOrderResponse.FromDomain(w, [])).ToList();
 
         return Result.Success(response, "Work orders retrieved successfully.");
     }

@@ -45,7 +45,7 @@ public class UpdateServiceAreaHandler(IServiceAreaRepository repository, ICityGe
         entity.IntroText = request.IntroText;
         entity.DisplayOrder = request.DisplayOrder;
 
-        _ = await repository.UpdateAsync(entity);
+        _ = await repository.UpdateAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Success("Service area updated successfully.");
     }

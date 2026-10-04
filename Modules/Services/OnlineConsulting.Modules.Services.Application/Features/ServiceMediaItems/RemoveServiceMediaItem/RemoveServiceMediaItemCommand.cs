@@ -26,7 +26,7 @@ public class RemoveServiceMediaItemHandler(IServiceMediaItemRepository repositor
             return Result.NotFound(string.Format(ServiceMessages.ServiceMediaItemNotFoundFormat, request.Id));
         }
 
-        _ = await repository.DeleteAsync(entity);
+        _ = await repository.DeleteAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Success("Service media item removed successfully.");
     }

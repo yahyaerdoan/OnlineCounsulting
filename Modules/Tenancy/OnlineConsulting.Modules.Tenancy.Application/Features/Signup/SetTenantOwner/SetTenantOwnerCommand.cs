@@ -20,7 +20,7 @@ public class SetTenantOwnerHandler(ITenantRepository tenantRepository) : IReques
         }
 
         tenant.AssignOwner(request.OwnerUserId);
-        _ = await tenantRepository.UpdateAsync(tenant);
+        _ = await tenantRepository.UpdateAsync(tenant, cancellationToken: cancellationToken);
 
         return Result.Success("Tenant owner recorded successfully.");
     }

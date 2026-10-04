@@ -32,7 +32,7 @@ public class CreateTestimonialHandler(ITestimonialRepository repository, IStorag
             Metadata = MetadataSerializer.Serialize(request.Metadata),
         };
 
-        _ = await repository.AddAsync(entity);
+        _ = await repository.AddAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Created(entity.Id, "Testimonial created successfully.");
     }

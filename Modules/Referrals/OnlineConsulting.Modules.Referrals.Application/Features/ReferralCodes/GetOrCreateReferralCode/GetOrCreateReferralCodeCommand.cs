@@ -38,7 +38,7 @@ public class GetOrCreateReferralCodeHandler(IReferralCodeRepository repository) 
             return Result.InternalServerError<string>("Could not generate a unique referral code. Please try again.");
         }
 
-        _ = await repository.AddAsync(new ReferralCode { UserId = request.UserId, Code = code });
+        _ = await repository.AddAsync(new ReferralCode { UserId = request.UserId, Code = code }, cancellationToken: cancellationToken);
 
         return Result.Created(code, "Referral code created successfully.");
     }

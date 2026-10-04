@@ -25,7 +25,7 @@ public class DeleteFeatureHighlightsIntroHandler(IFeatureHighlightsIntroReposito
             return SiteContentBusinessRules.NotFound("Feature highlights intro", request.Id);
         }
 
-        _ = await repository.DeleteAsync(entity);
+        _ = await repository.DeleteAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Success("Feature highlights intro deleted successfully.");
     }

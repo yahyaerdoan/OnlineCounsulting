@@ -42,7 +42,7 @@ public class RedeemReferralCodeHandler(IReferralRepository referralRepository, I
 
         var referral = Referral.Create(referralCode.UserId, request.ReferredUserId, request.Code);
 
-        _ = await referralRepository.AddAsync(referral);
+        _ = await referralRepository.AddAsync(referral, cancellationToken: cancellationToken);
 
         return Result.Created(referral.Id, "Referral code redeemed successfully.");
     }

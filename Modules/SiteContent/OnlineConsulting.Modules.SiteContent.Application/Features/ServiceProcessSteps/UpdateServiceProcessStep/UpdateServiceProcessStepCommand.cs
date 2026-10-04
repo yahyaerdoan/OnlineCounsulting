@@ -32,7 +32,7 @@ public class UpdateServiceProcessStepHandler(IServiceProcessStepRepository repos
         entity.DisplayOrder = request.DisplayOrder;
         entity.Metadata = MetadataSerializer.Serialize(request.Metadata);
 
-        _ = await repository.UpdateAsync(entity);
+        _ = await repository.UpdateAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Success("Service process step updated successfully.");
     }

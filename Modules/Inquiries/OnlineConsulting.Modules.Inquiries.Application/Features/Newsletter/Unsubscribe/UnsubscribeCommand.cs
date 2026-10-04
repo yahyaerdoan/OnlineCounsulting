@@ -25,7 +25,7 @@ public class UnsubscribeHandler(INewsletterSubscriberRepository repository) : IR
             return NewsletterBusinessRules.SubscriberNotFound(request.Id);
         }
 
-        _ = await repository.DeleteAsync(subscriber);
+        _ = await repository.DeleteAsync(subscriber, cancellationToken: cancellationToken);
 
         return Result.Success("Unsubscribed successfully.");
     }

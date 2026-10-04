@@ -29,7 +29,7 @@ public class UpdateMembershipPlanHandler(IMembershipPlanRepository repository) :
 
         plan.UpdateDetails(request.Name, request.IncludedVisitsPerYear, request.DiscountPercent, request.CreditAmount, request.Benefits);
 
-        _ = await repository.UpdateAsync(plan);
+        _ = await repository.UpdateAsync(plan, cancellationToken: cancellationToken);
 
         return Result.Success("Membership plan updated successfully.");
     }

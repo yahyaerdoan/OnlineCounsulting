@@ -24,7 +24,7 @@ public class DeleteAboutUsHandler(IAboutUsRepository repository) : IRequestHandl
             return SiteContentBusinessRules.NotFound("About Us", request.Id);
         }
 
-        _ = await repository.DeleteAsync(entity);
+        _ = await repository.DeleteAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Success("About Us content deleted successfully.");
     }

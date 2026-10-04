@@ -35,7 +35,7 @@ public class CreatePartnershipHandler(IPartnershipRepository repository) : IRequ
             Metadata = MetadataSerializer.Serialize(request.Metadata),
         };
 
-        _ = await repository.AddAsync(entity);
+        _ = await repository.AddAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Created(entity.Id, "Partnership created successfully.");
     }

@@ -40,7 +40,7 @@ public class UpdatePendingOrderAddressesHandler(IOrderRepository orderRepository
         }
 
         order.ChangeAddresses(shippingAddress.Id, billingAddress.Id);
-        _ = await orderRepository.UpdateAsync(order);
+        _ = await orderRepository.UpdateAsync(order, cancellationToken: cancellationToken);
 
         return Result.Success("Order addresses updated.");
     }

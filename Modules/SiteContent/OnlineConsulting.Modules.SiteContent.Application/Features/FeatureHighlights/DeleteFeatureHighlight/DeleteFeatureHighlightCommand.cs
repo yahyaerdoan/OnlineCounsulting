@@ -24,7 +24,7 @@ public class DeleteFeatureHighlightHandler(IFeatureHighlightRepository repositor
             return SiteContentBusinessRules.NotFound("Feature highlight", request.Id);
         }
 
-        _ = await repository.DeleteAsync(entity);
+        _ = await repository.DeleteAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Success("Feature highlight deleted successfully.");
     }

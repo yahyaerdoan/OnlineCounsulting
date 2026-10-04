@@ -30,7 +30,7 @@ public class AddBasketItemHandler(IBasketRepository basketRepository, IServiceCa
 
         var basket = await BasketOwnerLookup.GetOrOpenAsync(basketRepository, request.UserId, request.GuestId, cancellationToken);
         basket.AddItem(request.ServiceId, request.Quantity, catalogEntry.UnitPrice, catalogEntry.TaxRate);
-        _ = await basketRepository.UpdateAsync(basket);
+        _ = await basketRepository.UpdateAsync(basket, cancellationToken: cancellationToken);
 
         return Result.Created("Basket item added successfully.");
     }

@@ -29,7 +29,7 @@ public class CreateMembershipPlanHandler(IMembershipPlanRepository repository, I
 
         plan.AttachProviderPrice(priceResult.ProviderProductId, priceResult.ProviderPriceId);
 
-        _ = await repository.AddAsync(plan);
+        _ = await repository.AddAsync(plan, cancellationToken: cancellationToken);
 
         return Result.Created(plan.Id, "Membership plan created successfully.");
     }

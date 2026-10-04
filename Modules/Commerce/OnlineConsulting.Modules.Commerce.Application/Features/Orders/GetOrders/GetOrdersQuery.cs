@@ -1,7 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Abstractions;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Contracts;
-using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
@@ -15,17 +14,17 @@ public class GetOrdersHandler(IOrderRepository orderRepository, IOrderItemReposi
 {
     public async Task<OperationDataResult<List<OrderResponse>>> Handle(GetOrdersQuery request, CancellationToken cancellationToken)
     {
-        var orders = await orderRepository.GetListAsync(o => o.UserId == request.UserId, orderBy: q => q.OrderByDescending(o => o.CreatedDate).ThenByDescending(o => o.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
-        if (orders.Items.Count == 0)
+        var orders = await orderRepository.GetAllAsync(o => o.UserId == request.UserId, orderBy: q => q.OrderByDescending(o => o.CreatedDate).ThenByDescending(o => o.Id), cancellationToken: cancellationToken);
+        if (orders.Count == 0)
         {
             return Result.Success(new List<OrderResponse>(), "No orders found for this user.");
         }
 
-        var orderIds = orders.Items.Select(o => o.Id).ToList();
-        var items = await orderItemRepository.GetListAsync(i => orderIds.Contains(i.OrderId), orderBy: q => q.OrderBy(i => i.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
-        var totalsByOrderId = items.Items.GroupBy(i => i.OrderId).ToDictionary(g => g.Key, g => g.Sum(i => i.TotalPrice));
+        var orderIds = orders.Select(o => o.Id).ToList();
+        var items = await orderItemRepository.GetAllAsync(i => orderIds.Contains(i.OrderId), cancellationToken: cancellationToken);
+        var totalsByOrderId = items.GroupBy(i => i.OrderId).ToDictionary(g => g.Key, g => g.Sum(i => i.TotalPrice));
 
-        List<OrderResponse> responses = [.. orders.Items.Select(o => OrderResponse.FromDomain(o, totalsByOrderId.GetValueOrDefault(o.Id)))];
+        List<OrderResponse> responses = [.. orders.Select(o => OrderResponse.FromDomain(o, totalsByOrderId.GetValueOrDefault(o.Id)))];
 
         return Result.Success(responses, "Orders retrieved successfully.");
     }

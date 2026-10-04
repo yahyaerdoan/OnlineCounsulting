@@ -1,3 +1,4 @@
+using OnlineConsulting.SharedKernel.Persistence;
 using System.Text.Json.Serialization;
 using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using Core.ApplicationLayer.Requests.Page;
@@ -7,7 +8,6 @@ using MediatR;
 using OnlineConsulting.Modules.Commerce.Application.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.Abstractions;
 using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.Contracts;
-using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 

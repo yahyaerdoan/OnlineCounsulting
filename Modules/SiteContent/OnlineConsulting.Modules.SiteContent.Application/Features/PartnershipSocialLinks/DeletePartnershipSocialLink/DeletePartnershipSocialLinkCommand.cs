@@ -24,7 +24,7 @@ public class DeletePartnershipSocialLinkHandler(IPartnershipSocialLinkRepository
             return SiteContentBusinessRules.NotFound("Partnership social link", request.Id);
         }
 
-        _ = await repository.DeleteAsync(entity);
+        _ = await repository.DeleteAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Success("Partnership social link deleted successfully.");
     }

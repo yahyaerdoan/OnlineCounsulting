@@ -52,7 +52,7 @@ public class UpdateUserAddressHandler(IUserAddressRepository repository) : IRequ
         address.IsShippingAddress = request.IsShippingAddress;
         address.IsBillingAddress = request.IsBillingAddress;
 
-        _ = await repository.UpdateAsync(address);
+        _ = await repository.UpdateAsync(address, cancellationToken: cancellationToken);
 
         return Result.Success("Address updated successfully.");
     }

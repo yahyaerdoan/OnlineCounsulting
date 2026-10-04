@@ -48,7 +48,7 @@ public class PayInvoiceHandler(IInvoiceRepository repository, IPaymentGateway pa
 
         invoice.StartCardPayment(paymentGateway.ProviderName, intent.ProviderPaymentId);
 
-        _ = await repository.UpdateAsync(invoice);
+        _ = await repository.UpdateAsync(invoice, cancellationToken: cancellationToken);
 
         if (intent.Status == PaymentStatuses.Succeeded)
         {

@@ -52,7 +52,7 @@ public class GetAllCustomerMembershipsPagedHandler(ICustomerMembershipRepository
 
             var userIds = await contactReader.FindUserIdsAsync(term, cancellationToken: cancellationToken);
 
-            var planIds = (await planRepository.GetListAsync(p => p.Name.Contains(term), size: RepositoryQuerySize.Unbounded, withDeleted: true, cancellationToken: cancellationToken)).Items.Select(p => p.Id).ToList();
+            var planIds = (await planRepository.GetAllAsync(p => p.Name.Contains(term), withDeleted: true, cancellationToken: cancellationToken)).Select(p => p.Id).ToList();
 
             query = query.Where(m => userIds.Contains(m.UserId) || planIds.Contains(m.MembershipPlanId) || m.Status.Contains(term));
         }
@@ -65,7 +65,7 @@ public class GetAllCustomerMembershipsPagedHandler(ICustomerMembershipRepository
 
         var plans = pagePlanIds.Count == 0
             ? []
-            : (await planRepository.GetListAsync(p => pagePlanIds.Contains(p.Id), size: pagePlanIds.Count, withDeleted: true, cancellationToken: cancellationToken)).Items.ToDictionary(p => p.Id);
+            : (await planRepository.GetAllAsync(p => pagePlanIds.Contains(p.Id), withDeleted: true, cancellationToken: cancellationToken)).ToDictionary(p => p.Id);
 
         var response = new Paginate<CustomerMembershipResponse>
         {

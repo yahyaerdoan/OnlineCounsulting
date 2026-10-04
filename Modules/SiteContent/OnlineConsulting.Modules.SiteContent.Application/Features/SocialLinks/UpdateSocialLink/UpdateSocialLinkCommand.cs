@@ -31,7 +31,7 @@ public class UpdateSocialLinkHandler(ISocialLinkRepository repository) : IReques
         entity.IconColor = request.IconColor;
         entity.DisplayOrder = request.DisplayOrder;
 
-        _ = await repository.UpdateAsync(entity);
+        _ = await repository.UpdateAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Success("Social link updated successfully.");
     }

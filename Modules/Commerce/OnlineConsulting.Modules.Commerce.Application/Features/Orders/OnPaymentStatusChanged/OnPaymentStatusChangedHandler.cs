@@ -41,7 +41,7 @@ public class OnPaymentStatusChangedHandler(IOrderRepository orderRepository,
 
         settle(order);
 
-        _ = await orderRepository.UpdateAsync(order);
+        _ = await orderRepository.UpdateAsync(order, cancellationToken: cancellationToken);
         return order;
     }
 }

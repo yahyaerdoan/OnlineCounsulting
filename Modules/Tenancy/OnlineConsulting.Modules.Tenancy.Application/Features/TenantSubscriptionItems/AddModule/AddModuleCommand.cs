@@ -87,7 +87,7 @@ public class AddModuleHandler(ITenantRepository tenantRepository, ITenantSubscri
 
         if (existingItem is null)
         {
-            _ = await tenantSubscriptionItemRepository.AddAsync(item);
+            _ = await tenantSubscriptionItemRepository.AddAsync(item, cancellationToken: cancellationToken);
         }
 
         string providerSubscriptionItemId;
@@ -105,7 +105,7 @@ public class AddModuleHandler(ITenantRepository tenantRepository, ITenantSubscri
             {
                 item.MarkBillingFailed();
 
-                _ = await tenantSubscriptionItemRepository.UpdateAsync(item);
+                _ = await tenantSubscriptionItemRepository.UpdateAsync(item, cancellationToken: cancellationToken);
 
                 return failure;
             }
@@ -115,7 +115,7 @@ public class AddModuleHandler(ITenantRepository tenantRepository, ITenantSubscri
 
         item.Activate(providerSubscriptionItemId);
 
-        _ = await tenantSubscriptionItemRepository.UpdateAsync(item);
+        _ = await tenantSubscriptionItemRepository.UpdateAsync(item, cancellationToken: cancellationToken);
 
         try
         {

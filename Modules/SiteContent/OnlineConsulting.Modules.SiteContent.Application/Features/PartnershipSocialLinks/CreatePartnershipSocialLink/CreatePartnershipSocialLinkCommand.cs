@@ -37,7 +37,7 @@ public class CreatePartnershipSocialLinkHandler(IPartnershipSocialLinkRepository
             IconColor = request.IconColor,
         };
 
-        _ = await repository.AddAsync(entity);
+        _ = await repository.AddAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Created(entity.Id, "Partnership social link created successfully.");
     }

@@ -52,7 +52,7 @@ public class UpdateServiceHandler(IServiceRepository repository) : IRequestHandl
         service.PriceMax = request.PriceMax;
         service.Kind = request.Kind;
 
-        _ = await repository.UpdateAsync(service);
+        _ = await repository.UpdateAsync(service, cancellationToken: cancellationToken);
 
         return Result.Success("Service updated successfully.");
     }

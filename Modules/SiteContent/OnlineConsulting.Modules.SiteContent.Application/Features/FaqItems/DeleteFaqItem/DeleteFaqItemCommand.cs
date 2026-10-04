@@ -24,7 +24,7 @@ public class DeleteFaqItemHandler(IFaqItemRepository repository) : IRequestHandl
             return SiteContentBusinessRules.NotFound("FaqItem", request.Id);
         }
 
-        _ = await repository.DeleteAsync(entity);
+        _ = await repository.DeleteAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Success("FAQ item deleted successfully.");
     }

@@ -5,7 +5,6 @@ using Microsoft.Extensions.Options;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Abstractions;
 using OnlineConsulting.Modules.Memberships.Domain;
 using OnlineConsulting.SharedKernel.Payments;
-using OnlineConsulting.SharedKernel.Persistence;
 
 namespace OnlineConsulting.Modules.Memberships.Infrastructure.Cleanup;
 
@@ -42,9 +41,9 @@ public class MembershipGracePeriodCleanupService(IServiceScopeFactory scopeFacto
         var cutoff = DateTimeOffset.UtcNow - settings.GraceAfter;
 
         var candidates = await membershipRepository
-            .GetListAsync(predicate: m => m.Status == CustomerMembershipStatuses.PastDue && m.PastDueSince != null && m.PastDueSince <= cutoff, orderBy: q => q.OrderBy(m => m.PastDueSince), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+            .GetAllAsync(predicate: m => m.Status == CustomerMembershipStatuses.PastDue && m.PastDueSince != null && m.PastDueSince <= cutoff, orderBy: q => q.OrderBy(m => m.PastDueSince), cancellationToken: cancellationToken);
 
-        if (candidates.Items.Count == 0)
+        if (candidates.Count == 0)
         {
             return;
         }
@@ -52,7 +51,7 @@ public class MembershipGracePeriodCleanupService(IServiceScopeFactory scopeFacto
         var notifier = scope.ServiceProvider.GetRequiredService<IMembershipNotifier>();
         var cancelledCount = 0;
 
-        foreach (var membership in candidates.Items)
+        foreach (var membership in candidates)
         {
             if (membership.ProviderSubscriptionId is not null)
             {
@@ -61,7 +60,7 @@ public class MembershipGracePeriodCleanupService(IServiceScopeFactory scopeFacto
 
             membership.Cancel();
 
-            _ = await membershipRepository.UpdateAsync(membership);
+            _ = await membershipRepository.UpdateAsync(membership, cancellationToken: cancellationToken);
 
             cancelledCount++;
 
@@ -70,7 +69,7 @@ public class MembershipGracePeriodCleanupService(IServiceScopeFactory scopeFacto
 
         if (logger.IsEnabled(LogLevel.Information))
         {
-            logger.LogInformation("Membership grace-period cleanup cancelled {CancelledCount} of {CandidateCount} PastDue membership(s).", cancelledCount, candidates.Items.Count);
+            logger.LogInformation("Membership grace-period cleanup cancelled {CancelledCount} of {CandidateCount} PastDue membership(s).", cancelledCount, candidates.Count);
         }
     }
 }

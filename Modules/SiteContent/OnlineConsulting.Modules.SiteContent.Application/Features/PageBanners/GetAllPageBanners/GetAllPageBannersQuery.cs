@@ -1,7 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Modules.SiteContent.Application.Features.PageBanners.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Application.Features.PageBanners.Contracts;
-using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
@@ -13,8 +12,8 @@ public class GetAllPageBannersHandler(IPageBannerRepository repository) : IReque
 {
     public async Task<OperationDataResult<List<PageBannerResponse>>> Handle(GetAllPageBannersQuery request, CancellationToken cancellationToken)
     {
-        var entities = await repository.GetListAsync(orderBy: q => q.OrderBy(x => x.DisplayOrder), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
-        var response = entities.Items.Select(PageBannerResponse.FromDomain).ToList();
+        var entities = await repository.GetAllAsync(orderBy: q => q.OrderBy(x => x.DisplayOrder), cancellationToken: cancellationToken);
+        var response = entities.Select(PageBannerResponse.FromDomain).ToList();
 
         return Result.Success(response, "Page banners retrieved successfully.");
     }

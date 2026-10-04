@@ -1,7 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Availability.Abstractions;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Availability.Contracts;
-using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
@@ -14,9 +13,9 @@ public class GetAvailabilityRulesHandler(IAvailabilityRuleRepository repository)
 {
     public async Task<OperationDataResult<List<AvailabilityRuleResponse>>> Handle(GetAvailabilityRulesQuery request, CancellationToken cancellationToken)
     {
-        var rules = await repository.GetListAsync(orderBy: q => q.OrderBy(r => r.DayOfWeek).ThenBy(r => r.StartTime), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+        var rules = await repository.GetAllAsync(orderBy: q => q.OrderBy(r => r.DayOfWeek).ThenBy(r => r.StartTime), cancellationToken: cancellationToken);
 
-        var response = rules.Items.Select(AvailabilityRuleResponse.FromDomain).ToList();
+        var response = rules.Select(AvailabilityRuleResponse.FromDomain).ToList();
 
         return Result.Success(response, "Availability rules retrieved successfully.");
     }

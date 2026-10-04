@@ -17,7 +17,7 @@ public class RefreshTokenService(IRefreshTokenRepository repository, IJwtTokenHe
         {
             existing.TokenHash = refreshToken.HashedToken;
             existing.ExpiresAt = refreshToken.Expires;
-            _ = await repository.UpdateAsync(existing);
+            _ = await repository.UpdateAsync(existing, cancellationToken: cancellationToken);
         }
         else
         {
@@ -26,7 +26,7 @@ public class RefreshTokenService(IRefreshTokenRepository repository, IJwtTokenHe
                 UserId = user.Id,
                 TokenHash = refreshToken.HashedToken,
                 ExpiresAt = refreshToken.Expires,
-            });
+            }, cancellationToken: cancellationToken);
         }
 
         return (refreshToken.RawToken, refreshToken.Expires);

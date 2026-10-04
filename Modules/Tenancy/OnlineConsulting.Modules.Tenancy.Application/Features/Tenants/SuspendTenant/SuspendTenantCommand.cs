@@ -39,7 +39,7 @@ public class SuspendTenantHandler(ITenantRepository tenantRepository) : IRequest
 
         tenant.Suspend();
 
-        _ = await tenantRepository.UpdateAsync(tenant);
+        _ = await tenantRepository.UpdateAsync(tenant, cancellationToken: cancellationToken);
 
         return Result.Success("Tenant suspended.");
     }

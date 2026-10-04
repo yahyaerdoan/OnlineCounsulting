@@ -32,7 +32,7 @@ public class CreatePromoCodeHandler(IPromoCodeRepository repository) : IRequestH
 
         var promoCode = PromoCode.Create(request.Code, request.DiscountType, request.DiscountValue, request.MaxRedemptions, request.ExpiresAt, request.MembershipPlanId);
 
-        _ = await repository.AddAsync(promoCode);
+        _ = await repository.AddAsync(promoCode, cancellationToken: cancellationToken);
 
         return Result.Created(promoCode.Id, "Promo code created successfully.");
     }

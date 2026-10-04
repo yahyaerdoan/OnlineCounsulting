@@ -31,7 +31,7 @@ public class ChangeTenantTimeZoneHandler(ITenantRepository tenantRepository, ITe
         }
 
         tenant.ChangeTimeZone(request.TimeZoneId);
-        _ = await tenantRepository.UpdateAsync(tenant);
+        _ = await tenantRepository.UpdateAsync(tenant, cancellationToken: cancellationToken);
         cacheInvalidator.Invalidate(tenant.Id);
 
         return Result.Success("Business time zone updated.");

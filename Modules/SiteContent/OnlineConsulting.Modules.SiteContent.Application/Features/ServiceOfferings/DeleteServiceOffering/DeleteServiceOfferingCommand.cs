@@ -24,7 +24,7 @@ public class DeleteServiceOfferingHandler(IServiceOfferingRepository repository)
             return SiteContentBusinessRules.NotFound("Service offering", request.Id);
         }
 
-        _ = await repository.DeleteAsync(entity);
+        _ = await repository.DeleteAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Success("Service offering deleted successfully.");
     }

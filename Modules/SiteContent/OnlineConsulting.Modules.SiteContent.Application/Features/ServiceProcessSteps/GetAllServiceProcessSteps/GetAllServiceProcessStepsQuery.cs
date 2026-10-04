@@ -1,7 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Modules.SiteContent.Application.Features.ServiceProcessSteps.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Application.Features.ServiceProcessSteps.Contracts;
-using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
@@ -15,8 +14,8 @@ public class GetAllServiceProcessStepsHandler(IServiceProcessStepRepository repo
 {
     public async Task<OperationDataResult<List<ServiceProcessStepResponse>>> Handle(GetAllServiceProcessStepsQuery request, CancellationToken cancellationToken)
     {
-        var entities = await repository.GetListAsync(orderBy: q => q.OrderBy(x => x.DisplayOrder), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
-        var response = entities.Items.Select(ServiceProcessStepResponse.FromDomain).ToList();
+        var entities = await repository.GetAllAsync(orderBy: q => q.OrderBy(x => x.DisplayOrder), cancellationToken: cancellationToken);
+        var response = entities.Select(ServiceProcessStepResponse.FromDomain).ToList();
 
         return Result.Success(response, "Service process steps retrieved successfully.");
     }

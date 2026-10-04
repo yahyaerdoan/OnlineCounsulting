@@ -24,7 +24,7 @@ public class DeleteSocialLinkHandler(ISocialLinkRepository repository) : IReques
             return SiteContentBusinessRules.NotFound("SocialLink", request.Id);
         }
 
-        _ = await repository.DeleteAsync(entity);
+        _ = await repository.DeleteAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Success("Social link deleted successfully.");
     }

@@ -54,7 +54,7 @@ public class CreateAppointmentHandler(IAppointmentRepository repository, IServic
 
         var appointment = Appointment.Request(request.UserId, request.ServiceId, request.ScheduledStart, request.ScheduledEnd, request.MeetingType, request.Topic, request.ServiceAddress, request.CustomerNote);
 
-        _ = await repository.AddAsync(appointment);
+        _ = await repository.AddAsync(appointment, cancellationToken: cancellationToken);
 
         await notifier.RequestedAsync(appointment, cancellationToken);
 

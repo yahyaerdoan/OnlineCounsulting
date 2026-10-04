@@ -43,7 +43,7 @@ public class AssignTechnicianHandler(IAppointmentRepository repository, ITechnic
 
         appointment.AssignTechnician(request.TechnicianUserId);
 
-        _ = await repository.UpdateAsync(appointment);
+        _ = await repository.UpdateAsync(appointment, cancellationToken: cancellationToken);
 
         await hubService.NotifyTechnicianAssignedAsync(appointment.Id, request.TechnicianUserId, cancellationToken);
 

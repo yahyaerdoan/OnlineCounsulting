@@ -26,7 +26,7 @@ public class DeleteServiceHandler(IServiceRepository repository) : IRequestHandl
             return ServiceBusinessRules.ServiceNotFound(request.Id);
         }
 
-        _ = await repository.DeleteAsync(service);
+        _ = await repository.DeleteAsync(service, cancellationToken: cancellationToken);
 
         return Result.Success("Service deleted successfully.");
     }

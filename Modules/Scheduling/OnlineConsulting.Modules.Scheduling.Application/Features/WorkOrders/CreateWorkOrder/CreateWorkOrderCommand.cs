@@ -74,11 +74,11 @@ public class CreateWorkOrderHandler(IWorkOrderRepository workOrderRepository,
             EquipmentId = request.EquipmentId,
         };
 
-        _ = await workOrderRepository.AddAsync(workOrder);
+        _ = await workOrderRepository.AddAsync(workOrder, cancellationToken: cancellationToken);
 
         appointment.Complete();
 
-        _ = await appointmentRepository.UpdateAsync(appointment);
+        _ = await appointmentRepository.UpdateAsync(appointment, cancellationToken: cancellationToken);
 
         await notifier.CompletedAsync(appointment, cancellationToken);
 

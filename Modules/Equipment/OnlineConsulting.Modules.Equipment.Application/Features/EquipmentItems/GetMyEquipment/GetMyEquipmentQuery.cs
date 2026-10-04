@@ -1,7 +1,6 @@
 using MediatR;
 using OnlineConsulting.Modules.Equipment.Application.Features.EquipmentItems.Abstractions;
 using OnlineConsulting.Modules.Equipment.Application.Features.EquipmentItems.Contracts;
-using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
@@ -13,8 +12,8 @@ public class GetMyEquipmentHandler(IEquipmentItemRepository repository) : IReque
 {
     public async Task<OperationDataResult<List<EquipmentItemResponse>>> Handle(GetMyEquipmentQuery request, CancellationToken cancellationToken)
     {
-        var entities = await repository.GetListAsync(e => e.UserId == request.UserId, orderBy: q => q.OrderBy(e => e.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
-        var response = entities.Items.Select(EquipmentItemResponse.FromDomain).ToList();
+        var entities = await repository.GetAllAsync(e => e.UserId == request.UserId, cancellationToken: cancellationToken);
+        var response = entities.Select(EquipmentItemResponse.FromDomain).ToList();
 
         return Result.Success(response, "Equipment retrieved successfully.");
     }

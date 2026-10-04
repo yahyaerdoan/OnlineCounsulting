@@ -37,7 +37,7 @@ public class AcceptInviteHandler(IInviteRepository inviteRepository, UserManager
         {
             invite.Expire();
 
-            _ = await inviteRepository.UpdateAsync(invite);
+            _ = await inviteRepository.UpdateAsync(invite, cancellationToken: cancellationToken);
 
             return Result.Gone(InviteMessages.InviteExpired);
         }
@@ -76,7 +76,7 @@ public class AcceptInviteHandler(IInviteRepository inviteRepository, UserManager
 
         invite.Accept(now);
 
-        _ = await inviteRepository.UpdateAsync(invite);
+        _ = await inviteRepository.UpdateAsync(invite, cancellationToken: cancellationToken);
 
         return Result.Created($"Account created. Your username is \"{userName}\" - you can also sign in with your email.");
     }

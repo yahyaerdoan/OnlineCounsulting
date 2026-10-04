@@ -32,7 +32,7 @@ public class UpdatePromotionHandler(IPromotionRepository repository) : IRequestH
         entity.ExpiresAt = request.ExpiresAt;
         entity.DisplayOrder = request.DisplayOrder;
 
-        _ = await repository.UpdateAsync(entity);
+        _ = await repository.UpdateAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Success("Promotion updated successfully.");
     }

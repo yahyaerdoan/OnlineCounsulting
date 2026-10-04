@@ -28,7 +28,7 @@ public class CreateCategoryHandler(ICategoryRepository repository) : IRequestHan
             IconColor = request.IconColor,
         };
 
-        _ = await repository.AddAsync(category);
+        _ = await repository.AddAsync(category, cancellationToken: cancellationToken);
 
         return Result.Created(category.Id, "Category created successfully.");
     }

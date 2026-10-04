@@ -24,7 +24,7 @@ public class DeleteEquipmentItemHandler(IEquipmentItemRepository repository) : I
             return Result.NotFound(string.Format(EquipmentMessages.EquipmentItemNotFoundFormat, request.Id));
         }
 
-        _ = await repository.DeleteAsync(entity);
+        _ = await repository.DeleteAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Success("Equipment item deleted successfully.");
     }

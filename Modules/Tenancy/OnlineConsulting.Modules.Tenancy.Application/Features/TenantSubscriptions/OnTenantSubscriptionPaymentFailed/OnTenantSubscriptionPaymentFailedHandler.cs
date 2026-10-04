@@ -25,7 +25,7 @@ public class OnTenantSubscriptionPaymentFailedHandler(ITenantSubscriptionReposit
         }
 
         tenantSubscription.MarkPastDue();
-        _ = await subscriptionRepository.UpdateAsync(tenantSubscription);
+        _ = await subscriptionRepository.UpdateAsync(tenantSubscription, cancellationToken: cancellationToken);
 
         var tenant = await tenantRepository.GetAsync(t => t.Id == tenantSubscription.TenantId, cancellationToken: cancellationToken);
         if (tenant is null || tenant.IsHeldByStaff)
@@ -35,7 +35,7 @@ public class OnTenantSubscriptionPaymentFailedHandler(ITenantSubscriptionReposit
 
         tenant.ApplyPaymentFailed();
 
-        _ = await tenantRepository.UpdateAsync(tenant);
+        _ = await tenantRepository.UpdateAsync(tenant, cancellationToken: cancellationToken);
 
         await outboxWriter.EnqueueAsync(
             tenant.PrimaryContactEmail,

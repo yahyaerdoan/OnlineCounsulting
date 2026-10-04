@@ -26,7 +26,7 @@ public class SetBasketItemQuantityHandler(IBasketRepository basketRepository) : 
         }
 
         basket.SetItemQuantity(request.BasketItemId, request.Quantity);
-        _ = await basketRepository.UpdateAsync(basket);
+        _ = await basketRepository.UpdateAsync(basket, cancellationToken: cancellationToken);
 
         return Result.Success("Basket item quantity updated successfully.");
     }

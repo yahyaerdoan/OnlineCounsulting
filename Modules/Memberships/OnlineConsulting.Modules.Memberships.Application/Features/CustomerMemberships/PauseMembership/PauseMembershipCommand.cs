@@ -45,7 +45,7 @@ public class PauseMembershipHandler(ICustomerMembershipRepository repository, IS
 
         membership.Pause();
 
-        _ = await repository.UpdateAsync(membership);
+        _ = await repository.UpdateAsync(membership, cancellationToken: cancellationToken);
 
         return Result.Success("Membership paused successfully.");
     }

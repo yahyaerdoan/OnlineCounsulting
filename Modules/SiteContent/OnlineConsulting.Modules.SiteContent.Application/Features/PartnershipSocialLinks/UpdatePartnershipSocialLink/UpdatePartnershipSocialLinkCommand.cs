@@ -30,7 +30,7 @@ public class UpdatePartnershipSocialLinkHandler(IPartnershipSocialLinkRepository
         entity.Icon = request.Icon;
         entity.IconColor = request.IconColor;
 
-        _ = await repository.UpdateAsync(entity);
+        _ = await repository.UpdateAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Success("Partnership social link updated successfully.");
     }

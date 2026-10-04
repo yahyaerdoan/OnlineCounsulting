@@ -28,7 +28,7 @@ public class SetShippingAddressHandler(IUserAddressRepository repository) : IReq
         await UserAddressDefaultFlag.ClearPreviousShippingHolderAsync(repository, request.UserId, newAddress.Id, cancellationToken);
 
         newAddress.IsShippingAddress = true;
-        _ = await repository.UpdateAsync(newAddress);
+        _ = await repository.UpdateAsync(newAddress, cancellationToken: cancellationToken);
 
         return Result.Success("Shipping address set successfully.");
     }

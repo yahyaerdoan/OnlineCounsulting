@@ -36,7 +36,7 @@ public class UpdateContactHandler(ICompanyContactRepository repository) : IReque
                 Description = request.Description,
                 WorkingHours = request.WorkingHours,
             };
-            _ = await repository.AddAsync(contact);
+            _ = await repository.AddAsync(contact, cancellationToken: cancellationToken);
 
             return Result.Created("Contact information created successfully.");
         }
@@ -46,7 +46,7 @@ public class UpdateContactHandler(ICompanyContactRepository repository) : IReque
         contact.Address = request.Address;
         contact.Description = request.Description;
         contact.WorkingHours = request.WorkingHours;
-        _ = await repository.UpdateAsync(contact);
+        _ = await repository.UpdateAsync(contact, cancellationToken: cancellationToken);
 
         return Result.Success("Contact information updated successfully.");
     }

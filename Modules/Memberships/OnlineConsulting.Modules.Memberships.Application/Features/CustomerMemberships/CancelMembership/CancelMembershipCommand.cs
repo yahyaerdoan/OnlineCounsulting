@@ -43,7 +43,7 @@ public class CancelMembershipHandler(ICustomerMembershipRepository repository, I
 
         membership.CancelAtEndOfPeriod();
 
-        _ = await repository.UpdateAsync(membership);
+        _ = await repository.UpdateAsync(membership, cancellationToken: cancellationToken);
 
         var zone = await timeZoneReader.GetAsync(membership.TenantId, cancellationToken);
         var renewalDate = membership.RenewalDate?.InZone(zone).ToString("MMMM d, yyyy", CultureInfo.GetCultureInfo("en-US")) ?? "the end of the current period";

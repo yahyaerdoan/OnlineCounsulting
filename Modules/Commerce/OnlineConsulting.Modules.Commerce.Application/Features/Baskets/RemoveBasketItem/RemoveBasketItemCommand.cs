@@ -26,7 +26,7 @@ public class RemoveBasketItemHandler(IBasketRepository basketRepository) : IRequ
         }
 
         basket.RemoveItem(request.BasketItemId);
-        _ = await basketRepository.UpdateAsync(basket);
+        _ = await basketRepository.UpdateAsync(basket, cancellationToken: cancellationToken);
 
         return Result.Success("Basket item removed successfully.");
     }

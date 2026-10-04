@@ -29,11 +29,11 @@ public class CreateGalleryItemHandler(IGalleryItemRepository repository, IGaller
             Metadata = MetadataSerializer.Serialize(request.Metadata),
         };
 
-        _ = await repository.AddAsync(entity);
+        _ = await repository.AddAsync(entity, cancellationToken: cancellationToken);
 
         foreach (var categoryId in request.CategoryIds.Distinct())
         {
-            _ = await categoryLinkRepository.AddAsync(new GalleryItemCategory { GalleryItemId = entity.Id, GalleryCategoryId = categoryId });
+            _ = await categoryLinkRepository.AddAsync(new GalleryItemCategory { GalleryItemId = entity.Id, GalleryCategoryId = categoryId }, cancellationToken: cancellationToken);
         }
 
         return Result.Created(entity.Id, "Gallery item created successfully.");

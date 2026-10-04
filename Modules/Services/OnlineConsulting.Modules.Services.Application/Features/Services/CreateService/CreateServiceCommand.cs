@@ -46,7 +46,7 @@ public class CreateServiceHandler(IServiceRepository repository) : IRequestHandl
             Kind = request.Kind,
         };
 
-        _ = await repository.AddAsync(service);
+        _ = await repository.AddAsync(service, cancellationToken: cancellationToken);
 
         return Result.Created(service.Id, "Service created successfully.");
     }

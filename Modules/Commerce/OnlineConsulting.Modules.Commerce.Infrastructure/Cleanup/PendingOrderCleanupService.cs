@@ -6,7 +6,6 @@ using Microsoft.Extensions.Options;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Abstractions;
 using OnlineConsulting.Modules.Commerce.Domain;
 using OnlineConsulting.SharedKernel.Payments;
-using OnlineConsulting.SharedKernel.Persistence;
 
 namespace OnlineConsulting.Modules.Commerce.Infrastructure.Cleanup;
 
@@ -40,9 +39,9 @@ public class PendingOrderCleanupService(IServiceScopeFactory scopeFactory, IOpti
         var reconcileCutoff = DateTimeOffset.UtcNow - settings.ReconcileAfter;
 
         var candidates = await orderRepository
-            .GetListAsync(predicate: o => o.PaymentStatus == OrderPaymentStatuses.Pending && o.OrderStatus != OrderStatuses.Cancelled && o.CreatedDate <= reconcileCutoff, orderBy: q => q.OrderBy(o => o.CreatedDate), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+            .GetAllAsync(predicate: o => o.PaymentStatus == OrderPaymentStatuses.Pending && o.OrderStatus != OrderStatuses.Cancelled && o.CreatedDate <= reconcileCutoff, orderBy: q => q.OrderBy(o => o.CreatedDate), cancellationToken: cancellationToken);
 
-        if (candidates.Items.Count == 0)
+        if (candidates.Count == 0)
         {
             return;
         }
@@ -51,7 +50,7 @@ public class PendingOrderCleanupService(IServiceScopeFactory scopeFactory, IOpti
         var reconciledCount = 0;
         var expiredCount = 0;
 
-        foreach (var order in candidates.Items)
+        foreach (var order in candidates)
         {
             if (await TryReconcileAsync(scope.ServiceProvider, order, cancellationToken))
             {
@@ -63,7 +62,7 @@ public class PendingOrderCleanupService(IServiceScopeFactory scopeFactory, IOpti
             {
                 order.Abandon();
 
-                _ = await orderRepository.UpdateAsync(order);
+                _ = await orderRepository.UpdateAsync(order, cancellationToken: cancellationToken);
 
                 expiredCount++;
 
@@ -78,7 +77,7 @@ public class PendingOrderCleanupService(IServiceScopeFactory scopeFactory, IOpti
 
         if ((reconciledCount > 0 || expiredCount > 0) && logger.IsEnabled(LogLevel.Information))
         {
-            logger.LogInformation("Pending order cleanup reconciled {ReconciledCount} and expired {ExpiredCount} of {CandidateCount} candidate order(s).", reconciledCount, expiredCount, candidates.Items.Count);
+            logger.LogInformation("Pending order cleanup reconciled {ReconciledCount} and expired {ExpiredCount} of {CandidateCount} candidate order(s).", reconciledCount, expiredCount, candidates.Count);
         }
     }
 

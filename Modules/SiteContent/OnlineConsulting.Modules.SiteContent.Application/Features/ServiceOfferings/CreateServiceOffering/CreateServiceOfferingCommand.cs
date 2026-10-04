@@ -29,7 +29,7 @@ public class CreateServiceOfferingHandler(IServiceOfferingRepository repository)
             Metadata = MetadataSerializer.Serialize(request.Metadata),
         };
 
-        _ = await repository.AddAsync(entity);
+        _ = await repository.AddAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Created(entity.Id, "Service offering created successfully.");
     }

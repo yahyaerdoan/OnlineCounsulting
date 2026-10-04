@@ -21,7 +21,7 @@ public class ClearBasketHandler(IBasketRepository basketRepository) : IRequestHa
         }
 
         basket.Clear();
-        _ = await basketRepository.UpdateAsync(basket);
+        _ = await basketRepository.UpdateAsync(basket, cancellationToken: cancellationToken);
 
         return Result.Success("Basket cleared successfully.");
     }

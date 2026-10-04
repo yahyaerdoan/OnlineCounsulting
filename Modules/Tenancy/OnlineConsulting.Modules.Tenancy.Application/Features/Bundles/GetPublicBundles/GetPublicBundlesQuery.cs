@@ -1,7 +1,6 @@
 using MediatR;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Bundles.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Bundles.Contracts;
-using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
@@ -15,10 +14,9 @@ public class GetPublicBundlesHandler(IBundleRepository bundleRepository)
 {
     public async Task<OperationDataResult<List<BundleResponse>>> Handle(GetPublicBundlesQuery request, CancellationToken cancellationToken)
     {
-        var bundles = await bundleRepository.GetListAsync(
-            b => b.IsPubliclyVisible, orderBy: q => q.OrderBy(b => b.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+        var bundles = await bundleRepository.GetAllAsync(b => b.IsPubliclyVisible, cancellationToken: cancellationToken);
 
-        var response = bundles.Items.Select(BundleResponse.FromDomain).ToList();
+        var response = bundles.Select(BundleResponse.FromDomain).ToList();
 
         return Result.Success(response, "Bundles retrieved successfully.");
     }

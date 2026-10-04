@@ -27,7 +27,7 @@ public class CreateFaqItemHandler(IFaqItemRepository repository) : IRequestHandl
             DisplayOrder = request.DisplayOrder,
         };
 
-        _ = await repository.AddAsync(entity);
+        _ = await repository.AddAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Created(entity.Id, "FAQ item created successfully.");
     }

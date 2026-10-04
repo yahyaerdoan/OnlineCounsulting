@@ -6,7 +6,6 @@ using OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.Contracts;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Domain;
-using OnlineConsulting.SharedKernel.Persistence;
 using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -38,7 +37,7 @@ public class GetMyTenantHandler(ITenantRepository tenantRepository, ITenantSubsc
         var items = subscription is null
             ? []
             : (await tenantSubscriptionItemRepository
-            .GetListAsync(i => i.TenantSubscriptionId == subscription.Id && i.Status == TenantSubscriptionItemStatuses.Active, orderBy: q => q.OrderBy(i => i.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken)).Items.ToList();
+            .GetAllAsync(i => i.TenantSubscriptionId == subscription.Id && i.Status == TenantSubscriptionItemStatuses.Active, cancellationToken: cancellationToken)).ToList();
 
         var response = TenantSummaryResponse.FromDomain(tenant, [.. items.Select(i => i.ModuleKey)], items.Sum(i => i.PriceAtAddition));
         return Result.Success(response, "Tenant retrieved successfully.");

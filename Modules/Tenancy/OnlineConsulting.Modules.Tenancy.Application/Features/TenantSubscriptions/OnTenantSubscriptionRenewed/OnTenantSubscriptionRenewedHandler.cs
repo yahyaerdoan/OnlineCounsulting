@@ -25,7 +25,7 @@ public class OnTenantSubscriptionRenewedHandler(ITenantSubscriptionRepository su
         }
 
         tenantSubscription.Renew(notification.CurrentPeriodEnd.UtcDateTime);
-        _ = await subscriptionRepository.UpdateAsync(tenantSubscription);
+        _ = await subscriptionRepository.UpdateAsync(tenantSubscription, cancellationToken: cancellationToken);
 
         var tenant = await tenantRepository.GetAsync(t => t.Id == tenantSubscription.TenantId, cancellationToken: cancellationToken);
         if (tenant is not null && notification.Invoice is { IsPaid: true } invoice && invoice.BillingReason != SubscriptionInvoice.FirstInvoiceReason)
@@ -39,6 +39,6 @@ public class OnTenantSubscriptionRenewedHandler(ITenantSubscriptionRepository su
         }
 
         tenant.ApplyRenewal();
-        _ = await tenantRepository.UpdateAsync(tenant);
+        _ = await tenantRepository.UpdateAsync(tenant, cancellationToken: cancellationToken);
     }
 }

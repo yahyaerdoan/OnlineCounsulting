@@ -74,7 +74,7 @@ public class CreateInviteHandler(IInviteRepository inviteRepository, RoleManager
 
         await outboxWriter.EnqueueAsync(invite.Email, inviteTemplate.Subject(inviteModel), inviteTemplate.Build(inviteModel), sourceReference: $"Invite:{invite.Id}", cancellationToken: cancellationToken);
 
-        _ = await inviteRepository.AddAsync(invite);
+        _ = await inviteRepository.AddAsync(invite, cancellationToken: cancellationToken);
 
         return Result.Created("The invite has been sent.");
     }

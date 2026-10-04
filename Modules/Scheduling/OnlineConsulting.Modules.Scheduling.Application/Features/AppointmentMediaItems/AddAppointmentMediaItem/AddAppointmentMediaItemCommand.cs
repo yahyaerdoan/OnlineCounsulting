@@ -36,7 +36,7 @@ public class AddAppointmentMediaItemHandler(IAppointmentMediaItemRepository medi
             DisplayOrder = request.DisplayOrder,
         };
 
-        _ = await mediaItemRepository.AddAsync(entity);
+        _ = await mediaItemRepository.AddAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Created(entity.Id, "Appointment media item added successfully.");
     }

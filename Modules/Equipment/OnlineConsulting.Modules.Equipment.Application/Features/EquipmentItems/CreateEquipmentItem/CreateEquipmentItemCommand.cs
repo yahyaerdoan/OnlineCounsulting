@@ -33,7 +33,7 @@ public class CreateEquipmentItemHandler(IEquipmentItemRepository repository) : I
             Notes = request.Notes,
         };
 
-        _ = await repository.AddAsync(entity);
+        _ = await repository.AddAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Created(entity.Id, "Equipment item created successfully.");
     }

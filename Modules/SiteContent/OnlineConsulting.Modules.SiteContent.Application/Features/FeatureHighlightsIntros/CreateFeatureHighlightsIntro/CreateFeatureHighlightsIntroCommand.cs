@@ -27,7 +27,7 @@ public class CreateFeatureHighlightsIntroHandler(IFeatureHighlightsIntroReposito
             Metadata = MetadataSerializer.Serialize(request.Metadata),
         };
 
-        _ = await repository.AddAsync(entity);
+        _ = await repository.AddAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Created(entity.Id, "Feature highlights intro created successfully.");
     }

@@ -3,7 +3,6 @@ using MediatR;
 using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryCategories.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryCategories.Contracts;
-using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -22,8 +21,8 @@ public class GetAllGalleryCategoriesHandler(IGalleryCategoryRepository repositor
 {
     public async Task<OperationDataResult<List<GalleryCategoryResponse>>> Handle(GetAllGalleryCategoriesQuery request, CancellationToken cancellationToken)
     {
-        var categories = await repository.GetListAsync(orderBy: q => q.OrderBy(x => x.Name), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
-        var response = categories.Items.Select(GalleryCategoryResponse.FromDomain).ToList();
+        var categories = await repository.GetAllAsync(orderBy: q => q.OrderBy(x => x.Name), cancellationToken: cancellationToken);
+        var response = categories.Select(GalleryCategoryResponse.FromDomain).ToList();
 
         return Result.Success(response, "Gallery categories retrieved successfully.");
     }

@@ -39,7 +39,7 @@ public class ReactivateTenantHandler(ITenantRepository tenantRepository) : IRequ
 
         tenant.Reactivate();
 
-        _ = await tenantRepository.UpdateAsync(tenant);
+        _ = await tenantRepository.UpdateAsync(tenant, cancellationToken: cancellationToken);
 
         return Result.Success("Tenant reactivated.");
     }

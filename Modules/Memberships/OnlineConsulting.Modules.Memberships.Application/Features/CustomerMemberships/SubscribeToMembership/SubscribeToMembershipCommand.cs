@@ -87,7 +87,7 @@ public class SubscribeToMembershipHandler(ICustomerMembershipRepository membersh
 
                 stalePlanMembership.SwitchPendingPlan(request.MembershipPlanId);
 
-                _ = await membershipRepository.UpdateAsync(stalePlanMembership);
+                _ = await membershipRepository.UpdateAsync(stalePlanMembership, cancellationToken: cancellationToken);
 
                 membership = stalePlanMembership;
             }
@@ -108,7 +108,7 @@ public class SubscribeToMembershipHandler(ICustomerMembershipRepository membersh
         {
             membership = CustomerMembership.Start(request.UserId, plan.Id, DateTimeOffset.UtcNow);
 
-            _ = await membershipRepository.AddAsync(membership);
+            _ = await membershipRepository.AddAsync(membership, cancellationToken: cancellationToken);
         }
 
         string? clientSecret;
@@ -131,7 +131,7 @@ public class SubscribeToMembershipHandler(ICustomerMembershipRepository membersh
                 providerCustomerId = customer.ProviderCustomerId;
                 membership.LinkProviderCustomer(providerCustomerId);
 
-                _ = await membershipRepository.UpdateAsync(membership);
+                _ = await membershipRepository.UpdateAsync(membership, cancellationToken: cancellationToken);
             }
 
             if (membership.ProviderSubscriptionId is null)
@@ -166,10 +166,10 @@ public class SubscribeToMembershipHandler(ICustomerMembershipRepository membersh
                 {
                     promo.Redeem(plan.Id, now);
 
-                    _ = await promoCodeRepository.UpdateAsync(promo);
+                    _ = await promoCodeRepository.UpdateAsync(promo, cancellationToken: cancellationToken);
                 }
 
-                _ = await membershipRepository.UpdateAsync(membership);
+                _ = await membershipRepository.UpdateAsync(membership, cancellationToken: cancellationToken);
 
                 clientSecret = subscription.ClientSecret;
                 appliedCreditAmount = creditToApply > 0 ? creditToApply : null;
@@ -180,7 +180,7 @@ public class SubscribeToMembershipHandler(ICustomerMembershipRepository membersh
                 {
                     membership.Activate();
 
-                    _ = await membershipRepository.UpdateAsync(membership);
+                    _ = await membershipRepository.UpdateAsync(membership, cancellationToken: cancellationToken);
                 }
 
                 clientSecret = null;
@@ -192,7 +192,7 @@ public class SubscribeToMembershipHandler(ICustomerMembershipRepository membersh
         {
             membership.MarkSignupFailed();
 
-            _ = await membershipRepository.UpdateAsync(membership);
+            _ = await membershipRepository.UpdateAsync(membership, cancellationToken: cancellationToken);
 
             if (creditReserved)
             {

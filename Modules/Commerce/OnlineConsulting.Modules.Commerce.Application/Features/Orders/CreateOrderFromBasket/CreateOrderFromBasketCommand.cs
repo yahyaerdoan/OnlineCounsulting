@@ -10,7 +10,6 @@ using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Abstractions
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Contracts;
 using OnlineConsulting.Modules.Commerce.Domain;
 using OnlineConsulting.SharedKernel.Payments;
-using OnlineConsulting.SharedKernel.Persistence;
 using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -87,7 +86,7 @@ public class CreateOrderFromBasketHandler(IBasketRepository basketRepository,
             return Result.BadGateway<CreateOrderResult>(failure?.Detail ?? "Could not start payment for your order.");
         }
 
-        var (order, _) = await CreateOrderWithItemsAsync(orderId, request.UserId, shippingAddress.Id, billingAddress.Id, basket.Items, paymentIntent);
+        var (order, _) = await CreateOrderWithItemsAsync(orderId, request.UserId, shippingAddress.Id, billingAddress.Id, basket.Items, paymentIntent, cancellationToken);
 
         if (order.PaymentStatus == OrderPaymentStatuses.Paid)
         {
@@ -99,12 +98,13 @@ public class CreateOrderFromBasketHandler(IBasketRepository basketRepository,
         return Result.Created(new CreateOrderResult(order.Id, clientSecretForClient, order.OrderNumber), $"Order created: {order.OrderNumber}");
     }
 
-    private async Task<(Order Order, List<OrderItem> Items)> CreateOrderWithItemsAsync(Guid orderId, Guid userId, Guid shippingAddressId, Guid billingAddressId, IEnumerable<BasketItem> basketItems, PaymentIntentResult paymentIntent)
+    private async Task<(Order Order, List<OrderItem> Items)> CreateOrderWithItemsAsync(Guid orderId, Guid userId, Guid shippingAddressId, Guid billingAddressId, IEnumerable<BasketItem> basketItems, PaymentIntentResult paymentIntent,
+        CancellationToken cancellationToken)
     {
         var order = Order.Place(orderId, OrderNumberGenerator.Generate(),
             userId, shippingAddressId, billingAddressId, paymentGateway.ProviderName, paymentIntent.ProviderPaymentId, paidAtCheckout: paymentIntent.Status == SharedPaymentStatuses.Succeeded);
 
-        _ = await orderRepository.AddAsync(order);
+        _ = await orderRepository.AddAsync(order, cancellationToken: cancellationToken);
 
         List<OrderItem> orderItems = [];
 
@@ -121,7 +121,7 @@ public class CreateOrderFromBasketHandler(IBasketRepository basketRepository,
 
             TaxCalculator.Apply(orderItem);
 
-            _ = await orderItemRepository.AddAsync(orderItem);
+            _ = await orderItemRepository.AddAsync(orderItem, cancellationToken: cancellationToken);
 
             orderItems.Add(orderItem);
         }

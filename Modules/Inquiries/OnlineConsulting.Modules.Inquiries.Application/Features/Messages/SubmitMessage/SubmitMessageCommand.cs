@@ -28,7 +28,7 @@ public class SubmitMessageHandler(IMessageRepository repository, IEmailOutboxWri
         };
         var sourceReference = $"Message:{message.Id}";
 
-        _ = await repository.AddAsync(message);
+        _ = await repository.AddAsync(message, cancellationToken: cancellationToken);
 
         var receivedModel = new MessageReceivedEmailModel(request.FirstName, request.Subject);
 

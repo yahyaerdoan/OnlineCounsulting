@@ -34,7 +34,7 @@ public class ConfirmAppointmentHandler(IAppointmentRepository repository, IAppoi
 
         appointment.Confirm();
 
-        _ = await repository.UpdateAsync(appointment);
+        _ = await repository.UpdateAsync(appointment, cancellationToken: cancellationToken);
 
         await notifier.ConfirmedAsync(appointment, cancellationToken);
 

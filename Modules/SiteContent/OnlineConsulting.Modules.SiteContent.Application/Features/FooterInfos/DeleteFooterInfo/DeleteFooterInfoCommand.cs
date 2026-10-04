@@ -24,7 +24,7 @@ public class DeleteFooterInfoHandler(IFooterInfoRepository repository) : IReques
             return SiteContentBusinessRules.NotFound("Footer info", request.Id);
         }
 
-        _ = await repository.DeleteAsync(entity);
+        _ = await repository.DeleteAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Success("Footer info deleted successfully.");
     }

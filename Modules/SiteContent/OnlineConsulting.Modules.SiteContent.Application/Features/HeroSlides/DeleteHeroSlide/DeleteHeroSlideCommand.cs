@@ -24,7 +24,7 @@ public class DeleteHeroSlideHandler(IHeroSlideRepository repository) : IRequestH
             return SiteContentBusinessRules.NotFound("Hero slide", request.Id);
         }
 
-        _ = await repository.DeleteAsync(entity);
+        _ = await repository.DeleteAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Success("Hero slide deleted successfully.");
     }

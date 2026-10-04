@@ -3,7 +3,6 @@ using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Abst
 using OnlineConsulting.Modules.Scheduling.Application.Features.Availability.Abstractions;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Availability.Contracts;
 using OnlineConsulting.Modules.Scheduling.Domain;
-using OnlineConsulting.SharedKernel.Persistence;
 using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -19,17 +18,16 @@ public class GetAvailabilityHandler(IAvailabilityRuleRepository ruleRepository, 
 {
     public async Task<OperationDataResult<List<AvailableSlotResponse>>> Handle(GetAvailabilityQuery request, CancellationToken cancellationToken)
     {
-        var rules = await ruleRepository.GetListAsync(r => r.DayOfWeek == request.Date.DayOfWeek, orderBy: q => q.OrderBy(r => r.StartTime),
-            size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+        var rules = await ruleRepository.GetAllAsync(r => r.DayOfWeek == request.Date.DayOfWeek, orderBy: q => q.OrderBy(r => r.StartTime), cancellationToken: cancellationToken);
 
-        if (rules.Items.Count == 0)
+        if (rules.Count == 0)
         {
             return Result.Success(new List<AvailableSlotResponse>(), "No working hours configured for this day.");
         }
 
         var zone = await timeZoneReader.GetAsync(tenantProvider.TenantId, cancellationToken);
         var now = DateTimeOffset.UtcNow;
-        var candidates = rules.Items.SelectMany(rule => SlotsFor(request.Date, rule, zone)).Where(slot => slot.Start > now).ToList();
+        var candidates = rules.SelectMany(rule => SlotsFor(request.Date, rule, zone)).Where(slot => slot.Start > now).ToList();
 
         if (candidates.Count == 0)
         {
@@ -38,12 +36,11 @@ public class GetAvailabilityHandler(IAvailabilityRuleRepository ruleRepository, 
 
         var windowStart = candidates.Min(s => s.Start);
         var windowEnd = candidates.Max(s => s.End);
-        var existingAppointments = await appointmentRepository.GetListAsync(
-            a => a.Status != AppointmentStatuses.Cancelled && a.ScheduledStart < windowEnd && a.ScheduledEnd > windowStart,
-            orderBy: q => q.OrderBy(a => a.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+        var existingAppointments = await appointmentRepository.GetAllAsync(a => a.Status != AppointmentStatuses.Cancelled && a.ScheduledStart < windowEnd && a.ScheduledEnd > windowStart,
+            cancellationToken: cancellationToken);
 
         var slots = candidates
-            .Where(slot => !existingAppointments.Items.Any(a => a.ScheduledStart < slot.End && a.ScheduledEnd > slot.Start))
+            .Where(slot => !existingAppointments.Any(a => a.ScheduledStart < slot.End && a.ScheduledEnd > slot.Start))
             .OrderBy(slot => slot.Start)
             .ToList();
 

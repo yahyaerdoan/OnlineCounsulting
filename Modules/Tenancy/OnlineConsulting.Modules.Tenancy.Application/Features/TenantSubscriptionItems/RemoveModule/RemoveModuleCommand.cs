@@ -64,7 +64,7 @@ public class RemoveModuleHandler(ITenantSubscriptionRepository tenantSubscriptio
             return failure;
         }
 
-        _ = await tenantSubscriptionItemRepository.DeleteAsync(item);
+        _ = await tenantSubscriptionItemRepository.DeleteAsync(item, cancellationToken: cancellationToken);
 
         await featureFlagWriter.SetAsync(request.TenantId, request.ModuleKey, false, cancellationToken);
 

@@ -24,7 +24,7 @@ public class DeletePageBannerHandler(IPageBannerRepository repository) : IReques
             return SiteContentBusinessRules.NotFound("Page banner", request.Id);
         }
 
-        _ = await repository.DeleteAsync(entity);
+        _ = await repository.DeleteAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Success("Page banner deleted successfully.");
     }

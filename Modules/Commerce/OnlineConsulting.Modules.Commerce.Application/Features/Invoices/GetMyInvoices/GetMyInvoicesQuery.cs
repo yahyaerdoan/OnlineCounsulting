@@ -1,7 +1,6 @@
 using MediatR;
 using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.Abstractions;
 using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.Contracts;
-using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
@@ -14,8 +13,7 @@ public class GetMyInvoicesHandler(IInvoiceRepository repository) : IRequestHandl
 {
     public async Task<OperationDataResult<List<InvoiceResponse>>> Handle(GetMyInvoicesQuery request, CancellationToken cancellationToken)
     {
-        var invoices = await repository.GetListAsync(i => i.UserId == request.UserId, orderBy: q => q.OrderByDescending(i => i.IssuedAt),
-            size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
-        return Result.Success<List<InvoiceResponse>>([.. invoices.Items.Select(i => InvoiceResponse.FromDomain(i))], "Invoices retrieved successfully.");
+        var invoices = await repository.GetAllAsync(i => i.UserId == request.UserId, orderBy: q => q.OrderByDescending(i => i.IssuedAt), cancellationToken: cancellationToken);
+        return Result.Success<List<InvoiceResponse>>([.. invoices.Select(i => InvoiceResponse.FromDomain(i))], "Invoices retrieved successfully.");
     }
 }

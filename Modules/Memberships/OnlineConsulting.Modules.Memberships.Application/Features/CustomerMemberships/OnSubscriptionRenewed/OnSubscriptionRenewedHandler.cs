@@ -29,7 +29,7 @@ public class OnSubscriptionRenewedHandler(ICustomerMembershipRepository reposito
 
         membership.Renew(notification.CurrentPeriodEnd);
 
-        _ = await repository.UpdateAsync(membership);
+        _ = await repository.UpdateAsync(membership, cancellationToken: cancellationToken);
 
         var renewal = notification.Invoice is { } renewedInvoice && renewedInvoice.BillingReason != SubscriptionInvoice.FirstInvoiceReason;
 

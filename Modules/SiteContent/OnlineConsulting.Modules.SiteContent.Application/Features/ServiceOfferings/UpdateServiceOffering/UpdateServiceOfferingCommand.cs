@@ -32,7 +32,7 @@ public class UpdateServiceOfferingHandler(IServiceOfferingRepository repository)
         entity.DisplayOrder = request.DisplayOrder;
         entity.Metadata = MetadataSerializer.Serialize(request.Metadata);
 
-        _ = await repository.UpdateAsync(entity);
+        _ = await repository.UpdateAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Success("Service offering updated successfully.");
     }

@@ -4,7 +4,6 @@ using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionIt
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Domain;
 using OnlineConsulting.SharedKernel.Payments;
-using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
@@ -38,20 +37,19 @@ public class RollbackTenantSignupHandler(ITenantRepository tenantRepository, ITe
             }
 
             tenantSubscription.CancelSignup();
-            _ = await tenantSubscriptionRepository.UpdateAsync(tenantSubscription);
+            _ = await tenantSubscriptionRepository.UpdateAsync(tenantSubscription, cancellationToken: cancellationToken);
 
-            var items = await tenantSubscriptionItemRepository.GetListAsync(i => i.TenantSubscriptionId == tenantSubscription.Id, orderBy: q => q.OrderBy(i => i.Id),
-                size: RepositoryQuerySize.Unbounded, enableTracking: true, cancellationToken: cancellationToken);
-            foreach (var item in items.Items)
+            var items = await tenantSubscriptionItemRepository.GetAllAsync(i => i.TenantSubscriptionId == tenantSubscription.Id, enableTracking: true, cancellationToken: cancellationToken);
+            foreach (var item in items)
             {
                 item.ResetForRetry();
-                _ = await tenantSubscriptionItemRepository.UpdateAsync(item);
+                _ = await tenantSubscriptionItemRepository.UpdateAsync(item, cancellationToken: cancellationToken);
             }
         }
 
         tenant.FailSignup();
 
-        _ = await tenantRepository.UpdateAsync(tenant);
+        _ = await tenantRepository.UpdateAsync(tenant, cancellationToken: cancellationToken);
 
         return Result.Success("Tenant signup rolled back and the payment refunded.");
     }

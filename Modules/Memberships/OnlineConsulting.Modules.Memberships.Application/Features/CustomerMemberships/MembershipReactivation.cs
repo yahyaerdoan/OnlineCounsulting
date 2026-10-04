@@ -32,7 +32,7 @@ public static class MembershipReactivation
 
         membership.Reactivate();
 
-        _ = await repository.UpdateAsync(membership);
+        _ = await repository.UpdateAsync(membership, cancellationToken: cancellationToken);
 
         var zone = await timeZoneReader.GetAsync(membership.TenantId, cancellationToken);
         var renewal = membership.RenewalDate?.InZone(zone).ToString("MMMM d, yyyy", CultureInfo.GetCultureInfo("en-US")) ?? "your next billing date";

@@ -22,7 +22,7 @@ public class OnSubscriptionPaymentFailedHandler(ICustomerMembershipRepository re
 
         membership.MarkPaymentFailed(DateTimeOffset.UtcNow);
 
-        _ = await repository.UpdateAsync(membership);
+        _ = await repository.UpdateAsync(membership, cancellationToken: cancellationToken);
 
         await notifier.PaymentFailedAsync(membership, cancellationToken);
     }

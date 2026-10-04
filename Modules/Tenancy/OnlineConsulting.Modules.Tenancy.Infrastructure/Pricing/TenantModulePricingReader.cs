@@ -1,7 +1,6 @@
 ﻿using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Domain;
-using OnlineConsulting.SharedKernel.Persistence;
 using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Tenancy.Infrastructure.Pricing;
@@ -21,12 +20,9 @@ public class TenantModulePricingReader(
             return new Dictionary<string, (decimal Price, bool IsPurchased)>();
         }
 
-        var items = await tenantSubscriptionItemRepository.GetListAsync(
-            i => i.TenantSubscriptionId == tenantSubscription.Id && i.Status == TenantSubscriptionItemStatuses.Active,
-            orderBy: q => q.OrderBy(i => i.Id),
-            size: RepositoryQuerySize.Unbounded,
+        var items = await tenantSubscriptionItemRepository.GetAllAsync(i => i.TenantSubscriptionId == tenantSubscription.Id && i.Status == TenantSubscriptionItemStatuses.Active,
             cancellationToken: cancellationToken);
 
-        return items.Items.ToDictionary(i => i.ModuleKey, i => (i.PriceAtAddition, true));
+        return items.ToDictionary(i => i.ModuleKey, i => (i.PriceAtAddition, true));
     }
 }

@@ -30,7 +30,7 @@ public class UpdateFooterInfoHandler(IFooterInfoRepository repository, IStorageS
         entity.DisplayOrder = request.DisplayOrder;
         entity.Metadata = MetadataSerializer.Serialize(request.Metadata);
 
-        _ = await repository.UpdateAsync(entity);
+        _ = await repository.UpdateAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Success("Footer info updated successfully.");
     }

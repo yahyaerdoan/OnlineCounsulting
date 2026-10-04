@@ -34,7 +34,7 @@ public class UpdateModuleOfferingHandler(IModuleOfferingRepository repository) :
         offering.Name = request.Name;
         offering.IsPubliclyVisible = request.IsPubliclyVisible;
 
-        _ = await repository.UpdateAsync(offering);
+        _ = await repository.UpdateAsync(offering, cancellationToken: cancellationToken);
 
         return Result.Success("Module offering updated successfully.");
     }

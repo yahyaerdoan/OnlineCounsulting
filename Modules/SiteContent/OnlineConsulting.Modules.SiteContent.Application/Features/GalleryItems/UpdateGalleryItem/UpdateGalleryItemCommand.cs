@@ -4,7 +4,6 @@ using MediatR;
 using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryItems.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Domain.Gallery;
-using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -34,18 +33,18 @@ public class UpdateGalleryItemHandler(IGalleryItemRepository repository, IGaller
         entity.DisplayOrder = request.DisplayOrder;
         entity.Metadata = MetadataSerializer.Serialize(request.Metadata);
 
-        _ = await repository.UpdateAsync(entity);
+        _ = await repository.UpdateAsync(entity, cancellationToken: cancellationToken);
 
-        var existingLinks = await categoryLinkRepository.GetListAsync(x => x.GalleryItemId == request.Id, orderBy: q => q.OrderBy(x => x.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+        var existingLinks = await categoryLinkRepository.GetAllAsync(x => x.GalleryItemId == request.Id, cancellationToken: cancellationToken);
 
-        foreach (var link in existingLinks.Items)
+        foreach (var link in existingLinks)
         {
-            _ = await categoryLinkRepository.DeleteAsync(link);
+            _ = await categoryLinkRepository.DeleteAsync(link, cancellationToken: cancellationToken);
         }
 
         foreach (var categoryId in request.CategoryIds.Distinct())
         {
-            _ = await categoryLinkRepository.AddAsync(new GalleryItemCategory { GalleryItemId = request.Id, GalleryCategoryId = categoryId });
+            _ = await categoryLinkRepository.AddAsync(new GalleryItemCategory { GalleryItemId = request.Id, GalleryCategoryId = categoryId }, cancellationToken: cancellationToken);
         }
 
         return Result.Success("Gallery item updated successfully.");

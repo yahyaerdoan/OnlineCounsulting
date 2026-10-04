@@ -1,7 +1,6 @@
 using MediatR;
 using OnlineConsulting.Modules.SiteContent.Application.Features.FeatureHighlightsIntros.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Application.Features.FeatureHighlightsIntros.Contracts;
-using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
@@ -13,8 +12,8 @@ public class GetAllFeatureHighlightsIntrosHandler(IFeatureHighlightsIntroReposit
 {
     public async Task<OperationDataResult<List<FeatureHighlightsIntroResponse>>> Handle(GetAllFeatureHighlightsIntrosQuery request, CancellationToken cancellationToken)
     {
-        var entities = await repository.GetListAsync(orderBy: q => q.OrderBy(x => x.DisplayOrder), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
-        var response = entities.Items.Select(FeatureHighlightsIntroResponse.FromDomain).ToList();
+        var entities = await repository.GetAllAsync(orderBy: q => q.OrderBy(x => x.DisplayOrder), cancellationToken: cancellationToken);
+        var response = entities.Select(FeatureHighlightsIntroResponse.FromDomain).ToList();
 
         return Result.Success(response, "Feature highlights intro retrieved successfully.");
     }

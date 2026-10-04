@@ -5,7 +5,6 @@ using OnlineConsulting.Modules.FeatureFlags.Application.Common;
 using OnlineConsulting.Modules.FeatureFlags.Application.Features.FeatureFlags.Abstractions;
 using OnlineConsulting.Modules.FeatureFlags.Application.Features.FeatureFlags.Constants;
 using OnlineConsulting.Modules.FeatureFlags.Application.Features.FeatureFlags.Contracts;
-using OnlineConsulting.SharedKernel.Persistence;
 using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -37,9 +36,9 @@ public class GetFeatureFlagsHandler(IFeatureFlagRepository repository, ITenantMo
 {
     public async Task<OperationDataResult<List<FeatureFlagResponse>>> Handle(GetFeatureFlagsQuery request, CancellationToken cancellationToken)
     {
-        var overrides = await repository.GetListAsync(orderBy: q => q.OrderBy(f => f.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+        var overrides = await repository.GetAllAsync(cancellationToken: cancellationToken);
 
-        var overridesByKey = overrides.Items.ToDictionary(f => f.Key, f => f.IsEnabled);
+        var overridesByKey = overrides.ToDictionary(f => f.Key, f => f.IsEnabled);
 
         var pricingByKey = await tenantModulePricingReader.GetForTenantAsync(request.TenantId, cancellationToken);
 

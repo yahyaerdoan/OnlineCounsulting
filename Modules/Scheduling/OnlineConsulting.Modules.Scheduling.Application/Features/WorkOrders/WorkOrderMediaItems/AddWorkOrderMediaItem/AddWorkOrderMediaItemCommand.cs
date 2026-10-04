@@ -37,7 +37,7 @@ public class AddWorkOrderMediaItemHandler(IWorkOrderMediaItemRepository mediaIte
             DisplayOrder = request.DisplayOrder,
         };
 
-        _ = await mediaItemRepository.AddAsync(entity);
+        _ = await mediaItemRepository.AddAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Created(entity.Id, "Work order media item added successfully.");
     }

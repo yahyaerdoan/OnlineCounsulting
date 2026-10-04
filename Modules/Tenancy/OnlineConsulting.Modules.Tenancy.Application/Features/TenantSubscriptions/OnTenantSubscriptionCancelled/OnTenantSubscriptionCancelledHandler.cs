@@ -23,7 +23,7 @@ public class OnTenantSubscriptionCancelledHandler(ITenantSubscriptionRepository 
         }
 
         tenantSubscription.Cancel();
-        _ = await subscriptionRepository.UpdateAsync(tenantSubscription);
+        _ = await subscriptionRepository.UpdateAsync(tenantSubscription, cancellationToken: cancellationToken);
 
         var tenant = await tenantRepository.GetAsync(t => t.Id == tenantSubscription.TenantId, cancellationToken: cancellationToken);
         if (tenant is null || tenant.IsHeldByStaff)
@@ -32,6 +32,6 @@ public class OnTenantSubscriptionCancelledHandler(ITenantSubscriptionRepository 
         }
 
         tenant.ApplySubscriptionEnded();
-        _ = await tenantRepository.UpdateAsync(tenant);
+        _ = await tenantRepository.UpdateAsync(tenant, cancellationToken: cancellationToken);
     }
 }

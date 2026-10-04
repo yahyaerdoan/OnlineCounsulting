@@ -29,7 +29,7 @@ public class SetMembershipPlanActiveHandler(IMembershipPlanRepository repository
 
         plan.SetActive(request.IsActive);
 
-        _ = await repository.UpdateAsync(plan);
+        _ = await repository.UpdateAsync(plan, cancellationToken: cancellationToken);
 
         return Result.Success(request.IsActive ? "Membership plan restored successfully." : "Membership plan archived successfully.");
     }

@@ -26,7 +26,7 @@ public class CancelPendingOrderHandler(IOrderRepository orderRepository) : IRequ
 
         order.Cancel();
 
-        _ = await orderRepository.UpdateAsync(order);
+        _ = await orderRepository.UpdateAsync(order, cancellationToken: cancellationToken);
 
         return Result.Success("Order cancelled - your cart is unchanged.");
     }

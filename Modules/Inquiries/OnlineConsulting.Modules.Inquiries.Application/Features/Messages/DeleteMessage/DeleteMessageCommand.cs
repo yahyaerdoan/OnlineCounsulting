@@ -25,7 +25,7 @@ public class DeleteMessageHandler(IMessageRepository repository) : IRequestHandl
             return MessageBusinessRules.MessageNotFound(request.Id);
         }
 
-        _ = await repository.DeleteAsync(message);
+        _ = await repository.DeleteAsync(message, cancellationToken: cancellationToken);
 
         return Result.Success("Message deleted successfully.");
     }

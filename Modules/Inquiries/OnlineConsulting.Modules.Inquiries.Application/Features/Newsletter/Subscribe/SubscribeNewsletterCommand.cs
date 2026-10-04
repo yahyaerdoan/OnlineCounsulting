@@ -26,7 +26,7 @@ public class SubscribeNewsletterHandler(INewsletterSubscriberRepository reposito
 
         var subscriber = new NewsletterSubscriber { Email = request.Email };
 
-        _ = await repository.AddAsync(subscriber);
+        _ = await repository.AddAsync(subscriber, cancellationToken: cancellationToken);
 
         var model = new NewsletterSubscribedEmailModel(request.Email);
 

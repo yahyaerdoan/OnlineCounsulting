@@ -28,7 +28,7 @@ public class CreateAvailabilityRuleHandler(IAvailabilityRuleRepository repositor
             SlotDurationMinutes = request.SlotDurationMinutes,
         };
 
-        _ = await repository.AddAsync(rule);
+        _ = await repository.AddAsync(rule, cancellationToken: cancellationToken);
 
         return Result.Created(rule.Id, "Availability rule created successfully.");
     }

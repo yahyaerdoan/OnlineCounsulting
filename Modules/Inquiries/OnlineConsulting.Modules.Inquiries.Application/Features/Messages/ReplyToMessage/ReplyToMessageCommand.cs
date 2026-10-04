@@ -30,7 +30,7 @@ public class ReplyToMessageHandler(IMessageRepository repository, IEmailOutboxWr
         }
 
         message.RepliedAt = DateTimeOffset.UtcNow;
-        _ = await repository.UpdateAsync(message);
+        _ = await repository.UpdateAsync(message, cancellationToken: cancellationToken);
 
         var model = new MessageReplyEmailModel(message.FirstName, message.Subject, request.ReplyBody);
         var sourceReference = $"Message:{message.Id}";

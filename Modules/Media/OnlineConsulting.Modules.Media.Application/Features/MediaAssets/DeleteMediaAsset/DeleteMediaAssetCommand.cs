@@ -33,7 +33,7 @@ public class DeleteMediaAssetHandler(IMediaAssetRepository repository, IStorageS
             await storageService.DeleteAsync(entity.Url, cancellationToken);
         }
 
-        _ = await repository.DeleteAsync(entity);
+        _ = await repository.DeleteAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Success("Media asset deleted successfully.");
     }

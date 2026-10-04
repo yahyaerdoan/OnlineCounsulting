@@ -41,7 +41,7 @@ public class AdminCancelMembershipHandler(ICustomerMembershipRepository reposito
 
         membership.Cancel();
 
-        _ = await repository.UpdateAsync(membership);
+        _ = await repository.UpdateAsync(membership, cancellationToken: cancellationToken);
 
         await notifier.CancelledByStaffAsync(membership, cancellationToken);
 

@@ -32,7 +32,7 @@ public class UpdateCategoryHandler(ICategoryRepository repository) : IRequestHan
         category.Icon = request.Icon;
         category.IconColor = request.IconColor;
 
-        _ = await repository.UpdateAsync(category);
+        _ = await repository.UpdateAsync(category, cancellationToken: cancellationToken);
 
         return Result.Success("Category updated successfully.");
     }
