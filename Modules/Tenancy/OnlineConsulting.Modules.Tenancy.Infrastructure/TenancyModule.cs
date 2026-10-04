@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using OnlineConsulting.Modules.Tenancy.Application.Features.Signup;
 using OnlineConsulting.Modules.Tenancy.Application;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Bundles.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.ModuleOfferings.Abstractions;
@@ -45,6 +46,7 @@ public static class TenancyModule
         _ = services.AddScoped<ITenantTimeZoneCacheInvalidator>(sp => sp.GetRequiredService<TenantTimeZoneReader>());
         _ = services.AddScoped<ITenantModulePricingReader, TenantModulePricingReader>();
         _ = services.AddScoped<ITenantOwnershipReader, TenantOwnershipReader>();
+        _ = services.AddScoped<TenantSubscriptionActivator>();
         _ = services.AddScoped<IEmailOutboxWriter<ITenancyOutboxModule>, EmailOutboxWriter>();
         _ = services.AddScoped<OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.TenantReceiptSender>();
 
