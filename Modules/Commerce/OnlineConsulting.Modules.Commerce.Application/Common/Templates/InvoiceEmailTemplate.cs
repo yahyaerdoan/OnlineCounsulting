@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Net;
 using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.Contracts;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
@@ -30,12 +30,13 @@ public class InvoiceEmailTemplate : IEmailTemplate<InvoiceEmailModel>
     {
         var invoice = model.Invoice;
         var firstName = invoice.BillToName.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "";
+
         var intro = model.Kind switch
         {
-            InvoiceEmailKind.Receipt => $"Thanks for your payment! Here's your receipt for {invoice.Title.ToLowerInvariant()}.",
-            InvoiceEmailKind.Voided => $"Your invoice for {invoice.Title.ToLowerInvariant()} was cancelled, so there's nothing to pay for it."
+            InvoiceEmailKind.Receipt => $"Thanks for your payment! Here's your receipt for {invoice.Title}.",
+            InvoiceEmailKind.Voided => $"Your invoice for {invoice.Title} was cancelled, so there's nothing to pay for it."
                 + (string.IsNullOrWhiteSpace(invoice.VoidReason) ? "" : $" Reason: {invoice.VoidReason}"),
-            _ => $"Here's your invoice for {invoice.Title.ToLowerInvariant()}.",
+            _ => $"Here's your invoice for {invoice.Title}.",
         };
 
         var lines = string.Concat(invoice.Lines.Select(line => $"""
@@ -48,16 +49,20 @@ public class InvoiceEmailTemplate : IEmailTemplate<InvoiceEmailModel>
         var discount = invoice.DiscountAmount > 0
             ? TotalRow(invoice.DiscountLabel ?? "Discount", $"-{Money(invoice.DiscountAmount)}", "#107C10")
             : "";
+
         var tax = invoice.TaxAmount > 0 ? TotalRow("Tax", Money(invoice.TaxAmount)) : "";
+
         var totalLabel = model.Kind switch
         {
             InvoiceEmailKind.Receipt => "Paid",
             InvoiceEmailKind.Voided => "Cancelled",
             _ => "Amount due",
         };
+
         var due = model.Kind == InvoiceEmailKind.Issued && invoice.DueAt is { } dueAt
             ? $"<p style=\"color: #777777;\">Due by {dueAt.ToString("MMMM d, yyyy", Usd)}.</p>"
             : "";
+
         var button = string.IsNullOrWhiteSpace(model.ViewUrl)
             ? ""
             : $"""
