@@ -1,4 +1,7 @@
-﻿using Core.SecurityLayer.JsonWebTokens.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Transactions.Extensions;
+using Core.PersistenceLayer.Repositories.Auditing;
+using Core.SecurityLayer.Extensions;
+using Core.SecurityLayer.JsonWebTokens.Abstractions;
 using Core.SecurityLayer.JsonWebTokens.Concretions;
 using FluentValidation;
 using MediatR;
@@ -21,19 +24,18 @@ using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.Modules.Identity.Infrastructure.LiveUpdates;
 using OnlineConsulting.Modules.Identity.Infrastructure.Notifications;
 using OnlineConsulting.Modules.Identity.Infrastructure.Persistence;
-using OnlineConsulting.Modules.Identity.Infrastructure.Pipelines;
 using OnlineConsulting.Modules.Identity.Infrastructure.Repositories;
 using OnlineConsulting.Modules.Identity.Infrastructure.Security;
 using OnlineConsulting.Modules.Identity.Infrastructure.Seeding;
 using OnlineConsulting.Modules.Identity.Infrastructure.Status;
 using OnlineConsulting.Modules.Identity.Infrastructure.Storage;
-using OnlineConsulting.SharedKernel.Auditing;
 using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.LiveUpdates;
 using OnlineConsulting.SharedKernel.Identity;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
 using System.Text;
+using OnlineConsulting.SharedKernel.Transactions;
 
 namespace OnlineConsulting.Modules.Identity.Infrastructure;
 
@@ -50,7 +52,6 @@ public static class IdentityModule
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-        _ = services.AddScoped<AuditSaveChangesInterceptor>();
 
         _ = services.AddUserDataChangeRules(IdentityUserDataChangeRules.Configure);
         _ = services.AddDbContext<AppIdentityDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
@@ -61,8 +62,8 @@ public static class IdentityModule
             .AddEntityFrameworkStores<AppIdentityDbContext>()
             .AddDefaultTokenProviders();
 
-        _ = services.Configure<TokenOption>(configuration.GetSection("TokenOptions"));
-        _ = services.AddScoped<IJwtTokenHelper, JwtTokenHelper>();
+        _ = services.AddTokenOptions(configuration);
+        _ = services.AddSecurityServices();
 
         _ = services.AddScoped<ITokenService, TokenManager>();
         _ = services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
@@ -88,7 +89,7 @@ public static class IdentityModule
 
         _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
         _ = services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
-        _ = services.AddTransient(typeof(IPipelineBehavior<,>), typeof(IdentityTransactionAddingBehavior<,>));
+        _ = services.AddTransactionalDbContext<IIdentityTransactionRequest, AppIdentityDbContext>();
 
         _ = services.AddSingleton<IDefaultAdminPermissions>(new DefaultAdminPermissions(UsersOperationClaims.All));
         _ = services.AddSingleton<IDefaultAdminPermissions>(new DefaultAdminPermissions(InvitesOperationClaims.All));

@@ -1,8 +1,8 @@
 using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
-using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryItems.Abstractions;
+using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -10,7 +10,7 @@ using System.Text.Json.Serialization;
 namespace OnlineConsulting.Modules.SiteContent.Application.Features.GalleryItems.DeleteGalleryItem;
 
 /// <summary>Also deletes the item's GalleryItemCategory links first - unlike DeleteGalleryCategoryCommand, which leaves links orphaned.</summary>
-public record DeleteGalleryItemCommand(Guid Id) : IRequest<OperationResult>, ISecureAddRequest, ITransactionAddRequest
+public record DeleteGalleryItemCommand(Guid Id) : IRequest<OperationResult>, ISecureAddRequest, ISiteContentTransactionRequest
 {
     [JsonIgnore]
     public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Delete];

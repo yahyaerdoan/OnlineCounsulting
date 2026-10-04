@@ -1,5 +1,4 @@
-﻿using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using OnlineConsulting.Modules.Identity.Application.Common;
@@ -9,12 +8,13 @@ using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
 using OnlineConsulting.SharedKernel.Tenancy;
+using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Identity.Application.Features.Auth.Register;
 
-public record RegisterCommand(string FirstName, string LastName, string UserName, string Email, string Password) : IRequest<OperationResult>, ITransactionAddRequest;
+public record RegisterCommand(string FirstName, string LastName, string UserName, string Email, string Password) : IRequest<OperationResult>, IIdentityTransactionRequest;
 
 public class RegisterHandler(UserManager<User> userManager, IEmailOutboxWriter<IIdentityOutboxModule> outboxWriter, IEmailTemplate<ConfirmEmailEmailModel> confirmEmailTemplate, IOptions<AuthEmailOptions> emailOptions)
     : IRequestHandler<RegisterCommand, OperationResult>

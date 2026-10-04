@@ -1,5 +1,4 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
-using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
 using Core.SecurityLayer.Encryptions;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
@@ -15,6 +14,7 @@ using OnlineConsulting.SharedKernel.CurrentUser;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
 using OnlineConsulting.SharedKernel.Tenancy;
+using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -22,7 +22,7 @@ using System.Text.Json.Serialization;
 namespace OnlineConsulting.Modules.Identity.Application.Features.Invites.CreateInvite;
 
 /// <summary>Invites a teammate into the caller's own tenant. TenantId comes from the JWT, never the client. RoleName defaults to Member; SuperAdmin is rejected.</summary>
-public record CreateInviteCommand(string Email, string? RoleName = null) : IRequest<OperationResult>, ISecureAddRequest, ITransactionAddRequest
+public record CreateInviteCommand(string Email, string? RoleName = null) : IRequest<OperationResult>, ISecureAddRequest, IIdentityTransactionRequest
 {
     [JsonIgnore]
     public string[] Roles => [InvitesOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, InvitesOperationClaims.Add];

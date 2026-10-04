@@ -1,11 +1,12 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+using Core.CrossCuttingConcernLayer.Slugs;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using OnlineConsulting.Modules.Services.Application.Common;
 using OnlineConsulting.Modules.Services.Application.Features.Services.Abstractions;
 using OnlineConsulting.Modules.Services.Application.Features.Services.Constants;
 using OnlineConsulting.Modules.Services.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
-using OnlineConsulting.SharedKernel.Slugs;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -24,7 +25,7 @@ public class CreateServiceHandler(IServiceRepository repository) : IRequestHandl
 {
     public async Task<OperationDataResult<Guid>> Handle(CreateServiceCommand request, CancellationToken cancellationToken)
     {
-        var slug = await SlugGenerator.GenerateUniqueAsync(request.Title, candidate => repository.AnyAsync(s => s.Slug == candidate, cancellationToken: cancellationToken));
+        var slug = await SlugGenerator.GenerateUniqueAsync(request.Title, async prefix => await repository.Query().Where(s => s.Slug.StartsWith(prefix)).Select(s => s.Slug).ToListAsync(cancellationToken));
 
         var service = new Service
         {

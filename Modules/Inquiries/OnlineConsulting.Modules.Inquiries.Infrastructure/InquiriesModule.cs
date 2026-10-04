@@ -1,4 +1,6 @@
-﻿using FluentValidation;
+﻿using Core.ApplicationLayer.Pipelines.Transactions.Extensions;
+using Core.PersistenceLayer.Repositories.Auditing;
+using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -14,13 +16,12 @@ using OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.Abstrac
 using OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.Constants;
 using OnlineConsulting.Modules.Inquiries.Infrastructure.Notifications;
 using OnlineConsulting.Modules.Inquiries.Infrastructure.Persistence;
-using OnlineConsulting.Modules.Inquiries.Infrastructure.Pipelines;
 using OnlineConsulting.Modules.Inquiries.Infrastructure.Repositories;
-using OnlineConsulting.SharedKernel.Auditing;
 using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
 using OnlineConsulting.SharedKernel.Tenancy;
+using OnlineConsulting.SharedKernel.Transactions;
 
 namespace OnlineConsulting.Modules.Inquiries.Infrastructure;
 
@@ -31,7 +32,6 @@ public static class InquiriesModule
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
         _ = services.AddScoped<TenantSaveChangesInterceptor>();
-        _ = services.AddScoped<AuditSaveChangesInterceptor>();
 
         _ = services.AddDbContext<InquiriesDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
             .AddInterceptors(serviceProvider.GetRequiredService<TenantSaveChangesInterceptor>(), serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>()));
@@ -50,7 +50,7 @@ public static class InquiriesModule
 
         _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
         _ = services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
-        _ = services.AddTransient(typeof(IPipelineBehavior<,>), typeof(InquiriesTransactionAddingBehavior<,>));
+        _ = services.AddTransactionalDbContext<IInquiriesTransactionRequest, InquiriesDbContext>();
 
         _ = services.AddSingleton<IDefaultAdminPermissions>(new DefaultAdminPermissions(ContactOperationClaims.All));
         _ = services.AddSingleton<IDefaultAdminPermissions>(new DefaultAdminPermissions(MessagesOperationClaims.All));

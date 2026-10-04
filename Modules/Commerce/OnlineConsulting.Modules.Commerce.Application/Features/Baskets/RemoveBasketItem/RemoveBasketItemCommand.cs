@@ -1,14 +1,14 @@
-﻿using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Modules.Commerce.Application.Features.Baskets.Abstractions;
 using OnlineConsulting.Modules.Commerce.Application.Features.Baskets.Rules;
+using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Baskets.RemoveBasketItem;
 
 /// <summary>Removes a line from the caller's basket; works for guests too.</summary>
-public record RemoveBasketItemCommand(Guid? UserId, Guid? GuestId, Guid BasketItemId) : IRequest<OperationResult>, ITransactionAddRequest;
+public record RemoveBasketItemCommand(Guid? UserId, Guid? GuestId, Guid BasketItemId) : IRequest<OperationResult>, ICommerceTransactionRequest;
 
 public class RemoveBasketItemHandler(IBasketRepository basketRepository) : IRequestHandler<RemoveBasketItemCommand, OperationResult>
 {

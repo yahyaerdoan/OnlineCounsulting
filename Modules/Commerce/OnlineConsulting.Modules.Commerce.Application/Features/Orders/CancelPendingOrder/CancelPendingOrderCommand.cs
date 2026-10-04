@@ -1,13 +1,13 @@
-﻿using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Abstractions;
+using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Orders.CancelPendingOrder;
 
 /// <summary>Cancels the caller's unpaid order; the basket is left as is.</summary>
-public record CancelPendingOrderCommand(Guid OrderId, Guid UserId) : IRequest<OperationResult>, ITransactionAddRequest;
+public record CancelPendingOrderCommand(Guid OrderId, Guid UserId) : IRequest<OperationResult>, ICommerceTransactionRequest;
 
 public class CancelPendingOrderHandler(IOrderRepository orderRepository) : IRequestHandler<CancelPendingOrderCommand, OperationResult>
 {

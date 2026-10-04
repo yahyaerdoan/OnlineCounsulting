@@ -1,4 +1,5 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+using Core.ApplicationLayer.Requests.Lists;
 using Core.ApplicationLayer.Requests.Page;
 using Core.PersistenceLayer.Dynamics.Dynamic;
 using Core.PersistenceLayer.Pagings.Paging;
@@ -14,7 +15,6 @@ using OnlineConsulting.Modules.Identity.Application.Features.Users.Constants;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Contracts;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
-using OnlineConsulting.SharedKernel.Persistence;
 using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -23,8 +23,10 @@ using System.Text.Json.Serialization;
 namespace OnlineConsulting.Modules.Identity.Application.Features.Users.ListUsers;
 
 /// <summary>DynamicQuery carries filter+sort. Tenant scoping stays a separate .Where(), applied first. Role, when set, keeps only users holding it.</summary>
-public record ListUsersQuery(PageRequest PageRequest, DynamicQuery? DynamicQuery = null, string? Role = null) : IRequest<OperationDataResult<Paginate<UserResponse>>>, ISecureAddRequest
+public record ListUsersQuery(PageRequest PageRequest, DynamicQuery? DynamicQuery = null, string? Role = null) : IRequest<OperationDataResult<Paginate<UserResponse>>>, ISecureAddRequest, IDynamicListRequest
 {
+    public static IReadOnlySet<string> QueryableFields { get; } = new HashSet<string>([nameof(User.FirstName), nameof(User.LastName), nameof(User.Email), nameof(User.IsActive), nameof(User.CreatedDate)]);
+
     [JsonIgnore]
     public string[] Roles => [UsersOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, UsersOperationClaims.Read];
 }
@@ -62,7 +64,7 @@ public class ListUsersHandler(UserManager<User> userManager, RoleManager<Role> r
             usersQuery = usersQuery.Where(u => roleUserIds.Contains(u.Id));
         }
 
-        var pagedUsers = await usersQuery.ToDynamicPaginateAsync(request.PageRequest, request.DynamicQuery, defaultOrderBy: u => u.LastName, tieBreaker: u => u.Id, cancellationToken);
+        var pagedUsers = await usersQuery.ToDynamicPaginateAsync(request, defaultOrderBy: u => u.LastName, tieBreaker: u => u.Id, cancellationToken: cancellationToken);
 
         if (pagedUsers.Items.Count == 0)
         {

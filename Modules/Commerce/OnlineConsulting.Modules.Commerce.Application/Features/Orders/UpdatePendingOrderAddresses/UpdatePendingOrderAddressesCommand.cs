@@ -1,15 +1,15 @@
-﻿using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.Abstractions;
 using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.Constants;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Abstractions;
+using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Orders.UpdatePendingOrderAddresses;
 
 /// <summary>Points the caller's unpaid order at their current default shipping and billing addresses.</summary>
-public record UpdatePendingOrderAddressesCommand(Guid OrderId, Guid UserId) : IRequest<OperationResult>, ITransactionAddRequest;
+public record UpdatePendingOrderAddressesCommand(Guid OrderId, Guid UserId) : IRequest<OperationResult>, ICommerceTransactionRequest;
 
 public class UpdatePendingOrderAddressesHandler(IOrderRepository orderRepository, IUserAddressRepository userAddressRepository)
     : IRequestHandler<UpdatePendingOrderAddressesCommand, OperationResult>

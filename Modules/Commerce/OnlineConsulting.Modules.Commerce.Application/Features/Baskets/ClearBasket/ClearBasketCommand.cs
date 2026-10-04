@@ -1,14 +1,14 @@
-﻿using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Modules.Commerce.Application.Features.Baskets.Abstractions;
 using OnlineConsulting.Modules.Commerce.Application.Features.Baskets.Rules;
+using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Baskets.ClearBasket;
 
 /// <summary>Empties the caller's basket.</summary>
-public record ClearBasketCommand(Guid? UserId, Guid? GuestId) : IRequest<OperationResult>, ITransactionAddRequest;
+public record ClearBasketCommand(Guid? UserId, Guid? GuestId) : IRequest<OperationResult>, ICommerceTransactionRequest;
 
 public class ClearBasketHandler(IBasketRepository basketRepository) : IRequestHandler<ClearBasketCommand, OperationResult>
 {

@@ -1,17 +1,17 @@
-﻿using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
-using MediatR;
+﻿using MediatR;
 using Microsoft.Extensions.Options;
 using OnlineConsulting.Modules.Inquiries.Application.Common.Templates;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Messages.Abstractions;
 using OnlineConsulting.Modules.Inquiries.Domain;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
+using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Inquiries.Application.Features.Messages.SubmitMessage;
 
-public record SubmitMessageCommand(string FirstName, string LastName, string Email, string Subject, string Description) : IRequest<OperationResult>, ITransactionAddRequest;
+public record SubmitMessageCommand(string FirstName, string LastName, string Email, string Subject, string Description) : IRequest<OperationResult>, IInquiriesTransactionRequest;
 
 public class SubmitMessageHandler(IMessageRepository repository, IEmailOutboxWriter<IInquiriesOutboxModule> outboxWriter, IEmailTemplate<MessageReceivedEmailModel> receivedTemplate, IEmailTemplate<NewInquiryNotificationEmailModel> notificationTemplate, IOptions<InquiriesOptions> options)
     : IRequestHandler<SubmitMessageCommand, OperationResult>

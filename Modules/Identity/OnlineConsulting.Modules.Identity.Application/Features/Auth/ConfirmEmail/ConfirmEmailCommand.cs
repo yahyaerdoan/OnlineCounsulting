@@ -1,5 +1,4 @@
-﻿using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using OnlineConsulting.Modules.Identity.Application.Common.Templates;
@@ -7,13 +6,14 @@ using OnlineConsulting.Modules.Identity.Application.Features.Users.Constants;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
+using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Identity.Application.Features.Auth.ConfirmEmail;
 
 /// <summary>Confirms a user's email from the link sent by ConfirmEmailTemplate.</summary>
-public record ConfirmEmailCommand(Guid UserId, string Token) : IRequest<OperationResult>, ITransactionAddRequest;
+public record ConfirmEmailCommand(Guid UserId, string Token) : IRequest<OperationResult>, IIdentityTransactionRequest;
 
 public class ConfirmEmailHandler(UserManager<User> userManager, IEmailOutboxWriter<IIdentityOutboxModule> outboxWriter, IEmailTemplate<WelcomeEmailModel> welcomeTemplate, IEmailTemplate<PolicyNoticeEmailModel> policyTemplate, IOptions<AuthEmailOptions> emailOptions)
     : IRequestHandler<ConfirmEmailCommand, OperationResult>

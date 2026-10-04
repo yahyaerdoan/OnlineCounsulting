@@ -11,7 +11,7 @@
 <ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
 
 <ServerDataTable TItem="AdminOrderResponse" @ref="_table" ApiBasePath="@ApiRoutes.Commerce.Orders.All"
-                 SearchPlaceholder="Search order number, email or name" OnLoadError="@(message => _loadError = message)">
+                 SearchPlaceholder="Search order number" OnLoadError="@(message => _loadError = message)">
     <HeaderContent>
         <MudTh><MudTableSortLabel SortLabel="@nameof(AdminOrderResponse.CreatedDate)" T="AdminOrderResponse">Date</MudTableSortLabel></MudTh>
         <MudTh>Order #</MudTh>

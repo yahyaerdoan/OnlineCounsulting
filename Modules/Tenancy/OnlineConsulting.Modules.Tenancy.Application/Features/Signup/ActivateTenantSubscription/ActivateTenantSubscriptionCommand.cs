@@ -9,12 +9,13 @@ using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.
 using OnlineConsulting.Modules.Tenancy.Domain;
 using OnlineConsulting.SharedKernel.Payments;
 using OnlineConsulting.SharedKernel.Tenancy;
+using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.Signup.ActivateTenantSubscription;
 
-/// <summary>Bills the Pending items via ISubscriptionGateway; runs before CreateTenantAdminCommand (pay-first) and is reused by the authenticated retry endpoint. Not ITransactionAddRequest - it charges a real card mid-handler, so a rollback-on-throw would strand a captured charge.</summary>
+/// <summary>Bills the Pending items via ISubscriptionGateway; runs before CreateTenantAdminCommand (pay-first) and is reused by the authenticated retry endpoint. Not ITenancyTransactionRequest - it charges a real card mid-handler, so a rollback-on-throw would strand a captured charge.</summary>
 public record ActivateTenantSubscriptionCommand(Guid TenantId, string PaymentMethodId)
     : IRequest<OperationDataResult<ActivateTenantSubscriptionResult>>, IBypassesTenantStatusCheck;
 

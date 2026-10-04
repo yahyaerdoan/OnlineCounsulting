@@ -1,9 +1,9 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
-using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Commerce.Application.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.Abstractions;
 using OnlineConsulting.Modules.Commerce.Domain;
+using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -15,7 +15,7 @@ namespace OnlineConsulting.Modules.Commerce.Application.Features.Addresses.Creat
 /// unsets that flag on the user's previous holder, since each user has at most one of each.
 /// </summary>
 public record CreateUserAddressCommand(Guid UserId, string AddressName, string? CompanyName, string Country, string AddressLine, string City, string State, string Zipcode, string? Notes, bool IsShippingAddress, bool IsBillingAddress)
-    : IRequest<OperationDataResult<Guid>>, ITransactionAddRequest, ISecureAddRequest
+    : IRequest<OperationDataResult<Guid>>, ICommerceTransactionRequest, ISecureAddRequest
 {
     [JsonIgnore]
     public string[] Roles => [];

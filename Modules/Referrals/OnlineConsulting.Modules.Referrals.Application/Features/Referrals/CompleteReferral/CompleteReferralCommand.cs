@@ -1,19 +1,19 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
-using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Referrals.Application.Common;
 using OnlineConsulting.Modules.Referrals.Application.Features.AccountCredits.Abstractions;
 using OnlineConsulting.Modules.Referrals.Application.Features.Referrals.Abstractions;
 using OnlineConsulting.Modules.Referrals.Domain;
 using OnlineConsulting.SharedKernel.Referrals;
+using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Referrals.Application.Features.Referrals.CompleteReferral;
 
-/// <summary>Manual admin action, not automated - rewarding a referral is a real payout, so it stays a deliberate confirmation step; two writes (Referral + AccountCredit), hence ITransactionAddRequest.</summary>
-public record CompleteReferralCommand(Guid Id, decimal RewardAmount) : IRequest<OperationResult>, ISecureAddRequest, ITransactionAddRequest
+/// <summary>Manual admin action, not automated - rewarding a referral is a real payout, so it stays a deliberate confirmation step; two writes (Referral + AccountCredit), hence IReferralsTransactionRequest.</summary>
+public record CompleteReferralCommand(Guid Id, decimal RewardAmount) : IRequest<OperationResult>, ISecureAddRequest, IReferralsTransactionRequest
 {
     [JsonIgnore]
     public string[] Roles => [ReferralsOperationClaims.Admin, ReferralsOperationClaims.Write];

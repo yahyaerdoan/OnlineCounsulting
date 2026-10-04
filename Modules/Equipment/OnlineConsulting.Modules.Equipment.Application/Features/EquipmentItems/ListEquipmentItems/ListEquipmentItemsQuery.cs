@@ -1,4 +1,5 @@
 using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+using Core.ApplicationLayer.Requests.Lists;
 using Core.ApplicationLayer.Requests.Page;
 using Core.PersistenceLayer.Dynamics.Dynamic;
 using Core.PersistenceLayer.Pagings.Paging;
@@ -6,7 +7,7 @@ using MediatR;
 using OnlineConsulting.Modules.Equipment.Application.Common;
 using OnlineConsulting.Modules.Equipment.Application.Features.EquipmentItems.Abstractions;
 using OnlineConsulting.Modules.Equipment.Application.Features.EquipmentItems.Contracts;
-using OnlineConsulting.SharedKernel.Persistence;
+using OnlineConsulting.Modules.Equipment.Domain;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -14,8 +15,10 @@ using System.Text.Json.Serialization;
 namespace OnlineConsulting.Modules.Equipment.Application.Features.EquipmentItems.ListEquipmentItems;
 
 public record ListEquipmentItemsQuery(PageRequest PageRequest, DynamicQuery? DynamicQuery = null)
-    : IRequest<OperationDataResult<Paginate<EquipmentItemResponse>>>, ISecureAddRequest
+    : IRequest<OperationDataResult<Paginate<EquipmentItemResponse>>>, ISecureAddRequest, IDynamicListRequest
 {
+    public static IReadOnlySet<string> QueryableFields { get; } = new HashSet<string>([nameof(EquipmentItem.Type), nameof(EquipmentItem.Brand), nameof(EquipmentItem.Model), nameof(EquipmentItem.SerialNumber), nameof(EquipmentItem.UserId)]);
+
     [JsonIgnore]
     public string[] Roles => [EquipmentOperationClaims.Admin, EquipmentOperationClaims.Read];
 }
@@ -25,7 +28,7 @@ public class ListEquipmentItemsHandler(IEquipmentItemRepository repository)
 {
     public async Task<OperationDataResult<Paginate<EquipmentItemResponse>>> Handle(ListEquipmentItemsQuery request, CancellationToken cancellationToken)
     {
-        var paged = await repository.Query().ToDynamicPaginateAsync(request.PageRequest, request.DynamicQuery, defaultOrderBy: x => x.Type, tieBreaker: x => x.Id, cancellationToken);
+        var paged = await repository.Query().ToDynamicPaginateAsync(request, defaultOrderBy: x => x.Type, tieBreaker: x => x.Id, cancellationToken: cancellationToken);
 
         var response = new Paginate<EquipmentItemResponse>
         {

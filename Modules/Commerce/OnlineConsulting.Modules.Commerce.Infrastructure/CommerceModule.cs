@@ -1,4 +1,6 @@
-﻿using FluentValidation;
+﻿using Core.ApplicationLayer.Pipelines.Transactions.Extensions;
+using Core.PersistenceLayer.Repositories.Auditing;
+using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -18,15 +20,14 @@ using OnlineConsulting.Modules.Commerce.Infrastructure.LiveUpdates;
 using OnlineConsulting.Modules.Commerce.Infrastructure.Cleanup;
 using OnlineConsulting.Modules.Commerce.Infrastructure.Notifications;
 using OnlineConsulting.Modules.Commerce.Infrastructure.Persistence;
-using OnlineConsulting.Modules.Commerce.Infrastructure.Pipelines;
 using OnlineConsulting.Modules.Commerce.Infrastructure.Repositories;
-using OnlineConsulting.SharedKernel.Auditing;
 using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.Billing;
 using OnlineConsulting.SharedKernel.LiveUpdates;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
 using OnlineConsulting.SharedKernel.Tenancy;
+using OnlineConsulting.SharedKernel.Transactions;
 
 namespace OnlineConsulting.Modules.Commerce.Infrastructure;
 
@@ -37,7 +38,6 @@ public static class CommerceModule
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
         _ = services.AddScoped<TenantSaveChangesInterceptor>();
-        _ = services.AddScoped<AuditSaveChangesInterceptor>();
 
         _ = services.AddUserDataChangeRules(CommerceUserDataChangeRules.Configure);
         _ = services.AddDbContext<CommerceDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
@@ -79,7 +79,7 @@ public static class CommerceModule
 
         _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
         _ = services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
-        _ = services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CommerceTransactionAddingBehavior<,>));
+        _ = services.AddTransactionalDbContext<ICommerceTransactionRequest, CommerceDbContext>();
 
         _ = services.AddSingleton<IDefaultAdminPermissions>(new DefaultAdminPermissions(CommerceOperationClaims.All));
         return services;

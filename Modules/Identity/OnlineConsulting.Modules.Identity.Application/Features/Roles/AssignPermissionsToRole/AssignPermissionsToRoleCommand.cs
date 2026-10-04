@@ -1,5 +1,4 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
-using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
 using Core.SecurityLayer.Authorization;
 using Core.SecurityLayer.Constants;
 using Core.SecurityLayer.Extensions;
@@ -9,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using OnlineConsulting.Modules.Identity.Application.Features.Roles.Constants;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
+using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Security.Claims;
@@ -16,7 +16,7 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Identity.Application.Features.Roles.AssignPermissionsToRole;
 
-public record AssignPermissionsToRoleCommand(Guid RoleId, List<string> Permissions) : IRequest<OperationResult>, ISecureAddRequest, ITransactionAddRequest
+public record AssignPermissionsToRoleCommand(Guid RoleId, List<string> Permissions) : IRequest<OperationResult>, ISecureAddRequest, IIdentityTransactionRequest
 {
     /// <summary>Roles aren't tenant-scoped, so only Super Admin may edit one - it's shared across tenants.</summary>
     [JsonIgnore]

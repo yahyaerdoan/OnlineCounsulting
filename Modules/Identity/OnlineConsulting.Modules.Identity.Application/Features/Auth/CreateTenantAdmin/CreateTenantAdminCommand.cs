@@ -1,7 +1,8 @@
-﻿using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
+﻿using Core.CrossCuttingConcernLayer.Slugs;
 using Core.SecurityLayer.Constants;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using OnlineConsulting.Modules.Identity.Application.Common;
 using OnlineConsulting.Modules.Identity.Application.Common.Templates;
@@ -10,7 +11,7 @@ using OnlineConsulting.Modules.Identity.Application.Features.Auth.Contracts;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
-using OnlineConsulting.SharedKernel.Slugs;
+using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
@@ -18,7 +19,7 @@ namespace OnlineConsulting.Modules.Identity.Application.Features.Auth.CreateTena
 
 /// <summary>Creates a tenant's first user. Runs before billing so a duplicate-email rejection never leaves an orphaned charge. Server-side only, no public route.</summary>
 public record CreateTenantAdminCommand(Guid TenantId, string FirstName, string LastName, string Email, string Password, string? PhoneNumber = null)
-    : IRequest<OperationDataResult<CreateTenantAdminResult>>, ITransactionAddRequest, ITenantAdminFields;
+    : IRequest<OperationDataResult<CreateTenantAdminResult>>, IIdentityTransactionRequest, ITenantAdminFields;
 
 public class CreateTenantAdminHandler(UserManager<User> userManager, IEmailOutboxWriter<IIdentityOutboxModule> outboxWriter, IEmailTemplate<ConfirmEmailEmailModel> confirmEmailTemplate, IOptions<AuthEmailOptions> emailOptions)
     : IRequestHandler<CreateTenantAdminCommand, OperationDataResult<CreateTenantAdminResult>>
@@ -26,7 +27,7 @@ public class CreateTenantAdminHandler(UserManager<User> userManager, IEmailOutbo
     public async Task<OperationDataResult<CreateTenantAdminResult>> Handle(CreateTenantAdminCommand request, CancellationToken cancellationToken)
     {
         var userName = await SlugGenerator.GenerateUniqueAsync($"{request.FirstName} {request.LastName}",
-            async candidate => await userManager.FindByNameAsync(candidate) is not null);
+            async prefix => await userManager.Users.Where(u => u.UserName != null && u.UserName.StartsWith(prefix)).Select(u => u.UserName ?? string.Empty).ToListAsync(cancellationToken));
 
         var user = new User
         {

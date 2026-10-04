@@ -1,4 +1,5 @@
 using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+using Core.ApplicationLayer.Requests.Lists;
 using Core.ApplicationLayer.Requests.Page;
 using Core.PersistenceLayer.Dynamics.Dynamic;
 using Core.PersistenceLayer.Pagings.Paging;
@@ -6,7 +7,7 @@ using MediatR;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.Abstractions;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.Constants;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.Contracts;
-using OnlineConsulting.SharedKernel.Persistence;
+using OnlineConsulting.Modules.Inquiries.Domain;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -14,8 +15,10 @@ using System.Text.Json.Serialization;
 namespace OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.ListNewsletterSubscribers;
 
 public record ListNewsletterSubscribersQuery(PageRequest PageRequest, DynamicQuery? DynamicQuery = null)
-    : IRequest<OperationDataResult<Paginate<NewsletterSubscriberResponse>>>, ISecureAddRequest
+    : IRequest<OperationDataResult<Paginate<NewsletterSubscriberResponse>>>, ISecureAddRequest, IDynamicListRequest
 {
+    public static IReadOnlySet<string> QueryableFields { get; } = new HashSet<string>([nameof(NewsletterSubscriber.Email), nameof(NewsletterSubscriber.CreatedDate)]);
+
     [JsonIgnore]
     public string[] Roles => [NewsletterOperationClaims.Admin, NewsletterOperationClaims.Read];
 }
@@ -25,7 +28,7 @@ public class ListNewsletterSubscribersHandler(INewsletterSubscriberRepository re
 {
     public async Task<OperationDataResult<Paginate<NewsletterSubscriberResponse>>> Handle(ListNewsletterSubscribersQuery request, CancellationToken cancellationToken)
     {
-        var paged = await repository.Query().ToDynamicPaginateAsync(request.PageRequest, request.DynamicQuery, defaultOrderBy: x => x.CreatedDate, tieBreaker: x => x.Id, cancellationToken);
+        var paged = await repository.Query().ToDynamicPaginateAsync(request, defaultOrderBy: x => x.CreatedDate, tieBreaker: x => x.Id, cancellationToken: cancellationToken);
 
         var response = new Paginate<NewsletterSubscriberResponse>
         {

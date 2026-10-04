@@ -1,5 +1,4 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
-using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Commerce.Application.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.Abstractions;
@@ -11,6 +10,7 @@ using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Contracts;
 using OnlineConsulting.Modules.Commerce.Domain;
 using OnlineConsulting.SharedKernel.Payments;
 using OnlineConsulting.SharedKernel.Tenancy;
+using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -20,7 +20,7 @@ using OnlineConsulting.SharedKernel.Catalog;
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Orders.CreateOrderFromBasket;
 
 /// <summary>Turns the caller's basket into an order at current catalog prices and starts its payment.</summary>
-public record CreateOrderFromBasketCommand(Guid UserId, string Email) : IRequest<OperationDataResult<CreateOrderResult>>, ITransactionAddRequest, ISecureAddRequest
+public record CreateOrderFromBasketCommand(Guid UserId, string Email) : IRequest<OperationDataResult<CreateOrderResult>>, ICommerceTransactionRequest, ISecureAddRequest
 {
     [JsonIgnore]
     public string[] Roles => [];

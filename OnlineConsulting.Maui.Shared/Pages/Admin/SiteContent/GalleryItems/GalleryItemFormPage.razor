@@ -58,8 +58,7 @@
             return;
         }
 
-        // No single-item GET endpoint - fetch the unbounded list and find it, as EquipmentFormPage does for its customer picker.
-        var listResult = await ApiClient.QueryAsync<PaginatedResponse<GalleryItemResponse>>(ApiRoutes.Paged(ApiRoutes.SiteContent.GalleryItem.All, 0, int.MaxValue), null);
+        var listResult = await ApiClient.QueryAsync<PaginatedResponse<GalleryItemResponse>>(ApiRoutes.Paged(ApiRoutes.SiteContent.GalleryItem.All, 0, 1), DynamicQuery.ById(itemId));
         var item = listResult.IsSuccessful ? listResult.ResultData?.Items.FirstOrDefault(i => i.Id == itemId) : null;
         if (item is null)
         {

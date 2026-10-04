@@ -1,13 +1,13 @@
-﻿using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Identity;
 using OnlineConsulting.Modules.Identity.Domain;
+using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Identity.Application.Features.Auth.ResetPassword;
 
-public record ResetPasswordCommand(Guid UserId, string Token, string NewPassword) : IRequest<OperationResult>, ITransactionAddRequest;
+public record ResetPasswordCommand(Guid UserId, string Token, string NewPassword) : IRequest<OperationResult>, IIdentityTransactionRequest;
 
 public class ResetPasswordHandler(UserManager<User> userManager) : IRequestHandler<ResetPasswordCommand, OperationResult>
 {

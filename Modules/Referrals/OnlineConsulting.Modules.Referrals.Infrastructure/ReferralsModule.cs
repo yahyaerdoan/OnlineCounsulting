@@ -1,4 +1,6 @@
-﻿using FluentValidation;
+﻿using Core.ApplicationLayer.Pipelines.Transactions.Extensions;
+using Core.PersistenceLayer.Repositories.Auditing;
+using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -13,15 +15,14 @@ using OnlineConsulting.Modules.Referrals.Infrastructure.LiveUpdates;
 using OnlineConsulting.Modules.Referrals.Infrastructure.Ledger;
 using OnlineConsulting.Modules.Referrals.Infrastructure.Notifications;
 using OnlineConsulting.Modules.Referrals.Infrastructure.Persistence;
-using OnlineConsulting.Modules.Referrals.Infrastructure.Pipelines;
 using OnlineConsulting.Modules.Referrals.Infrastructure.Repositories;
-using OnlineConsulting.SharedKernel.Auditing;
 using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.LiveUpdates;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Referrals;
 using OnlineConsulting.SharedKernel.Tenancy;
+using OnlineConsulting.SharedKernel.Transactions;
 
 namespace OnlineConsulting.Modules.Referrals.Infrastructure;
 
@@ -32,7 +33,6 @@ public static class ReferralsModule
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
         _ = services.AddScoped<TenantSaveChangesInterceptor>();
-        _ = services.AddScoped<AuditSaveChangesInterceptor>();
 
         _ = services.AddUserDataChangeRules(ReferralsUserDataChangeRules.Configure);
         _ = services.AddDbContext<ReferralsDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
@@ -49,7 +49,7 @@ public static class ReferralsModule
 
         _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
         _ = services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
-        _ = services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ReferralsTransactionAddingBehavior<,>));
+        _ = services.AddTransactionalDbContext<IReferralsTransactionRequest, ReferralsDbContext>();
 
         _ = services.AddSingleton<IDefaultAdminPermissions>(new DefaultAdminPermissions(ReferralsOperationClaims.All));
         return services;

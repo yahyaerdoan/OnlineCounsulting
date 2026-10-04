@@ -1,4 +1,5 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+using Core.ApplicationLayer.Requests.Lists;
 using Core.ApplicationLayer.Requests.Page;
 using Core.PersistenceLayer.Dynamics.Dynamic;
 using Core.PersistenceLayer.Pagings.Paging;
@@ -8,8 +9,8 @@ using Microsoft.AspNetCore.Http;
 using OnlineConsulting.Modules.Identity.Application.Features.Invites.Abstractions;
 using OnlineConsulting.Modules.Identity.Application.Features.Invites.Constants;
 using OnlineConsulting.Modules.Identity.Application.Features.Invites.Contracts;
+using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
-using OnlineConsulting.SharedKernel.Persistence;
 using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -17,8 +18,10 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Identity.Application.Features.Invites.ListInvites;
 
-public record ListInvitesQuery(PageRequest PageRequest, DynamicQuery? DynamicQuery = null) : IRequest<OperationDataResult<Paginate<InviteResponse>>>, ISecureAddRequest
+public record ListInvitesQuery(PageRequest PageRequest, DynamicQuery? DynamicQuery = null) : IRequest<OperationDataResult<Paginate<InviteResponse>>>, ISecureAddRequest, IDynamicListRequest
 {
+    public static IReadOnlySet<string> QueryableFields { get; } = new HashSet<string>([nameof(Invite.Email), nameof(Invite.Status), nameof(Invite.ExpiresAt)]);
+
     [JsonIgnore]
     public string[] Roles => [InvitesOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, InvitesOperationClaims.Read];
 }
@@ -35,7 +38,7 @@ public class ListInvitesHandler(IInviteRepository inviteRepository, ITenantProvi
             ? inviteRepository.Query()
             : inviteRepository.Query().Where(i => i.TenantId == tenantProvider.TenantId);
 
-        var pagedInvites = await invitesQuery.ToDynamicPaginateAsync(request.PageRequest, request.DynamicQuery, defaultOrderBy: i => i.CreatedDate, tieBreaker: i => i.Id, cancellationToken);
+        var pagedInvites = await invitesQuery.ToDynamicPaginateAsync(request, defaultOrderBy: i => i.CreatedDate, tieBreaker: i => i.Id, cancellationToken: cancellationToken);
 
         var items = pagedInvites.Items.Select(i => new InviteResponse
         {

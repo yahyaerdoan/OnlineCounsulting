@@ -1,9 +1,9 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
-using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Scheduling.Application.Common;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Abstractions;
 using OnlineConsulting.Modules.Scheduling.Domain;
+using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -11,10 +11,10 @@ using OnlineConsulting.SharedKernel.Catalog;
 
 namespace OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.CreateAppointment;
 
-/// <summary>ServiceId null means a generic meeting request, not a booking; ITransactionAddRequest keeps the appointment write and its confirmation-email outbox row atomic.</summary>
+/// <summary>ServiceId null means a generic meeting request, not a booking; ISchedulingTransactionRequest keeps the appointment write and its confirmation-email outbox row atomic.</summary>
 public record CreateAppointmentCommand(Guid UserId, Guid? ServiceId, DateTimeOffset ScheduledStart, DateTimeOffset ScheduledEnd, string? CustomerNote, string? ServiceAddress = null,
     string MeetingType = AppointmentMeetingTypes.InPerson, string? Topic = null)
-    : IRequest<OperationDataResult<Guid>>, ISecureAddRequest, ITransactionAddRequest
+    : IRequest<OperationDataResult<Guid>>, ISecureAddRequest, ISchedulingTransactionRequest
 {
     [JsonIgnore]
     public string[] Roles => [];

@@ -1,4 +1,6 @@
-﻿using FluentValidation;
+﻿using Core.ApplicationLayer.Pipelines.Transactions.Extensions;
+using Core.PersistenceLayer.Repositories.Auditing;
+using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -12,14 +14,13 @@ using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.
 using OnlineConsulting.Modules.Tenancy.Infrastructure.Cleanup;
 using OnlineConsulting.Modules.Tenancy.Infrastructure.Notifications;
 using OnlineConsulting.Modules.Tenancy.Infrastructure.Persistence;
-using OnlineConsulting.Modules.Tenancy.Infrastructure.Pipelines;
 using OnlineConsulting.Modules.Tenancy.Infrastructure.Pricing;
 using OnlineConsulting.Modules.Tenancy.Infrastructure.Repositories;
 using OnlineConsulting.Modules.Tenancy.Infrastructure.Status;
 using OnlineConsulting.Modules.Tenancy.Infrastructure.TimeZones;
-using OnlineConsulting.SharedKernel.Auditing;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Tenancy;
+using OnlineConsulting.SharedKernel.Transactions;
 
 namespace OnlineConsulting.Modules.Tenancy.Infrastructure;
 
@@ -30,7 +31,6 @@ public static class TenancyModule
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-        _ = services.AddScoped<AuditSaveChangesInterceptor>();
 
         _ = services.AddDbContext<TenancyDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
             .AddInterceptors(serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>()));
@@ -56,7 +56,7 @@ public static class TenancyModule
 
         _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
         _ = services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
-        _ = services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TenancyTransactionAddingBehavior<,>));
+        _ = services.AddTransactionalDbContext<ITenancyTransactionRequest, TenancyDbContext>();
 
         return services;
     }

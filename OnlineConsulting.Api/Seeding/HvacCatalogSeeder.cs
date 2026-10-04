@@ -1,9 +1,10 @@
-﻿using OnlineConsulting.Modules.Categories.Application.Features.Categories.Abstractions;
+﻿using Core.CrossCuttingConcernLayer.Slugs;
+using Microsoft.EntityFrameworkCore;
+using OnlineConsulting.Modules.Categories.Application.Features.Categories.Abstractions;
 using OnlineConsulting.Modules.Categories.Domain;
 using OnlineConsulting.Modules.Services.Application.Common;
 using OnlineConsulting.Modules.Services.Application.Features.Services.Abstractions;
 using OnlineConsulting.Modules.Services.Domain;
-using OnlineConsulting.SharedKernel.Slugs;
 using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Api.Seeding;
@@ -40,7 +41,7 @@ public static class HvacCatalogSeeder
 
             foreach (var serviceTitle in categorySeed.ServiceTitles)
             {
-                var slug = await SlugGenerator.GenerateUniqueAsync(serviceTitle, candidate => serviceRepository.AnyAsync(s => s.Slug == candidate));
+                var slug = await SlugGenerator.GenerateUniqueAsync(serviceTitle, async prefix => await serviceRepository.Query().Where(s => s.Slug.StartsWith(prefix)).Select(s => s.Slug).ToListAsync());
 
                 var service = new Service
                 {

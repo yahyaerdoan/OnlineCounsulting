@@ -1,5 +1,4 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
-using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Scheduling.Application.Common;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Abstractions;
@@ -9,6 +8,7 @@ using OnlineConsulting.Modules.Scheduling.Application.Features.WorkOrders.Rules;
 using OnlineConsulting.Modules.Scheduling.Domain;
 using OnlineConsulting.SharedKernel.Billing;
 using OnlineConsulting.SharedKernel.Catalog;
+using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using ResultHandler.Functional;
@@ -16,7 +16,7 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Scheduling.Application.Features.WorkOrders.CreateWorkOrder;
 
-/// <summary>Recording a WorkOrder is what completes the Appointment - no separate CompleteAppointment command, so the two stay in sync; hence ITransactionAddRequest.
+/// <summary>Recording a WorkOrder is what completes the Appointment - no separate CompleteAppointment command, so the two stay in sync; hence ISchedulingTransactionRequest, ICommerceTransactionRequest.
 /// Charges become the customer's invoice; none means the visit isn't billed (e.g. warranty work).</summary>
 public record CreateWorkOrderCommand(Guid AppointmentId,
                                      Guid TechnicianUserId,
@@ -25,7 +25,7 @@ public record CreateWorkOrderCommand(Guid AppointmentId,
                                      DateTimeOffset? CompletedAt,
                                      Guid? EquipmentId = null,
                                      IReadOnlyList<WorkOrderChargeInput>? Charges = null)
-    : IRequest<OperationDataResult<Guid>>, ISecureAddRequest, ITransactionAddRequest
+    : IRequest<OperationDataResult<Guid>>, ISecureAddRequest, ISchedulingTransactionRequest
 {
     [JsonIgnore]
     public string[] Roles => [SchedulingOperationClaims.Admin, SchedulingOperationClaims.Write, SchedulingOperationClaims.Add];

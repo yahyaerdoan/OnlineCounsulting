@@ -1,10 +1,14 @@
-﻿using Core.ApplicationLayer.Pipelines.Authorizations.Concretions;
+﻿using Core.ApplicationLayer.Auditing;
+using Core.ApplicationLayer.Pipelines.Authorizations.Concretions;
 using Core.ApplicationLayer.Pipelines.Cachings.Concretions.CacheBehaviors;
-using Core.ApplicationLayer.Pipelines.Cachings.Concretions.CacheSettings;
+using Core.ApplicationLayer.Pipelines.Cachings.Extensions;
 using Core.ApplicationLayer.Pipelines.Loggings.Concretions;
 using Core.ApplicationLayer.Pipelines.Validations.Concretions;
+using Core.ApplicationLayer.Requests.Lists;
+using Core.ApplicationLayer.Validations;
 using Core.CrossCuttingConcernLayer.ExceptionHandlings.Extensions;
 using Core.SecurityLayer.Authorization;
+using FluentValidation;
 using Hateoas.AspNetCore;
 using MediatR;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -62,7 +66,6 @@ using OnlineConsulting.Payments;
 using OnlineConsulting.ServiceDefaults;
 using OnlineConsulting.SharedKernel.LiveUpdates;
 using OnlineConsulting.SharedKernel.Tenancy;
-using OnlineConsulting.SharedKernel.Validation;
 using OnlineConsulting.Storage;
 using Scalar.AspNetCore;
 
@@ -80,10 +83,12 @@ builder.UseEmulatorCertificateWhenPresent();
 builder.AddServiceDefaults();
 
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddAuditing();
 builder.Services.AddScoped<ITenantProvider, TenantProvider>();
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(AuthorizationAddingBehavior<,>));
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TenantStatusCheckBehavior<,>));
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationAddingBehavior<,>));
+builder.Services.AddTransient(typeof(IValidator<>), typeof(DynamicListRequestValidator<>));
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LogResultAddingBehavior<,>));
 
 var redisConnection = builder.Configuration.GetConnectionString("Redis");
@@ -92,7 +97,7 @@ _ = string.IsNullOrWhiteSpace(redisConnection)
     ? builder.Services.AddDistributedMemoryCache()
     : builder.Services.AddStackExchangeRedisCache(options => options.Configuration = redisConnection);
 
-builder.Services.Configure<CacheSetting>(builder.Configuration.GetSection("CacheSettings"));
+builder.Services.AddCacheSettings(builder.Configuration);
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CacheAddingBehavior<,>));
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CacheRemovingBehavior<,>));
 

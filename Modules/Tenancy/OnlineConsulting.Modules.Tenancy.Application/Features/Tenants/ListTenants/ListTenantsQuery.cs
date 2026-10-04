@@ -1,4 +1,5 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+using Core.ApplicationLayer.Requests.Lists;
 using Core.ApplicationLayer.Requests.Page;
 using Core.PersistenceLayer.Dynamics.Dynamic;
 using Core.PersistenceLayer.Pagings.Paging;
@@ -9,7 +10,6 @@ using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionIt
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
-using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -18,8 +18,10 @@ namespace OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.ListTena
 
 /// <summary>Paginated sibling of GetAllTenantsQuery, filterable/sortable via DynamicQuery - backs the ServerDataTable-driven Tenants admin screen. Same active-module/price enrichment join as GetAllTenantsQuery.</summary>
 public record ListTenantsQuery(PageRequest PageRequest, DynamicQuery? DynamicQuery = null, string? Status = null)
-    : IRequest<OperationDataResult<Paginate<TenantSummaryResponse>>>, ISecureAddRequest
+    : IRequest<OperationDataResult<Paginate<TenantSummaryResponse>>>, ISecureAddRequest, IDynamicListRequest
 {
+    public static IReadOnlySet<string> QueryableFields { get; } = new HashSet<string>([nameof(Tenant.Name), nameof(Tenant.Slug), nameof(Tenant.PrimaryContactEmail), nameof(Tenant.CreatedDate)]);
+
     [JsonIgnore]
     public string[] Roles => [GlobalOperationClaims.SuperAdmin];
 
@@ -35,7 +37,7 @@ public class ListTenantsHandler(ITenantRepository tenantRepository, ITenantSubsc
     {
         var query = string.IsNullOrWhiteSpace(request.Status) ? tenantRepository.Query() : tenantRepository.Query().Where(t => t.Status == request.Status);
 
-        var tenants = await query.ToDynamicPaginateAsync(request.PageRequest, request.DynamicQuery, defaultOrderBy: t => t.Name, tieBreaker: t => t.Id, cancellationToken);
+        var tenants = await query.ToDynamicPaginateAsync(request, defaultOrderBy: t => t.Name, tieBreaker: t => t.Id, cancellationToken: cancellationToken);
 
         if (tenants.Items.Count == 0)
         {

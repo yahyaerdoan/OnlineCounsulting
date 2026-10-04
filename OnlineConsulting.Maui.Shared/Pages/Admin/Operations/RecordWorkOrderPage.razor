@@ -30,12 +30,7 @@ else
         <MudPaper Class="pa-4">
             <MudGrid Spacing="3">
                 <MudItem xs="12" md="6">
-                    <MudSelect T="Guid" @bind-Value="_model.TechnicianUserId" Label="Technician" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true">
-                        @foreach (var technician in _technicians)
-                        {
-                            <MudSelectItem T="Guid" Value="@technician.Id">@($"{technician.FirstName} {technician.LastName} ({technician.Email})")</MudSelectItem>
-                        }
-                    </MudSelect>
+                    <UserPicker Label="Technician" Required="true" Value="@_model.TechnicianUserId" ValueChanged="@((Guid? id) => _model.TechnicianUserId = id ?? Guid.Empty)" />
                 </MudItem>
 
                 <MudItem xs="12">
@@ -162,7 +157,6 @@ else
     public Guid AppointmentId { get; set; }
 
     private readonly RecordWorkOrderFormModel _model = new();
-    private List<UserResponse> _technicians = [];
     private List<EquipmentItemResponse> _existingEquipment = [];
     private Guid _customerUserId;
     private bool _loading = true;
@@ -219,16 +213,8 @@ else
             _model.TechnicianUserId = technicianId;
         }
 
-        // Legacy AssignTechnicianViewModel offers every tenant user as a candidate - no separate Technician role to filter on.
-        var usersResult = await ApiClient.QueryAsync<PaginatedResponse<UserResponse>>(ApiRoutes.Paged(ApiRoutes.Users.All, 0, int.MaxValue), null);
-        _technicians = usersResult.IsSuccessful && usersResult.ResultData is not null ? usersResult.ResultData.Items : [];
-        if (_model.TechnicianUserId == Guid.Empty && _technicians.Count > 0)
-        {
-            _model.TechnicianUserId = _technicians[0].Id;
-        }
-
         var equipmentResult = await ApiClient.QueryAsync<PaginatedResponse<EquipmentItemResponse>>(
-            ApiRoutes.Paged(ApiRoutes.Operations.Equipment.All, 0, 200),
+            ApiRoutes.Paged(ApiRoutes.Operations.Equipment.All, 0, 100),
             new DynamicQuery(null, new DynamicFilter(nameof(EquipmentItemResponse.UserId), "eq", _customerUserId.ToString())));
         _existingEquipment = equipmentResult.IsSuccessful && equipmentResult.ResultData is not null ? equipmentResult.ResultData.Items : [];
 

@@ -1,17 +1,16 @@
-﻿using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Modules.Commerce.Application.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Baskets.Abstractions;
 using OnlineConsulting.Modules.Commerce.Application.Features.Baskets.Constants;
 using OnlineConsulting.SharedKernel.Catalog;
+using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Baskets.AddBasketItem;
 
 /// <summary>Adds a product to the caller's (user or guest) basket at its catalog price; works for anonymous guests too.</summary>
-public record AddBasketItemCommand(Guid? UserId, Guid? GuestId, Guid ServiceId, int Quantity)
-    : IRequest<OperationResult>, ITransactionAddRequest;
+public record AddBasketItemCommand(Guid? UserId, Guid? GuestId, Guid ServiceId, int Quantity) : IRequest<OperationResult>, ICommerceTransactionRequest;
 
 public class AddBasketItemHandler(IBasketRepository basketRepository, IServiceCatalogReader catalogReader) : IRequestHandler<AddBasketItemCommand, OperationResult>
 {

@@ -1,4 +1,5 @@
 using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+using Core.ApplicationLayer.Requests.Lists;
 using Core.ApplicationLayer.Requests.Page;
 using Core.PersistenceLayer.Dynamics.Dynamic;
 using Core.PersistenceLayer.Pagings.Paging;
@@ -6,7 +7,7 @@ using MediatR;
 using OnlineConsulting.Modules.Referrals.Application.Common;
 using OnlineConsulting.Modules.Referrals.Application.Features.Referrals.Abstractions;
 using OnlineConsulting.Modules.Referrals.Application.Features.Referrals.Contracts;
-using OnlineConsulting.SharedKernel.Persistence;
+using OnlineConsulting.Modules.Referrals.Domain;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -14,8 +15,10 @@ using System.Text.Json.Serialization;
 namespace OnlineConsulting.Modules.Referrals.Application.Features.Referrals.ListReferrals;
 
 public record ListReferralsQuery(PageRequest PageRequest, DynamicQuery? DynamicQuery = null)
-    : IRequest<OperationDataResult<Paginate<ReferralResponse>>>, ISecureAddRequest
+    : IRequest<OperationDataResult<Paginate<ReferralResponse>>>, ISecureAddRequest, IDynamicListRequest
 {
+    public static IReadOnlySet<string> QueryableFields { get; } = new HashSet<string>([nameof(Referral.Code), nameof(Referral.Status)]);
+
     [JsonIgnore]
     public string[] Roles => [ReferralsOperationClaims.Admin, ReferralsOperationClaims.Read];
 }
@@ -25,7 +28,7 @@ public class ListReferralsHandler(IReferralRepository repository)
 {
     public async Task<OperationDataResult<Paginate<ReferralResponse>>> Handle(ListReferralsQuery request, CancellationToken cancellationToken)
     {
-        var paged = await repository.Query().ToDynamicPaginateAsync(request.PageRequest, request.DynamicQuery, defaultOrderBy: r => r.CreatedDate, tieBreaker: r => r.Id, cancellationToken);
+        var paged = await repository.Query().ToDynamicPaginateAsync(request, defaultOrderBy: r => r.CreatedDate, tieBreaker: r => r.Id, cancellationToken: cancellationToken);
 
         var response = new Paginate<ReferralResponse>
         {

@@ -1,16 +1,16 @@
-﻿using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Modules.Inquiries.Application.Common.Templates;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.Abstractions;
 using OnlineConsulting.Modules.Inquiries.Domain;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
+using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.Subscribe;
 
-public record SubscribeNewsletterCommand(string Email) : IRequest<OperationResult>, ITransactionAddRequest;
+public record SubscribeNewsletterCommand(string Email) : IRequest<OperationResult>, IInquiriesTransactionRequest;
 
 public class SubscribeNewsletterHandler(INewsletterSubscriberRepository repository, IEmailOutboxWriter<IInquiriesOutboxModule> outboxWriter, IEmailTemplate<NewsletterSubscribedEmailModel> template)
     : IRequestHandler<SubscribeNewsletterCommand, OperationResult>

@@ -856,10 +856,11 @@ namespace OnlineConsulting.Modules.SiteContent.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Slug")
-                        .IsUnique();
-
                     b.HasIndex("TenantId", "DeletedDate");
+
+                    b.HasIndex("TenantId", "Slug")
+                        .IsUnique()
+                        .HasFilter("[DeletedDate] IS NULL");
 
                     b.ToTable("ServiceAreas", "SiteContent");
                 });

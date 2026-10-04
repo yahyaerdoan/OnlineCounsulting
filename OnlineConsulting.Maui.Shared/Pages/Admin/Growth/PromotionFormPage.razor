@@ -72,7 +72,7 @@
             return;
         }
 
-        var result = await ApiClient.QueryAsync<PaginatedResponse<PromotionResponse>>(ApiRoutes.Paged(ApiRoutes.Growth.Promotions.All, 0, int.MaxValue), null);
+        var result = await ApiClient.QueryAsync<PaginatedResponse<PromotionResponse>>(ApiRoutes.Paged(ApiRoutes.Growth.Promotions.All, 0, 1), DynamicQuery.ById(promotionId));
         if (!result.IsSuccessful || result.ResultData is null)
         {
             _loadError = result.DisplayMessage;

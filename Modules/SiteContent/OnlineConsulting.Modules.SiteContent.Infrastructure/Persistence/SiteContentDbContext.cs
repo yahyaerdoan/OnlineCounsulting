@@ -7,7 +7,7 @@ using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.SiteContent.Infrastructure.Persistence;
 
-/// <summary>EF Core context for the SiteContent module. Applies tenant/soft-delete filtering and per-entity property lengths; enforces uniqueness on ServiceArea.Slug and the GalleryItemCategory (TenantId, GalleryItemId, GalleryCategoryId) combination, and indexes FaqItem.ServiceId. AboutUs.Description is sized for rich-text HTML from MudExRichTextEdit rather than plain text.</summary>
+/// <summary>EF Core context for the SiteContent module. Applies tenant/soft-delete filtering and per-entity property lengths; enforces per-tenant uniqueness on live ServiceArea slugs and the GalleryItemCategory (TenantId, GalleryItemId, GalleryCategoryId) combination, and indexes FaqItem.ServiceId. AboutUs.Description is sized for rich-text HTML from MudExRichTextEdit rather than plain text.</summary>
 public class SiteContentDbContext(DbContextOptions<SiteContentDbContext> options, ITenantProvider tenantProvider) : DbContext(options)
 {
     public DbSet<AboutUs> AboutUss => Set<AboutUs>();
@@ -179,7 +179,7 @@ public class SiteContentDbContext(DbContextOptions<SiteContentDbContext> options
             _ = builder.Property(x => x.Slug).HasMaxLength(120).IsRequired();
             _ = builder.Property(x => x.IntroText).HasMaxLength(2000);
             _ = builder.Property(x => x.RowVersion).IsRowVersion();
-            _ = builder.HasIndex(x => x.Slug).IsUnique();
+            _ = builder.HasIndex(x => new { x.TenantId, x.Slug }).IsUnique().HasFilter("[DeletedDate] IS NULL");
             _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 

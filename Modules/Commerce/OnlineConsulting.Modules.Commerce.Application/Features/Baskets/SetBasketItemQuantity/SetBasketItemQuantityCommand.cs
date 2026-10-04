@@ -1,14 +1,14 @@
-using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Commerce.Application.Features.Baskets.Abstractions;
 using OnlineConsulting.Modules.Commerce.Application.Features.Baskets.Rules;
+using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Baskets.SetBasketItemQuantity;
 
 /// <summary>Sets a line's quantity to an absolute value (the cart's +/- stepper); works for guests too.</summary>
-public record SetBasketItemQuantityCommand(Guid? UserId, Guid? GuestId, Guid BasketItemId, int Quantity) : IRequest<OperationResult>, ITransactionAddRequest;
+public record SetBasketItemQuantityCommand(Guid? UserId, Guid? GuestId, Guid BasketItemId, int Quantity) : IRequest<OperationResult>, ICommerceTransactionRequest;
 
 public class SetBasketItemQuantityHandler(IBasketRepository basketRepository) : IRequestHandler<SetBasketItemQuantityCommand, OperationResult>
 {

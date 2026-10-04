@@ -1,15 +1,15 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
-using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Commerce.Application.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.Abstractions;
+using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Addresses.SetBillingAddress;
 
-public record SetBillingAddressCommand(Guid UserId, Guid AddressId) : IRequest<OperationResult>, ITransactionAddRequest, ISecureAddRequest
+public record SetBillingAddressCommand(Guid UserId, Guid AddressId) : IRequest<OperationResult>, ICommerceTransactionRequest, ISecureAddRequest
 {
     [JsonIgnore]
     public string[] Roles => [];

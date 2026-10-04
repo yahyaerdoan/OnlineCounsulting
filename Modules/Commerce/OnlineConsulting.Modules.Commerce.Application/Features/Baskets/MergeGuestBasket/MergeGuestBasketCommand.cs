@@ -1,14 +1,14 @@
-﻿using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Modules.Commerce.Application.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Baskets.Abstractions;
+using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Baskets.MergeGuestBasket;
 
 /// <summary>Moves a guest basket into the user's basket after sign-in; matching lines add up. Runs before Commerce sees the new token, so it is not secured.</summary>
-public record MergeGuestBasketCommand(Guid UserId, Guid GuestId) : IRequest<OperationResult>, ITransactionAddRequest;
+public record MergeGuestBasketCommand(Guid UserId, Guid GuestId) : IRequest<OperationResult>, ICommerceTransactionRequest;
 
 public class MergeGuestBasketHandler(IBasketRepository basketRepository) : IRequestHandler<MergeGuestBasketCommand, OperationResult>
 {

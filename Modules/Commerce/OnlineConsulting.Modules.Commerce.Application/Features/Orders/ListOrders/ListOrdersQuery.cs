@@ -1,4 +1,5 @@
 using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+using Core.ApplicationLayer.Requests.Lists;
 using Core.ApplicationLayer.Requests.Page;
 using Core.PersistenceLayer.Dynamics.Dynamic;
 using Core.PersistenceLayer.Pagings.Paging;
@@ -6,8 +7,8 @@ using MediatR;
 using OnlineConsulting.Modules.Commerce.Application.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Abstractions;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Contracts;
+using OnlineConsulting.Modules.Commerce.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
-using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -16,8 +17,10 @@ namespace OnlineConsulting.Modules.Commerce.Application.Features.Orders.ListOrde
 
 /// <summary>Every user's orders for staff, one page at a time, with per-order totals.</summary>
 public record ListOrdersQuery(PageRequest PageRequest, DynamicQuery? DynamicQuery = null)
-    : IRequest<OperationDataResult<Paginate<AdminOrderResponse>>>, ISecureAddRequest
+    : IRequest<OperationDataResult<Paginate<AdminOrderResponse>>>, ISecureAddRequest, IDynamicListRequest
 {
+    public static IReadOnlySet<string> QueryableFields { get; } = new HashSet<string>([nameof(Order.OrderNumber), nameof(Order.CreatedDate)]);
+
     [JsonIgnore]
     public string[] Roles => [CommerceOperationClaims.Admin, CommerceOperationClaims.Read, GlobalOperationClaims.SuperAdmin];
 }
@@ -27,7 +30,7 @@ public class ListOrdersHandler(IOrderRepository orderRepository, IOrderItemRepos
 {
     public async Task<OperationDataResult<Paginate<AdminOrderResponse>>> Handle(ListOrdersQuery request, CancellationToken cancellationToken)
     {
-        var paged = await orderRepository.Query().ToDynamicPaginateAsync(request.PageRequest, request.DynamicQuery, defaultOrderBy: o => o.CreatedDate, tieBreaker: o => o.Id, cancellationToken);
+        var paged = await orderRepository.Query().ToDynamicPaginateAsync(request, defaultOrderBy: o => o.CreatedDate, tieBreaker: o => o.Id, cancellationToken: cancellationToken);
 
         if (paged.Items.Count == 0)
         {

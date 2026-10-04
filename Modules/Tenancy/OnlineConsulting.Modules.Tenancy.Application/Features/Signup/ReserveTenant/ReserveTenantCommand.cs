@@ -1,4 +1,4 @@
-﻿using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
+﻿using Core.CrossCuttingConcernLayer.Slugs;
 using MediatR;
 using OnlineConsulting.Modules.Tenancy.Application.Features.ModuleOfferings.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Signup.Constants;
@@ -8,14 +8,14 @@ using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionIt
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Domain;
 using OnlineConsulting.SharedKernel.Payments;
-using OnlineConsulting.SharedKernel.Slugs;
+using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.Signup.ReserveTenant;
 
 /// <summary>First half of self-service signup, public/no-auth - creates/reuses the Tenant + PendingPayment items so the free email-uniqueness check runs before the irreversible Stripe charge.</summary>
-public record ReserveTenantCommand(string CompanyName, List<string> ModuleKeys, string AdminEmail) : IRequest<OperationDataResult<ReserveTenantResult>>, ITransactionAddRequest;
+public record ReserveTenantCommand(string CompanyName, List<string> ModuleKeys, string AdminEmail) : IRequest<OperationDataResult<ReserveTenantResult>>, ITenancyTransactionRequest;
 
 public class ReserveTenantHandler(ITenantRepository tenantRepository, ITenantSubscriptionRepository tenantSubscriptionRepository, ITenantSubscriptionItemRepository tenantSubscriptionItemRepository, IModuleOfferingRepository moduleOfferingRepository, ISubscriptionGateway subscriptionGateway)
     : IRequestHandler<ReserveTenantCommand, OperationDataResult<ReserveTenantResult>>

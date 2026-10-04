@@ -1,4 +1,5 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+using Core.ApplicationLayer.Requests.Lists;
 using Core.ApplicationLayer.Requests.Page;
 using Core.PersistenceLayer.Dynamics.Dynamic;
 using Core.PersistenceLayer.Pagings.Paging;
@@ -10,7 +11,6 @@ using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMembersh
 using OnlineConsulting.Modules.Memberships.Application.Features.MembershipPlans.Abstractions;
 using OnlineConsulting.Modules.Memberships.Domain;
 using OnlineConsulting.SharedKernel.Identity;
-using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -19,8 +19,10 @@ namespace OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemb
 
 /// <summary>Search matches the member's name or email, the plan name or the status; View narrows by CustomerMembershipListViews.</summary>
 public record ListCustomerMembershipsQuery(PageRequest PageRequest, DynamicQuery? DynamicQuery = null, string? Search = null, string? View = null)
-    : IRequest<OperationDataResult<Paginate<CustomerMembershipResponse>>>, ISecureAddRequest
+    : IRequest<OperationDataResult<Paginate<CustomerMembershipResponse>>>, ISecureAddRequest, IDynamicListRequest
 {
+    public static IReadOnlySet<string> QueryableFields { get; } = new HashSet<string>([nameof(CustomerMembership.StartDate), nameof(CustomerMembership.RenewalDate)]);
+
     [JsonIgnore]
     public string[] Roles => [MembershipsOperationClaims.Admin, MembershipsOperationClaims.Read];
 }
@@ -57,7 +59,7 @@ public class ListCustomerMembershipsHandler(ICustomerMembershipRepository reposi
             query = query.Where(m => userIds.Contains(m.UserId) || planIds.Contains(m.MembershipPlanId) || m.Status.Contains(term));
         }
 
-        var paged = await query.ToDynamicPaginateAsync(request.PageRequest, request.DynamicQuery, defaultOrderBy: m => m.StartDate, tieBreaker: m => m.Id, cancellationToken);
+        var paged = await query.ToDynamicPaginateAsync(request, defaultOrderBy: m => m.StartDate, tieBreaker: m => m.Id, cancellationToken: cancellationToken);
 
         var contacts = (await contactReader.GetContactsAsync([.. paged.Items.Select(m => m.UserId).Distinct()], cancellationToken)).ToDictionary(c => c.Id);
 

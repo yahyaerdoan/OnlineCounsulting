@@ -9,6 +9,7 @@ using OnlineConsulting.Modules.Memberships.Application.Features.PromoCodes;
 using OnlineConsulting.Modules.Memberships.Domain;
 using OnlineConsulting.SharedKernel.Payments;
 using OnlineConsulting.SharedKernel.Referrals;
+using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -28,7 +29,7 @@ public record SubscribeToMembershipCommand(Guid UserId,
     public string[] Roles => [];
 }
 
-/// <summary>Deliberately not ITransactionAddRequest - a real card charge happens partway through, so each repository call saves immediately instead of rolling back and losing the charge's trace. Account credit is reserved before the charge and reversed if the charge fails.</summary>
+/// <summary>Deliberately not IMembershipsTransactionRequest, IReferralsTransactionRequest - a real card charge happens partway through, so each repository call saves immediately instead of rolling back and losing the charge's trace. Account credit is reserved before the charge and reversed if the charge fails.</summary>
 public class SubscribeToMembershipHandler(ICustomerMembershipRepository membershipRepository,
                                           IMembershipPlanRepository planRepository,
                                           IPromoCodeRepository promoCodeRepository,

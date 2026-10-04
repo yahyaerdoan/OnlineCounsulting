@@ -1,17 +1,17 @@
-﻿using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using OnlineConsulting.Modules.Identity.Application.Common.Templates;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
+using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Identity.Application.Features.Auth.ForgotPassword;
 
-public record ForgotPasswordCommand(string Email) : IRequest<OperationResult>, ITransactionAddRequest;
+public record ForgotPasswordCommand(string Email) : IRequest<OperationResult>, IIdentityTransactionRequest;
 
 /// <summary>Always returns the same success message whether or not the email exists, to prevent account enumeration.</summary>
 public class ForgotPasswordHandler(UserManager<User> userManager, IEmailOutboxWriter<IIdentityOutboxModule> outboxWriter, IEmailTemplate<ForgotPasswordEmailModel> template, IOptions<AuthEmailOptions> emailOptions)
