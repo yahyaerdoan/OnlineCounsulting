@@ -1,6 +1,6 @@
-namespace OnlineConsulting.Modules.Commerce.Application.Features.Invoices.Constants;
+namespace OnlineConsulting.Modules.Commerce.Domain;
 
-/// <summary>Card is an online payment; Cash and Check are recorded by staff; Covered is a zero-total invoice (e.g. fully discounted).</summary>
+/// <summary>Values of <see cref="Invoice.PaymentMethod"/>: Card online or on site, Cash and Check recorded by staff, Covered for a zero total.</summary>
 public static class InvoicePaymentMethods
 {
     public const string Card = "Card";
@@ -9,4 +9,6 @@ public static class InvoicePaymentMethods
     public const string Covered = "Covered";
 
     public static readonly string[] Offline = [Cash, Check, Card];
+
+    public static readonly string[] All = [Card, Cash, Check, Covered];
 }

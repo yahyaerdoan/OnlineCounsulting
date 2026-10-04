@@ -1,7 +1,8 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.Abstractions;
 using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.Constants;
 using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.Contracts;
+using OnlineConsulting.Modules.Commerce.Domain;
 using OnlineConsulting.SharedKernel.Payments;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -12,18 +13,18 @@ namespace OnlineConsulting.Modules.Commerce.Application.Features.Invoices.PayInv
 /// synchronously marks it paid right away; otherwise the client confirms with ClientSecret and the webhook marks it paid.</summary>
 public record PayInvoiceCommand(Guid Id, Guid UserId) : IRequest<OperationDataResult<PayInvoiceResult>>;
 
-public class PayInvoiceHandler(IInvoiceRepository repository, IPaymentGateway paymentGateway, IInvoiceService invoiceService)
-    : IRequestHandler<PayInvoiceCommand, OperationDataResult<PayInvoiceResult>>
+public class PayInvoiceHandler(IInvoiceRepository repository, IPaymentGateway paymentGateway, IInvoiceService invoiceService) : IRequestHandler<PayInvoiceCommand, OperationDataResult<PayInvoiceResult>>
 {
     public async Task<OperationDataResult<PayInvoiceResult>> Handle(PayInvoiceCommand request, CancellationToken cancellationToken)
     {
         var invoice = await repository.GetAsync(i => i.Id == request.Id && i.UserId == request.UserId, cancellationToken: cancellationToken);
+
         if (invoice is null)
         {
             return Result.NotFound<PayInvoiceResult>(InvoiceMessages.NotFound);
         }
 
-        if (invoice.Status != InvoiceStatuses.Open)
+        if (!invoice.IsOpen)
         {
             return Result.Conflict<PayInvoiceResult>(InvoiceMessages.OnlyOpenCanBePaid);
         }
@@ -34,23 +35,25 @@ public class PayInvoiceHandler(IInvoiceRepository repository, IPaymentGateway pa
         }
 
         PaymentIntentResult intent;
+
         try
         {
-            intent = await paymentGateway.CreatePaymentIntentAsync(new CreatePaymentIntentRequest(invoice.Total, invoice.Currency.ToLowerInvariant(), invoice.Id.ToString(),
-                invoice.BillToEmail, $"invoice-pay:{invoice.Id}:{invoice.Total:0.00}"), cancellationToken);
+            intent = await paymentGateway
+                .CreatePaymentIntentAsync(new CreatePaymentIntentRequest(invoice.Total, invoice.Currency.ToLowerInvariant(), invoice.Id.ToString(), invoice.BillToEmail, $"invoice-pay:{invoice.Id}:{invoice.Total:0.00}"), cancellationToken);
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
             return Result.BadGateway<PayInvoiceResult>(InvoiceMessages.PaymentSetupFailed);
         }
 
-        invoice.PaymentProvider = paymentGateway.ProviderName;
-        invoice.ProviderPaymentId = intent.ProviderPaymentId;
+        invoice.StartCardPayment(paymentGateway.ProviderName, intent.ProviderPaymentId);
+
         _ = await repository.UpdateAsync(invoice);
 
         if (intent.Status == PaymentStatuses.Succeeded)
         {
             await invoiceService.MarkPaidAsync(invoice, InvoicePaymentMethods.Card, paymentGateway.ProviderName, intent.ProviderPaymentId, cancellationToken);
+
             return Result.Success(new PayInvoiceResult(true, null), "Payment received. Thank you!");
         }
 

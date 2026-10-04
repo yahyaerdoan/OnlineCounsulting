@@ -1,10 +1,10 @@
 using Hateoas.AspNetCore;
 using OnlineConsulting.Api.Common.Hateoas;
-using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.Constants;
 using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.Contracts;
 using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.GetInvoiceForStaff;
 using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.MarkInvoicePaid;
 using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.VoidInvoice;
+using OnlineConsulting.Modules.Commerce.Domain;
 
 namespace OnlineConsulting.Api.Features.Commerce.Invoices;
 
@@ -17,14 +17,14 @@ public sealed class InvoiceLinks : LinkProvider<InvoiceResponse>
     protected override void AddLinks(InvoiceResponse resource, HateoasLinkBuilder links)
     {
         var id = new { id = resource.Id };
-        var open = resource.Status == InvoiceStatuses.Open;
+        var open = InvoiceRules.IsOpen(resource.Status);
 
         if (links.User.IsUser(resource.UserId))
         {
             _ = links
                 .Self("GetMyInvoice", id)
                 .AddCustom(Rels.Pdf, "GetMyInvoicePdf", HttpMethods.Get, id)
-                .AddCustomIf(open && resource.Total > 0, Rels.Pay, "PayMyInvoice", HttpMethods.Post, id);
+                .AddCustomIf(InvoiceRules.CanBePaidByCustomer(resource.Status, resource.Total), Rels.Pay, "PayMyInvoice", HttpMethods.Post, id);
             return;
         }
 

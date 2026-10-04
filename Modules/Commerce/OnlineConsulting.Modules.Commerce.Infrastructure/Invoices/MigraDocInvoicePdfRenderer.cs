@@ -1,10 +1,10 @@
+using OnlineConsulting.Modules.Commerce.Domain;
 using System.Globalization;
 using MigraDoc.DocumentObjectModel;
 using MigraDoc.DocumentObjectModel.Tables;
 using MigraDoc.Rendering;
 using OnlineConsulting.Modules.Commerce.Application.Features.Invoices;
 using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.Abstractions;
-using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.Constants;
 using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.Contracts;
 using PdfSharp.Fonts;
 

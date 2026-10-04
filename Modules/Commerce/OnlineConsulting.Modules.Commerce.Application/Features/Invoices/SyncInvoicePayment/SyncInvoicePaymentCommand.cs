@@ -1,7 +1,8 @@
-using MediatR;
+﻿using MediatR;
 using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.Abstractions;
 using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.Constants;
 using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.Contracts;
+using OnlineConsulting.Modules.Commerce.Domain;
 using OnlineConsulting.SharedKernel.Payments;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -15,24 +16,24 @@ namespace OnlineConsulting.Modules.Commerce.Application.Features.Invoices.SyncIn
 /// </summary>
 public record SyncInvoicePaymentCommand(Guid Id, Guid UserId) : IRequest<OperationDataResult<SyncInvoicePaymentResult>>;
 
-public class SyncInvoicePaymentHandler(IInvoiceRepository repository, IPaymentGateway paymentGateway, IPublisher publisher)
-    : IRequestHandler<SyncInvoicePaymentCommand, OperationDataResult<SyncInvoicePaymentResult>>
+public class SyncInvoicePaymentHandler(IInvoiceRepository repository, IPaymentGateway paymentGateway, IPublisher publisher) : IRequestHandler<SyncInvoicePaymentCommand, OperationDataResult<SyncInvoicePaymentResult>>
 {
     public async Task<OperationDataResult<SyncInvoicePaymentResult>> Handle(SyncInvoicePaymentCommand request, CancellationToken cancellationToken)
     {
         var invoice = await repository.GetAsync(i => i.Id == request.Id && i.UserId == request.UserId, enableTracking: false, cancellationToken: cancellationToken);
+
         if (invoice is null)
         {
             return Result.NotFound<SyncInvoicePaymentResult>(InvoiceMessages.NotFound);
         }
 
-        if (invoice.Status != InvoiceStatuses.Open || invoice.ProviderPaymentId is not { } providerPaymentId || invoice.PaymentProvider != paymentGateway.ProviderName)
+        if (!invoice.IsOpen || invoice.ProviderPaymentId is not { } providerPaymentId || invoice.PaymentProvider != paymentGateway.ProviderName)
         {
             return Result.Success(new SyncInvoicePaymentResult(invoice.Status, invoice.Status == InvoiceStatuses.Paid), "Invoice status unchanged.");
         }
 
-        var (failure, status) = await PaymentGatewayCall.RunWithResultAsync(() => paymentGateway.GetStatusAsync(providerPaymentId, cancellationToken),
-            InvoiceMessages.PaymentSetupFailed);
+        var (failure, status) = await PaymentGatewayCall.RunWithResultAsync(() => paymentGateway.GetStatusAsync(providerPaymentId, cancellationToken), InvoiceMessages.PaymentSetupFailed);
+
         if (failure is not null || status is null)
         {
             return Result.BadGateway<SyncInvoicePaymentResult>(failure?.Detail ?? InvoiceMessages.PaymentSetupFailed);
@@ -44,6 +45,7 @@ public class SyncInvoicePaymentHandler(IInvoiceRepository repository, IPaymentGa
         }
 
         await publisher.Publish(new PaymentSucceededNotification(invoice.Id.ToString(), providerPaymentId, paymentGateway.ProviderName), cancellationToken);
+
         return Result.Success(new SyncInvoicePaymentResult(InvoiceStatuses.Paid, true), "Payment received. Thank you!");
     }
 }
