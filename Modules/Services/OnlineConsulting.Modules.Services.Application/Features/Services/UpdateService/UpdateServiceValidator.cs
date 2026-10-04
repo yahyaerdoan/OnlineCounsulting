@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using OnlineConsulting.Modules.Services.Application.Features.Services.Constants;
+using OnlineConsulting.Modules.Services.Domain;
 using OnlineConsulting.SharedKernel.Catalog;
 
 namespace OnlineConsulting.Modules.Services.Application.Features.Services.UpdateService;

@@ -27,25 +27,9 @@ public class CreateServiceHandler(IServiceRepository repository) : IRequestHandl
     {
         var slug = await SlugGenerator.GenerateUniqueAsync(request.Title, async prefix => await repository.Query().Where(s => s.Slug.StartsWith(prefix)).Select(s => s.Slug).ToListAsync(cancellationToken));
 
-        var service = new Service
-        {
-            CategoryId = request.CategoryId,
-            Title = request.Title,
-            Slug = slug,
-            Description = request.Description,
-            DetailedDescription = request.DetailedDescription,
-            Price = request.Price,
-            FeaturedArea = request.FeaturedArea,
-            DiscountRate = request.DiscountRate,
-            TaxRate = request.TaxRate,
-            DiscountedPrice = ServicePriceCalculator.CalculateDiscountedPrice(request.Price, request.DiscountRate),
-            RequiresPrepayment = request.RequiresPrepayment,
-            IsEmergencyAvailable = request.IsEmergencyAvailable,
-            CoverMediaAssetId = request.CoverMediaAssetId,
-            PriceType = request.PriceType,
-            PriceMax = request.PriceMax,
-            Kind = request.Kind,
-        };
+        var service = Service.Create(request.CategoryId, request.Title, slug, request.Description, request.DetailedDescription, request.Kind,
+            new ServicePrice(request.Price, request.PriceType, request.PriceMax, request.DiscountRate, request.TaxRate));
+        service.SetOptions(request.FeaturedArea, request.RequiresPrepayment, request.IsEmergencyAvailable, request.CoverMediaAssetId);
 
         _ = await repository.AddAsync(service, cancellationToken: cancellationToken);
 

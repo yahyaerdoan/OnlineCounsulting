@@ -6,6 +6,7 @@ using OnlineConsulting.Modules.Services.Application.Common;
 using OnlineConsulting.Modules.Services.Application.Features.Services.Abstractions;
 using OnlineConsulting.Modules.Services.Application.Features.Services.Constants;
 using OnlineConsulting.Modules.Services.Application.Features.Services.Rules;
+using OnlineConsulting.Modules.Services.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -33,25 +34,13 @@ public class UpdateServiceHandler(IServiceRepository repository) : IRequestHandl
 
         if (!string.Equals(service.Title, request.Title, StringComparison.Ordinal))
         {
-            service.Slug = await SlugGenerator.GenerateUniqueAsync(request.Title,
-                async prefix => await repository.Query().Where(s => s.Slug.StartsWith(prefix) && s.Id != request.Id).Select(s => s.Slug).ToListAsync(cancellationToken));
+            service.ChangeSlug(await SlugGenerator.GenerateUniqueAsync(request.Title,
+                async prefix => await repository.Query().Where(s => s.Slug.StartsWith(prefix) && s.Id != request.Id).Select(s => s.Slug).ToListAsync(cancellationToken)));
         }
 
-        service.CategoryId = request.CategoryId;
-        service.Title = request.Title;
-        service.Description = request.Description;
-        service.DetailedDescription = request.DetailedDescription;
-        service.Price = request.Price;
-        service.FeaturedArea = request.FeaturedArea;
-        service.DiscountRate = request.DiscountRate;
-        service.TaxRate = request.TaxRate;
-        service.DiscountedPrice = ServicePriceCalculator.CalculateDiscountedPrice(request.Price, request.DiscountRate);
-        service.RequiresPrepayment = request.RequiresPrepayment;
-        service.IsEmergencyAvailable = request.IsEmergencyAvailable;
-        service.CoverMediaAssetId = request.CoverMediaAssetId;
-        service.PriceType = request.PriceType;
-        service.PriceMax = request.PriceMax;
-        service.Kind = request.Kind;
+        service.UpdateDetails(request.CategoryId, request.Title, request.Description, request.DetailedDescription, request.Kind);
+        service.ChangePricing(new ServicePrice(request.Price, request.PriceType, request.PriceMax, request.DiscountRate, request.TaxRate));
+        service.SetOptions(request.FeaturedArea, request.RequiresPrepayment, request.IsEmergencyAvailable, request.CoverMediaAssetId);
 
         _ = await repository.UpdateAsync(service, cancellationToken: cancellationToken);
 

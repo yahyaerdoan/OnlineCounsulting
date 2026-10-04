@@ -179,7 +179,6 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 var app = builder.Build();
 
 await RoleSeeder.SeedAsync(app.Services);
-//await HvacCatalogSeeder.SeedAsync(app.Services);
 await SuperAdminSeeder.SeedAsync(app.Services);
 
 app.MapDefaultEndpoints();
