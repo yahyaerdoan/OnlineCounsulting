@@ -29,7 +29,6 @@ public record CreateOrderFromBasketCommand(Guid UserId, string Email) : IRequest
 public class CreateOrderFromBasketHandler(IBasketRepository basketRepository,
                                           IUserAddressRepository userAddressRepository,
                                           IOrderRepository orderRepository,
-                                          IOrderItemRepository orderItemRepository,
                                           IPaymentGateway paymentGateway,
                                           IServiceCatalogReader catalogReader,
                                           IOrderFulfillment fulfillment)
@@ -86,7 +85,10 @@ public class CreateOrderFromBasketHandler(IBasketRepository basketRepository,
             return Result.BadGateway<CreateOrderResult>(failure?.Detail ?? "Could not start payment for your order.");
         }
 
-        var (order, _) = await CreateOrderWithItemsAsync(orderId, request.UserId, shippingAddress.Id, billingAddress.Id, basket.Items, paymentIntent, cancellationToken);
+        var order = Order.Place(orderId, OrderNumberGenerator.Generate(), request.UserId, shippingAddress.Id, billingAddress.Id, paymentGateway.ProviderName,
+            paymentIntent.ProviderPaymentId, paidAtCheckout: paymentIntent.Status == SharedPaymentStatuses.Succeeded, basket.Items);
+
+        _ = await orderRepository.AddAsync(order, cancellationToken: cancellationToken);
 
         if (order.PaymentStatus == OrderPaymentStatuses.Paid)
         {
@@ -96,36 +98,5 @@ public class CreateOrderFromBasketHandler(IBasketRepository basketRepository,
         var clientSecretForClient = paymentIntent.Status == SharedPaymentStatuses.Succeeded ? null : paymentIntent.ClientSecret;
 
         return Result.Created(new CreateOrderResult(order.Id, clientSecretForClient, order.OrderNumber), $"Order created: {order.OrderNumber}");
-    }
-
-    private async Task<(Order Order, List<OrderItem> Items)> CreateOrderWithItemsAsync(Guid orderId, Guid userId, Guid shippingAddressId, Guid billingAddressId, IEnumerable<BasketItem> basketItems, PaymentIntentResult paymentIntent,
-        CancellationToken cancellationToken)
-    {
-        var order = Order.Place(orderId, OrderNumberGenerator.Generate(),
-            userId, shippingAddressId, billingAddressId, paymentGateway.ProviderName, paymentIntent.ProviderPaymentId, paidAtCheckout: paymentIntent.Status == SharedPaymentStatuses.Succeeded);
-
-        _ = await orderRepository.AddAsync(order, cancellationToken: cancellationToken);
-
-        List<OrderItem> orderItems = [];
-
-        foreach (var basketItem in basketItems)
-        {
-            var orderItem = new OrderItem
-            {
-                OrderId = order.Id,
-                ServiceId = basketItem.ServiceId,
-                Quantity = basketItem.Quantity,
-                UnitPrice = basketItem.Price,
-                TaxRate = basketItem.TaxRate,
-            };
-
-            TaxCalculator.Apply(orderItem);
-
-            _ = await orderItemRepository.AddAsync(orderItem, cancellationToken: cancellationToken);
-
-            orderItems.Add(orderItem);
-        }
-
-        return (order, orderItems);
     }
 }

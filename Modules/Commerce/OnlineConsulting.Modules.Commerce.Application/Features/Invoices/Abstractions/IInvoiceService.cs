@@ -7,7 +7,8 @@ namespace OnlineConsulting.Modules.Commerce.Application.Features.Invoices.Abstra
 /// invoice), and emails/pushes are best effort: a delivery failure is logged, never undoes the invoice.</summary>
 public interface IInvoiceService
 {
-    Task<Invoice> IssueForPaidOrderAsync(Order order, IReadOnlyList<OrderItem> items, CancellationToken cancellationToken = default);
+    /// <summary>Bills the order's items; the order must be loaded with them.</summary>
+    Task<Invoice> IssueForPaidOrderAsync(Order order, CancellationToken cancellationToken = default);
 
     /// <summary>Settles the invoice and sends the receipt; load it with <see cref="IInvoiceRepository.GetWithLinesAsync"/> so the receipt lists its lines.</summary>
     Task MarkPaidAsync(Invoice invoice, string paymentMethod, string? paymentProvider, string? providerPaymentId, CancellationToken cancellationToken = default);

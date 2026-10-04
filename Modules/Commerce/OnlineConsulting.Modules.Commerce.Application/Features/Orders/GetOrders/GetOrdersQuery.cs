@@ -9,7 +9,7 @@ namespace OnlineConsulting.Modules.Commerce.Application.Features.Orders.GetOrder
 /// <summary>The user's orders, newest first - the storefront shows the latest order at the top.</summary>
 public record GetOrdersQuery(Guid UserId) : IRequest<OperationDataResult<List<OrderResponse>>>;
 
-public class GetOrdersHandler(IOrderRepository orderRepository, IOrderItemRepository orderItemRepository)
+public class GetOrdersHandler(IOrderRepository orderRepository)
     : IRequestHandler<GetOrdersQuery, OperationDataResult<List<OrderResponse>>>
 {
     public async Task<OperationDataResult<List<OrderResponse>>> Handle(GetOrdersQuery request, CancellationToken cancellationToken)
@@ -20,9 +20,7 @@ public class GetOrdersHandler(IOrderRepository orderRepository, IOrderItemReposi
             return Result.Success(new List<OrderResponse>(), "No orders found for this user.");
         }
 
-        var orderIds = orders.Select(o => o.Id).ToList();
-        var items = await orderItemRepository.GetAllAsync(i => orderIds.Contains(i.OrderId), cancellationToken: cancellationToken);
-        var totalsByOrderId = items.GroupBy(i => i.OrderId).ToDictionary(g => g.Key, g => g.Sum(i => i.TotalPrice));
+        var totalsByOrderId = await orderRepository.GetTotalsAsync([.. orders.Select(o => o.Id)], cancellationToken);
 
         List<OrderResponse> responses = [.. orders.Select(o => OrderResponse.FromDomain(o, totalsByOrderId.GetValueOrDefault(o.Id)))];
 

@@ -66,6 +66,7 @@ public class CommerceDbContext(DbContextOptions<CommerceDbContext> options, ITen
             _ = builder.Property(o => o.ProviderPaymentId).HasMaxLength(200);
             _ = builder.Property(o => o.RowVersion).IsRowVersion();
             _ = builder.HasIndex(o => o.UserId);
+            _ = builder.HasMany(o => o.Items).WithOne().HasForeignKey(i => i.OrderId).OnDelete(DeleteBehavior.Cascade);
             _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 

@@ -2,9 +2,14 @@ using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Commerce.Domain;
 
-/// <summary>A checkout and its payment. State changes only through its methods, which throw when called in the wrong state.</summary>
+/// <summary>
+/// A checkout and its payment, the aggregate root of its <see cref="Items"/>. State changes only through its methods, which throw when called in the
+/// wrong state; load it with its items when they're needed and save them together.
+/// </summary>
 public class Order : SequentialGuidTenantEntity
 {
+    private readonly List<OrderItem> _items = [];
+
     private Order()
     {
     }
@@ -23,20 +28,29 @@ public class Order : SequentialGuidTenantEntity
     public Guid ShippingAddressId { get; private set; }
     public Guid InvoiceAddressId { get; private set; }
 
+    /// <summary>What was bought, priced when the order was placed; fixed afterwards.</summary>
+    public IReadOnlyList<OrderItem> Items => _items;
+
     /// <summary>Unpaid and not cancelled: can be paid, cancelled or have its addresses changed.</summary>
     public bool IsAwaitingPayment => OrderRules.IsAwaitingPayment(PaymentStatus, OrderStatus);
 
     /// <summary>Paid, so it can be refunded.</summary>
     public bool CanBeRefunded => OrderRules.CanBeRefunded(PaymentStatus);
 
-    /// <summary>Creates a pending order; <paramref name="paidAtCheckout"/> when the gateway settled the payment immediately.</summary>
-    public static Order Place(Guid id, string orderNumber, Guid userId, Guid shippingAddressId, Guid invoiceAddressId, string paymentProvider, string providerPaymentId, bool paidAtCheckout)
+    /// <summary>Creates a pending order from the basket's (already repriced) items; <paramref name="paidAtCheckout"/> when the gateway settled the payment immediately.</summary>
+    public static Order Place(Guid id, string orderNumber, Guid userId, Guid shippingAddressId, Guid invoiceAddressId, string paymentProvider, string providerPaymentId,
+        bool paidAtCheckout, IReadOnlyCollection<BasketItem> basketItems)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(orderNumber);
         ArgumentException.ThrowIfNullOrWhiteSpace(paymentProvider);
         ArgumentException.ThrowIfNullOrWhiteSpace(providerPaymentId);
 
-        return new Order
+        if (basketItems.Count == 0)
+        {
+            throw new ArgumentException("An order needs at least one item.", nameof(basketItems));
+        }
+
+        var order = new Order
         {
             Id = id,
             OrderNumber = orderNumber,
@@ -47,6 +61,10 @@ public class Order : SequentialGuidTenantEntity
             ProviderPaymentId = providerPaymentId,
             PaymentStatus = paidAtCheckout ? OrderPaymentStatuses.Paid : OrderPaymentStatuses.Pending,
         };
+
+        order._items.AddRange(basketItems.Select(item => OrderItem.Create(id, item.ServiceId, item.Quantity, item.Price, item.TaxRate)));
+
+        return order;
     }
 
     /// <summary>Records a successful payment. Requires <see cref="IsAwaitingPayment"/>.</summary>

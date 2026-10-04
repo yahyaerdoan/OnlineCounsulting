@@ -33,7 +33,7 @@ public class OnPaymentStatusChangedHandler(IOrderRepository orderRepository,
             return null;
         }
 
-        var order = await orderRepository.GetAsync(o => o.Id == orderId && o.ProviderPaymentId == providerPaymentId, cancellationToken: cancellationToken);
+        var order = await orderRepository.GetWithItemsAsync(o => o.Id == orderId && o.ProviderPaymentId == providerPaymentId, cancellationToken: cancellationToken);
         if (order is null || !order.IsAwaitingPayment)
         {
             return null;

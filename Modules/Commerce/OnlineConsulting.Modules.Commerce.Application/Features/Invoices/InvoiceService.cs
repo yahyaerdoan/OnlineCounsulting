@@ -29,7 +29,7 @@ public class InvoiceService(IInvoiceRepository invoiceRepository,
 {
     private const string Currency = "USD";
 
-    public async Task<Invoice> IssueForPaidOrderAsync(Order order, IReadOnlyList<OrderItem> items, CancellationToken cancellationToken = default)
+    public async Task<Invoice> IssueForPaidOrderAsync(Order order, CancellationToken cancellationToken = default)
     {
         if (await FindForSourceAsync(InvoiceSources.Order, order.Id, cancellationToken) is { } existing)
         {
@@ -40,14 +40,14 @@ public class InvoiceService(IInvoiceRepository invoiceRepository,
 
         var billingAddress = await addressRepository.GetAsync(a => a.Id == order.InvoiceAddressId, cancellationToken: cancellationToken);
 
-        var titles = await catalogReader.GetManyAsync(items.Select(i => i.ServiceId).Distinct(), cancellationToken);
+        var titles = await catalogReader.GetManyAsync(order.Items.Select(i => i.ServiceId).Distinct(), cancellationToken);
 
         var now = DateTimeOffset.UtcNow;
 
         var billTo = new InvoiceBillTo(contact?.FullName is { Length: > 0 } name ? name : "Customer", contact?.Email,
             billingAddress is null ? null : $"{billingAddress.AddressLine}, {billingAddress.City}, {billingAddress.State} {billingAddress.Zipcode}");
 
-        var charges = items.Select(item => new InvoiceCharge(titles.TryGetValue(item.ServiceId, out var entry) ? entry.Title : "Item", item.Quantity, item.UnitPrice,
+        var charges = order.Items.Select(item => new InvoiceCharge(titles.TryGetValue(item.ServiceId, out var entry) ? entry.Title : "Item", item.Quantity, item.UnitPrice,
             item.TaxRate)).ToList();
 
         var invoice = Invoice.Issue(InvoiceNumberGenerator.Generate(now), order.UserId, InvoiceSources.Order, order.Id, order.OrderNumber,

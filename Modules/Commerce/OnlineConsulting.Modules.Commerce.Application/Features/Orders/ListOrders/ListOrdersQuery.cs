@@ -25,7 +25,7 @@ public record ListOrdersQuery(PageRequest PageRequest, DynamicQuery? DynamicQuer
     public string[] Roles => [CommerceOperationClaims.Admin, CommerceOperationClaims.Read, GlobalOperationClaims.SuperAdmin];
 }
 
-public class ListOrdersHandler(IOrderRepository orderRepository, IOrderItemRepository orderItemRepository)
+public class ListOrdersHandler(IOrderRepository orderRepository)
     : IRequestHandler<ListOrdersQuery, OperationDataResult<Paginate<AdminOrderResponse>>>
 {
     public async Task<OperationDataResult<Paginate<AdminOrderResponse>>> Handle(ListOrdersQuery request, CancellationToken cancellationToken)
@@ -37,9 +37,7 @@ public class ListOrdersHandler(IOrderRepository orderRepository, IOrderItemRepos
             return Result.Success(new Paginate<AdminOrderResponse> { Items = [], Index = paged.Index, Size = paged.Size, Count = paged.Count, Pages = paged.Pages }, "No orders found.");
         }
 
-        var orderIds = paged.Items.Select(o => o.Id).ToList();
-        var items = await orderItemRepository.GetAllAsync(i => orderIds.Contains(i.OrderId), cancellationToken: cancellationToken);
-        var totalsByOrderId = items.GroupBy(i => i.OrderId).ToDictionary(g => g.Key, g => g.Sum(i => i.TotalPrice));
+        var totalsByOrderId = await orderRepository.GetTotalsAsync([.. paged.Items.Select(o => o.Id)], cancellationToken);
 
         var response = new Paginate<AdminOrderResponse>
         {

@@ -7,7 +7,36 @@ public class OrderTests
     private static Order PlaceUnpaid() => Place(paidAtCheckout: false);
 
     private static Order Place(bool paidAtCheckout) => Order.Place(Guid.NewGuid(), "ORD-1", Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "Stripe",
-        "pi_1", paidAtCheckout);
+        "pi_1", paidAtCheckout, BasketItems());
+
+    private static IReadOnlyList<BasketItem> BasketItems()
+    {
+        var basket = Basket.Open(Guid.NewGuid(), null);
+        basket.AddItem(Guid.NewGuid(), 2, 50m, 10);
+        basket.AddItem(Guid.NewGuid(), 1, 20m, 0);
+        return basket.Items;
+    }
+
+    [Fact]
+    public void Place_CopiesBasketItemsWithTheirAmounts()
+    {
+        var items = BasketItems();
+
+        var order = Order.Place(Guid.NewGuid(), "ORD-1", Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "Stripe", "pi_1", paidAtCheckout: false, items);
+
+        Assert.Equal(2, order.Items.Count);
+        Assert.All(order.Items, i => Assert.Equal(order.Id, i.OrderId));
+        Assert.Equal(items.Select(i => i.ServiceId), order.Items.Select(i => i.ServiceId));
+        Assert.Equal(100m, order.Items[0].SubTotalPrice);
+        Assert.Equal(10m, order.Items[0].TaxAmount);
+        Assert.Equal(110m, order.Items[0].TotalPrice);
+        Assert.Equal(130m, order.Items.Sum(i => i.TotalPrice));
+    }
+
+    [Fact]
+    public void Place_WithoutItems_Throws()
+        => Assert.Throws<ArgumentException>(() =>
+            Order.Place(Guid.NewGuid(), "ORD-1", Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "Stripe", "pi_1", paidAtCheckout: false, []));
 
     [Fact]
     public void Place_WithoutSynchronousPayment_IsPendingAndAwaitingPayment()
@@ -38,7 +67,7 @@ public class OrderTests
         var shippingId = Guid.NewGuid();
         var invoiceId = Guid.NewGuid();
 
-        var order = Order.Place(id, "ORD-7", userId, shippingId, invoiceId, "Stripe", "pi_7", paidAtCheckout: false);
+        var order = Order.Place(id, "ORD-7", userId, shippingId, invoiceId, "Stripe", "pi_7", paidAtCheckout: false, BasketItems());
 
         Assert.Equal(id, order.Id);
         Assert.Equal("ORD-7", order.OrderNumber);
@@ -55,7 +84,7 @@ public class OrderTests
     [InlineData("ORD-1", "Stripe", "")]
     public void Place_WithBlankRequiredValue_Throws(string orderNumber, string provider, string providerPaymentId)
         => Assert.ThrowsAny<ArgumentException>(() =>
-            Order.Place(Guid.NewGuid(), orderNumber, Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), provider, providerPaymentId, paidAtCheckout: false));
+            Order.Place(Guid.NewGuid(), orderNumber, Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), provider, providerPaymentId, paidAtCheckout: false, BasketItems()));
 
     [Fact]
     public void MarkPaid_WhenAwaitingPayment_SetsPaid()

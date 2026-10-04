@@ -55,7 +55,6 @@ public static class CommerceModule
         _ = services.AddScoped<IAddressSuggestionProvider, GeoapifyAddressSuggestionProvider>();
         _ = services.AddScoped<IBasketRepository, BasketRepository>();
         _ = services.AddScoped<IOrderRepository, OrderRepository>();
-        _ = services.AddScoped<IOrderItemRepository, OrderItemRepository>();
         _ = services.AddScoped<IEmailOutboxWriter<ICommerceOutboxModule>, EmailOutboxWriter>();
         _ = services.AddScoped<IEmailTemplate<OrderConfirmationEmailModel>, OrderConfirmationTemplate>();
         _ = services.AddScoped<IEmailTemplate<OrderPaymentFailedEmailModel>, OrderPaymentFailedTemplate>();
