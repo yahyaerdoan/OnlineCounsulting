@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
-using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.ReactivateMembership;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
 using ResultHandler.Functional;
 
@@ -18,8 +18,7 @@ public class ReactivateMembership : IEndpoint
             .WithDescription("Undoes the current user's pending cancellation before the period ends - the membership renews again, no new charge.");
     }
 
-    private static async Task<IResult> Handle(ISender sender, HttpContext httpContext)
-        => (await sender.Send(new GetCurrentUserQuery())
-                .BindAsync(user => sender.Send(new ReactivateMembershipCommand(user.Id))))
+    private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, ISender sender, HttpContext httpContext)
+        => (await sender.Send(new ReactivateMembershipCommand(currentUser.RequiredId())))
             .ToEnvelopedResult(httpContext);
 }

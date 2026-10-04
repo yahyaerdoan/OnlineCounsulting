@@ -1,7 +1,7 @@
 using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Identity.Application.Features.Notifications.MarkAllNotificationsRead;
-using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
 using ResultHandler.Functional;
 
@@ -18,8 +18,7 @@ public class MarkAllNotificationsRead : IEndpoint
             .WithDescription("Marks all of the current user's notifications as read.");
     }
 
-    private static async Task<IResult> Handle(ISender sender, HttpContext httpContext)
-        => (await sender.Send(new GetCurrentUserQuery())
-                .BindAsync(user => sender.Send(new MarkAllNotificationsReadCommand(user.Id))))
+    private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, ISender sender, HttpContext httpContext)
+        => (await sender.Send(new MarkAllNotificationsReadCommand(currentUser.RequiredId())))
             .ToEnvelopedResult(httpContext);
 }

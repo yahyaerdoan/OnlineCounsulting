@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
-using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
 using OnlineConsulting.Modules.Referrals.Application.Features.AccountCredits.GetMyAccountCredit;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
 using ResultHandler.Functional;
 
@@ -18,8 +18,7 @@ public class GetMyAccountCredit : IEndpoint
             .WithDescription("Returns the current user's referral-reward account credit balance and ledger.");
     }
 
-    private static async Task<IResult> Handle(ISender sender, HttpContext httpContext)
-        => (await sender.Send(new GetCurrentUserQuery())
-                .BindAsync(user => sender.Send(new GetMyAccountCreditQuery(user.Id))))
+    private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, ISender sender, HttpContext httpContext)
+        => (await sender.Send(new GetMyAccountCreditQuery(currentUser.RequiredId())))
             .ToEnvelopedResult(httpContext);
 }

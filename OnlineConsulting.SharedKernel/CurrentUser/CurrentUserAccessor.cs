@@ -1,4 +1,5 @@
-﻿using System.Security.Claims;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using Core.SecurityLayer.Extensions;
 using Microsoft.AspNetCore.Http;
 
@@ -11,6 +12,10 @@ public class CurrentUserAccessor(IHttpContextAccessor httpContextAccessor) : ICu
     public bool IsAuthenticated => User?.Identity?.IsAuthenticated == true;
 
     public string? UserId => User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+    public Guid? Id => Guid.TryParse(UserId, out var id) ? id : null;
+
+    public string? Email => User?.FindFirst(ClaimTypes.Email)?.Value ?? User?.FindFirst(JwtRegisteredClaimNames.Email)?.Value;
 
     public string? UserName => User?.Identity?.Name ?? User?.FindFirst(ClaimTypes.Name)?.Value;
 

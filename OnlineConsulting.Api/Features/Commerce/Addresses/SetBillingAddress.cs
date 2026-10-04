@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.SetBillingAddress;
-using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
 using ResultHandler.Functional;
 
@@ -18,8 +18,7 @@ public class SetBillingAddress : IEndpoint
             .WithDescription("Marks one of the current user's addresses as the billing address.");
     }
 
-    private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)
-        => (await sender.Send(new GetCurrentUserQuery())
-                .BindAsync(user => sender.Send(new SetBillingAddressCommand(user.Id, id))))
+    private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, Guid id, ISender sender, HttpContext httpContext)
+        => (await sender.Send(new SetBillingAddressCommand(currentUser.RequiredId(), id)))
             .ToEnvelopedResult(httpContext);
 }

@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
-using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.UpdateUserImage;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
 using ResultHandler.Functional;
 
@@ -19,12 +19,11 @@ public class UpdateUserImage : IEndpoint
             .DisableAntiforgery();
     }
 
-    private static async Task<IResult> Handle(IFormFile image, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, IFormFile image, ISender sender, HttpContext httpContext)
     {
         await using var content = image.OpenReadStream();
 
-        return (await sender.Send(new GetCurrentUserQuery())
-                .BindAsync(user => sender.Send(new UpdateUserImageCommand(user.Id, content, image.FileName, image.ContentType, image.Length))))
+        return (await sender.Send(new UpdateUserImageCommand(currentUser.RequiredId(), content, image.FileName, image.ContentType, image.Length)))
             .ToEnvelopedResult(httpContext);
     }
 }

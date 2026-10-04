@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.CreateOrderFromBasket;
-using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
 using ResultHandler.Functional;
 
@@ -18,8 +18,7 @@ public class CreateOrderFromBasket : IEndpoint
             .WithDescription("Checks out the current user's basket into a new order, using their current shipping/billing address.");
     }
 
-    private static async Task<IResult> Handle(ISender sender, HttpContext httpContext)
-        => (await sender.Send(new GetCurrentUserQuery())
-                .BindAsync(user => sender.Send(new CreateOrderFromBasketCommand(user.Id, user.Email))))
+    private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, ISender sender, HttpContext httpContext)
+        => (await sender.Send(new CreateOrderFromBasketCommand(currentUser.RequiredId(), currentUser.RequiredEmail())))
             .ToEnvelopedResult(httpContext);
 }

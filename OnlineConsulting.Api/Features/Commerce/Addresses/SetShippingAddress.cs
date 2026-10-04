@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.SetShippingAddress;
-using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
 using ResultHandler.Functional;
 
@@ -18,8 +18,7 @@ public class SetShippingAddress : IEndpoint
             .WithDescription("Marks one of the current user's addresses as the shipping address.");
     }
 
-    private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)
-        => (await sender.Send(new GetCurrentUserQuery())
-                .BindAsync(user => sender.Send(new SetShippingAddressCommand(user.Id, id))))
+    private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, Guid id, ISender sender, HttpContext httpContext)
+        => (await sender.Send(new SetShippingAddressCommand(currentUser.RequiredId(), id)))
             .ToEnvelopedResult(httpContext);
 }

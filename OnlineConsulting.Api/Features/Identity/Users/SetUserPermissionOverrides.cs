@@ -17,9 +17,14 @@ public class SetUserPermissionOverrides : IEndpoint
             .WithDescription("Replaces the set of permissions individually denied for a user, narrowing their role's default grant.");
     }
 
-    private static async Task<IResult> Handle(Guid id, [FromBody] SetUserPermissionOverridesCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle(Guid id, [FromBody] SetUserPermissionOverridesRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command with { UserId = id });
+        var result = await sender.Send(request.ToCommand(id));
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record SetUserPermissionOverridesRequest(List<string> DeniedPermissions)
+{
+    public SetUserPermissionOverridesCommand ToCommand(Guid userId) => new(userId, DeniedPermissions);
 }

@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
-using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.CancelMembership;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
 using ResultHandler.Functional;
 
@@ -18,8 +18,7 @@ public class CancelMembership : IEndpoint
             .WithDescription("Cancels the current user's active membership at the end of the current billing period - access continues until then.");
     }
 
-    private static async Task<IResult> Handle(ISender sender, HttpContext httpContext)
-        => (await sender.Send(new GetCurrentUserQuery())
-                .BindAsync(user => sender.Send(new CancelMembershipCommand(user.Id))))
+    private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, ISender sender, HttpContext httpContext)
+        => (await sender.Send(new CancelMembershipCommand(currentUser.RequiredId())))
             .ToEnvelopedResult(httpContext);
 }

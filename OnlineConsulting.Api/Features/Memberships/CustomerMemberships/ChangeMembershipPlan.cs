@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
-using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.ChangeMembershipPlan;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
 using ResultHandler.Functional;
 
@@ -18,8 +18,7 @@ public class ChangeMembershipPlan : IEndpoint
             .WithDescription("Upgrades or downgrades the current user's active membership to a different plan, prorated.");
     }
 
-    private static async Task<IResult> Handle(Guid newMembershipPlanId, ISender sender, HttpContext httpContext)
-        => (await sender.Send(new GetCurrentUserQuery())
-                .BindAsync(user => sender.Send(new ChangeMembershipPlanCommand(user.Id, newMembershipPlanId))))
+    private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, Guid newMembershipPlanId, ISender sender, HttpContext httpContext)
+        => (await sender.Send(new ChangeMembershipPlanCommand(currentUser.RequiredId(), newMembershipPlanId)))
             .ToEnvelopedResult(httpContext);
 }

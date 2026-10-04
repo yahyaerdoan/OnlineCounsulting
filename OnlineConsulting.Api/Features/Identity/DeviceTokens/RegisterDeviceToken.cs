@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Identity.Application.Features.DeviceTokens.RegisterDeviceToken;
-using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
 using ResultHandler.Functional;
 
@@ -19,8 +19,12 @@ public class RegisterDeviceToken : IEndpoint
             .WithDescription("Registers (or re-registers) the current user's mobile device push-notification token.");
     }
 
-    private static async Task<IResult> Handle([FromBody] RegisterDeviceTokenCommand command, ISender sender, HttpContext httpContext)
-        => (await sender.Send(new GetCurrentUserQuery())
-                .BindAsync(user => sender.Send(command with { UserId = user.Id })))
+    private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, [FromBody] RegisterDeviceTokenRequest request, ISender sender, HttpContext httpContext)
+        => (await sender.Send(request.ToCommand(currentUser.RequiredId())))
             .ToEnvelopedResult(httpContext);
+}
+
+public record RegisterDeviceTokenRequest(string Token, string Platform)
+{
+    public RegisterDeviceTokenCommand ToCommand(Guid userId) => new(userId, Token, Platform);
 }

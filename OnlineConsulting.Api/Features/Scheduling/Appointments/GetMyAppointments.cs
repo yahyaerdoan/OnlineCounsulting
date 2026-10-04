@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
-using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.GetMyAppointments;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
 using ResultHandler.Functional;
 
@@ -18,8 +18,7 @@ public class GetMyAppointments : IEndpoint
             .WithDescription("Returns the current user's own appointments, paginated.");
     }
 
-    private static async Task<IResult> Handle(ISender sender, HttpContext httpContext, int? index = null, int? size = null)
-        => (await sender.Send(new GetCurrentUserQuery())
-                .BindAsync(user => sender.Send(new GetMyAppointmentsQuery(user.Id, PageRequestFactory.Create(index, size)))))
+    private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, ISender sender, HttpContext httpContext, int? index = null, int? size = null)
+        => (await sender.Send(new GetMyAppointmentsQuery(currentUser.RequiredId(), PageRequestFactory.Create(index, size))))
             .ToEnvelopedResult(httpContext);
 }

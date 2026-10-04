@@ -2,8 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Api.Configurations.Extensions;
-using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
 using OnlineConsulting.Modules.Referrals.Application.Features.Referrals.RedeemReferralCode;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
 using ResultHandler.Functional;
 
@@ -21,8 +21,12 @@ public class RedeemReferralCode : IEndpoint
             .WithDescription("Redeems a referral code on behalf of the current user - at most once per user.");
     }
 
-    private static async Task<IResult> Handle([FromBody] RedeemReferralCodeCommand command, ISender sender, HttpContext httpContext)
-        => (await sender.Send(new GetCurrentUserQuery())
-                .BindAsync(user => sender.Send(command with { ReferredUserId = user.Id })))
+    private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, [FromBody] RedeemReferralCodeRequest request, ISender sender, HttpContext httpContext)
+        => (await sender.Send(request.ToCommand(currentUser.RequiredId())))
             .ToEnvelopedResult(httpContext);
+}
+
+public record RedeemReferralCodeRequest(string Code)
+{
+    public RedeemReferralCodeCommand ToCommand(Guid referredUserId) => new(referredUserId, Code);
 }

@@ -7,6 +7,11 @@ public interface ICurrentUserAccessor
 
     string? UserId { get; }
 
+    /// <summary><see cref="UserId"/> as a Guid; null when anonymous.</summary>
+    Guid? Id { get; }
+
+    string? Email { get; }
+
     string? UserName { get; }
 
     IReadOnlyCollection<string> Roles { get; }

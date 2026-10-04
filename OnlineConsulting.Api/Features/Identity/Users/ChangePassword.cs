@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.ChangePassword;
-using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
 using ResultHandler.Functional;
 
@@ -19,8 +19,12 @@ public class ChangePassword : IEndpoint
             .WithDescription("Changes the current user's password.");
     }
 
-    private static async Task<IResult> Handle([FromBody] ChangePasswordCommand command, ISender sender, HttpContext httpContext)
-        => (await sender.Send(new GetCurrentUserQuery())
-                .BindAsync(user => sender.Send(command with { UserId = user.Id })))
+    private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, [FromBody] ChangePasswordRequest request, ISender sender, HttpContext httpContext)
+        => (await sender.Send(request.ToCommand(currentUser.RequiredId())))
             .ToEnvelopedResult(httpContext);
+}
+
+public record ChangePasswordRequest(string CurrentPassword, string NewPassword)
+{
+    public ChangePasswordCommand ToCommand(Guid userId) => new(userId, CurrentPassword, NewPassword);
 }
