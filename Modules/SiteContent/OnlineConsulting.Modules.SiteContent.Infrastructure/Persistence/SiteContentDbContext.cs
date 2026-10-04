@@ -132,12 +132,14 @@ public class SiteContentDbContext(DbContextOptions<SiteContentDbContext> options
         {
             _ = builder.Property(x => x.Description).HasMaxLength(2000).IsRequired();
             _ = builder.Property(x => x.RowVersion).IsRowVersion();
+            _ = builder.HasMany(x => x.Categories).WithOne().HasForeignKey(c => c.GalleryItemId).OnDelete(DeleteBehavior.Cascade);
+            _ = builder.Ignore(x => x.CategoryIds);
             _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 
         _ = modelBuilder.Entity<GalleryItemCategory>(builder =>
         {
-            _ = builder.HasIndex(x => new { x.TenantId, x.GalleryItemId, x.GalleryCategoryId }).IsUnique();
+            _ = builder.HasIndex(x => new { x.TenantId, x.GalleryItemId, x.GalleryCategoryId }).IsUnique().HasFilter("[DeletedDate] IS NULL");
             _ = builder.Property(x => x.RowVersion).IsRowVersion();
             _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });

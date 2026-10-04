@@ -59,7 +59,6 @@ public static class SiteContentModule
         _ = services.AddScoped<IPartnershipSocialLinkRepository, PartnershipSocialLinkRepository>();
         _ = services.AddScoped<IGalleryCategoryRepository, GalleryCategoryRepository>();
         _ = services.AddScoped<IGalleryItemRepository, GalleryItemRepository>();
-        _ = services.AddScoped<IGalleryItemCategoryRepository, GalleryItemCategoryRepository>();
         _ = services.AddScoped<IServiceProcessStepRepository, ServiceProcessStepRepository>();
         _ = services.AddScoped<IServiceOfferingRepository, ServiceOfferingRepository>();
         _ = services.AddScoped<ISocialLinkRepository, SocialLinkRepository>();

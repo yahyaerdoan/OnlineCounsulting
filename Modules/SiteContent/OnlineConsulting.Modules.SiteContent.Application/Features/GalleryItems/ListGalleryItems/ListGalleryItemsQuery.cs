@@ -18,19 +18,17 @@ public record ListGalleryItemsQuery(PageRequest PageRequest, DynamicQuery? Dynam
     public static IReadOnlySet<string> QueryableFields { get; } = new HashSet<string>([nameof(GalleryItem.Id), nameof(GalleryItem.Description), nameof(GalleryItem.DisplayOrder)]);
 }
 
-public class ListGalleryItemsHandler(IGalleryItemRepository itemRepository, IGalleryItemCategoryRepository linkRepository, IGalleryCategoryRepository categoryRepository)
+public class ListGalleryItemsHandler(IGalleryItemRepository itemRepository, IGalleryCategoryRepository categoryRepository)
     : IRequestHandler<ListGalleryItemsQuery, OperationDataResult<Paginate<GalleryItemResponse>>>
 {
     public async Task<OperationDataResult<Paginate<GalleryItemResponse>>> Handle(ListGalleryItemsQuery request, CancellationToken cancellationToken)
     {
-        var paged = await itemRepository.Query().ToDynamicPaginateAsync(request, defaultOrderBy: x => x.DisplayOrder, tieBreaker: x => x.Id, cancellationToken: cancellationToken);
+        var paged = await itemRepository.QueryWithCategories().ToDynamicPaginateAsync(request, defaultOrderBy: x => x.DisplayOrder, tieBreaker: x => x.Id, cancellationToken: cancellationToken);
 
-        var itemIds = paged.Items.Select(x => x.Id).ToHashSet();
-        var links = await linkRepository.GetAllAsync(x => itemIds.Contains(x.GalleryItemId), cancellationToken: cancellationToken);
-        var categories = await categoryRepository.GetAllAsync(cancellationToken: cancellationToken);
+        var categoryIds = paged.Items.SelectMany(x => x.CategoryIds).Distinct().ToList();
+        var categories = categoryIds.Count == 0 ? [] : await categoryRepository.GetAllAsync(c => categoryIds.Contains(c.Id), cancellationToken: cancellationToken);
 
         var categoriesById = categories.ToDictionary(c => c.Id);
-        var linksByItemId = links.ToLookup(l => l.GalleryItemId);
 
         var response = new Paginate<GalleryItemResponse>
         {
@@ -38,9 +36,9 @@ public class ListGalleryItemsHandler(IGalleryItemRepository itemRepository, IGal
             [
                 .. paged.Items.Select(item =>
                 {
-                    var itemCategories = linksByItemId[item.Id]
-                        .Where(link => categoriesById.ContainsKey(link.GalleryCategoryId))
-                        .Select(link => GalleryCategoryResponse.FromDomain(categoriesById[link.GalleryCategoryId]))
+                    var itemCategories = item.CategoryIds
+                        .Where(categoriesById.ContainsKey)
+                        .Select(id => GalleryCategoryResponse.FromDomain(categoriesById[id]))
                         .ToList();
 
                     return GalleryItemResponse.FromDomain(item, itemCategories);

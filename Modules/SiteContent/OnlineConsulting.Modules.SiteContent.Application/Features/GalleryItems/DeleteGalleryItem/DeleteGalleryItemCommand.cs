@@ -16,21 +16,15 @@ public record DeleteGalleryItemCommand(Guid Id) : IRequest<OperationResult>, ISe
     public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Delete];
 }
 
-public class DeleteGalleryItemHandler(IGalleryItemRepository repository, IGalleryItemCategoryRepository categoryLinkRepository)
+public class DeleteGalleryItemHandler(IGalleryItemRepository repository)
     : IRequestHandler<DeleteGalleryItemCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(DeleteGalleryItemCommand request, CancellationToken cancellationToken)
     {
-        var entity = await repository.GetAsync(x => x.Id == request.Id, cancellationToken: cancellationToken);
+        var entity = await repository.GetWithCategoriesAsync(request.Id, cancellationToken: cancellationToken);
         if (entity is null)
         {
             return SiteContentBusinessRules.NotFound("Gallery item", request.Id);
-        }
-
-        var links = await categoryLinkRepository.GetAllAsync(x => x.GalleryItemId == request.Id, cancellationToken: cancellationToken);
-        foreach (var link in links)
-        {
-            _ = await categoryLinkRepository.DeleteAsync(link, cancellationToken: cancellationToken);
         }
 
         _ = await repository.DeleteAsync(entity, cancellationToken: cancellationToken);

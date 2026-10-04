@@ -17,51 +17,20 @@ public record UpdateGalleryItemCommand(Guid Id, string Description, List<Guid> C
     public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Update];
 }
 
-public class UpdateGalleryItemHandler(IGalleryItemRepository repository, IGalleryItemCategoryRepository categoryLinkRepository) : IRequestHandler<UpdateGalleryItemCommand, OperationResult>
+public class UpdateGalleryItemHandler(IGalleryItemRepository repository) : IRequestHandler<UpdateGalleryItemCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(UpdateGalleryItemCommand request, CancellationToken cancellationToken)
     {
-        var entity = await repository.GetAsync(x => x.Id == request.Id, cancellationToken: cancellationToken);
+        var entity = await repository.GetWithCategoriesAsync(request.Id, cancellationToken: cancellationToken);
 
         if (entity is null)
         {
             return SiteContentBusinessRules.NotFound("Gallery item", request.Id);
         }
 
-        entity.Description = request.Description;
-        entity.PhotoMediaAssetId = request.PhotoMediaAssetId;
-        entity.DisplayOrder = request.DisplayOrder;
-        entity.Metadata = MetadataSerializer.Serialize(request.Metadata);
+        entity.Update(request.Description, request.PhotoMediaAssetId, request.DisplayOrder, MetadataSerializer.Serialize(request.Metadata), request.CategoryIds);
 
         _ = await repository.UpdateAsync(entity, cancellationToken: cancellationToken);
-
-        var links = await categoryLinkRepository.GetAllAsync(x => x.GalleryItemId == request.Id, withDeleted: true, enableTracking: true, cancellationToken: cancellationToken);
-        var wanted = request.CategoryIds.ToHashSet();
-
-        List<GalleryItemCategory> removed = [.. links.Where(l => l.DeletedDate is null && !wanted.Contains(l.GalleryCategoryId))];
-        List<GalleryItemCategory> restored = [.. links.Where(l => l.DeletedDate is not null && wanted.Contains(l.GalleryCategoryId))];
-        List<GalleryItemCategory> added = [.. wanted.Except(links.Select(l => l.GalleryCategoryId)).Select(categoryId => new GalleryItemCategory { GalleryItemId = request.Id, GalleryCategoryId = categoryId })];
-
-        foreach (var link in restored)
-        {
-            link.DeletedDate = null;
-            link.DeletedBy = null;
-        }
-
-        if (removed.Count > 0)
-        {
-            _ = await categoryLinkRepository.DeleteRangeAsync(removed, cancellationToken: cancellationToken);
-        }
-
-        if (restored.Count > 0)
-        {
-            _ = await categoryLinkRepository.UpdateRangeAsync(restored, cancellationToken);
-        }
-
-        if (added.Count > 0)
-        {
-            _ = await categoryLinkRepository.AddRangeAsync(added, cancellationToken);
-        }
 
         return Result.Success("Gallery item updated successfully.");
     }

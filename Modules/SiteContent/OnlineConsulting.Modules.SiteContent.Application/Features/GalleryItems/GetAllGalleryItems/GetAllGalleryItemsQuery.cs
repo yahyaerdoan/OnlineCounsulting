@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.EntityFrameworkCore;
 using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryCategories.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryCategories.Contracts;
 using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryItems.Abstractions;
@@ -11,24 +12,22 @@ namespace OnlineConsulting.Modules.SiteContent.Application.Features.GalleryItems
 /// <summary>Public - no login required, matches GetAllTestimonialsQuery/GetAllPartnershipsQuery.</summary>
 public record GetAllGalleryItemsQuery : IRequest<OperationDataResult<List<GalleryItemResponse>>>;
 
-public class GetAllGalleryItemsHandler(IGalleryItemRepository itemRepository, IGalleryItemCategoryRepository linkRepository, IGalleryCategoryRepository categoryRepository)
+public class GetAllGalleryItemsHandler(IGalleryItemRepository itemRepository, IGalleryCategoryRepository categoryRepository)
     : IRequestHandler<GetAllGalleryItemsQuery, OperationDataResult<List<GalleryItemResponse>>>
 {
     public async Task<OperationDataResult<List<GalleryItemResponse>>> Handle(GetAllGalleryItemsQuery request, CancellationToken cancellationToken)
     {
-        var items = await itemRepository.GetAllAsync(orderBy: q => q.OrderBy(x => x.DisplayOrder), cancellationToken: cancellationToken);
-        var links = await linkRepository.GetAllAsync(cancellationToken: cancellationToken);
+        var items = await itemRepository.QueryWithCategories().AsNoTracking().OrderBy(x => x.DisplayOrder).ThenBy(x => x.Id).ToListAsync(cancellationToken);
         var categories = await categoryRepository.GetAllAsync(cancellationToken: cancellationToken);
 
         var categoriesById = categories.ToDictionary(c => c.Id);
-        var linksByItemId = links.ToLookup(l => l.GalleryItemId);
 
         var response = items
             .Select(item =>
             {
-                var itemCategories = linksByItemId[item.Id]
-                    .Where(link => categoriesById.ContainsKey(link.GalleryCategoryId))
-                    .Select(link => GalleryCategoryResponse.FromDomain(categoriesById[link.GalleryCategoryId]))
+                var itemCategories = item.CategoryIds
+                    .Where(categoriesById.ContainsKey)
+                    .Select(id => GalleryCategoryResponse.FromDomain(categoriesById[id]))
                     .ToList();
 
                 return GalleryItemResponse.FromDomain(item, itemCategories);

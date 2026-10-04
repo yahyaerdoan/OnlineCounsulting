@@ -17,24 +17,13 @@ public record CreateGalleryItemCommand(string Description, List<Guid> CategoryId
     public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Add];
 }
 
-public class CreateGalleryItemHandler(IGalleryItemRepository repository, IGalleryItemCategoryRepository categoryLinkRepository) : IRequestHandler<CreateGalleryItemCommand, OperationDataResult<Guid>>
+public class CreateGalleryItemHandler(IGalleryItemRepository repository) : IRequestHandler<CreateGalleryItemCommand, OperationDataResult<Guid>>
 {
     public async Task<OperationDataResult<Guid>> Handle(CreateGalleryItemCommand request, CancellationToken cancellationToken)
     {
-        var entity = new GalleryItem
-        {
-            Description = request.Description,
-            PhotoMediaAssetId = request.PhotoMediaAssetId,
-            DisplayOrder = request.DisplayOrder,
-            Metadata = MetadataSerializer.Serialize(request.Metadata),
-        };
+        var entity = GalleryItem.Create(request.Description, request.PhotoMediaAssetId, request.DisplayOrder, MetadataSerializer.Serialize(request.Metadata), request.CategoryIds);
 
         _ = await repository.AddAsync(entity, cancellationToken: cancellationToken);
-
-        foreach (var categoryId in request.CategoryIds.Distinct())
-        {
-            _ = await categoryLinkRepository.AddAsync(new GalleryItemCategory { GalleryItemId = entity.Id, GalleryCategoryId = categoryId }, cancellationToken: cancellationToken);
-        }
 
         return Result.Created(entity.Id, "Gallery item created successfully.");
     }
