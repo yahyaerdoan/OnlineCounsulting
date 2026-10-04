@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Abstractions;
 
 namespace OnlineConsulting.Modules.Identity.Infrastructure.Storage;
@@ -8,19 +7,19 @@ public class UserImageStorage(IWebHostEnvironment environment) : IUserImageStora
 {
     private const string TargetFolder = "Resource/LocalStorage/User-Images";
 
-    public async Task<string> UploadAsync(IFormFile image, CancellationToken cancellationToken = default)
+    public async Task<string> UploadAsync(Stream content, string fileName, CancellationToken cancellationToken = default)
     {
-        var fileName = $"{Guid.NewGuid()}{Path.GetExtension(image.FileName)}";
+        var storedName = $"{Guid.NewGuid()}{Path.GetExtension(fileName)}";
         var folderPath = Path.Combine(environment.WebRootPath, TargetFolder);
         _ = Directory.CreateDirectory(folderPath);
 
-        var filePath = Path.Combine(folderPath, fileName);
+        var filePath = Path.Combine(folderPath, storedName);
         await using (var stream = File.Create(filePath))
         {
-            await image.CopyToAsync(stream, cancellationToken);
+            await content.CopyToAsync(stream, cancellationToken);
         }
 
-        return $"/{TargetFolder}/{fileName}";
+        return $"/{TargetFolder}/{storedName}";
     }
 
     public Task DeleteAsync(string imageUrl, CancellationToken cancellationToken = default)

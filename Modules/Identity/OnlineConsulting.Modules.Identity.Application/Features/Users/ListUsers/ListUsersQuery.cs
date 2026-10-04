@@ -5,9 +5,7 @@ using Core.PersistenceLayer.Dynamics.Dynamic;
 using Core.PersistenceLayer.Pagings.Paging;
 using Core.SecurityLayer.Authorization;
 using Core.SecurityLayer.Constants;
-using Core.SecurityLayer.Extensions;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using OnlineConsulting.Modules.Identity.Application.Features.Auth;
@@ -15,6 +13,7 @@ using OnlineConsulting.Modules.Identity.Application.Features.Users.Constants;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Contracts;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -36,12 +35,12 @@ public record ListUsersQuery(PageRequest PageRequest, DynamicQuery? DynamicQuery
 /// never sees a Super Admin account even if it shares their TenantId (e.g. invited directly by one) - see
 /// <see cref="OnlineConsulting.Modules.Identity.Application.Common.TenantOwnerProtection"/>.
 /// </summary>
-public class ListUsersHandler(UserManager<User> userManager, RoleManager<Role> roleManager, IPermissionCatalog permissionCatalog, ITenantProvider tenantProvider, IHttpContextAccessor httpContextAccessor)
+public class ListUsersHandler(UserManager<User> userManager, RoleManager<Role> roleManager, IPermissionCatalog permissionCatalog, ITenantProvider tenantProvider, ICurrentUserAccessor currentUserAccessor)
     : IRequestHandler<ListUsersQuery, OperationDataResult<Paginate<UserResponse>>>
 {
     public async Task<OperationDataResult<Paginate<UserResponse>>> Handle(ListUsersQuery request, CancellationToken cancellationToken)
     {
-        var callerRoles = httpContextAccessor.HttpContext?.User.ClaimRoles() ?? [];
+        var callerRoles = currentUserAccessor.Roles;
         var isSuperAdmin = callerRoles.Contains(GlobalOperationClaims.SuperAdmin);
 
         var usersQuery = isSuperAdmin

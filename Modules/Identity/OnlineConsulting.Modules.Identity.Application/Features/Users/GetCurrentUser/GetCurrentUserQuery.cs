@@ -1,31 +1,29 @@
 ﻿using Core.SecurityLayer.Authorization;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using OnlineConsulting.Modules.Identity.Application.Features.Auth;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Constants;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Contracts;
 using OnlineConsulting.Modules.Identity.Domain;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Security.Claims;
 
 namespace OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
 
 public record GetCurrentUserQuery : IRequest<OperationDataResult<UserResponse>>;
 
-public class GetCurrentUserHandler(IHttpContextAccessor httpContextAccessor, UserManager<User> userManager, RoleManager<Role> roleManager, IPermissionCatalog permissionCatalog)
+public class GetCurrentUserHandler(ICurrentUserAccessor currentUserAccessor, UserManager<User> userManager, RoleManager<Role> roleManager, IPermissionCatalog permissionCatalog)
     : IRequestHandler<GetCurrentUserQuery, OperationDataResult<UserResponse>>
 {
     public async Task<OperationDataResult<UserResponse>> Handle(GetCurrentUserQuery request, CancellationToken cancellationToken)
     {
-        var identity = httpContextAccessor.HttpContext?.User?.Identity;
-        if (identity is not { IsAuthenticated: true })
+        if (!currentUserAccessor.IsAuthenticated)
         {
             return Result.Unauthorized<UserResponse>("User not found. Please log in and try again.");
         }
 
-        var username = identity.Name ?? httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Name)?.Value;
+        var username = currentUserAccessor.UserName;
         if (string.IsNullOrEmpty(username))
         {
             return Result.NotFound<UserResponse>(UserMessages.UserNotFound);

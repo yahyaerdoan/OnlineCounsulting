@@ -20,7 +20,11 @@ public class UpdateUserImage : IEndpoint
     }
 
     private static async Task<IResult> Handle(IFormFile image, ISender sender, HttpContext httpContext)
-        => (await sender.Send(new GetCurrentUserQuery())
-                .BindAsync(user => sender.Send(new UpdateUserImageCommand(user.Id, image))))
+    {
+        await using var content = image.OpenReadStream();
+
+        return (await sender.Send(new GetCurrentUserQuery())
+                .BindAsync(user => sender.Send(new UpdateUserImageCommand(user.Id, content, image.FileName, image.ContentType, image.Length))))
             .ToEnvelopedResult(httpContext);
+    }
 }

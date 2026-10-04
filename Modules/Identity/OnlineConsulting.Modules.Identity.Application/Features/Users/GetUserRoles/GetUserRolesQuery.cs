@@ -1,13 +1,12 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
-using Core.SecurityLayer.Extensions;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Constants;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Contracts;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -21,7 +20,7 @@ public record GetUserRolesQuery(Guid UserId) : IRequest<OperationDataResult<List
     public string[] Roles => [UsersOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, UsersOperationClaims.Read];
 }
 
-public class GetUserRolesHandler(UserManager<User> userManager, RoleManager<Role> roleManager, ITenantProvider tenantProvider, IHttpContextAccessor httpContextAccessor)
+public class GetUserRolesHandler(UserManager<User> userManager, RoleManager<Role> roleManager, ITenantProvider tenantProvider, ICurrentUserAccessor currentUserAccessor)
     : IRequestHandler<GetUserRolesQuery, OperationDataResult<List<RoleAssignmentResponse>>>
 {
     public async Task<OperationDataResult<List<RoleAssignmentResponse>>> Handle(GetUserRolesQuery request, CancellationToken cancellationToken)
@@ -32,14 +31,14 @@ public class GetUserRolesHandler(UserManager<User> userManager, RoleManager<Role
             return Result.NotFound<List<RoleAssignmentResponse>>(UserMessages.UserNotFound);
         }
 
-        if (!TenantOwnershipGuard.CallerMayManage(user.TenantId, tenantProvider.TenantId, httpContextAccessor))
+        if (!TenantOwnershipGuard.CallerMayManage(user.TenantId, tenantProvider.TenantId, currentUserAccessor))
         {
             return Result.Forbidden<List<RoleAssignmentResponse>>(UserMessages.NotAuthorizedForOtherTenant);
         }
 
         var allRoles = await roleManager.Roles.ToListAsync(cancellationToken);
 
-        var callerRoles = httpContextAccessor.HttpContext?.User.ClaimRoles() ?? [];
+        var callerRoles = currentUserAccessor.Roles;
         if (!callerRoles.Contains(GlobalOperationClaims.SuperAdmin))
         {
             allRoles = [.. allRoles.Where(r => r.Name != GlobalOperationClaims.SuperAdmin)];

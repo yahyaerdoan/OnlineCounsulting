@@ -64,19 +64,10 @@ public class CreateWorkOrderHandler(IWorkOrderRepository workOrderRepository,
             return Result.Conflict<Guid>(SchedulingMessages.AppointmentAlreadyClosed);
         }
 
-        var workOrder = new WorkOrder
-        {
-            AppointmentId = request.AppointmentId,
-            TechnicianUserId = request.TechnicianUserId,
-            PartsUsed = request.PartsUsed,
-            TechnicianNotes = request.TechnicianNotes,
-            CompletedAt = request.CompletedAt ?? DateTimeOffset.UtcNow,
-            EquipmentId = request.EquipmentId,
-        };
+        var workOrder = WorkOrder.RecordFor(appointment, request.TechnicianUserId, request.PartsUsed, request.TechnicianNotes,
+            request.CompletedAt ?? DateTimeOffset.UtcNow, request.EquipmentId);
 
         _ = await workOrderRepository.AddAsync(workOrder, cancellationToken: cancellationToken);
-
-        appointment.Complete();
 
         _ = await appointmentRepository.UpdateAsync(appointment, cancellationToken: cancellationToken);
 

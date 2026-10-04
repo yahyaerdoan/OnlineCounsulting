@@ -1,7 +1,6 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using Core.SecurityLayer.Constants;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using OnlineConsulting.Modules.Identity.Application.Common;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Constants;
@@ -21,7 +20,7 @@ public record UpdateUserCommand(Guid Id, string FirstName, string LastName, bool
     public string[] Roles => [UsersOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, UsersOperationClaims.Update];
 }
 
-public class UpdateUserHandler(UserManager<User> userManager, ITenantOwnershipReader tenantOwnershipReader, ITenantProvider tenantProvider, IHttpContextAccessor httpContextAccessor, ICurrentUserAccessor currentUserAccessor)
+public class UpdateUserHandler(UserManager<User> userManager, ITenantOwnershipReader tenantOwnershipReader, ITenantProvider tenantProvider, ICurrentUserAccessor currentUserAccessor)
     : IRequestHandler<UpdateUserCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
@@ -37,7 +36,7 @@ public class UpdateUserHandler(UserManager<User> userManager, ITenantOwnershipRe
             return Result.Forbidden("You cannot deactivate your own account.");
         }
 
-        var ownerGuardResult = await TenantOwnerProtection.EnsureCallerMayModifyAsync(userManager, tenantOwnershipReader, tenantProvider, httpContextAccessor, user, cancellationToken);
+        var ownerGuardResult = await TenantOwnerProtection.EnsureCallerMayModifyAsync(userManager, tenantOwnershipReader, tenantProvider, currentUserAccessor, user, cancellationToken);
         if (ownerGuardResult is not null)
         {
             return ownerGuardResult;

@@ -1,13 +1,13 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using Core.SecurityLayer.Authorization;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using OnlineConsulting.Modules.Identity.Application.Features.Auth;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Constants;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Contracts;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -26,7 +26,7 @@ public record GetUserPermissionOverridesQuery(Guid UserId) : IRequest<OperationD
 /// A bypass-holding user (FullAccess/TenantFullAccess/SuperAdmin) has no meaningful catalog baseline to
 /// narrow, so the editable list is restricted to real catalog permissions only.
 /// </summary>
-public class GetUserPermissionOverridesHandler(UserManager<User> userManager, RoleManager<Role> roleManager, IPermissionCatalog permissionCatalog, ITenantProvider tenantProvider, IHttpContextAccessor httpContextAccessor)
+public class GetUserPermissionOverridesHandler(UserManager<User> userManager, RoleManager<Role> roleManager, IPermissionCatalog permissionCatalog, ITenantProvider tenantProvider, ICurrentUserAccessor currentUserAccessor)
     : IRequestHandler<GetUserPermissionOverridesQuery, OperationDataResult<UserPermissionOverridesResponse>>
 {
     public async Task<OperationDataResult<UserPermissionOverridesResponse>> Handle(GetUserPermissionOverridesQuery request, CancellationToken cancellationToken)
@@ -38,7 +38,7 @@ public class GetUserPermissionOverridesHandler(UserManager<User> userManager, Ro
             return Result.NotFound<UserPermissionOverridesResponse>(UserMessages.UserNotFound);
         }
 
-        if (!TenantOwnershipGuard.CallerMayManage(user.TenantId, tenantProvider.TenantId, httpContextAccessor))
+        if (!TenantOwnershipGuard.CallerMayManage(user.TenantId, tenantProvider.TenantId, currentUserAccessor))
         {
             return Result.Forbidden<UserPermissionOverridesResponse>(UserMessages.NotAuthorizedForOtherTenant);
         }

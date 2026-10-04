@@ -3,14 +3,13 @@ using Core.ApplicationLayer.Requests.Lists;
 using Core.ApplicationLayer.Requests.Page;
 using Core.PersistenceLayer.Dynamics.Dynamic;
 using Core.PersistenceLayer.Pagings.Paging;
-using Core.SecurityLayer.Extensions;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using OnlineConsulting.Modules.Identity.Application.Features.Invites.Abstractions;
 using OnlineConsulting.Modules.Identity.Application.Features.Invites.Constants;
 using OnlineConsulting.Modules.Identity.Application.Features.Invites.Contracts;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -26,12 +25,12 @@ public record ListInvitesQuery(PageRequest PageRequest, DynamicQuery? DynamicQue
     public string[] Roles => [InvitesOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, InvitesOperationClaims.Read];
 }
 
-public class ListInvitesHandler(IInviteRepository inviteRepository, ITenantProvider tenantProvider, IHttpContextAccessor httpContextAccessor)
+public class ListInvitesHandler(IInviteRepository inviteRepository, ITenantProvider tenantProvider, ICurrentUserAccessor currentUserAccessor)
     : IRequestHandler<ListInvitesQuery, OperationDataResult<Paginate<InviteResponse>>>
 {
     public async Task<OperationDataResult<Paginate<InviteResponse>>> Handle(ListInvitesQuery request, CancellationToken cancellationToken)
     {
-        var callerRoles = httpContextAccessor.HttpContext?.User.ClaimRoles() ?? [];
+        var callerRoles = currentUserAccessor.Roles;
         var isSuperAdmin = callerRoles.Contains(GlobalOperationClaims.SuperAdmin);
 
         var invitesQuery = isSuperAdmin

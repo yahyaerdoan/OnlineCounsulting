@@ -1,10 +1,10 @@
 using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using OnlineConsulting.Modules.Identity.Application.Features.Invites.Abstractions;
 using OnlineConsulting.Modules.Identity.Application.Features.Invites.Constants;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -18,7 +18,7 @@ public record CancelInviteCommand(Guid Id) : IRequest<OperationResult>, ISecureA
     public string[] Roles => [InvitesOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, InvitesOperationClaims.Delete];
 }
 
-public class CancelInviteHandler(IInviteRepository inviteRepository, ITenantProvider tenantProvider, IHttpContextAccessor httpContextAccessor)
+public class CancelInviteHandler(IInviteRepository inviteRepository, ITenantProvider tenantProvider, ICurrentUserAccessor currentUserAccessor)
     : IRequestHandler<CancelInviteCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(CancelInviteCommand request, CancellationToken cancellationToken)
@@ -29,7 +29,7 @@ public class CancelInviteHandler(IInviteRepository inviteRepository, ITenantProv
             return Result.NotFound(InviteMessages.InviteNotFound);
         }
 
-        if (!TenantOwnershipGuard.CallerMayManage(invite.TenantId, tenantProvider.TenantId, httpContextAccessor))
+        if (!TenantOwnershipGuard.CallerMayManage(invite.TenantId, tenantProvider.TenantId, currentUserAccessor))
         {
             return Result.Forbidden(InviteMessages.NotAuthorizedForOtherTenant);
         }

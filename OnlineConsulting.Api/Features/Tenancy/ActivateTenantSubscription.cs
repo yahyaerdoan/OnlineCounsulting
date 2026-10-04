@@ -4,6 +4,7 @@ using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Signup.ActivateTenantSubscription;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Signup.Contracts;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.Constants;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.AspNetCore.Extensions;
 using ResultHandler.Facade;
@@ -24,9 +25,9 @@ public class ActivateTenantSubscription : IEndpoint
             .WithDescription("Retries billing for a tenant that was reserved and given an admin user but whose subscription activation previously failed.");
     }
 
-    private static async Task<IResult> Handle(Guid tenantId, [FromBody] ActivateTenantSubscriptionRequest request, ISender sender, ITenantProvider tenantProvider, IHttpContextAccessor httpContextAccessor, HttpContext httpContext)
+    private static async Task<IResult> Handle(Guid tenantId, [FromBody] ActivateTenantSubscriptionRequest request, ISender sender, ITenantProvider tenantProvider, ICurrentUserAccessor currentUserAccessor, HttpContext httpContext)
     {
-        if (!TenantOwnershipGuard.CallerMayManage(tenantId, tenantProvider.TenantId, httpContextAccessor))
+        if (!TenantOwnershipGuard.CallerMayManage(tenantId, tenantProvider.TenantId, currentUserAccessor))
         {
             return Result.Forbidden<ActivateTenantSubscriptionResult>(TenantSubscriptionItemMessages.NotAuthorizedForTenant).ToEnvelopedResult(httpContext);
         }

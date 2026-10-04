@@ -1,10 +1,10 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.Constants;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.Rules;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Domain;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using OnlineConsulting.SharedKernel.FeatureFlags;
 using OnlineConsulting.SharedKernel.Payments;
 using OnlineConsulting.SharedKernel.Tenancy;
@@ -21,12 +21,12 @@ public record RemoveModuleCommand(Guid TenantId, string ModuleKey) : IRequest<Op
     public string[] Roles => [];
 }
 
-public class RemoveModuleHandler(ITenantSubscriptionRepository tenantSubscriptionRepository, ISubscriptionGateway subscriptionGateway, IFeatureFlagWriter featureFlagWriter, ITenantProvider tenantProvider, IHttpContextAccessor httpContextAccessor)
+public class RemoveModuleHandler(ITenantSubscriptionRepository tenantSubscriptionRepository, ISubscriptionGateway subscriptionGateway, IFeatureFlagWriter featureFlagWriter, ITenantProvider tenantProvider, ICurrentUserAccessor currentUserAccessor)
     : IRequestHandler<RemoveModuleCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(RemoveModuleCommand request, CancellationToken cancellationToken)
     {
-        if (!TenantOwnershipGuard.CallerMayManage(request.TenantId, tenantProvider.TenantId, httpContextAccessor))
+        if (!TenantOwnershipGuard.CallerMayManage(request.TenantId, tenantProvider.TenantId, currentUserAccessor))
         {
             return TenantSubscriptionItemBusinessRules.NotAuthorizedForTenant();
         }

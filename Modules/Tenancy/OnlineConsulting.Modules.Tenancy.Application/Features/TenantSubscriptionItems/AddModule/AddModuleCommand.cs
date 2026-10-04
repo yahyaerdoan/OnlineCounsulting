@@ -1,12 +1,12 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using OnlineConsulting.Modules.Tenancy.Application.Features.ModuleOfferings.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.Constants;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.Rules;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Domain;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using OnlineConsulting.SharedKernel.FeatureFlags;
 using OnlineConsulting.SharedKernel.Payments;
 using OnlineConsulting.SharedKernel.Tenancy;
@@ -23,12 +23,12 @@ public record AddModuleCommand(Guid TenantId, string ModuleKey) : IRequest<Opera
     public string[] Roles => [];
 }
 
-public class AddModuleHandler(ITenantRepository tenantRepository, ITenantSubscriptionRepository tenantSubscriptionRepository, IModuleOfferingRepository moduleOfferingRepository, ISubscriptionGateway subscriptionGateway, IFeatureFlagWriter featureFlagWriter, ITenantProvider tenantProvider, IHttpContextAccessor httpContextAccessor)
+public class AddModuleHandler(ITenantRepository tenantRepository, ITenantSubscriptionRepository tenantSubscriptionRepository, IModuleOfferingRepository moduleOfferingRepository, ISubscriptionGateway subscriptionGateway, IFeatureFlagWriter featureFlagWriter, ITenantProvider tenantProvider, ICurrentUserAccessor currentUserAccessor)
     : IRequestHandler<AddModuleCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(AddModuleCommand request, CancellationToken cancellationToken)
     {
-        if (!TenantOwnershipGuard.CallerMayManage(request.TenantId, tenantProvider.TenantId, httpContextAccessor))
+        if (!TenantOwnershipGuard.CallerMayManage(request.TenantId, tenantProvider.TenantId, currentUserAccessor))
         {
             return TenantSubscriptionItemBusinessRules.NotAuthorizedForTenant();
         }
