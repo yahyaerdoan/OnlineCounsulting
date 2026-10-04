@@ -6,7 +6,6 @@ using OnlineConsulting.Modules.Inquiries.Domain;
 using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Inquiries.Application.Features.Contact.UpdateContact;
 
@@ -14,7 +13,6 @@ namespace OnlineConsulting.Modules.Inquiries.Application.Features.Contact.Update
 public record UpdateContactCommand(string Email, string Phone, string Address, string Description, string WorkingHours)
     : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [ContactOperationClaims.Admin, ContactOperationClaims.Write, ContactOperationClaims.Update];
 }
 

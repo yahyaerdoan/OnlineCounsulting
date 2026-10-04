@@ -9,7 +9,6 @@ using OnlineConsulting.Modules.Services.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 using OnlineConsulting.SharedKernel.Catalog;
 
 namespace OnlineConsulting.Modules.Services.Application.Features.Services.CreateService;
@@ -17,7 +16,6 @@ namespace OnlineConsulting.Modules.Services.Application.Features.Services.Create
 public record CreateServiceCommand(Guid CategoryId, string Title, string Description, string DetailedDescription, decimal Price, bool FeaturedArea, int DiscountRate, int TaxRate, bool RequiresPrepayment = false, bool IsEmergencyAvailable = false, Guid? CoverMediaAssetId = null, string PriceType = ServicePriceTypes.Fixed, decimal? PriceMax = null, string Kind = ServiceKinds.Booking)
     : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [ServicesOperationClaims.Admin, ServicesOperationClaims.Write, ServicesOperationClaims.Add, GlobalOperationClaims.SuperAdmin];
 }
 

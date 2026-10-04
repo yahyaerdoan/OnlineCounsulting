@@ -17,9 +17,14 @@ public class CreateRole : IEndpoint
             .WithDescription("Creates a new role.");
     }
 
-    private static async Task<IResult> Handle([FromBody] CreateRoleCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] CreateRoleRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command);
+        var result = await sender.Send(request.ToCommand());
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record CreateRoleRequest(string Name, string? Description)
+{
+    public CreateRoleCommand ToCommand() => new(Name, Description);
 }

@@ -6,14 +6,12 @@ using OnlineConsulting.Modules.Memberships.Domain;
 using OnlineConsulting.SharedKernel.Payments;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.ResumeMembership;
 
 /// <summary>Reverses PauseMembershipCommand; RenewalDate self-corrects on the next real provider renewal webhook rather than being guessed here.</summary>
 public record ResumeMembershipCommand(Guid UserId) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [];
 }
 

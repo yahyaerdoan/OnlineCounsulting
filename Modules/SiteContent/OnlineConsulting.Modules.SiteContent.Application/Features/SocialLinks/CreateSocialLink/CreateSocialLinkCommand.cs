@@ -5,13 +5,11 @@ using OnlineConsulting.Modules.SiteContent.Application.Features.SocialLinks.Abst
 using OnlineConsulting.Modules.SiteContent.Domain;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.SiteContent.Application.Features.SocialLinks.CreateSocialLink;
 
 public record CreateSocialLinkCommand(string Name, string Url, string Icon, string? IconColor = null, int DisplayOrder = 0) : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Add];
 }
 

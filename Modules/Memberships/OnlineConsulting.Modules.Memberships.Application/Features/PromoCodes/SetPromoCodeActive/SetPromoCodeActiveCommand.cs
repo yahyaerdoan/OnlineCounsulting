@@ -5,13 +5,11 @@ using OnlineConsulting.Modules.Memberships.Application.Features.PromoCodes.Abstr
 using OnlineConsulting.Modules.Memberships.Application.Features.PromoCodes.Constants;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Memberships.Application.Features.PromoCodes.SetPromoCodeActive;
 
 public record SetPromoCodeActiveCommand(Guid Id, bool IsActive) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [MembershipsOperationClaims.Admin, MembershipsOperationClaims.Write, MembershipsOperationClaims.Update];
 }
 

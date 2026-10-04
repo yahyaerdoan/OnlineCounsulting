@@ -4,14 +4,12 @@ using OnlineConsulting.Modules.Equipment.Application.Common;
 using OnlineConsulting.Modules.Equipment.Application.Features.EquipmentItems.Abstractions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Equipment.Application.Features.EquipmentItems.UpdateEquipmentItem;
 
 public record UpdateEquipmentItemCommand(Guid Id, string Type, string? Brand, string? Model, string? SerialNumber, DateTimeOffset? InstallDate, DateTimeOffset? WarrantyExpiresAt, string? Notes)
     : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [EquipmentOperationClaims.Admin, EquipmentOperationClaims.Write];
 }
 

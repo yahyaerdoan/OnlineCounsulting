@@ -8,14 +8,12 @@ using OnlineConsulting.Modules.Tenancy.Domain;
 using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.GetMyTenant;
 
 /// <summary>Tenant-side counterpart to GetTenantByIdQuery - resolves the caller's own tenant from ITenantProvider, so any tenant admin can view it without a platform role.</summary>
 public record GetMyTenantQuery : IRequest<OperationDataResult<TenantSummaryResponse>>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [];
 }
 

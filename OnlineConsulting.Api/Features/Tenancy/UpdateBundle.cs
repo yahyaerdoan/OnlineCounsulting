@@ -17,9 +17,14 @@ public class UpdateBundle : IEndpoint
             .WithDescription("Updates a bundle's name, module keys and visibility (SuperAdmin).");
     }
 
-    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateBundleCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateBundleRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command with { Id = id });
+        var result = await sender.Send(request.ToCommand(id));
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record UpdateBundleRequest(string Name, List<string> ModuleKeys, bool IsPubliclyVisible)
+{
+    public UpdateBundleCommand ToCommand(Guid id) => new(id, Name, ModuleKeys, IsPubliclyVisible);
 }

@@ -5,14 +5,12 @@ using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Abst
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Rules;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.ConfirmAppointment;
 
 /// <summary>Tenant/admin side approval of a Pending appointment. Payment is not involved yet (see Appointment.RequiresPrepayment) - confirmation is a manual decision until a real gateway exists.</summary>
 public record ConfirmAppointmentCommand(Guid Id) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [SchedulingOperationClaims.Admin, SchedulingOperationClaims.Write, SchedulingOperationClaims.Update];
 }
 

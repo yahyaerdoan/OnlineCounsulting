@@ -17,9 +17,14 @@ public class UpdatePageBanner : IEndpoint
             .WithDescription("Updates a page header banner.");
     }
 
-    private static async Task<IResult> Handle(Guid id, [FromBody] UpdatePageBannerCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle(Guid id, [FromBody] UpdatePageBannerRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command with { Id = id });
+        var result = await sender.Send(request.ToCommand(id));
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record UpdatePageBannerRequest(string Title, string Description, string ImageUrl, int DisplayOrder = 0, Dictionary<string, object>? Metadata = null)
+{
+    public UpdatePageBannerCommand ToCommand(Guid id) => new(id, Title, Description, ImageUrl, DisplayOrder, Metadata);
 }

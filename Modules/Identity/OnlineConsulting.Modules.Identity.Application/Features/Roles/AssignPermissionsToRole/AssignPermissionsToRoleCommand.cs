@@ -11,18 +11,15 @@ using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Security.Claims;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Identity.Application.Features.Roles.AssignPermissionsToRole;
 
 public record AssignPermissionsToRoleCommand(Guid RoleId, List<string> Permissions) : IRequest<OperationResult>, ISecureAddRequest, IIdentityTransactionRequest
 {
     /// <summary>Roles aren't tenant-scoped, so only Super Admin may edit one - it's shared across tenants.</summary>
-    [JsonIgnore]
     public string[] Roles => [GlobalOperationClaims.SuperAdmin];
 
     /// <summary>Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.</summary>
-    [JsonIgnore]
     public bool AllowTenantBypass => false;
 }
 

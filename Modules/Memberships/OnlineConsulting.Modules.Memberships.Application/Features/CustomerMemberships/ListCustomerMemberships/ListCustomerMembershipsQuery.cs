@@ -13,7 +13,6 @@ using OnlineConsulting.Modules.Memberships.Domain;
 using OnlineConsulting.SharedKernel.Identity;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.ListCustomerMemberships;
 
@@ -23,7 +22,6 @@ public record ListCustomerMembershipsQuery(PageRequest PageRequest, DynamicQuery
 {
     public static IReadOnlySet<string> QueryableFields { get; } = new HashSet<string>([nameof(CustomerMembership.StartDate), nameof(CustomerMembership.RenewalDate)]);
 
-    [JsonIgnore]
     public string[] Roles => [MembershipsOperationClaims.Admin, MembershipsOperationClaims.Read];
 }
 

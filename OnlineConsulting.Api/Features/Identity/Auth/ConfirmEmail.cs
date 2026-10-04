@@ -18,9 +18,14 @@ public class ConfirmEmail : IEndpoint
             .WithDescription("Confirms a user's email address using the token sent at registration.");
     }
 
-    private static async Task<IResult> Handle([FromBody] ConfirmEmailCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] ConfirmEmailRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command);
+        var result = await sender.Send(request.ToCommand());
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record ConfirmEmailRequest(Guid UserId, string Token)
+{
+    public ConfirmEmailCommand ToCommand() => new(UserId, Token);
 }

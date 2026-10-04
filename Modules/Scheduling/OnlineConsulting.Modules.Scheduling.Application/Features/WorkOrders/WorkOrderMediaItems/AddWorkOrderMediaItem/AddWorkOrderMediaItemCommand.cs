@@ -7,14 +7,12 @@ using OnlineConsulting.Modules.Scheduling.Domain;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using ResultHandler.Functional;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Scheduling.Application.Features.WorkOrders.WorkOrderMediaItems.AddWorkOrderMediaItem;
 
 /// <summary>Attaches an already-uploaded MediaAsset to a WorkOrder's before/after gallery - upload itself goes through UploadMediaAsset first.</summary>
 public record AddWorkOrderMediaItemCommand(Guid WorkOrderId, Guid MediaAssetId, bool IsBeforePhoto, int DisplayOrder = 0) : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [SchedulingOperationClaims.Admin, SchedulingOperationClaims.Write, SchedulingOperationClaims.Add];
 }
 

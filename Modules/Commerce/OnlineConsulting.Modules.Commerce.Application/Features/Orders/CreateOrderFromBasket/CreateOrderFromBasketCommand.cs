@@ -13,7 +13,6 @@ using OnlineConsulting.SharedKernel.Tenancy;
 using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 using SharedPaymentStatuses = OnlineConsulting.SharedKernel.Payments.PaymentStatuses;
 using OnlineConsulting.SharedKernel.Catalog;
 
@@ -22,7 +21,6 @@ namespace OnlineConsulting.Modules.Commerce.Application.Features.Orders.CreateOr
 /// <summary>Turns the caller's basket into an order at current catalog prices and starts its payment.</summary>
 public record CreateOrderFromBasketCommand(Guid UserId, string Email) : IRequest<OperationDataResult<CreateOrderResult>>, ICommerceTransactionRequest, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [];
 }
 

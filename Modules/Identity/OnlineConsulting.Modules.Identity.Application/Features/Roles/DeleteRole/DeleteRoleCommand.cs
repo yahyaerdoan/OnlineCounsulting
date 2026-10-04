@@ -6,18 +6,15 @@ using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Identity.Application.Features.Roles.DeleteRole;
 
 public record DeleteRoleCommand(Guid RoleId) : IRequest<OperationResult>, ISecureAddRequest
 {
     /// <summary>Roles aren't tenant-scoped, so only Super Admin may delete one - it's shared across tenants.</summary>
-    [JsonIgnore]
     public string[] Roles => [GlobalOperationClaims.SuperAdmin];
 
     /// <summary>Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.</summary>
-    [JsonIgnore]
     public bool AllowTenantBypass => false;
 }
 

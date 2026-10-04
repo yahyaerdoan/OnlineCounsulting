@@ -11,13 +11,11 @@ using OnlineConsulting.SharedKernel.CurrentUser;
 using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Identity.Application.Features.Users.GetUserById;
 
 public record GetUserByIdQuery(Guid UserId) : IRequest<OperationDataResult<UserResponse>>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [UsersOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, UsersOperationClaims.Read];
 }
 

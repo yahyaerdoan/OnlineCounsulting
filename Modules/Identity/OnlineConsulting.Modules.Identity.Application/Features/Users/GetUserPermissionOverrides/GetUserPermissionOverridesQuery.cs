@@ -11,13 +11,11 @@ using OnlineConsulting.SharedKernel.CurrentUser;
 using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Identity.Application.Features.Users.GetUserPermissionOverrides;
 
 public record GetUserPermissionOverridesQuery(Guid UserId) : IRequest<OperationDataResult<UserPermissionOverridesResponse>>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [UsersOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, UsersOperationClaims.Read];
 }
 

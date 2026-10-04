@@ -8,27 +8,21 @@ using OnlineConsulting.Modules.FeatureFlags.Application.Features.FeatureFlags.Co
 using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.FeatureFlags.Application.Features.FeatureFlags.GetFeatureFlags;
 
 /// <summary>Merges every known key (FeatureFlagKeys.Defaults) with the tenant's stored overrides so the admin UI always sees a full list; TenantId is a plain field since CacheKey has no DI access to ITenantProvider.</summary>
 public record GetFeatureFlagsQuery(Guid TenantId) : IRequest<OperationDataResult<List<FeatureFlagResponse>>>, ISecureAddRequest, ICacheAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [FeatureFlagsOperationClaims.Admin, FeatureFlagsOperationClaims.Read];
 
-    [JsonIgnore]
     public string CacheKey => $"GetFeatureFlags({TenantId})";
 
-    [JsonIgnore]
     public bool ByPassCache => false;
 
     /// <summary>Short-lived - this is an admin settings screen, not a high-traffic list, so a long TTL isn't worth the staleness risk. SetFeatureFlagCommand's matching CacheGroupKey clears this immediately on write anyway; this is only a safety net.</summary>
-    [JsonIgnore]
     public TimeSpan? SlidingExpiration => TimeSpan.FromMinutes(5);
 
-    [JsonIgnore]
     public string? CacheGroupKey => $"FeatureFlags:{TenantId}";
 }
 

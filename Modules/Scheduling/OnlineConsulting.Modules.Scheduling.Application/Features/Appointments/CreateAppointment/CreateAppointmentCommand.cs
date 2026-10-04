@@ -6,7 +6,6 @@ using OnlineConsulting.Modules.Scheduling.Domain;
 using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 using OnlineConsulting.SharedKernel.Catalog;
 
 namespace OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.CreateAppointment;
@@ -16,7 +15,6 @@ public record CreateAppointmentCommand(Guid UserId, Guid? ServiceId, DateTimeOff
     string MeetingType = AppointmentMeetingTypes.InPerson, string? Topic = null)
     : IRequest<OperationDataResult<Guid>>, ISecureAddRequest, ISchedulingTransactionRequest
 {
-    [JsonIgnore]
     public string[] Roles => [];
 }
 

@@ -19,9 +19,14 @@ public class CreateMembershipPlan : IEndpoint
             .WithDescription("Creates a membership plan (admin) and its provider-side product/price.");
     }
 
-    private static async Task<IResult> Handle([FromBody] CreateMembershipPlanCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] CreateMembershipPlanRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command);
+        var result = await sender.Send(request.ToCommand());
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record CreateMembershipPlanRequest(string Name, string BillingCycle, decimal Price, int IncludedVisitsPerYear, decimal DiscountPercent, decimal CreditAmount, string? Benefits, int? TrialDays = null)
+{
+    public CreateMembershipPlanCommand ToCommand() => new(Name, BillingCycle, Price, IncludedVisitsPerYear, DiscountPercent, CreditAmount, Benefits, TrialDays);
 }

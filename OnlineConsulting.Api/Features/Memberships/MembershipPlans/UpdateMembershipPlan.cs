@@ -17,9 +17,14 @@ public class UpdateMembershipPlan : IEndpoint
             .WithDescription("Updates a membership plan's local fields (admin). Never changes the provider-side price.");
     }
 
-    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateMembershipPlanCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateMembershipPlanRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command with { Id = id });
+        var result = await sender.Send(request.ToCommand(id));
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record UpdateMembershipPlanRequest(string Name, int IncludedVisitsPerYear, decimal DiscountPercent, decimal CreditAmount, string? Benefits)
+{
+    public UpdateMembershipPlanCommand ToCommand(Guid id) => new(id, Name, IncludedVisitsPerYear, DiscountPercent, CreditAmount, Benefits);
 }

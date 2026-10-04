@@ -17,9 +17,14 @@ public class UpdateServiceOffering : IEndpoint
             .WithDescription("Updates a service offering card.");
     }
 
-    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateServiceOfferingCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateServiceOfferingRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command with { Id = id });
+        var result = await sender.Send(request.ToCommand(id));
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record UpdateServiceOfferingRequest(string Title, string Description, string Icon, string? IconColor = null, int DisplayOrder = 0, Dictionary<string, object>? Metadata = null)
+{
+    public UpdateServiceOfferingCommand ToCommand(Guid id) => new(id, Title, Description, Icon, IconColor, DisplayOrder, Metadata);
 }

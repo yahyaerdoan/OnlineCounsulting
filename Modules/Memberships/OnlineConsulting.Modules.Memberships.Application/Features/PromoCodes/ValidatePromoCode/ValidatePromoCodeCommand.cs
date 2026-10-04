@@ -8,13 +8,11 @@ using OnlineConsulting.Modules.Memberships.Application.Features.PromoCodes.Contr
 using OnlineConsulting.Modules.Memberships.Domain;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Memberships.Application.Features.PromoCodes.ValidatePromoCode;
 
 public record ValidatePromoCodeCommand(Guid UserId, string Code, Guid MembershipPlanId) : IRequest<OperationDataResult<ValidatePromoCodeResult>>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [];
 }
 

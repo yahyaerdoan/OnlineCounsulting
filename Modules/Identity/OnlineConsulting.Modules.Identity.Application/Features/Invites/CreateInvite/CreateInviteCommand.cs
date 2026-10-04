@@ -17,14 +17,12 @@ using OnlineConsulting.SharedKernel.Tenancy;
 using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Identity.Application.Features.Invites.CreateInvite;
 
 /// <summary>Invites a teammate into the caller's own tenant. TenantId comes from the JWT, never the client. RoleName defaults to Member; SuperAdmin is rejected.</summary>
 public record CreateInviteCommand(string Email, string? RoleName = null) : IRequest<OperationResult>, ISecureAddRequest, IIdentityTransactionRequest
 {
-    [JsonIgnore]
     public string[] Roles => [InvitesOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, InvitesOperationClaims.Add];
 }
 

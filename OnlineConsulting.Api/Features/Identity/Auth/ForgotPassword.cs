@@ -18,9 +18,14 @@ public class ForgotPassword : IEndpoint
             .WithDescription("Sends a password reset link if the email matches an account.");
     }
 
-    private static async Task<IResult> Handle([FromBody] ForgotPasswordCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] ForgotPasswordRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command);
+        var result = await sender.Send(request.ToCommand());
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record ForgotPasswordRequest(string Email)
+{
+    public ForgotPasswordCommand ToCommand() => new(Email);
 }

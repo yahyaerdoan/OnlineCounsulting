@@ -17,9 +17,14 @@ public class CreateFooterInfo : IEndpoint
             .WithDescription("Creates a footer content block.");
     }
 
-    private static async Task<IResult> Handle([FromBody] CreateFooterInfoCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] CreateFooterInfoRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command);
+        var result = await sender.Send(request.ToCommand());
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record CreateFooterInfoRequest(string ImageUrl, string Description, int DisplayOrder = 0, Dictionary<string, object>? Metadata = null)
+{
+    public CreateFooterInfoCommand ToCommand() => new(ImageUrl, Description, DisplayOrder, Metadata);
 }

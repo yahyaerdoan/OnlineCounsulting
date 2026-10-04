@@ -17,9 +17,14 @@ public class CreateFeatureHighlight : IEndpoint
             .WithDescription("Creates a feature highlight content block.");
     }
 
-    private static async Task<IResult> Handle([FromBody] CreateFeatureHighlightCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] CreateFeatureHighlightRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command);
+        var result = await sender.Send(request.ToCommand());
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record CreateFeatureHighlightRequest(string Title, string Description, string ImageUrl, int DisplayOrder = 0, Dictionary<string, object>? Metadata = null)
+{
+    public CreateFeatureHighlightCommand ToCommand() => new(Title, Description, ImageUrl, DisplayOrder, Metadata);
 }

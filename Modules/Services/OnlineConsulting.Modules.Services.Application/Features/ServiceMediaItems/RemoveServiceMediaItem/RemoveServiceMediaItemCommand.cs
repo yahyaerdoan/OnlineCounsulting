@@ -6,13 +6,11 @@ using OnlineConsulting.Modules.Services.Application.Features.Services.Constants;
 using OnlineConsulting.SharedKernel.Authorization;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Services.Application.Features.ServiceMediaItems.RemoveServiceMediaItem;
 
 public record RemoveServiceMediaItemCommand(Guid Id) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [ServicesOperationClaims.Admin, ServicesOperationClaims.Write, ServicesOperationClaims.Update, GlobalOperationClaims.SuperAdmin];
 }
 

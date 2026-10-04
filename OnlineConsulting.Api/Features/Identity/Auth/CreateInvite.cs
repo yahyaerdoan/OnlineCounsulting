@@ -17,9 +17,14 @@ public class CreateInvite : IEndpoint
             .WithDescription("Invites a new teammate into the caller's own tenant by email.");
     }
 
-    private static async Task<IResult> Handle([FromBody] CreateInviteCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] CreateInviteRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command);
+        var result = await sender.Send(request.ToCommand());
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record CreateInviteRequest(string Email, string? RoleName = null)
+{
+    public CreateInviteCommand ToCommand() => new(Email, RoleName);
 }

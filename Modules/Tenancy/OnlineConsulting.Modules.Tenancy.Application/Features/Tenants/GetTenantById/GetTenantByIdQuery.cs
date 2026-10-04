@@ -7,18 +7,15 @@ using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.
 using OnlineConsulting.SharedKernel.Authorization;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.GetTenantById;
 
 /// <summary>Platform-owner detail view of a single tenant - name/status plus the tenant's most recent non-cancelled subscription and every item (any status) ever billed on it, SuperAdmin only.</summary>
 public record GetTenantByIdQuery(Guid TenantId) : IRequest<OperationDataResult<TenantDetailResponse>>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [GlobalOperationClaims.SuperAdmin];
 
     /// <summary>Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.</summary>
-    [JsonIgnore]
     public bool AllowTenantBypass => false;
 }
 

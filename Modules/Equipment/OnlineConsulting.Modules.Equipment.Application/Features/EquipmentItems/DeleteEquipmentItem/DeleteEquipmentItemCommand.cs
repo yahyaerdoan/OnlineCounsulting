@@ -4,13 +4,11 @@ using OnlineConsulting.Modules.Equipment.Application.Common;
 using OnlineConsulting.Modules.Equipment.Application.Features.EquipmentItems.Abstractions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Equipment.Application.Features.EquipmentItems.DeleteEquipmentItem;
 
 public record DeleteEquipmentItemCommand(Guid Id) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [EquipmentOperationClaims.Admin, EquipmentOperationClaims.Write];
 }
 

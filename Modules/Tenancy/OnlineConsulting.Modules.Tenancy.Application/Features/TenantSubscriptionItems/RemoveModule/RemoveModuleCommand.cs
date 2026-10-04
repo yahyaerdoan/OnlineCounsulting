@@ -10,14 +10,12 @@ using OnlineConsulting.SharedKernel.Payments;
 using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.RemoveModule;
 
 /// <summary>Mirror of AddModuleCommand - removes one à la carte module, prorated refund/credit. Same Roles => [] + TenantOwnershipGuard authorization shape.</summary>
 public record RemoveModuleCommand(Guid TenantId, string ModuleKey) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [];
 }
 

@@ -3,13 +3,11 @@ using MediatR;
 using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.Abstractions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Addresses.DeleteUserAddress;
 
 public record DeleteUserAddressCommand(Guid Id, Guid UserId) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [];
 }
 

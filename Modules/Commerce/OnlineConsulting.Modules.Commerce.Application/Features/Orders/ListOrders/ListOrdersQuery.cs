@@ -11,7 +11,6 @@ using OnlineConsulting.Modules.Commerce.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Orders.ListOrders;
 
@@ -21,7 +20,6 @@ public record ListOrdersQuery(PageRequest PageRequest, DynamicQuery? DynamicQuer
 {
     public static IReadOnlySet<string> QueryableFields { get; } = new HashSet<string>([nameof(Order.OrderNumber), nameof(Order.CreatedDate)]);
 
-    [JsonIgnore]
     public string[] Roles => [CommerceOperationClaims.Admin, CommerceOperationClaims.Read, GlobalOperationClaims.SuperAdmin];
 }
 

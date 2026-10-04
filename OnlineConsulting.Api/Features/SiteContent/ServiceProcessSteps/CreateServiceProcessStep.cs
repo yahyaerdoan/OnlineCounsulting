@@ -17,9 +17,14 @@ public class CreateServiceProcessStep : IEndpoint
             .WithDescription("Creates a step in the \"how you get our service\" homepage section.");
     }
 
-    private static async Task<IResult> Handle([FromBody] CreateServiceProcessStepCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] CreateServiceProcessStepRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command);
+        var result = await sender.Send(request.ToCommand());
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record CreateServiceProcessStepRequest(string Title, string Description, string Icon, string? IconColor = null, int DisplayOrder = 0, Dictionary<string, object>? Metadata = null)
+{
+    public CreateServiceProcessStepCommand ToCommand() => new(Title, Description, Icon, IconColor, DisplayOrder, Metadata);
 }

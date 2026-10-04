@@ -18,9 +18,14 @@ public class AcceptInvite : IEndpoint
             .WithDescription("Accepts a teammate invite and creates the invited person's account.");
     }
 
-    private static async Task<IResult> Handle([FromBody] AcceptInviteCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] AcceptInviteRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command);
+        var result = await sender.Send(request.ToCommand());
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record AcceptInviteRequest(string Token, string FirstName, string LastName, string Password, string? PhoneNumber = null)
+{
+    public AcceptInviteCommand ToCommand() => new(Token, FirstName, LastName, Password, PhoneNumber);
 }

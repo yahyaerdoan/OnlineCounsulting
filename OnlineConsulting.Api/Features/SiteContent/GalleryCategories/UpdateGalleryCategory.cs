@@ -17,9 +17,14 @@ public class UpdateGalleryCategory : IEndpoint
             .WithDescription("Updates a gallery category tag.");
     }
 
-    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateGalleryCategoryCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateGalleryCategoryRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command with { Id = id });
+        var result = await sender.Send(request.ToCommand(id));
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record UpdateGalleryCategoryRequest(string Name, string? Description = null)
+{
+    public UpdateGalleryCategoryCommand ToCommand(Guid id) => new(id, Name, Description);
 }

@@ -17,9 +17,14 @@ public class CreatePromoCode : IEndpoint
             .WithDescription("Creates a promo/discount code (admin).");
     }
 
-    private static async Task<IResult> Handle([FromBody] CreatePromoCodeCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] CreatePromoCodeRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command);
+        var result = await sender.Send(request.ToCommand());
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record CreatePromoCodeRequest(string Code, string DiscountType, decimal DiscountValue, int? MaxRedemptions, DateTimeOffset? ExpiresAt, Guid? MembershipPlanId)
+{
+    public CreatePromoCodeCommand ToCommand() => new(Code, DiscountType, DiscountValue, MaxRedemptions, ExpiresAt, MembershipPlanId);
 }

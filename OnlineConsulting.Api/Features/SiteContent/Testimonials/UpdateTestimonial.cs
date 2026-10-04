@@ -17,9 +17,14 @@ public class UpdateTestimonial : IEndpoint
             .WithDescription("Updates a customer testimonial.");
     }
 
-    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateTestimonialCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateTestimonialRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command with { Id = id });
+        var result = await sender.Send(request.ToCommand(id));
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record UpdateTestimonialRequest(string FirstName, string LastName, string Title, string Description, string ImageUrl, int DisplayOrder = 0, Dictionary<string, object>? Metadata = null)
+{
+    public UpdateTestimonialCommand ToCommand(Guid id) => new(id, FirstName, LastName, Title, Description, ImageUrl, DisplayOrder, Metadata);
 }

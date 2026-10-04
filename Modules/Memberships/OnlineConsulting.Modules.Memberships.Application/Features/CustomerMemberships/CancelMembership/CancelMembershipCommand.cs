@@ -8,14 +8,12 @@ using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Globalization;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.CancelMembership;
 
 /// <summary>Cancels at period end (status flips via webhook, see OnSubscriptionCancelledHandler); AdminCancelMembershipCommand is the immediate-cancel override.</summary>
 public record CancelMembershipCommand(Guid UserId) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [];
 }
 

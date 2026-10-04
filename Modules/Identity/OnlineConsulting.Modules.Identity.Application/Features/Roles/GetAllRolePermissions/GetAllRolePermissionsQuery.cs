@@ -11,14 +11,12 @@ using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Identity.Application.Features.Roles.GetAllRolePermissions;
 
 /// <summary>Every role's permissions in one call - backs the all-roles permission matrix page.</summary>
 public record GetAllRolePermissionsQuery : IRequest<OperationDataResult<List<RolePermissionsResponse>>>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [RolesOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, RolesOperationClaims.Read];
 }
 

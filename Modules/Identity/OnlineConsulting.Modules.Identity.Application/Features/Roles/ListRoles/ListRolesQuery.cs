@@ -11,7 +11,6 @@ using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Identity.Application.Features.Roles.ListRoles;
 
@@ -20,7 +19,6 @@ public record ListRolesQuery(PageRequest PageRequest, DynamicQuery? DynamicQuery
 {
     public static IReadOnlySet<string> QueryableFields { get; } = new HashSet<string>([nameof(Role.Name)]);
 
-    [JsonIgnore]
     public string[] Roles => [RolesOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, RolesOperationClaims.Read];
 }
 

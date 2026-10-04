@@ -16,9 +16,14 @@ public class RefreshTokenEndpoint : IEndpoint
             .WithDescription("Exchanges an expired access token + valid refresh token for a new pair.");
     }
 
-    private static async Task<IResult> Handle([FromBody] AuthRefresh.RefreshTokenCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] RefreshTokenRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command);
+        var result = await sender.Send(request.ToCommand());
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record RefreshTokenRequest(string AccessToken, string RefreshToken)
+{
+    public AuthRefresh.RefreshTokenCommand ToCommand() => new(AccessToken, RefreshToken);
 }

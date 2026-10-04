@@ -7,13 +7,11 @@ using OnlineConsulting.Modules.Memberships.Application.Features.PromoCodes.Abstr
 using OnlineConsulting.Modules.Memberships.Application.Features.PromoCodes.Contracts;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Memberships.Application.Features.PromoCodes.GetPromoCodes;
 
 public record GetPromoCodesQuery(PageRequest PageRequest) : IRequest<OperationDataResult<Paginate<PromoCodeResponse>>>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [MembershipsOperationClaims.Admin, MembershipsOperationClaims.Read];
 }
 

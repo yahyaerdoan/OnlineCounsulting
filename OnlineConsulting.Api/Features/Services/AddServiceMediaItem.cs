@@ -17,9 +17,14 @@ public class AddServiceMediaItem : IEndpoint
             .WithDescription("Attaches an already-uploaded photo or video to a service's gallery.");
     }
 
-    private static async Task<IResult> Handle([FromBody] AddServiceMediaItemCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] AddServiceMediaItemRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command);
+        var result = await sender.Send(request.ToCommand());
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record AddServiceMediaItemRequest(Guid ServiceId, Guid MediaAssetId, int DisplayOrder = 0)
+{
+    public AddServiceMediaItemCommand ToCommand() => new(ServiceId, MediaAssetId, DisplayOrder);
 }

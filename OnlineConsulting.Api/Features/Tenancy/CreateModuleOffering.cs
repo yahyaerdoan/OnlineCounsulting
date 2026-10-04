@@ -19,9 +19,14 @@ public class CreateModuleOffering : IEndpoint
             .WithDescription("Creates a module offering (SuperAdmin) and its provider-side product/price.");
     }
 
-    private static async Task<IResult> Handle([FromBody] CreateModuleOfferingCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] CreateModuleOfferingRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command);
+        var result = await sender.Send(request.ToCommand());
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record CreateModuleOfferingRequest(string Key, string Name, decimal Price, string BillingCycle, bool IsPubliclyVisible)
+{
+    public CreateModuleOfferingCommand ToCommand() => new(Key, Name, Price, BillingCycle, IsPubliclyVisible);
 }

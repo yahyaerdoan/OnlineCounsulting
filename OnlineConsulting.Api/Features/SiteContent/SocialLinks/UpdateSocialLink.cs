@@ -17,9 +17,14 @@ public class UpdateSocialLink : IEndpoint
             .WithDescription("Updates a site-wide social link.");
     }
 
-    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateSocialLinkCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateSocialLinkRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command with { Id = id });
+        var result = await sender.Send(request.ToCommand(id));
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record UpdateSocialLinkRequest(string Name, string Url, string Icon, string? IconColor = null, int DisplayOrder = 0)
+{
+    public UpdateSocialLinkCommand ToCommand(Guid id) => new(id, Name, Url, Icon, IconColor, DisplayOrder);
 }

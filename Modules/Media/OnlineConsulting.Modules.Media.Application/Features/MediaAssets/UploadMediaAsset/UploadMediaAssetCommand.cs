@@ -7,7 +7,6 @@ using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.Media;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Media.Application.Features.MediaAssets.UploadMediaAsset;
 
@@ -15,7 +14,6 @@ namespace OnlineConsulting.Modules.Media.Application.Features.MediaAssets.Upload
 public record UploadMediaAssetCommand(Stream FileStream, string FileName, string ContentType, string Folder, string? AltText, Dictionary<string, object>? Metadata = null)
     : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [MediaOperationClaims.Admin, MediaOperationClaims.Write, MediaOperationClaims.Add, GlobalOperationClaims.SuperAdmin];
 }
 

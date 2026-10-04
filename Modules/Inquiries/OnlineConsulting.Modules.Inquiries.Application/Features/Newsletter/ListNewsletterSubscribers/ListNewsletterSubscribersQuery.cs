@@ -10,7 +10,6 @@ using OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.Contrac
 using OnlineConsulting.Modules.Inquiries.Domain;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.ListNewsletterSubscribers;
 
@@ -19,7 +18,6 @@ public record ListNewsletterSubscribersQuery(PageRequest PageRequest, DynamicQue
 {
     public static IReadOnlySet<string> QueryableFields { get; } = new HashSet<string>([nameof(NewsletterSubscriber.Email), nameof(NewsletterSubscriber.CreatedDate)]);
 
-    [JsonIgnore]
     public string[] Roles => [NewsletterOperationClaims.Admin, NewsletterOperationClaims.Read];
 }
 

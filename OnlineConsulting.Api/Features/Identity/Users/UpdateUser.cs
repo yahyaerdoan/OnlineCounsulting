@@ -17,9 +17,14 @@ public class UpdateUser : IEndpoint
             .WithDescription("Updates an existing user's profile and active status.");
     }
 
-    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateUserCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateUserRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command with { Id = id });
+        var result = await sender.Send(request.ToCommand(id));
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record UpdateUserRequest(string FirstName, string LastName, bool IsActive)
+{
+    public UpdateUserCommand ToCommand(Guid id) => new(id, FirstName, LastName, IsActive);
 }

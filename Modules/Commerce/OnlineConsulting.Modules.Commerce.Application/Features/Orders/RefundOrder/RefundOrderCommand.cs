@@ -7,14 +7,12 @@ using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.Payments;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Orders.RefundOrder;
 
 /// <summary>Refunds a paid order through the gateway that took the payment; a null <c>Amount</c> refunds in full.</summary>
 public record RefundOrderCommand(Guid OrderId, decimal? Amount = null) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [CommerceOperationClaims.Admin, CommerceOperationClaims.Write, GlobalOperationClaims.SuperAdmin];
 }
 

@@ -17,9 +17,14 @@ public class CreateServiceOffering : IEndpoint
             .WithDescription("Creates a card in the \"what we provide\" homepage section.");
     }
 
-    private static async Task<IResult> Handle([FromBody] CreateServiceOfferingCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] CreateServiceOfferingRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command);
+        var result = await sender.Send(request.ToCommand());
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record CreateServiceOfferingRequest(string Title, string Description, string Icon, string? IconColor = null, int DisplayOrder = 0, Dictionary<string, object>? Metadata = null)
+{
+    public CreateServiceOfferingCommand ToCommand() => new(Title, Description, Icon, IconColor, DisplayOrder, Metadata);
 }

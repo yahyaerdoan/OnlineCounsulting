@@ -17,9 +17,14 @@ public class CompleteReferral : IEndpoint
             .WithDescription("Marks a referral as rewarded (admin).");
     }
 
-    private static async Task<IResult> Handle(Guid id, [FromBody] CompleteReferralCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle(Guid id, [FromBody] CompleteReferralRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command with { Id = id });
+        var result = await sender.Send(request.ToCommand(id));
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record CompleteReferralRequest(decimal RewardAmount)
+{
+    public CompleteReferralCommand ToCommand(Guid id) => new(id, RewardAmount);
 }

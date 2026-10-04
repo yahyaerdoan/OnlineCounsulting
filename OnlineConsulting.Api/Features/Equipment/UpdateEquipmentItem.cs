@@ -17,9 +17,14 @@ public class UpdateEquipmentItem : IEndpoint
             .WithDescription("Updates a piece of a customer's installed equipment (admin/technician).");
     }
 
-    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateEquipmentItemCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateEquipmentItemRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command with { Id = id });
+        var result = await sender.Send(request.ToCommand(id));
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record UpdateEquipmentItemRequest(string Type, string? Brand, string? Model, string? SerialNumber, DateTimeOffset? InstallDate, DateTimeOffset? WarrantyExpiresAt, string? Notes)
+{
+    public UpdateEquipmentItemCommand ToCommand(Guid id) => new(id, Type, Brand, Model, SerialNumber, InstallDate, WarrantyExpiresAt, Notes);
 }

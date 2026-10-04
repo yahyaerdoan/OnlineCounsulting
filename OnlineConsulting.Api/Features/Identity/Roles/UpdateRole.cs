@@ -17,9 +17,14 @@ public class UpdateRole : IEndpoint
             .WithDescription("Updates an existing role.");
     }
 
-    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateRoleCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateRoleRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command with { Id = id });
+        var result = await sender.Send(request.ToCommand(id));
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record UpdateRoleRequest(string Name, string? Description)
+{
+    public UpdateRoleCommand ToCommand(Guid id) => new(id, Name, Description);
 }

@@ -5,13 +5,11 @@ using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.Abstracti
 using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Addresses.SetBillingAddress;
 
 public record SetBillingAddressCommand(Guid UserId, Guid AddressId) : IRequest<OperationResult>, ICommerceTransactionRequest, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [];
 }
 

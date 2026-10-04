@@ -17,9 +17,14 @@ public class CreateAboutUs : IEndpoint
             .WithDescription("Creates an About Us content block.");
     }
 
-    private static async Task<IResult> Handle([FromBody] CreateAboutUsCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] CreateAboutUsRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command);
+        var result = await sender.Send(request.ToCommand());
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record CreateAboutUsRequest(string Title, string Description, string? CoverImage, string? VideoUrl, int DisplayOrder = 0, Dictionary<string, object>? Metadata = null)
+{
+    public CreateAboutUsCommand ToCommand() => new(Title, Description, CoverImage, VideoUrl, DisplayOrder, Metadata);
 }

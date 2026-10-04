@@ -19,10 +19,15 @@ public class CreateCategory : IEndpoint
             .WithDescription("Creates a new category for the current tenant.");
     }
 
-    private static async Task<IResult> Handle([FromBody] CreateCategoryCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] CreateCategoryRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command);
+        var result = await sender.Send(request.ToCommand());
 
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record CreateCategoryRequest(string Title, string Description, string Icon, string? IconColor = null)
+{
+    public CreateCategoryCommand ToCommand() => new(Title, Description, Icon, IconColor);
 }

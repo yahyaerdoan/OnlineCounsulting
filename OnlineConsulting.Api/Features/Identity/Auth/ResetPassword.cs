@@ -18,9 +18,14 @@ public class ResetPassword : IEndpoint
             .WithDescription("Sets a new password using the token emailed by ForgotPassword.");
     }
 
-    private static async Task<IResult> Handle([FromBody] ResetPasswordCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] ResetPasswordRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command);
+        var result = await sender.Send(request.ToCommand());
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record ResetPasswordRequest(Guid UserId, string Token, string NewPassword)
+{
+    public ResetPasswordCommand ToCommand() => new(UserId, Token, NewPassword);
 }

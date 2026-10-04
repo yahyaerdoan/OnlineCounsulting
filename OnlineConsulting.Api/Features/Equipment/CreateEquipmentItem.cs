@@ -17,9 +17,14 @@ public class CreateEquipmentItem : IEndpoint
             .WithDescription("Records a piece of a customer's installed equipment (admin/technician).");
     }
 
-    private static async Task<IResult> Handle([FromBody] CreateEquipmentItemCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] CreateEquipmentItemRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command);
+        var result = await sender.Send(request.ToCommand());
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record CreateEquipmentItemRequest(Guid UserId, string Type, string? Brand, string? Model, string? SerialNumber, DateTimeOffset? InstallDate, DateTimeOffset? WarrantyExpiresAt, string? Notes)
+{
+    public CreateEquipmentItemCommand ToCommand() => new(UserId, Type, Brand, Model, SerialNumber, InstallDate, WarrantyExpiresAt, Notes);
 }

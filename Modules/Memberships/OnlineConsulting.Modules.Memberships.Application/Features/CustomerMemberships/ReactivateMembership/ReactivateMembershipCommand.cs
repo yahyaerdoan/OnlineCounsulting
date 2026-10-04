@@ -7,7 +7,6 @@ using OnlineConsulting.SharedKernel.Payments;
 using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.ReactivateMembership;
 
@@ -15,7 +14,6 @@ namespace OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemb
 /// charge. Once the period has ended (Status Cancelled) the member rejoins through SubscribeToMembership instead.</summary>
 public record ReactivateMembershipCommand(Guid UserId) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [];
 }
 

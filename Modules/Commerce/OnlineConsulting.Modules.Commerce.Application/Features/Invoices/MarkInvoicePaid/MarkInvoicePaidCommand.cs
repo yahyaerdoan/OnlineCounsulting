@@ -1,5 +1,4 @@
 ﻿using OnlineConsulting.Modules.Commerce.Domain;
-using System.Text.Json.Serialization;
 using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Commerce.Application.Common;
@@ -13,7 +12,6 @@ namespace OnlineConsulting.Modules.Commerce.Application.Features.Invoices.MarkIn
 /// <summary>Staff record an offline payment (cash, check, or a card taken on site).</summary>
 public record MarkInvoicePaidCommand(Guid Id, string PaymentMethod) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [CommerceOperationClaims.Admin, CommerceOperationClaims.Write, CommerceOperationClaims.Update];
 }
 

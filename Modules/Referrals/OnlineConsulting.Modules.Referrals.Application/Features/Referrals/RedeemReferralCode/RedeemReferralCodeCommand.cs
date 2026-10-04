@@ -6,14 +6,12 @@ using OnlineConsulting.Modules.Referrals.Application.Features.Referrals.Abstract
 using OnlineConsulting.Modules.Referrals.Domain;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Referrals.Application.Features.Referrals.RedeemReferralCode;
 
 /// <summary>A user can redeem at most one referral code, ever - enforced here (not just at signup) regardless of when they first hear about the program.</summary>
 public record RedeemReferralCodeCommand(Guid ReferredUserId, string Code) : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [];
 }
 

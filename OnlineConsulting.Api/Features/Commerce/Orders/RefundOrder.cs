@@ -17,9 +17,14 @@ public class RefundOrder : IEndpoint
             .WithDescription("Refunds a paid order through whichever payment provider processed it. Amount omitted means a full refund.");
     }
 
-    private static async Task<IResult> Handle(Guid id, [FromBody] RefundOrderCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle(Guid id, [FromBody] RefundOrderRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command with { OrderId = id });
+        var result = await sender.Send(request.ToCommand(id));
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record RefundOrderRequest(decimal? Amount = null)
+{
+    public RefundOrderCommand ToCommand(Guid orderId) => new(orderId, Amount);
 }

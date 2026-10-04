@@ -10,7 +10,6 @@ using OnlineConsulting.Modules.Inquiries.Application.Features.Messages.Contracts
 using OnlineConsulting.Modules.Inquiries.Domain;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Inquiries.Application.Features.Messages.ListMessages;
 
@@ -19,7 +18,6 @@ public record ListMessagesQuery(PageRequest PageRequest, DynamicQuery? DynamicQu
 {
     public static IReadOnlySet<string> QueryableFields { get; } = new HashSet<string>([nameof(Message.FirstName), nameof(Message.LastName), nameof(Message.Email), nameof(Message.Subject), nameof(Message.CreatedDate)]);
 
-    [JsonIgnore]
     public string[] Roles => [MessagesOperationClaims.Admin, MessagesOperationClaims.Read];
 }
 

@@ -5,14 +5,12 @@ using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryCategorie
 using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryCategories.Contracts;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.SiteContent.Application.Features.GalleryCategories.GetAllGalleryCategories;
 
 /// <summary>Admin-only (legacy's dropdown-population equivalent) - unlike GalleryItem itself, the category list is an admin concern, not public content.</summary>
 public record GetAllGalleryCategoriesQuery : IRequest<OperationDataResult<List<GalleryCategoryResponse>>>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Read];
 }
 

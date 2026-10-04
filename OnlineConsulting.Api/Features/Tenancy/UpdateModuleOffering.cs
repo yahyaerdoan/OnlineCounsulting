@@ -17,9 +17,14 @@ public class UpdateModuleOffering : IEndpoint
             .WithDescription("Updates a module offering's local fields (SuperAdmin). Never changes the provider-side price.");
     }
 
-    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateModuleOfferingCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateModuleOfferingRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command with { Id = id });
+        var result = await sender.Send(request.ToCommand(id));
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record UpdateModuleOfferingRequest(string Name, bool IsPubliclyVisible)
+{
+    public UpdateModuleOfferingCommand ToCommand(Guid id) => new(id, Name, IsPubliclyVisible);
 }

@@ -6,14 +6,12 @@ using OnlineConsulting.Modules.SiteContent.Domain.Gallery;
 using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.SiteContent.Application.Features.GalleryItems.CreateGalleryItem;
 
 /// <summary>CategoryIds is required to have at least one entry (CreateGalleryItemValidator) - preserves the legacy business rule that a gallery item must be tagged.</summary>
 public record CreateGalleryItemCommand(string Description, List<Guid> CategoryIds, Guid? PhotoMediaAssetId = null, int DisplayOrder = 0, Dictionary<string, object>? Metadata = null) : IRequest<OperationDataResult<Guid>>, ISecureAddRequest, ISiteContentTransactionRequest
 {
-    [JsonIgnore]
     public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Add];
 }
 

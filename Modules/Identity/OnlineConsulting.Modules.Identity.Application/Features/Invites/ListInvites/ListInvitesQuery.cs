@@ -13,7 +13,6 @@ using OnlineConsulting.SharedKernel.CurrentUser;
 using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Identity.Application.Features.Invites.ListInvites;
 
@@ -21,7 +20,6 @@ public record ListInvitesQuery(PageRequest PageRequest, DynamicQuery? DynamicQue
 {
     public static IReadOnlySet<string> QueryableFields { get; } = new HashSet<string>([nameof(Invite.Email), nameof(Invite.Status), nameof(Invite.ExpiresAt)]);
 
-    [JsonIgnore]
     public string[] Roles => [InvitesOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, InvitesOperationClaims.Read];
 }
 

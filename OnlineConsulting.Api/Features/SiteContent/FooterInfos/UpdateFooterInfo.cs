@@ -17,9 +17,14 @@ public class UpdateFooterInfo : IEndpoint
             .WithDescription("Updates a footer content block.");
     }
 
-    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateFooterInfoCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateFooterInfoRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command with { Id = id });
+        var result = await sender.Send(request.ToCommand(id));
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record UpdateFooterInfoRequest(string ImageUrl, string Description, int DisplayOrder = 0, Dictionary<string, object>? Metadata = null)
+{
+    public UpdateFooterInfoCommand ToCommand(Guid id) => new(id, ImageUrl, Description, DisplayOrder, Metadata);
 }

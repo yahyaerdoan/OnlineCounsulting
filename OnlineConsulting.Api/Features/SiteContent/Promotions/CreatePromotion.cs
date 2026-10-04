@@ -17,9 +17,14 @@ public class CreatePromotion : IEndpoint
             .WithDescription("Creates a promotional offer/CTA.");
     }
 
-    private static async Task<IResult> Handle([FromBody] CreatePromotionCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] CreatePromotionRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command);
+        var result = await sender.Send(request.ToCommand());
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record CreatePromotionRequest(string Title, string Description, string? CtaText, string? CtaUrl, DateTimeOffset? ExpiresAt, int DisplayOrder = 0)
+{
+    public CreatePromotionCommand ToCommand() => new(Title, Description, CtaText, CtaUrl, ExpiresAt, DisplayOrder);
 }

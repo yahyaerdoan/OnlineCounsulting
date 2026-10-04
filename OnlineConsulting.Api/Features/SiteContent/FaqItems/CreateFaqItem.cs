@@ -17,9 +17,14 @@ public class CreateFaqItem : IEndpoint
             .WithDescription("Creates a service-specific FAQ item.");
     }
 
-    private static async Task<IResult> Handle([FromBody] CreateFaqItemCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] CreateFaqItemRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command);
+        var result = await sender.Send(request.ToCommand());
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record CreateFaqItemRequest(Guid ServiceId, string Question, string Answer, int DisplayOrder = 0)
+{
+    public CreateFaqItemCommand ToCommand() => new(ServiceId, Question, Answer, DisplayOrder);
 }

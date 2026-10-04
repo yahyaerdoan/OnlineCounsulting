@@ -5,7 +5,6 @@ using OnlineConsulting.Modules.Memberships.Application.Features.MembershipPlans.
 using OnlineConsulting.Modules.Memberships.Application.Features.MembershipPlans.Constants;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Memberships.Application.Features.MembershipPlans.UpdateMembershipPlan;
 
@@ -13,7 +12,6 @@ namespace OnlineConsulting.Modules.Memberships.Application.Features.MembershipPl
 public record UpdateMembershipPlanCommand(Guid Id, string Name, int IncludedVisitsPerYear, decimal DiscountPercent, decimal CreditAmount, string? Benefits)
     : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [MembershipsOperationClaims.Admin, MembershipsOperationClaims.Write, MembershipsOperationClaims.Update];
 }
 

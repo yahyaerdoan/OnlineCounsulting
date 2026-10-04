@@ -10,7 +10,6 @@ using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Cont
 using OnlineConsulting.Modules.Scheduling.Domain;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.ListAppointments;
 
@@ -20,7 +19,6 @@ public record ListAppointmentsQuery(PageRequest PageRequest, DynamicQuery? Dynam
 {
     public static IReadOnlySet<string> QueryableFields { get; } = new HashSet<string>([nameof(Appointment.Status), nameof(Appointment.ScheduledStart)]);
 
-    [JsonIgnore]
     public string[] Roles => [SchedulingOperationClaims.Admin, SchedulingOperationClaims.Write, SchedulingOperationClaims.Read];
 }
 

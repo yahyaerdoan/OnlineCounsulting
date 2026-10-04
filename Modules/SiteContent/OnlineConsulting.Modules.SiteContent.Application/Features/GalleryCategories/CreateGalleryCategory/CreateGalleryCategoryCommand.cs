@@ -5,13 +5,11 @@ using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryCategorie
 using OnlineConsulting.Modules.SiteContent.Domain.Gallery;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.SiteContent.Application.Features.GalleryCategories.CreateGalleryCategory;
 
 public record CreateGalleryCategoryCommand(string Name, string? Description = null) : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Add];
 }
 

@@ -5,14 +5,12 @@ using OnlineConsulting.Modules.Memberships.Application.Features.MembershipPlans.
 using OnlineConsulting.Modules.Memberships.Application.Features.MembershipPlans.Constants;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Memberships.Application.Features.MembershipPlans.SetMembershipPlanActive;
 
 /// <summary>Archive/restore, not delete - a plan with live subscribers can never be hard-deleted (CustomerMembership.MembershipPlanId FK), so retiring it from sale is the only safe operation.</summary>
 public record SetMembershipPlanActiveCommand(Guid Id, bool IsActive) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [MembershipsOperationClaims.Admin, MembershipsOperationClaims.Write, MembershipsOperationClaims.Update];
 }
 

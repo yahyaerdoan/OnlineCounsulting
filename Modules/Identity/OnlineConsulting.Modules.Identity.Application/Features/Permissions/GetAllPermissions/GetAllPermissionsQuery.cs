@@ -5,13 +5,11 @@ using OnlineConsulting.Modules.Identity.Application.Features.Roles.Constants;
 using OnlineConsulting.SharedKernel.Authorization;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Identity.Application.Features.Permissions.GetAllPermissions;
 
 public record GetAllPermissionsQuery : IRequest<OperationDataResult<Dictionary<string, string[]>>>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [RolesOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, RolesOperationClaims.Read];
 }
 

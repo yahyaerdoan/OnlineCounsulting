@@ -12,7 +12,6 @@ using OnlineConsulting.SharedKernel.Referrals;
 using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.SubscribeToMembership;
 
@@ -25,7 +24,6 @@ public record SubscribeToMembershipCommand(Guid UserId,
                                            string? PromoCode = null)
     : IRequest<OperationDataResult<SubscribeToMembershipResult>>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [];
 }
 

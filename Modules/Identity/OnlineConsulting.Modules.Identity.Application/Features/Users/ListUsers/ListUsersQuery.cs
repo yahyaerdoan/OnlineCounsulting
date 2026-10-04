@@ -17,7 +17,6 @@ using OnlineConsulting.SharedKernel.CurrentUser;
 using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Identity.Application.Features.Users.ListUsers;
 
@@ -26,7 +25,6 @@ public record ListUsersQuery(PageRequest PageRequest, DynamicQuery? DynamicQuery
 {
     public static IReadOnlySet<string> QueryableFields { get; } = new HashSet<string>([nameof(User.FirstName), nameof(User.LastName), nameof(User.Email), nameof(User.IsActive), nameof(User.CreatedDate)]);
 
-    [JsonIgnore]
     public string[] Roles => [UsersOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, UsersOperationClaims.Read];
 }
 

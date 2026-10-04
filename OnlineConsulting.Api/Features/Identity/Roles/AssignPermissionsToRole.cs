@@ -17,9 +17,14 @@ public class AssignPermissionsToRole : IEndpoint
             .WithDescription("Replaces a role's permission claims with the given set.");
     }
 
-    private static async Task<IResult> Handle(Guid id, [FromBody] AssignPermissionsToRoleCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle(Guid id, [FromBody] AssignPermissionsToRoleRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command with { RoleId = id });
+        var result = await sender.Send(request.ToCommand(id));
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record AssignPermissionsToRoleRequest(List<string> Permissions)
+{
+    public AssignPermissionsToRoleCommand ToCommand(Guid roleId) => new(roleId, Permissions);
 }

@@ -7,18 +7,15 @@ using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.Payments;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.ModuleOfferings.CreateModuleOffering;
 
 /// <summary>Mints the offering's provider-side product/price before persisting - the only place that does, since provider prices are immutable (see ModuleOffering.ProviderPriceId).</summary>
 public record CreateModuleOfferingCommand(string Key, string Name, decimal Price, string BillingCycle, bool IsPubliclyVisible) : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [GlobalOperationClaims.SuperAdmin];
 
     /// <summary>Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.</summary>
-    [JsonIgnore]
     public bool AllowTenantBypass => false;
 }
 

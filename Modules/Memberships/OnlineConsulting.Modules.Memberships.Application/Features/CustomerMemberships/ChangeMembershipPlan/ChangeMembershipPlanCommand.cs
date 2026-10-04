@@ -7,14 +7,12 @@ using OnlineConsulting.Modules.Memberships.Domain;
 using OnlineConsulting.SharedKernel.Payments;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.ChangeMembershipPlan;
 
 /// <summary>Upgrade/downgrade for an Active membership - swaps the provider subscription's price in place (prorated), unlike SubscribeToMembership which creates a new one.</summary>
 public record ChangeMembershipPlanCommand(Guid UserId, Guid NewMembershipPlanId) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [];
 }
 

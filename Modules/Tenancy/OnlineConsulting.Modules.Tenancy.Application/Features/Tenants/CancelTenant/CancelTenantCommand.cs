@@ -9,18 +9,15 @@ using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.Payments;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.CancelTenant;
 
 /// <summary>Platform-owner offboarding - permanent, unlike Suspend/Reactivate. Cancels the tenant's provider subscription and marks tenant+subscription Cancelled; no data is deleted.</summary>
 public record CancelTenantCommand(Guid TenantId) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [GlobalOperationClaims.SuperAdmin];
 
     /// <summary>Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.</summary>
-    [JsonIgnore]
     public bool AllowTenantBypass => false;
 }
 

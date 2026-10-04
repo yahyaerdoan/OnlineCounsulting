@@ -17,9 +17,14 @@ public class UpdatePartnershipSocialLink : IEndpoint
             .WithDescription("Updates a partnership showcase entry's social link.");
     }
 
-    private static async Task<IResult> Handle(Guid id, [FromBody] UpdatePartnershipSocialLinkCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle(Guid id, [FromBody] UpdatePartnershipSocialLinkRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command with { Id = id });
+        var result = await sender.Send(request.ToCommand(id));
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record UpdatePartnershipSocialLinkRequest(string Name, string Url, string Icon, string? IconColor = null)
+{
+    public UpdatePartnershipSocialLinkCommand ToCommand(Guid id) => new(id, Name, Url, Icon, IconColor);
 }

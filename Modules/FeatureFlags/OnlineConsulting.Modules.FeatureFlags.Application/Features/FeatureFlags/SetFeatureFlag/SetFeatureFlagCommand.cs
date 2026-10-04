@@ -4,26 +4,20 @@ using MediatR;
 using OnlineConsulting.Modules.FeatureFlags.Application.Common;
 using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.FeatureFlags.Application.Features.FeatureFlags.SetFeatureFlag;
 
 /// <summary>Upserts the current tenant's flag; not IFeatureFlagsTransactionRequest (single SaveChanges), and CacheKey is empty since only the CacheGroupKey needs clearing.</summary>
 public record SetFeatureFlagCommand(string Key, bool IsEnabled) : IRequest<OperationResult>, ISecureAddRequest, ICacheRemoveRequest
 {
-    [JsonIgnore]
     public Guid TenantId { get; init; }
 
-    [JsonIgnore]
     public string[] Roles => [FeatureFlagsOperationClaims.Admin, FeatureFlagsOperationClaims.Update];
 
-    [JsonIgnore]
     public string CacheKey => string.Empty;
 
-    [JsonIgnore]
     public bool ByPassCache => false;
 
-    [JsonIgnore]
     public string? CacheGroupKey => $"FeatureFlags:{TenantId}";
 }
 

@@ -6,14 +6,12 @@ using OnlineConsulting.Modules.Memberships.Domain;
 using OnlineConsulting.SharedKernel.Payments;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.PauseMembership;
 
 /// <summary>Stops billing indefinitely without cancelling - member keeps their pricing, no invoices until ResumeMembershipCommand.</summary>
 public record PauseMembershipCommand(Guid UserId) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [];
 }
 

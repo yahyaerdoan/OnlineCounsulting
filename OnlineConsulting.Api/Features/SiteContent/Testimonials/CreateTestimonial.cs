@@ -17,9 +17,14 @@ public class CreateTestimonial : IEndpoint
             .WithDescription("Creates a customer testimonial.");
     }
 
-    private static async Task<IResult> Handle([FromBody] CreateTestimonialCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] CreateTestimonialRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command);
+        var result = await sender.Send(request.ToCommand());
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record CreateTestimonialRequest(string FirstName, string LastName, string Title, string Description, string ImageUrl, int DisplayOrder = 0, Dictionary<string, object>? Metadata = null)
+{
+    public CreateTestimonialCommand ToCommand() => new(FirstName, LastName, Title, Description, ImageUrl, DisplayOrder, Metadata);
 }

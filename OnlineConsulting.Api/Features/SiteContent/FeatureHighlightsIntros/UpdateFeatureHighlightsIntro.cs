@@ -17,9 +17,14 @@ public class UpdateFeatureHighlightsIntro : IEndpoint
             .WithDescription("Updates the feature highlights section intro.");
     }
 
-    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateFeatureHighlightsIntroCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateFeatureHighlightsIntroRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command with { Id = id });
+        var result = await sender.Send(request.ToCommand(id));
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record UpdateFeatureHighlightsIntroRequest(string Description, Guid? CoverMediaAssetId = null, int DisplayOrder = 0, Dictionary<string, object>? Metadata = null)
+{
+    public UpdateFeatureHighlightsIntroCommand ToCommand(Guid id) => new(id, Description, CoverMediaAssetId, DisplayOrder, Metadata);
 }

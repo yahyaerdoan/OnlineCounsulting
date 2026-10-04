@@ -12,7 +12,6 @@ using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using ResultHandler.Functional;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Scheduling.Application.Features.WorkOrders.CreateWorkOrder;
 
@@ -27,7 +26,6 @@ public record CreateWorkOrderCommand(Guid AppointmentId,
                                      IReadOnlyList<WorkOrderChargeInput>? Charges = null)
     : IRequest<OperationDataResult<Guid>>, ISecureAddRequest, ISchedulingTransactionRequest
 {
-    [JsonIgnore]
     public string[] Roles => [SchedulingOperationClaims.Admin, SchedulingOperationClaims.Write, SchedulingOperationClaims.Add];
 }
 

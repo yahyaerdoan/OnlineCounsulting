@@ -5,14 +5,12 @@ using OnlineConsulting.Modules.Referrals.Domain;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Security.Cryptography;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Referrals.Application.Features.ReferralCodes.GetOrCreateReferralCode;
 
 /// <summary>UserId is always resolved server-side from the authenticated caller, never trusted from the client.</summary>
 public record GetOrCreateReferralCodeCommand(Guid UserId) : IRequest<OperationDataResult<string>>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [];
 }
 

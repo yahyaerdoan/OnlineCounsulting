@@ -17,9 +17,14 @@ public class AssignTechnician : IEndpoint
             .WithDescription("Dispatches a technician to an appointment (admin) - authorizes that technician to push live location updates for it.");
     }
 
-    private static async Task<IResult> Handle(Guid id, [FromBody] AssignTechnicianCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle(Guid id, [FromBody] AssignTechnicianRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command with { Id = id });
+        var result = await sender.Send(request.ToCommand(id));
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record AssignTechnicianRequest(Guid TechnicianUserId)
+{
+    public AssignTechnicianCommand ToCommand(Guid id) => new(id, TechnicianUserId);
 }

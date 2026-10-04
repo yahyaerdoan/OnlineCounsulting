@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.ChangeTenantTimeZone;
@@ -16,9 +17,14 @@ public class ChangeTenantTimeZone : IEndpoint
             .WithDescription("Sets the caller's own business time zone (IANA id, e.g. \"America/Chicago\"). Tenant admins only.");
     }
 
-    private static async Task<IResult> Handle(ChangeTenantTimeZoneCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] ChangeTenantTimeZoneRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command);
+        var result = await sender.Send(request.ToCommand());
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record ChangeTenantTimeZoneRequest(string TimeZoneId)
+{
+    public ChangeTenantTimeZoneCommand ToCommand() => new(TimeZoneId);
 }

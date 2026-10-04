@@ -11,7 +11,6 @@ using OnlineConsulting.Modules.Tenancy.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.ListTenants;
 
@@ -21,11 +20,9 @@ public record ListTenantsQuery(PageRequest PageRequest, DynamicQuery? DynamicQue
 {
     public static IReadOnlySet<string> QueryableFields { get; } = new HashSet<string>([nameof(Tenant.Name), nameof(Tenant.Slug), nameof(Tenant.PrimaryContactEmail), nameof(Tenant.CreatedDate)]);
 
-    [JsonIgnore]
     public string[] Roles => [GlobalOperationClaims.SuperAdmin];
 
     /// <summary>Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.</summary>
-    [JsonIgnore]
     public bool AllowTenantBypass => false;
 }
 

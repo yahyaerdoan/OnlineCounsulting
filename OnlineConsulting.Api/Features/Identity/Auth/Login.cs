@@ -20,9 +20,9 @@ public class Login : IEndpoint
             .WithDescription("Validates credentials and issues a JWT access token + refresh token. Also folds any guest-cookie basket into the user's basket, since the guest cookie is only meaningful while unauthenticated.");
     }
 
-    private static async Task<IResult> Handle([FromBody] LoginCommand command, ISender sender, HttpContext httpContext, IGuestIdAccessor guestIdAccessor)
+    private static async Task<IResult> Handle([FromBody] LoginRequest request, ISender sender, HttpContext httpContext, IGuestIdAccessor guestIdAccessor)
     {
-        var result = await sender.Send(command);
+        var result = await sender.Send(request.ToCommand());
 
         if (!result.IsSuccessful || result.Data is null)
         {
@@ -38,4 +38,9 @@ public class Login : IEndpoint
 
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record LoginRequest(string UserNameOrEmail, string Password)
+{
+    public LoginCommand ToCommand() => new(UserNameOrEmail, Password);
 }

@@ -16,9 +16,14 @@ public class SubmitMessage : IEndpoint
             .WithDescription("Submits a contact-form message. Public - no login required.");
     }
 
-    private static async Task<IResult> Handle([FromBody] SubmitMessageCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] SubmitMessageRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command);
+        var result = await sender.Send(request.ToCommand());
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record SubmitMessageRequest(string FirstName, string LastName, string Email, string Subject, string Description)
+{
+    public SubmitMessageCommand ToCommand() => new(FirstName, LastName, Email, Subject, Description);
 }

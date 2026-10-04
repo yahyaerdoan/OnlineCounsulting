@@ -16,9 +16,14 @@ public class SubscribeNewsletter : IEndpoint
             .WithDescription("Subscribes an email address to the newsletter. Public - no login required.");
     }
 
-    private static async Task<IResult> Handle([FromBody] SubscribeNewsletterCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] SubscribeNewsletterRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command);
+        var result = await sender.Send(request.ToCommand());
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record SubscribeNewsletterRequest(string Email)
+{
+    public SubscribeNewsletterCommand ToCommand() => new(Email);
 }

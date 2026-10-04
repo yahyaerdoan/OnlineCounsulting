@@ -12,14 +12,12 @@ using OnlineConsulting.SharedKernel.Payments;
 using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.AddModule;
 
 /// <summary>Adds one à la carte module to a subscribed tenant, billed immediately/prorated. Roles => [] deliberately - authorization is an ownership check (see TenantOwnershipGuard), not a role.</summary>
 public record AddModuleCommand(Guid TenantId, string ModuleKey) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [];
 }
 

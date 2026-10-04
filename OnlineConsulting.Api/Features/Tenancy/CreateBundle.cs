@@ -19,9 +19,14 @@ public class CreateBundle : IEndpoint
             .WithDescription("Creates a bundle - a shortcut group of existing module offerings (SuperAdmin).");
     }
 
-    private static async Task<IResult> Handle([FromBody] CreateBundleCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] CreateBundleRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command);
+        var result = await sender.Send(request.ToCommand());
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record CreateBundleRequest(string Name, List<string> ModuleKeys, bool IsPubliclyVisible)
+{
+    public CreateBundleCommand ToCommand() => new(Name, ModuleKeys, IsPubliclyVisible);
 }

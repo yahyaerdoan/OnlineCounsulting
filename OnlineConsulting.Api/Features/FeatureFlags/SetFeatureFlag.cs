@@ -19,9 +19,14 @@ public class SetFeatureFlag : IEndpoint
     }
 
     private static async Task<IResult> Handle(
-        string key, [FromBody] SetFeatureFlagCommand command, ISender sender, ITenantProvider tenantProvider, HttpContext httpContext)
+        string key, [FromBody] SetFeatureFlagRequest request, ISender sender, ITenantProvider tenantProvider, HttpContext httpContext)
     {
-        var result = await sender.Send(command with { Key = key, TenantId = tenantProvider.TenantId });
+        var result = await sender.Send(request.ToCommand(key, tenantProvider.TenantId));
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record SetFeatureFlagRequest(bool IsEnabled)
+{
+    public SetFeatureFlagCommand ToCommand(string key, Guid tenantId) => new(key, IsEnabled) { TenantId = tenantId };
 }

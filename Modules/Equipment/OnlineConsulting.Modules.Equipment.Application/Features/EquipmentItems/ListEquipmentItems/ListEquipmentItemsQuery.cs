@@ -10,7 +10,6 @@ using OnlineConsulting.Modules.Equipment.Application.Features.EquipmentItems.Con
 using OnlineConsulting.Modules.Equipment.Domain;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Equipment.Application.Features.EquipmentItems.ListEquipmentItems;
 
@@ -19,7 +18,6 @@ public record ListEquipmentItemsQuery(PageRequest PageRequest, DynamicQuery? Dyn
 {
     public static IReadOnlySet<string> QueryableFields { get; } = new HashSet<string>([nameof(EquipmentItem.Type), nameof(EquipmentItem.Brand), nameof(EquipmentItem.Model), nameof(EquipmentItem.SerialNumber), nameof(EquipmentItem.UserId)]);
 
-    [JsonIgnore]
     public string[] Roles => [EquipmentOperationClaims.Admin, EquipmentOperationClaims.Read];
 }
 

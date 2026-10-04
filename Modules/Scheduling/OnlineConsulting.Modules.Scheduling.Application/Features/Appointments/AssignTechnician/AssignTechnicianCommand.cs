@@ -7,14 +7,12 @@ using OnlineConsulting.Modules.Scheduling.Application.Features.TechnicianTrackin
 using OnlineConsulting.Modules.Scheduling.Domain;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.AssignTechnician;
 
 /// <summary>Dispatch - also what authorizes the technician to push live location updates via TechnicianTrackingHub.PushLocation.</summary>
 public record AssignTechnicianCommand(Guid Id, Guid TechnicianUserId) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [SchedulingOperationClaims.Admin, SchedulingOperationClaims.Write, SchedulingOperationClaims.Update];
 }
 

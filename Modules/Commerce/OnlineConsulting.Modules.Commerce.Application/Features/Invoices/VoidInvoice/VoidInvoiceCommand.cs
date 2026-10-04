@@ -1,5 +1,4 @@
 ﻿using OnlineConsulting.Modules.Commerce.Domain;
-using System.Text.Json.Serialization;
 using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Commerce.Application.Common;
@@ -12,7 +11,6 @@ namespace OnlineConsulting.Modules.Commerce.Application.Features.Invoices.VoidIn
 
 public record VoidInvoiceCommand(Guid Id, string? Reason) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [CommerceOperationClaims.Admin, CommerceOperationClaims.Write, CommerceOperationClaims.Update];
 }
 

@@ -17,9 +17,14 @@ public class UpdateHeroSlide : IEndpoint
             .WithDescription("Updates a homepage hero slide.");
     }
 
-    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateHeroSlideCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateHeroSlideRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command with { Id = id });
+        var result = await sender.Send(request.ToCommand(id));
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record UpdateHeroSlideRequest(string Title, string Description, string ImageUrl, int DisplayOrder = 0, Dictionary<string, object>? Metadata = null)
+{
+    public UpdateHeroSlideCommand ToCommand(Guid id) => new(id, Title, Description, ImageUrl, DisplayOrder, Metadata);
 }

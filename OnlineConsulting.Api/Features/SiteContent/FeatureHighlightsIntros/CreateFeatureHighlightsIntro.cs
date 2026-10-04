@@ -17,9 +17,14 @@ public class CreateFeatureHighlightsIntro : IEndpoint
             .WithDescription("Creates the feature highlights section intro (description + cover image).");
     }
 
-    private static async Task<IResult> Handle([FromBody] CreateFeatureHighlightsIntroCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] CreateFeatureHighlightsIntroRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command);
+        var result = await sender.Send(request.ToCommand());
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record CreateFeatureHighlightsIntroRequest(string Description, Guid? CoverMediaAssetId = null, int DisplayOrder = 0, Dictionary<string, object>? Metadata = null)
+{
+    public CreateFeatureHighlightsIntroCommand ToCommand() => new(Description, CoverMediaAssetId, DisplayOrder, Metadata);
 }

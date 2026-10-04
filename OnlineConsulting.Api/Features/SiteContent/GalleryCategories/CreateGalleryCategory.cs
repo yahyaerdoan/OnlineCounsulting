@@ -17,9 +17,14 @@ public class CreateGalleryCategory : IEndpoint
             .WithDescription("Creates a gallery category tag.");
     }
 
-    private static async Task<IResult> Handle([FromBody] CreateGalleryCategoryCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] CreateGalleryCategoryRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command);
+        var result = await sender.Send(request.ToCommand());
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record CreateGalleryCategoryRequest(string Name, string? Description = null)
+{
+    public CreateGalleryCategoryCommand ToCommand() => new(Name, Description);
 }

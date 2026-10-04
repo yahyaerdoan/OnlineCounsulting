@@ -1,4 +1,3 @@
-using System.Text.Json.Serialization;
 using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using Core.ApplicationLayer.Requests.Lists;
 using Core.ApplicationLayer.Requests.Page;
@@ -18,7 +17,6 @@ public record ListInvoicesQuery(PageRequest PageRequest, DynamicQuery? DynamicQu
 {
     public static IReadOnlySet<string> QueryableFields { get; } = new HashSet<string>([nameof(Invoice.IssuedAt)]);
 
-    [JsonIgnore]
     public string[] Roles => [CommerceOperationClaims.Admin, CommerceOperationClaims.Read, CommerceOperationClaims.Write];
 }
 

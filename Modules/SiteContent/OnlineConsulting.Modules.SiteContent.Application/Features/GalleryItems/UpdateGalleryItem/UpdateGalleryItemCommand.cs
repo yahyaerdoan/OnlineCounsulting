@@ -6,14 +6,12 @@ using OnlineConsulting.Modules.SiteContent.Domain.Gallery;
 using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.SiteContent.Application.Features.GalleryItems.UpdateGalleryItem;
 
 /// <summary>Category links are replaced wholesale (delete all, then re-add CategoryIds) rather than diffed - simpler than reconciling adds/removes for a handful of rows per item.</summary>
 public record UpdateGalleryItemCommand(Guid Id, string Description, List<Guid> CategoryIds, Guid? PhotoMediaAssetId = null, int DisplayOrder = 0, Dictionary<string, object>? Metadata = null) : IRequest<OperationResult>, ISecureAddRequest, ISiteContentTransactionRequest
 {
-    [JsonIgnore]
     public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Update];
 }
 

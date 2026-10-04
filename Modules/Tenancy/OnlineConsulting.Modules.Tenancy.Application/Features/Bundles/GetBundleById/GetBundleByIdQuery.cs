@@ -6,17 +6,14 @@ using OnlineConsulting.Modules.Tenancy.Application.Features.Bundles.Contracts;
 using OnlineConsulting.SharedKernel.Authorization;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.Bundles.GetBundleById;
 
 public record GetBundleByIdQuery(Guid Id) : IRequest<OperationDataResult<BundleAdminResponse>>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [GlobalOperationClaims.SuperAdmin];
 
     /// <summary>Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.</summary>
-    [JsonIgnore]
     public bool AllowTenantBypass => false;
 }
 

@@ -17,9 +17,14 @@ public class CreateGalleryItem : IEndpoint
             .WithDescription("Creates a gallery item, tagged with one or more gallery categories.");
     }
 
-    private static async Task<IResult> Handle([FromBody] CreateGalleryItemCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] CreateGalleryItemRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command);
+        var result = await sender.Send(request.ToCommand());
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record CreateGalleryItemRequest(string Description, List<Guid> CategoryIds, Guid? PhotoMediaAssetId = null, int DisplayOrder = 0, Dictionary<string, object>? Metadata = null)
+{
+    public CreateGalleryItemCommand ToCommand() => new(Description, CategoryIds, PhotoMediaAssetId, DisplayOrder, Metadata);
 }

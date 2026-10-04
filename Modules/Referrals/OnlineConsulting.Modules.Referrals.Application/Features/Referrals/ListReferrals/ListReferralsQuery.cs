@@ -10,7 +10,6 @@ using OnlineConsulting.Modules.Referrals.Application.Features.Referrals.Contract
 using OnlineConsulting.Modules.Referrals.Domain;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Referrals.Application.Features.Referrals.ListReferrals;
 
@@ -19,7 +18,6 @@ public record ListReferralsQuery(PageRequest PageRequest, DynamicQuery? DynamicQ
 {
     public static IReadOnlySet<string> QueryableFields { get; } = new HashSet<string>([nameof(Referral.Code), nameof(Referral.Status)]);
 
-    [JsonIgnore]
     public string[] Roles => [ReferralsOperationClaims.Admin, ReferralsOperationClaims.Read];
 }
 

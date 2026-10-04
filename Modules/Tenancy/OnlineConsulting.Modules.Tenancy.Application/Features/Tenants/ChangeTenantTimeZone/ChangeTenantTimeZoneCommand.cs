@@ -8,14 +8,12 @@ using OnlineConsulting.SharedKernel.Tenancy;
 using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.ChangeTenantTimeZone;
 
 /// <summary>Sets the caller's own business time zone (IANA id); appointments are scheduled and every date is shown in it.</summary>
 public record ChangeTenantTimeZoneCommand(string TimeZoneId) : IRequest<OperationResult>, ISecureAddRequest, ITenancyTransactionRequest
 {
-    [JsonIgnore]
     public string[] Roles => [GeneralOperationClaims.Admin, GlobalOperationClaims.SuperAdmin];
 }
 

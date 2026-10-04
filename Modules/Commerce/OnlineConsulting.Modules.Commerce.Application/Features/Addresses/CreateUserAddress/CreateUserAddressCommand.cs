@@ -6,7 +6,6 @@ using OnlineConsulting.Modules.Commerce.Domain;
 using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Addresses.CreateUserAddress;
 
@@ -17,7 +16,6 @@ namespace OnlineConsulting.Modules.Commerce.Application.Features.Addresses.Creat
 public record CreateUserAddressCommand(Guid UserId, string AddressName, string? CompanyName, string Country, string AddressLine, string City, string State, string Zipcode, string? Notes, bool IsShippingAddress, bool IsBillingAddress)
     : IRequest<OperationDataResult<Guid>>, ICommerceTransactionRequest, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [];
 }
 
