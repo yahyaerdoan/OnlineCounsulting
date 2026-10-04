@@ -1,10 +1,8 @@
-using Hateoas;
 using OnlineConsulting.Modules.Inquiries.Domain;
 
 namespace OnlineConsulting.Modules.Inquiries.Application.Features.Messages.Contracts;
 
-/// <summary>Message response as a class with required init properties, since records can't inherit the plain LinkedResponse class.</summary>
-public class MessageResponse : LinkedResponse
+public class MessageResponse
 {
     public required Guid Id { get; init; }
     public required string FirstName { get; init; }

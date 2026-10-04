@@ -1,11 +1,9 @@
-using Hateoas;
 using OnlineConsulting.Modules.Services.Application.Features.ServiceMediaItems.Contracts;
 using OnlineConsulting.Modules.Services.Domain;
 
 namespace OnlineConsulting.Modules.Services.Application.Features.Services.Contracts;
 
-/// <summary>A class with required init properties instead of a positional record, since records can't inherit LinkedResponse.</summary>
-public class ServiceResponse : LinkedResponse
+public class ServiceResponse
 {
     public required Guid Id { get; init; }
     public required Guid CategoryId { get; init; }

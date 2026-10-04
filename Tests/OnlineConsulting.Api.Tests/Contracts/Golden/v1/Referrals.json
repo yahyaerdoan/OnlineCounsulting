@@ -1,0 +1,23 @@
+{
+  "AccountCreditResponse": [
+    "id: Guid",
+    "amount: decimal",
+    "reason: string",
+    "sourceType: string",
+    "sourceId: Guid"
+  ],
+  "AccountCreditSummaryResponse": [
+    "balance: decimal",
+    "entries: List<AccountCreditResponse>"
+  ],
+  "ReferralResponse": [
+    "id: Guid",
+    "referrerUserId: Guid",
+    "referredUserId: Guid",
+    "code: string",
+    "status: string",
+    "rewardAmount: decimal?",
+    "rewardedAt: DateTimeOffset?",
+    "_links: LinkCollection?"
+  ]
+}

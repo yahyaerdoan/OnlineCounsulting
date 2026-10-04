@@ -1,10 +1,8 @@
-using Hateoas;
 using OnlineConsulting.Modules.Scheduling.Domain;
 
 namespace OnlineConsulting.Modules.Scheduling.Application.Features.Availability.Contracts;
 
-/// <summary>A class with required init properties instead of a positional record, since records can't inherit LinkedResponse.</summary>
-public class AvailabilityRuleResponse : LinkedResponse
+public class AvailabilityRuleResponse
 {
     public required Guid Id { get; init; }
     public required DayOfWeek DayOfWeek { get; init; }

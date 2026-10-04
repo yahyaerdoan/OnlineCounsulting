@@ -1,5 +1,4 @@
-﻿using Hateoas;
-using OnlineConsulting.Modules.SiteContent.Application.Common;
+﻿using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.PartnershipSocialLinks.Contracts;
 using OnlineConsulting.Modules.SiteContent.Domain.Partnerships;
 
@@ -18,7 +17,7 @@ public record PartnershipResponse(
     int DisplayOrder,
     Dictionary<string, object>? Metadata,
     List<PartnershipSocialLinkResponse> SocialLinks,
-    string Kind) : LinkedRecord
+    string Kind)
 {
     public static PartnershipResponse FromDomain(Partnership entity, List<PartnershipSocialLinkResponse> socialLinks) => new(
         entity.Id, entity.FirstName, entity.LastName, entity.Email, entity.Title, entity.CompanyName,

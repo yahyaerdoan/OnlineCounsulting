@@ -1,0 +1,28 @@
+{
+  "CompanyContactResponse": [
+    "id: Guid",
+    "email: string",
+    "phone: string",
+    "address: string",
+    "description: string",
+    "workingHours: string",
+    "_links: LinkCollection?"
+  ],
+  "MessageResponse": [
+    "id: Guid",
+    "firstName: string",
+    "lastName: string",
+    "email: string",
+    "subject: string",
+    "description: string",
+    "createdDate: DateTimeOffset",
+    "repliedAt: DateTimeOffset?",
+    "_links: LinkCollection?"
+  ],
+  "NewsletterSubscriberResponse": [
+    "id: Guid",
+    "email: string",
+    "createdDate: DateTimeOffset",
+    "_links: LinkCollection?"
+  ]
+}

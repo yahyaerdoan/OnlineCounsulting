@@ -9,7 +9,7 @@ namespace OnlineConsulting.Api.Common.Hateoas;
 /// send the matching command. Anonymous visitors of the public site therefore get no links. Override AddLinks (calling base) for extras.
 /// </summary>
 public abstract class ManagedContentLinks<TResource, TUpdate, TDelete>(string updateRouteName, string deleteRouteName, Func<TResource, Guid> idOf) : LinkProvider<TResource>
-    where TResource : ILinkedResource
+    where TResource : class
     where TUpdate : ISecureAddRequest
     where TDelete : ISecureAddRequest
 {

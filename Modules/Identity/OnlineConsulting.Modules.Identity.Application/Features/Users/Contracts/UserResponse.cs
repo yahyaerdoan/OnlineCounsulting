@@ -1,9 +1,8 @@
-using Hateoas;
 using OnlineConsulting.SharedKernel.Authorization;
 
 namespace OnlineConsulting.Modules.Identity.Application.Features.Users.Contracts;
 
-public class UserResponse : LinkedResponse
+public class UserResponse
 {
     public required Guid Id { get; init; }
     public required Guid TenantId { get; init; }

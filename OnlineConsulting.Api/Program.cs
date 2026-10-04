@@ -9,11 +9,9 @@ using Core.ApplicationLayer.Validations;
 using Core.CrossCuttingConcernLayer.ExceptionHandlings.Extensions;
 using Core.SecurityLayer.Authorization;
 using FluentValidation;
-using Hateoas.AspNetCore;
 using MediatR;
 using Microsoft.AspNetCore.HttpOverrides;
 using OnlineConsulting.Api.Common;
-using OnlineConsulting.Api.Common.Hateoas;
 using OnlineConsulting.Api.Configurations.Extensions;
 using OnlineConsulting.Api.LiveUpdates;
 using OnlineConsulting.Modules.Categories.Application.Common;
@@ -165,7 +163,7 @@ builder.Services.AddHealthChecks()
     .AddDbContextCheck<NotificationsDbContext>();
 
 builder.Services.AddApiServiceRegistration(builder.Environment);
-builder.Services.AddHateoas(options => options.CurieName = Rels.CurieName).AddLinkProvidersFromAssembly(typeof(Program).Assembly);
+builder.Services.AddApiJson();
 
 // KnownNetworks/KnownProxies cleared - proxy IP isn't known ahead of deployment; without this
 // RemoteIpAddress (used for rate-limit partitioning) always resolves to the proxy, not the client.

@@ -16,8 +16,8 @@
     <PackageVersion Include="FluentValidation" Version="12.1.1" />
     <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
     <PackageVersion Include="Google.Cloud.Storage.V1" Version="4.15.0" />
-    <PackageVersion Include="Hateoas" Version="2.0.0" />
-    <PackageVersion Include="Hateoas.AspNetCore" Version="2.0.0" />
+    <PackageVersion Include="Hateoas" Version="2.1.0" />
+    <PackageVersion Include="Hateoas.AspNetCore" Version="2.1.0" />
     <PackageVersion Include="MailKit" Version="4.17.0" />
     <PackageVersion Include="MediatR" Version="14.2.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.12" />

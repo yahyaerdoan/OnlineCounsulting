@@ -1,5 +1,4 @@
-﻿using Hateoas;
-using OnlineConsulting.Modules.Tenancy.Domain;
+﻿using OnlineConsulting.Modules.Tenancy.Domain;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.ModuleOfferings.Contracts;
 
@@ -11,7 +10,7 @@ public record ModuleOfferingAdminResponse(
     string BillingCycle,
     bool IsPubliclyVisible,
     string? ProviderProductId,
-    string? ProviderPriceId) : LinkedRecord
+    string? ProviderPriceId)
 {
     public static ModuleOfferingAdminResponse FromDomain(ModuleOffering entity) =>
         new(entity.Id,

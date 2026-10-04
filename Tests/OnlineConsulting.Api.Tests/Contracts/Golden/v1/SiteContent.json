@@ -1,0 +1,163 @@
+{
+  "AboutUsResponse": [
+    "id: Guid",
+    "title: string",
+    "description: string",
+    "coverImage: string?",
+    "videoUrl: string?",
+    "displayOrder: int",
+    "metadata: Dictionary<string, object>?",
+    "_links: LinkCollection?"
+  ],
+  "FaqItemResponse": [
+    "id: Guid",
+    "serviceId: Guid",
+    "question: string",
+    "answer: string",
+    "displayOrder: int",
+    "_links: LinkCollection?"
+  ],
+  "FeatureHighlightResponse": [
+    "id: Guid",
+    "title: string",
+    "description: string",
+    "imageUrl: string",
+    "displayOrder: int",
+    "metadata: Dictionary<string, object>?",
+    "_links: LinkCollection?"
+  ],
+  "FeatureHighlightsIntroResponse": [
+    "id: Guid",
+    "description: string",
+    "coverMediaAssetId: Guid?",
+    "displayOrder: int",
+    "metadata: Dictionary<string, object>?",
+    "_links: LinkCollection?"
+  ],
+  "FooterInfoResponse": [
+    "id: Guid",
+    "imageUrl: string",
+    "description: string",
+    "displayOrder: int",
+    "metadata: Dictionary<string, object>?",
+    "_links: LinkCollection?"
+  ],
+  "GalleryCategoryResponse": [
+    "id: Guid",
+    "name: string",
+    "description: string?",
+    "_links: LinkCollection?"
+  ],
+  "GalleryItemResponse": [
+    "id: Guid",
+    "description: string",
+    "photoMediaAssetId: Guid?",
+    "displayOrder: int",
+    "metadata: Dictionary<string, object>?",
+    "categories: List<GalleryCategoryResponse>",
+    "_links: LinkCollection?"
+  ],
+  "HeroSlideResponse": [
+    "id: Guid",
+    "title: string",
+    "description: string",
+    "imageUrl: string",
+    "displayOrder: int",
+    "metadata: Dictionary<string, object>?",
+    "_links: LinkCollection?"
+  ],
+  "PageBannerResponse": [
+    "id: Guid",
+    "title: string",
+    "description: string",
+    "imageUrl: string",
+    "displayOrder: int",
+    "metadata: Dictionary<string, object>?",
+    "_links: LinkCollection?"
+  ],
+  "PartnershipResponse": [
+    "id: Guid",
+    "firstName: string",
+    "lastName: string",
+    "email: string",
+    "title: string",
+    "companyName: string",
+    "description: string",
+    "websiteUrl: string",
+    "photoMediaAssetId: Guid?",
+    "displayOrder: int",
+    "metadata: Dictionary<string, object>?",
+    "socialLinks: List<PartnershipSocialLinkResponse>",
+    "kind: string",
+    "_links: LinkCollection?"
+  ],
+  "PartnershipSocialLinkResponse": [
+    "id: Guid",
+    "name: string",
+    "url: string",
+    "icon: string",
+    "iconColor: string?",
+    "_links: LinkCollection?"
+  ],
+  "PromotionResponse": [
+    "id: Guid",
+    "title: string",
+    "description: string",
+    "ctaText: string?",
+    "ctaUrl: string?",
+    "expiresAt: DateTimeOffset?",
+    "displayOrder: int",
+    "_links: LinkCollection?"
+  ],
+  "ServiceAreaResponse": [
+    "id: Guid",
+    "name: string",
+    "state: string",
+    "slug: string",
+    "introText: string?",
+    "displayOrder: int",
+    "latitude: double?",
+    "longitude: double?",
+    "_links: LinkCollection?"
+  ],
+  "ServiceOfferingResponse": [
+    "id: Guid",
+    "title: string",
+    "description: string",
+    "icon: string",
+    "iconColor: string?",
+    "displayOrder: int",
+    "metadata: Dictionary<string, object>?",
+    "_links: LinkCollection?"
+  ],
+  "ServiceProcessStepResponse": [
+    "id: Guid",
+    "title: string",
+    "description: string",
+    "icon: string",
+    "iconColor: string?",
+    "displayOrder: int",
+    "metadata: Dictionary<string, object>?",
+    "_links: LinkCollection?"
+  ],
+  "SocialLinkResponse": [
+    "id: Guid",
+    "name: string",
+    "url: string",
+    "icon: string",
+    "iconColor: string?",
+    "displayOrder: int",
+    "_links: LinkCollection?"
+  ],
+  "TestimonialResponse": [
+    "id: Guid",
+    "firstName: string",
+    "lastName: string",
+    "title: string",
+    "description: string",
+    "imageUrl: string",
+    "displayOrder: int",
+    "metadata: Dictionary<string, object>?",
+    "_links: LinkCollection?"
+  ]
+}

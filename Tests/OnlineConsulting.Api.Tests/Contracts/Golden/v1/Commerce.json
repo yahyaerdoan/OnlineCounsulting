@@ -1,0 +1,132 @@
+{
+  "AddressSuggestionResponse": [
+    "formatted: string",
+    "addressLine: string",
+    "city: string",
+    "state: string",
+    "zipcode: string"
+  ],
+  "AdminOrderResponse": [
+    "id: Guid",
+    "orderNumber: string",
+    "orderStatus: string",
+    "paymentStatus: string",
+    "totalPrice: decimal",
+    "createdDate: DateTimeOffset",
+    "userId: Guid"
+  ],
+  "BasketItemResponse": [
+    "id: Guid",
+    "serviceId: Guid",
+    "quantity: int",
+    "price: decimal",
+    "taxRate: int",
+    "taxAmount: decimal",
+    "subTotalPrice: decimal",
+    "totalPrice: decimal",
+    "_links: LinkCollection?"
+  ],
+  "BasketResponse": [
+    "id: Guid",
+    "quantity: int",
+    "subTotalPrice: decimal",
+    "totalPrice: decimal",
+    "items: IReadOnlyList<BasketItemResponse>",
+    "_links: LinkCollection?"
+  ],
+  "CreateOrderResult": [
+    "orderId: Guid",
+    "paymentClientSecret: string?",
+    "orderNumber: string"
+  ],
+  "InvoiceLineResponse": [
+    "description: string",
+    "quantity: decimal",
+    "unitPrice: decimal",
+    "taxRate: int",
+    "subtotal: decimal",
+    "discountAmount: decimal",
+    "taxAmount: decimal",
+    "total: decimal"
+  ],
+  "InvoicePdfResponse": [
+    "fileName: string",
+    "contentBase64: string"
+  ],
+  "InvoiceResponse": [
+    "id: Guid",
+    "invoiceNumber: string",
+    "userId: Guid",
+    "sourceType: string",
+    "sourceId: Guid",
+    "status: string",
+    "currency: string",
+    "title: string",
+    "billToName: string",
+    "billToEmail: string?",
+    "billToAddress: string?",
+    "subtotal: decimal",
+    "discountAmount: decimal",
+    "discountLabel: string?",
+    "taxAmount: decimal",
+    "total: decimal",
+    "issuedAt: DateTimeOffset",
+    "dueAt: DateTimeOffset?",
+    "paidAt: DateTimeOffset?",
+    "paymentMethod: string?",
+    "voidReason: string?",
+    "lines: IReadOnlyList<InvoiceLineResponse>",
+    "_links: LinkCollection?"
+  ],
+  "OrderDetailResponse": [
+    "order: OrderResponse",
+    "items: IReadOnlyList<OrderItemResponse>",
+    "shippingAddressId: Guid",
+    "invoiceAddressId: Guid"
+  ],
+  "OrderItemResponse": [
+    "id: Guid",
+    "serviceId: Guid",
+    "quantity: int",
+    "unitPrice: decimal",
+    "taxRate: int",
+    "taxAmount: decimal",
+    "subTotalPrice: decimal",
+    "totalPrice: decimal"
+  ],
+  "OrderResponse": [
+    "id: Guid",
+    "orderNumber: string",
+    "orderStatus: string",
+    "paymentStatus: string",
+    "totalPrice: decimal",
+    "createdDate: DateTimeOffset",
+    "_links: LinkCollection?"
+  ],
+  "OrderStatsResponse": [
+    "totalOrders: int",
+    "totalSpent: decimal"
+  ],
+  "PayInvoiceResult": [
+    "paid: bool",
+    "clientSecret: string?"
+  ],
+  "SyncInvoicePaymentResult": [
+    "status: string",
+    "paid: bool"
+  ],
+  "UserAddressResponse": [
+    "id: Guid",
+    "addressName: string",
+    "companyName: string?",
+    "country: string",
+    "addressLine: string",
+    "city: string",
+    "state: string",
+    "zipcode: string",
+    "notes: string?",
+    "isShippingAddress: bool",
+    "isBillingAddress: bool",
+    "_links: LinkCollection?"
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "ActivateTenantSubscriptionResult": [
+    "tenantId: Guid",
+    "clientSecret: string?"
+  ],
+  "BundleAdminResponse": [
+    "id: Guid",
+    "name: string",
+    "moduleKeys: List<string>",
+    "isPubliclyVisible: bool",
+    "_links: LinkCollection?"
+  ],
+  "BundleResponse": [
+    "name: string",
+    "moduleKeys: List<string>"
+  ],
+  "BusinessTimeZoneResponse": [
+    "timeZoneId: string",
+    "_links: LinkCollection?"
+  ],
+  "ModuleOfferingAdminResponse": [
+    "id: Guid",
+    "key: string",
+    "name: string",
+    "price: decimal",
+    "billingCycle: string",
+    "isPubliclyVisible: bool",
+    "providerProductId: string?",
+    "providerPriceId: string?",
+    "_links: LinkCollection?"
+  ],
+  "ModuleOfferingResponse": [
+    "key: string",
+    "name: string",
+    "price: decimal",
+    "billingCycle: string"
+  ],
+  "ReserveTenantResult": [
+    "tenantId: Guid"
+  ],
+  "TenantDetailResponse": [
+    "id: Guid",
+    "name: string",
+    "slug: string",
+    "status: string",
+    "primaryContactEmail: string",
+    "ownerUserId: Guid?",
+    "subscriptionStatus: string?",
+    "subscriptionStartDate: DateTime?",
+    "subscriptionRenewalDate: DateTime?",
+    "items: List<TenantSubscriptionItemSummary>",
+    "_links: LinkCollection?"
+  ],
+  "TenantSubscriptionItemSummary": [
+    "moduleKey: string",
+    "status: string",
+    "priceAtAddition: decimal",
+    "addedAt: DateTime"
+  ],
+  "TenantSummaryResponse": [
+    "id: Guid",
+    "name: string",
+    "slug: string",
+    "status: string",
+    "primaryContactEmail: string",
+    "activeModuleKeys: List<string>",
+    "totalActivePrice: decimal",
+    "createdDate: DateTimeOffset",
+    "timeZoneId: string",
+    "_links: LinkCollection?"
+  ]
+}
