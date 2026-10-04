@@ -36,7 +36,7 @@ public class CancelTenantHandler(ITenantRepository tenantRepository, ITenantSubs
             return TenantBusinessRules.TenantNotFound();
         }
 
-        if (tenant.Status == TenantStatuses.Cancelled)
+        if (!tenant.CanBeCancelled)
         {
             return TenantBusinessRules.NotCancellable();
         }
@@ -52,12 +52,12 @@ public class CancelTenantHandler(ITenantRepository tenantRepository, ITenantSubs
                 return failure;
             }
 
-            subscription.Status = TenantSubscriptionStatuses.Cancelled;
+            subscription.Cancel();
 
             _ = await tenantSubscriptionRepository.UpdateAsync(subscription);
         }
 
-        tenant.Status = TenantStatuses.Cancelled;
+        tenant.Cancel();
 
         _ = await tenantRepository.UpdateAsync(tenant);
 

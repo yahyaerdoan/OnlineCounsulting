@@ -37,21 +37,19 @@ public class RollbackTenantSignupHandler(ITenantRepository tenantRepository, ITe
                 await subscriptionGateway.CancelAndRefundAsync(providerCustomerId, providerSubscriptionId, cancellationToken);
             }
 
-            tenantSubscription.ProviderSubscriptionId = null;
-            tenantSubscription.Status = TenantSubscriptionStatuses.Cancelled;
+            tenantSubscription.CancelSignup();
             _ = await tenantSubscriptionRepository.UpdateAsync(tenantSubscription);
 
             var items = await tenantSubscriptionItemRepository.GetListAsync(i => i.TenantSubscriptionId == tenantSubscription.Id, orderBy: q => q.OrderBy(i => i.Id),
                 size: RepositoryQuerySize.Unbounded, enableTracking: true, cancellationToken: cancellationToken);
             foreach (var item in items.Items)
             {
-                item.ProviderSubscriptionItemId = null;
-                item.Status = TenantSubscriptionItemStatuses.Pending;
+                item.ResetForRetry();
                 _ = await tenantSubscriptionItemRepository.UpdateAsync(item);
             }
         }
 
-        tenant.Status = TenantStatuses.Failed;
+        tenant.FailSignup();
 
         _ = await tenantRepository.UpdateAsync(tenant);
 

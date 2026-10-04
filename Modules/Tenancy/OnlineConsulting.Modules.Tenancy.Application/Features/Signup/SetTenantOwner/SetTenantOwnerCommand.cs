@@ -19,7 +19,7 @@ public class SetTenantOwnerHandler(ITenantRepository tenantRepository) : IReques
             return Result.NotFound(SignupMessages.TenantNotFound);
         }
 
-        tenant.OwnerUserId = request.OwnerUserId;
+        tenant.AssignOwner(request.OwnerUserId);
         _ = await tenantRepository.UpdateAsync(tenant);
 
         return Result.Success("Tenant owner recorded successfully.");

@@ -19,21 +19,21 @@ public class OnTenantSubscriptionPaymentFailedHandler(ITenantSubscriptionReposit
         }
 
         var tenantSubscription = await subscriptionRepository.GetAsync(s => s.Id == tenantSubscriptionId, cancellationToken: cancellationToken);
-        if (tenantSubscription is null || tenantSubscription.Status == TenantSubscriptionStatuses.Cancelled)
+        if (tenantSubscription is null || tenantSubscription.IsCancelled)
         {
             return;
         }
 
-        tenantSubscription.Status = TenantSubscriptionStatuses.PastDue;
+        tenantSubscription.MarkPastDue();
         _ = await subscriptionRepository.UpdateAsync(tenantSubscription);
 
         var tenant = await tenantRepository.GetAsync(t => t.Id == tenantSubscription.TenantId, cancellationToken: cancellationToken);
-        if (tenant is null || tenant.Status is TenantStatuses.Suspended or TenantStatuses.Cancelled)
+        if (tenant is null || tenant.IsHeldByStaff)
         {
             return;
         }
 
-        tenant.Status = TenantStatuses.PastDue;
+        tenant.ApplyPaymentFailed();
 
         _ = await tenantRepository.UpdateAsync(tenant);
 

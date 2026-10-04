@@ -32,12 +32,12 @@ public class SuspendTenantHandler(ITenantRepository tenantRepository) : IRequest
             return TenantBusinessRules.TenantNotFound();
         }
 
-        if (tenant.Status is not (TenantStatuses.Active or TenantStatuses.PastDue))
+        if (!tenant.CanBeSuspended)
         {
             return TenantBusinessRules.NotSuspendable();
         }
 
-        tenant.Status = TenantStatuses.Suspended;
+        tenant.Suspend();
 
         _ = await tenantRepository.UpdateAsync(tenant);
 

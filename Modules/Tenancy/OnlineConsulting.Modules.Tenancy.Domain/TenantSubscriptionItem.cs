@@ -2,23 +2,68 @@ using Core.PersistenceLayer.Repositories.Entities;
 
 namespace OnlineConsulting.Modules.Tenancy.Domain;
 
-/// <summary>One purchased module line within a tenant's subscription. Not tenant-scoped itself - lives alongside Tenant/TenantSubscription in the platform-owner's own schema.</summary>
+/// <summary>One purchased module within a tenant's subscription; not tenant-scoped itself.</summary>
 public class TenantSubscriptionItem : SequentialGuidEntity
 {
-    /// <summary>Plain id, no navigation.</summary>
-    public required Guid TenantSubscriptionId { get; set; }
+    private TenantSubscriptionItem()
+    {
+    }
 
-    /// <summary>Matches a FeatureFlagKeys value / ModuleOffering.Key.</summary>
-    public required string ModuleKey { get; set; }
+    public Guid TenantSubscriptionId { get; private set; }
 
-    /// <summary>TenantSubscriptionItemStatuses value. Pending until billing succeeds, Failed if billing failed (row kept, not soft-deleted, so a retry can resume it under the same Id/idempotency key), Active once billed.</summary>
-    public required string Status { get; set; }
+    /// <summary>A FeatureFlagKeys value, matching ModuleOffering.Key.</summary>
+    public string ModuleKey { get; private set; } = string.Empty;
 
-    /// <summary>Stripe SubscriptionItem id - add/remove operations go through this.</summary>
-    public string? ProviderSubscriptionItemId { get; set; }
+    /// <summary>One of <see cref="TenantSubscriptionItemStatuses"/>.</summary>
+    public string Status { get; private set; } = TenantSubscriptionItemStatuses.Pending;
 
-    /// <summary>Price at the moment this module was added - preserves history even if ModuleOffering.Price changes later.</summary>
-    public required decimal PriceAtAddition { get; set; }
+    /// <summary>Provider subscription item id; adding and removing the module goes through it.</summary>
+    public string? ProviderSubscriptionItemId { get; private set; }
 
-    public required DateTime AddedAt { get; set; }
+    /// <summary>Module price when it was added, kept even if the offering's price changes.</summary>
+    public decimal PriceAtAddition { get; private set; }
+
+    public DateTime AddedAt { get; private set; }
+
+    /// <summary>Pending or failed, so billing can be (re)tried.</summary>
+    public bool IsAwaitingBilling => Status is TenantSubscriptionItemStatuses.Pending or TenantSubscriptionItemStatuses.Failed;
+
+    /// <summary>Adds a module awaiting billing.</summary>
+    public static TenantSubscriptionItem Add(Guid tenantSubscriptionId, string moduleKey, decimal price, DateTime addedAt)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(moduleKey);
+        ArgumentOutOfRangeException.ThrowIfNegative(price);
+
+        return new TenantSubscriptionItem { TenantSubscriptionId = tenantSubscriptionId, ModuleKey = moduleKey, PriceAtAddition = price, AddedAt = addedAt };
+    }
+
+    /// <summary>The module is billed; the item id is null for providers without separate item ids. Requires <see cref="IsAwaitingBilling"/>.</summary>
+    public void Activate(string? providerSubscriptionItemId)
+    {
+        EnsureAwaitingBilling(nameof(Activate));
+        ProviderSubscriptionItemId = providerSubscriptionItemId;
+        Status = TenantSubscriptionItemStatuses.Active;
+    }
+
+    /// <summary>Billing failed; a retry resumes it. Requires <see cref="IsAwaitingBilling"/>.</summary>
+    public void MarkBillingFailed()
+    {
+        EnsureAwaitingBilling(nameof(MarkBillingFailed));
+        Status = TenantSubscriptionItemStatuses.Failed;
+    }
+
+    /// <summary>Undoes billing after a rolled-back signup.</summary>
+    public void ResetForRetry()
+    {
+        ProviderSubscriptionItemId = null;
+        Status = TenantSubscriptionItemStatuses.Pending;
+    }
+
+    private void EnsureAwaitingBilling(string action)
+    {
+        if (!IsAwaitingBilling)
+        {
+            throw new InvalidOperationException($"{action} needs a module awaiting billing, but {Id} is {Status}.");
+        }
+    }
 }

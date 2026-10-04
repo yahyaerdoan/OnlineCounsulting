@@ -34,15 +34,18 @@ public class ActivateTenantSubscriptionHandler(ITenantRepository tenantRepositor
             return Result.NotFound<ActivateTenantSubscriptionResult>(SignupMessages.TenantNotFound);
         }
 
+        if (tenant.IsHeldByStaff)
+        {
+            return Result.Conflict<ActivateTenantSubscriptionResult>(SignupMessages.TenantHeldByStaff);
+        }
+
         var tenantSubscription = await tenantSubscriptionRepository.GetAsync(s => s.TenantId == tenant.Id, cancellationToken: cancellationToken)
             ?? throw new InvalidOperationException($"Tenant {tenant.Id} has no TenantSubscription row.");
 
         var itemsPage = await tenantSubscriptionItemRepository
             .GetListAsync(predicate: i => i.TenantSubscriptionId == tenantSubscription.Id, orderBy: q => q.OrderBy(i => i.Id), size: RepositoryQuerySize.Unbounded, enableTracking: true, cancellationToken: cancellationToken);
 
-        var pendingItems = itemsPage.Items
-            .Where(i => i.Status is TenantSubscriptionItemStatuses.Pending or TenantSubscriptionItemStatuses.Failed)
-            .ToList();
+        var pendingItems = itemsPage.Items.Where(i => i.IsAwaitingBilling).ToList();
 
         var pendingModuleKeys = pendingItems.Select(i => i.ModuleKey).ToList();
 
@@ -65,7 +68,7 @@ public class ActivateTenantSubscriptionHandler(ITenantRepository tenantRepositor
                     .EnsureCustomerAsync(new EnsureCustomerRequest(tenantSubscription.Id.ToString(), tenant.PrimaryContactEmail), idempotencyKey: $"tenant-signup-customer:{tenant.Id}", cancellationToken: cancellationToken);
 
                 providerCustomerId = customer.ProviderCustomerId;
-                tenant.ProviderCustomerId = providerCustomerId;
+                tenant.LinkProviderCustomer(providerCustomerId);
 
                 _ = await tenantRepository.UpdateAsync(tenant);
             }
@@ -87,22 +90,18 @@ public class ActivateTenantSubscriptionHandler(ITenantRepository tenantRepositor
 
                 if (subscription.Status == PaymentStatuses.Failed)
                 {
-                    tenant.Status = TenantStatuses.Failed;
-                    tenantSubscription.Status = TenantSubscriptionStatuses.Failed;
+                    tenant.FailSignup();
+                    tenantSubscription.MarkFailed();
                     _ = await tenantRepository.UpdateAsync(tenant);
                     _ = await tenantSubscriptionRepository.UpdateAsync(tenantSubscription);
                     return Result.BadGateway<ActivateTenantSubscriptionResult>(SignupMessages.PaymentSetupFailed);
                 }
 
-                tenantSubscription.ProviderSubscriptionId = subscription.ProviderSubscriptionId;
-                tenantSubscription.RenewalDate = subscription.CurrentPeriodEnd.UtcDateTime;
-                tenantSubscription.Status = subscription.Status == PaymentStatuses.Succeeded
-                    ? TenantSubscriptionStatuses.Active
-                    : TenantSubscriptionStatuses.PendingPayment;
+                tenantSubscription.AttachProviderSubscription(subscription.ProviderSubscriptionId, subscription.CurrentPeriodEnd.UtcDateTime,
+                    paid: subscription.Status == PaymentStatuses.Succeeded);
                 _ = await tenantSubscriptionRepository.UpdateAsync(tenantSubscription);
 
-                firstItem.ProviderSubscriptionItemId = subscription.FirstItemProviderId;
-                firstItem.Status = TenantSubscriptionItemStatuses.Active;
+                firstItem.Activate(subscription.FirstItemProviderId);
                 _ = await tenantSubscriptionItemRepository.UpdateAsync(firstItem);
 
                 clientSecret = subscription.ClientSecret;
@@ -110,13 +109,17 @@ public class ActivateTenantSubscriptionHandler(ITenantRepository tenantRepositor
             }
             else if (tenantSubscription.Status == TenantSubscriptionStatuses.Failed)
             {
-                tenantSubscription.Status = TenantSubscriptionStatuses.Active;
+                tenantSubscription.RecoverFromFailure();
                 _ = await tenantSubscriptionRepository.UpdateAsync(tenantSubscription);
             }
 
+            var activeProviderSubscriptionId = tenantSubscription.ProviderSubscriptionId
+                ?? throw new InvalidOperationException($"TenantSubscription {tenantSubscription.Id} has no ProviderSubscriptionId after activation.");
+
             foreach (var item in pendingItems)
             {
-                if (item.ProviderSubscriptionItemId is null)
+                var providerSubscriptionItemId = item.ProviderSubscriptionItemId;
+                if (providerSubscriptionItemId is null)
                 {
                     var offering = offeringsByKey.TryGetValue(item.ModuleKey, out var o)
                         ? o
@@ -125,30 +128,25 @@ public class ActivateTenantSubscriptionHandler(ITenantRepository tenantRepositor
                     var offeringPriceId = offering.ProviderPriceId
                         ?? throw new InvalidOperationException($"ModuleOffering {offering.Key} has no ProviderPriceId.");
 
-                    item.ProviderSubscriptionItemId = await subscriptionGateway
-                        .AddSubscriptionItemAsync(tenantSubscription.ProviderSubscriptionId, offeringPriceId, idempotencyKey: $"tenant-signup-item:{tenantSubscription.ProviderSubscriptionId}:{offering.Key}", cancellationToken: cancellationToken);
+                    providerSubscriptionItemId = await subscriptionGateway
+                        .AddSubscriptionItemAsync(activeProviderSubscriptionId, offeringPriceId, idempotencyKey: $"tenant-signup-item:{activeProviderSubscriptionId}:{offering.Key}", cancellationToken: cancellationToken);
                 }
 
-                item.Status = TenantSubscriptionItemStatuses.Active;
+                item.Activate(providerSubscriptionItemId);
                 _ = await tenantSubscriptionItemRepository.UpdateAsync(item);
             }
         }
         catch (Exception exception)
         {
             logger.LogError(exception, "Tenant {TenantId}: activating the subscription failed.", tenant.Id);
-            tenant.Status = TenantStatuses.Failed;
-            tenantSubscription.Status = TenantSubscriptionStatuses.Failed;
+            tenant.FailSignup();
+            tenantSubscription.MarkFailed();
             _ = await tenantRepository.UpdateAsync(tenant);
             _ = await tenantSubscriptionRepository.UpdateAsync(tenantSubscription);
             return Result.BadGateway<ActivateTenantSubscriptionResult>(SignupMessages.PaymentSetupFailed);
         }
 
-        tenant.Status = tenantSubscription.Status switch
-        {
-            TenantSubscriptionStatuses.Active => TenantStatuses.Active,
-            TenantSubscriptionStatuses.PastDue => TenantStatuses.PastDue,
-            _ => TenantStatuses.PendingPayment,
-        };
+        tenant.CompleteSignup(tenantSubscription.Status);
         _ = await tenantRepository.UpdateAsync(tenant);
 
         return Result.Created(new ActivateTenantSubscriptionResult(tenant.Id, clientSecret), "Tenant subscription activated successfully.");

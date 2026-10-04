@@ -24,8 +24,8 @@ public sealed class TenantLinks : LinkProvider<TenantSummaryResponse>
 
         _ = links
             .AddIf(user.CanSend<GetTenantByIdQuery>(), LinkRelations.Self, "GetTenantById", HttpMethods.Get, id)
-            .AddCustomIf(status is TenantStatuses.Active or TenantStatuses.PastDue && user.CanSend<SuspendTenantCommand>(), Rels.Suspend, "SuspendTenant", HttpMethods.Post, id)
-            .AddCustomIf(status == TenantStatuses.Suspended && user.CanSend<ReactivateTenantCommand>(), Rels.Reactivate, "ReactivateTenant", HttpMethods.Post, id)
-            .AddCustomIf(status != TenantStatuses.Cancelled && user.CanSend<CancelTenantCommand>(), Rels.Cancel, "CancelTenant", HttpMethods.Post, id);
+            .AddCustomIf(TenantRules.CanBeSuspended(status) && user.CanSend<SuspendTenantCommand>(), Rels.Suspend, "SuspendTenant", HttpMethods.Post, id)
+            .AddCustomIf(TenantRules.CanBeReactivated(status) && user.CanSend<ReactivateTenantCommand>(), Rels.Reactivate, "ReactivateTenant", HttpMethods.Post, id)
+            .AddCustomIf(TenantRules.CanBeCancelled(status) && user.CanSend<CancelTenantCommand>(), Rels.Cancel, "CancelTenant", HttpMethods.Post, id);
     }
 }

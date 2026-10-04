@@ -83,15 +83,7 @@ public class AddModuleHandler(ITenantRepository tenantRepository, ITenantSubscri
             .GetAsync(i => i.TenantSubscriptionId == tenantSubscription.Id && i.ModuleKey == request.ModuleKey &&
             (i.Status == TenantSubscriptionItemStatuses.Pending || i.Status == TenantSubscriptionItemStatuses.Failed), cancellationToken: cancellationToken);
 
-        var item = existingItem ?? new TenantSubscriptionItem
-        {
-            TenantSubscriptionId = tenantSubscription.Id,
-            ModuleKey = moduleOffering.Key,
-            Status = TenantSubscriptionItemStatuses.Pending,
-            ProviderSubscriptionItemId = null,
-            PriceAtAddition = moduleOffering.Price,
-            AddedAt = DateTime.UtcNow,
-        };
+        var item = existingItem ?? TenantSubscriptionItem.Add(tenantSubscription.Id, moduleOffering.Key, moduleOffering.Price, DateTime.UtcNow);
 
         if (existingItem is null)
         {
@@ -111,18 +103,17 @@ public class AddModuleHandler(ITenantRepository tenantRepository, ITenantSubscri
 
             if (failure is not null)
             {
-                item.Status = TenantSubscriptionItemStatuses.Failed;
+                item.MarkBillingFailed();
 
                 _ = await tenantSubscriptionItemRepository.UpdateAsync(item);
 
                 return failure;
             }
 
-            providerSubscriptionItemId = value!;
+            providerSubscriptionItemId = value ?? throw new InvalidOperationException($"Adding module {moduleOffering.Key} returned no subscription item id.");
         }
 
-        item.ProviderSubscriptionItemId = providerSubscriptionItemId;
-        item.Status = TenantSubscriptionItemStatuses.Active;
+        item.Activate(providerSubscriptionItemId);
 
         _ = await tenantSubscriptionItemRepository.UpdateAsync(item);
 

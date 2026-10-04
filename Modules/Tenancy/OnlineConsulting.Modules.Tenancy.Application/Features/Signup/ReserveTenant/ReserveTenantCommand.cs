@@ -70,20 +70,8 @@ public class ReserveTenantHandler(ITenantRepository tenantRepository, ITenantSub
                 return Result.Conflict<ReserveTenantResult>(SignupMessages.SlugAlreadyTaken);
             }
 
-            tenant = new Tenant
-            {
-                Name = request.CompanyName,
-                Slug = slug,
-                Status = TenantStatuses.PendingPayment,
-                PrimaryContactEmail = request.AdminEmail,
-            };
-
-            tenantSubscription = new TenantSubscription
-            {
-                TenantId = tenant.Id,
-                Status = TenantSubscriptionStatuses.PendingPayment,
-                StartDate = DateTime.UtcNow,
-            };
+            tenant = Tenant.Reserve(request.CompanyName, slug, request.AdminEmail);
+            tenantSubscription = TenantSubscription.Start(tenant.Id, DateTime.UtcNow);
 
             _ = await tenantRepository.AddAsync(tenant);
 
@@ -109,7 +97,7 @@ public class ReserveTenantHandler(ITenantRepository tenantRepository, ITenantSub
                     _ = existingItems.Remove(dropped);
                 }
 
-                tenantSubscription.Status = TenantSubscriptionStatuses.PendingPayment;
+                tenantSubscription.RestartSignup();
                 _ = await tenantSubscriptionRepository.UpdateAsync(tenantSubscription);
             }
         }
@@ -118,15 +106,7 @@ public class ReserveTenantHandler(ITenantRepository tenantRepository, ITenantSub
 
         foreach (var offering in selectedOfferings.Where(o => !alreadyRecordedKeys.Contains(o.Key)))
         {
-            var item = new TenantSubscriptionItem
-            {
-                TenantSubscriptionId = tenantSubscription.Id,
-                ModuleKey = offering.Key,
-                Status = TenantSubscriptionItemStatuses.Pending,
-                ProviderSubscriptionItemId = null,
-                PriceAtAddition = offering.Price,
-                AddedAt = DateTime.UtcNow,
-            };
+            var item = TenantSubscriptionItem.Add(tenantSubscription.Id, offering.Key, offering.Price, DateTime.UtcNow);
 
             _ = await tenantSubscriptionItemRepository.AddAsync(item);
         }

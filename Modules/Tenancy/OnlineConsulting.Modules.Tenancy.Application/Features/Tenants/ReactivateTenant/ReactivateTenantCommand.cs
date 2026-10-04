@@ -32,12 +32,12 @@ public class ReactivateTenantHandler(ITenantRepository tenantRepository) : IRequ
             return TenantBusinessRules.TenantNotFound();
         }
 
-        if (tenant.Status != TenantStatuses.Suspended)
+        if (!tenant.CanBeReactivated)
         {
             return TenantBusinessRules.NotReactivatable();
         }
 
-        tenant.Status = TenantStatuses.Active;
+        tenant.Reactivate();
 
         _ = await tenantRepository.UpdateAsync(tenant);
 
