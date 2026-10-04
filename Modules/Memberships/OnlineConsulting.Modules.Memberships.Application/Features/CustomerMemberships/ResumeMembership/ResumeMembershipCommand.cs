@@ -2,6 +2,7 @@
 using MediatR;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Abstractions;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Constants;
+using OnlineConsulting.Modules.Memberships.Domain;
 using OnlineConsulting.SharedKernel.Payments;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -27,7 +28,7 @@ public class ResumeMembershipHandler(ICustomerMembershipRepository repository, I
             return Result.NotFound(CustomerMembershipMessages.NoActiveMembership);
         }
 
-        if (membership.Status != CustomerMembershipStatuses.Paused)
+        if (!membership.CanBeResumed)
         {
             return Result.Conflict(CustomerMembershipMessages.NotResumable);
         }
@@ -42,7 +43,7 @@ public class ResumeMembershipHandler(ICustomerMembershipRepository repository, I
             }
         }
 
-        membership.Status = CustomerMembershipStatuses.Active;
+        membership.Resume();
 
         _ = await repository.UpdateAsync(membership);
 

@@ -3,7 +3,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Abstractions;
-using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Constants;
+using OnlineConsulting.Modules.Memberships.Domain;
 using OnlineConsulting.SharedKernel.Payments;
 using OnlineConsulting.SharedKernel.Persistence;
 
@@ -36,6 +36,7 @@ public class MembershipGracePeriodCleanupService(IServiceScopeFactory scopeFacto
     private async Task CleanupOnceAsync(MembershipGracePeriodOptions settings, CancellationToken cancellationToken)
     {
         using var scope = scopeFactory.CreateScope();
+
         var membershipRepository = scope.ServiceProvider.GetRequiredService<ICustomerMembershipRepository>();
 
         var cutoff = DateTimeOffset.UtcNow - settings.GraceAfter;
@@ -58,8 +59,7 @@ public class MembershipGracePeriodCleanupService(IServiceScopeFactory scopeFacto
                 _ = await subscriptionGateway.CancelSubscriptionAsync(membership.ProviderSubscriptionId, cancellationToken: cancellationToken);
             }
 
-            membership.Status = CustomerMembershipStatuses.Cancelled;
-            membership.PastDueSince = null;
+            membership.Cancel();
 
             _ = await membershipRepository.UpdateAsync(membership);
 

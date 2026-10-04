@@ -1,6 +1,5 @@
 ﻿using MediatR;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Abstractions;
-using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Constants;
 using OnlineConsulting.SharedKernel.Payments;
 
 namespace OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.OnSubscriptionCancelled;
@@ -16,12 +15,14 @@ public class OnSubscriptionCancelledHandler(ICustomerMembershipRepository reposi
         }
 
         var membership = await repository.GetAsync(m => m.Id == membershipId, cancellationToken: cancellationToken);
-        if (membership is null || membership.Status == CustomerMembershipStatuses.Cancelled)
+
+        if (membership is null || membership.IsCancelled)
         {
             return;
         }
 
-        membership.Status = CustomerMembershipStatuses.Cancelled;
+        membership.Cancel();
+
         _ = await repository.UpdateAsync(membership);
     }
 }

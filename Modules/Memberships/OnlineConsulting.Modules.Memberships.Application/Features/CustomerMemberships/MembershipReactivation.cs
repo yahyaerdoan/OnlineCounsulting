@@ -12,7 +12,7 @@ public static class MembershipReactivation
 {
     public static async Task<OperationResult> RunAsync(CustomerMembership membership, ICustomerMembershipRepository repository, ISubscriptionGateway subscriptionGateway, CancellationToken cancellationToken)
     {
-        if (!membership.CancelAtPeriodEnd || membership.Status == CustomerMembershipStatuses.Cancelled)
+        if (!membership.CanBeReactivated)
         {
             return Result.Conflict(CustomerMembershipMessages.NotReactivatable);
         }
@@ -27,7 +27,7 @@ public static class MembershipReactivation
             }
         }
 
-        membership.CancelAtPeriodEnd = false;
+        membership.Reactivate();
 
         _ = await repository.UpdateAsync(membership);
 

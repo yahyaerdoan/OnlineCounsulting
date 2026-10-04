@@ -3,8 +3,8 @@ using Hateoas.AspNetCore;
 using OnlineConsulting.Api.Common.Hateoas;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.AdminCancelMembership;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.AdminReactivateMembership;
-using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Constants;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Contracts;
+using OnlineConsulting.Modules.Memberships.Domain;
 
 namespace OnlineConsulting.Api.Features.Memberships.CustomerMemberships;
 
@@ -17,8 +17,8 @@ public sealed class CustomerMembershipLinks : LinkProvider<CustomerMembershipRes
 {
     protected override void AddLinks(CustomerMembershipResponse resource, HateoasLinkBuilder links)
     {
-        var cancelled = resource.Status == CustomerMembershipStatuses.Cancelled;
-        var ending = resource.CancelAtPeriodEnd && !cancelled;
+        var cancelled = CustomerMembershipRules.IsCancelled(resource.Status);
+        var ending = CustomerMembershipRules.CanBeReactivated(resource.Status, resource.CancelAtPeriodEnd);
 
         _ = links.AddCustom(Rels.Plan, "GetMembershipPlanById", HttpMethods.Get, new { id = resource.MembershipPlanId });
 
@@ -26,10 +26,10 @@ public sealed class CustomerMembershipLinks : LinkProvider<CustomerMembershipRes
         {
             _ = links
                 .AddIf(!cancelled, LinkRelations.Self, "GetMyMembership", HttpMethods.Get)
-                .AddCustomIf(resource.Status == CustomerMembershipStatuses.Active && !resource.CancelAtPeriodEnd, Rels.ChangePlan, "ChangeMembershipPlan", HttpMethods.Post)
-                .AddCustomIf(resource.Status == CustomerMembershipStatuses.Active, Rels.Pause, "PauseMembership", HttpMethods.Post)
-                .AddCustomIf(resource.Status == CustomerMembershipStatuses.Paused, Rels.Resume, "ResumeMembership", HttpMethods.Post)
-                .AddCustomIf(!cancelled && !resource.CancelAtPeriodEnd, Rels.Cancel, "CancelMembership", HttpMethods.Post)
+                .AddCustomIf(CustomerMembershipRules.CanChangePlan(resource.Status, resource.CancelAtPeriodEnd), Rels.ChangePlan, "ChangeMembershipPlan", HttpMethods.Post)
+                .AddCustomIf(CustomerMembershipRules.CanBePaused(resource.Status), Rels.Pause, "PauseMembership", HttpMethods.Post)
+                .AddCustomIf(CustomerMembershipRules.CanBeResumed(resource.Status), Rels.Resume, "ResumeMembership", HttpMethods.Post)
+                .AddCustomIf(CustomerMembershipRules.CanBeCancelledAtPeriodEnd(resource.Status, resource.CancelAtPeriodEnd), Rels.Cancel, "CancelMembership", HttpMethods.Post)
                 .AddCustomIf(ending, Rels.Reactivate, "ReactivateMembership", HttpMethods.Post)
                 .AddCustomIf(cancelled && resource.PlanIsActive == true, Rels.Subscribe, "SubscribeToMembership", HttpMethods.Post);
             return;

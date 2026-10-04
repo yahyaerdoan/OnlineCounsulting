@@ -29,7 +29,7 @@ public class AdminCancelMembershipHandler(ICustomerMembershipRepository reposito
             return Result.NotFound(string.Format(CustomerMembershipMessages.CustomerMembershipNotFoundFormat, request.MembershipId));
         }
 
-        if (membership.Status == CustomerMembershipStatuses.Cancelled)
+        if (membership.IsCancelled)
         {
             return Result.Conflict(CustomerMembershipMessages.AlreadyCancelled);
         }
@@ -39,9 +39,10 @@ public class AdminCancelMembershipHandler(ICustomerMembershipRepository reposito
             _ = await subscriptionGateway.CancelSubscriptionAsync(membership.ProviderSubscriptionId, cancellationToken: cancellationToken);
         }
 
-        membership.Status = CustomerMembershipStatuses.Cancelled;
+        membership.Cancel();
 
         _ = await repository.UpdateAsync(membership);
+
         await notifier.CancelledByStaffAsync(membership, cancellationToken);
 
         return Result.Success("Membership cancelled successfully.");

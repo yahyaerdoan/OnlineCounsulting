@@ -2,6 +2,7 @@
 using MediatR;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Abstractions;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Constants;
+using OnlineConsulting.Modules.Memberships.Domain;
 using OnlineConsulting.SharedKernel.Payments;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -27,12 +28,17 @@ public class CancelMembershipHandler(ICustomerMembershipRepository repository, I
             return Result.NotFound(CustomerMembershipMessages.NoActiveMembership);
         }
 
+        if (!membership.CanBeCancelledAtPeriodEnd)
+        {
+            return Result.Conflict(CustomerMembershipMessages.AlreadyEnding);
+        }
+
         if (membership.ProviderSubscriptionId is not null)
         {
             _ = await subscriptionGateway.CancelSubscriptionAsync(membership.ProviderSubscriptionId, atPeriodEnd: true, cancellationToken: cancellationToken);
         }
 
-        membership.CancelAtPeriodEnd = true;
+        membership.CancelAtEndOfPeriod();
 
         _ = await repository.UpdateAsync(membership);
 

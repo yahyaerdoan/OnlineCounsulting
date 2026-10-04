@@ -2,6 +2,7 @@
 using MediatR;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Abstractions;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Constants;
+using OnlineConsulting.Modules.Memberships.Domain;
 using OnlineConsulting.SharedKernel.Payments;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -27,7 +28,7 @@ public class PauseMembershipHandler(ICustomerMembershipRepository repository, IS
             return Result.NotFound(CustomerMembershipMessages.NoActiveMembership);
         }
 
-        if (membership.Status != CustomerMembershipStatuses.Active)
+        if (!membership.CanBePaused)
         {
             return Result.Conflict(CustomerMembershipMessages.NotPausable);
         }
@@ -42,7 +43,7 @@ public class PauseMembershipHandler(ICustomerMembershipRepository repository, IS
             }
         }
 
-        membership.Status = CustomerMembershipStatuses.Paused;
+        membership.Pause();
 
         _ = await repository.UpdateAsync(membership);
 

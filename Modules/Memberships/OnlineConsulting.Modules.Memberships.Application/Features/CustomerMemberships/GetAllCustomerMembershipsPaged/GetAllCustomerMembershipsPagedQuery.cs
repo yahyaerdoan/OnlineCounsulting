@@ -1,4 +1,4 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using Core.ApplicationLayer.Requests.Page;
 using Core.PersistenceLayer.Dynamics.Dynamic;
 using Core.PersistenceLayer.Pagings.Paging;
@@ -8,6 +8,7 @@ using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMembersh
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Constants;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Contracts;
 using OnlineConsulting.Modules.Memberships.Application.Features.MembershipPlans.Abstractions;
+using OnlineConsulting.Modules.Memberships.Domain;
 using OnlineConsulting.SharedKernel.Identity;
 using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
@@ -32,26 +33,36 @@ public class GetAllCustomerMembershipsPagedHandler(ICustomerMembershipRepository
         var query = request.View switch
         {
             CustomerMembershipListViews.Active => repository.Query().Where(m => m.Status == CustomerMembershipStatuses.Active && !m.CancelAtPeriodEnd),
+
             CustomerMembershipListViews.Ending => repository.Query().Where(m => m.CancelAtPeriodEnd && m.Status != CustomerMembershipStatuses.Cancelled),
+
             CustomerMembershipListViews.NeedsAttention => repository.Query().Where(m =>
                 m.Status == CustomerMembershipStatuses.PastDue || m.Status == CustomerMembershipStatuses.PendingPayment || m.Status == CustomerMembershipStatuses.Failed),
+
             CustomerMembershipListViews.Paused => repository.Query().Where(m => m.Status == CustomerMembershipStatuses.Paused),
+
             CustomerMembershipListViews.Cancelled => repository.Query().Where(m => m.Status == CustomerMembershipStatuses.Cancelled),
+
             _ => repository.Query(),
         };
 
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
             var term = request.Search.Trim();
+
             var userIds = await contactReader.FindUserIdsAsync(term, cancellationToken: cancellationToken);
-            var planIds = (await planRepository.GetListAsync(p => p.Name.Contains(term), size: 100, withDeleted: true, cancellationToken: cancellationToken)).Items.Select(p => p.Id).ToList();
+
+            var planIds = (await planRepository.GetListAsync(p => p.Name.Contains(term), size: RepositoryQuerySize.Unbounded, withDeleted: true, cancellationToken: cancellationToken)).Items.Select(p => p.Id).ToList();
+
             query = query.Where(m => userIds.Contains(m.UserId) || planIds.Contains(m.MembershipPlanId) || m.Status.Contains(term));
         }
 
         var paged = await query.ToDynamicPaginateAsync(request.PageRequest, request.DynamicQuery, defaultOrderBy: m => m.StartDate, tieBreaker: m => m.Id, cancellationToken);
 
         var contacts = (await contactReader.GetContactsAsync([.. paged.Items.Select(m => m.UserId).Distinct()], cancellationToken)).ToDictionary(c => c.Id);
+
         var pagePlanIds = paged.Items.Select(m => m.MembershipPlanId).Distinct().ToList();
+
         var plans = pagePlanIds.Count == 0
             ? []
             : (await planRepository.GetListAsync(p => pagePlanIds.Contains(p.Id), size: pagePlanIds.Count, withDeleted: true, cancellationToken: cancellationToken)).Items.ToDictionary(p => p.Id);

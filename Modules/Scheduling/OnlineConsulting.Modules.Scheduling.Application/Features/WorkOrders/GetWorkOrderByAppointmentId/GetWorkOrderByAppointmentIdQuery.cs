@@ -2,6 +2,7 @@
 using OnlineConsulting.Modules.Scheduling.Application.Features.WorkOrders.Abstractions;
 using OnlineConsulting.Modules.Scheduling.Application.Features.WorkOrders.Contracts;
 using OnlineConsulting.Modules.Scheduling.Application.Features.WorkOrders.Rules;
+using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using ResultHandler.Functional;
@@ -16,12 +17,13 @@ public class GetWorkOrderByAppointmentIdHandler(IWorkOrderRepository workOrderRe
     public async Task<OperationDataResult<WorkOrderResponse>> Handle(GetWorkOrderByAppointmentIdQuery request, CancellationToken cancellationToken)
     {
         var workOrder = await workOrderRepository.GetAsync(w => w.AppointmentId == request.AppointmentId, cancellationToken: cancellationToken);
+
         if (workOrder is null)
         {
             return WorkOrderBusinessRules.WorkOrderNotFoundForAppointment(request.AppointmentId).ToErrorDataResult<WorkOrderResponse>();
         }
 
-        var mediaItems = await mediaItemRepository.GetListAsync(m => m.WorkOrderId == workOrder.Id, orderBy: q => q.OrderBy(m => m.Id), size: 100, cancellationToken: cancellationToken);
+        var mediaItems = await mediaItemRepository.GetListAsync(m => m.WorkOrderId == workOrder.Id, orderBy: q => q.OrderBy(m => m.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
 
         return Result.Success(WorkOrderResponse.FromDomain(workOrder, mediaItems.Items), "Work order retrieved successfully.");
     }

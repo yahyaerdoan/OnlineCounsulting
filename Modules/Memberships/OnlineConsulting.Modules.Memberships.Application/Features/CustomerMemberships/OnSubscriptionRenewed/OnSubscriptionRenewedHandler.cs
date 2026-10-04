@@ -1,6 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Abstractions;
-using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Constants;
+using OnlineConsulting.Modules.Memberships.Domain;
 using OnlineConsulting.SharedKernel.Payments;
 
 namespace OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.OnSubscriptionRenewed;
@@ -20,20 +20,19 @@ public class OnSubscriptionRenewedHandler(ICustomerMembershipRepository reposito
 
         var membership = await repository.GetAsync(m => m.Id == membershipId, cancellationToken: cancellationToken);
 
-        if (membership is null)
+        if (membership is null || membership.IsCancelled)
         {
             return;
         }
 
-        var starting = membership.Status is CustomerMembershipStatuses.PendingPayment or CustomerMembershipStatuses.Failed;
+        var starting = membership.IsAwaitingFirstPayment;
 
-        membership.RenewalDate = notification.CurrentPeriodEnd;
-        membership.Status = CustomerMembershipStatuses.Active;
-        membership.PastDueSince = null;
+        membership.Renew(notification.CurrentPeriodEnd);
 
         _ = await repository.UpdateAsync(membership);
 
         var renewal = notification.Invoice is { } renewedInvoice && renewedInvoice.BillingReason != SubscriptionInvoice.FirstInvoiceReason;
+
         if (notification.Invoice is { IsPaid: true } invoice && (starting || renewal))
         {
             await receiptSender.SendAsync(membership, invoice, cancellationToken);
