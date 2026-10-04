@@ -9,12 +9,13 @@ using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Abstractions
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Contracts;
 using OnlineConsulting.Modules.Commerce.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
+using OnlineConsulting.SharedKernel.Identity;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Orders.ListOrders;
 
-/// <summary>Every user's orders for staff, one page at a time, with per-order totals.</summary>
+/// <summary>Every user's orders for staff, one page at a time, with per-order totals and each owner's email and user name.</summary>
 public record ListOrdersQuery(PageRequest PageRequest, DynamicQuery? DynamicQuery = null)
     : IRequest<OperationDataResult<Paginate<AdminOrderResponse>>>, ISecureAddRequest, IDynamicListRequest
 {
@@ -23,7 +24,7 @@ public record ListOrdersQuery(PageRequest PageRequest, DynamicQuery? DynamicQuer
     public string[] Roles => [CommerceOperationClaims.Admin, CommerceOperationClaims.Read, GlobalOperationClaims.SuperAdmin];
 }
 
-public class ListOrdersHandler(IOrderRepository orderRepository)
+public class ListOrdersHandler(IOrderRepository orderRepository, IUserContactReader contactReader)
     : IRequestHandler<ListOrdersQuery, OperationDataResult<Paginate<AdminOrderResponse>>>
 {
     public async Task<OperationDataResult<Paginate<AdminOrderResponse>>> Handle(ListOrdersQuery request, CancellationToken cancellationToken)
@@ -37,9 +38,11 @@ public class ListOrdersHandler(IOrderRepository orderRepository)
 
         var totalsByOrderId = await orderRepository.GetTotalsAsync([.. paged.Items.Select(o => o.Id)], cancellationToken);
 
+        var owners = (await contactReader.GetContactsAsync([.. paged.Items.Select(o => o.UserId).Distinct()], cancellationToken)).ToDictionary(c => c.Id);
+
         var response = new Paginate<AdminOrderResponse>
         {
-            Items = [.. paged.Items.Select(o => AdminOrderResponse.FromDomain(o, totalsByOrderId.GetValueOrDefault(o.Id)))],
+            Items = [.. paged.Items.Select(o => AdminOrderResponse.FromDomain(o, totalsByOrderId.GetValueOrDefault(o.Id), owners.GetValueOrDefault(o.UserId)))],
             Index = paged.Index,
             Size = paged.Size,
             Count = paged.Count,

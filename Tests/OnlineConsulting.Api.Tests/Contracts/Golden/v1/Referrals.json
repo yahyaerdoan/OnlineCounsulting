@@ -10,6 +10,20 @@
     "balance: decimal",
     "entries: List<AccountCreditResponse>"
   ],
+  "AdminReferralResponse": [
+    "id: Guid",
+    "code: string",
+    "status: string",
+    "rewardAmount: decimal?",
+    "rewardedAt: DateTimeOffset?",
+    "referrerUserId: Guid",
+    "referrerEmail: string?",
+    "referrerName: string?",
+    "referredUserId: Guid",
+    "referredEmail: string?",
+    "referredName: string?",
+    "_links: LinkCollection?"
+  ],
   "ReferralResponse": [
     "id: Guid",
     "referrerUserId: Guid",

@@ -56,7 +56,12 @@ public class V1ResponseContractTests
             modules[module] = [.. assembly.GetExportedTypes().Where(type => type.Namespace?.EndsWith(".Contracts", StringComparison.Ordinal) == true && IsResponse(type)).OrderBy(type => type.Name, StringComparer.Ordinal)];
         }
 
-        modules["Api"] = [.. ApiAssembly.GetExportedTypes().Where(type => type.Name.EndsWith("Response", StringComparison.Ordinal) && IsResponse(type)).OrderBy(type => type.Name, StringComparer.Ordinal)];
+        List<Type> apiResponses = [.. ApiAssembly.GetExportedTypes().Where(type => type.Name.EndsWith("Response", StringComparison.Ordinal) && IsResponse(type)).OrderBy(type => type.Name, StringComparer.Ordinal)];
+        if (apiResponses.Count > 0)
+        {
+            modules["Api"] = apiResponses;
+        }
+
         return modules;
     }
 

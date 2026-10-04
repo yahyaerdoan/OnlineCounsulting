@@ -13,7 +13,10 @@
     "paymentStatus: string",
     "totalPrice: decimal",
     "createdDate: DateTimeOffset",
-    "userId: Guid"
+    "userId: Guid",
+    "userEmail: string?",
+    "userName: string?",
+    "_links: LinkCollection?"
   ],
   "BasketItemResponse": [
     "id: Guid",
