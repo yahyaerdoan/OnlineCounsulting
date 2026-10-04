@@ -1,3 +1,4 @@
+using OnlineConsulting.SharedKernel.Tenancy;
 using System.Globalization;
 using System.Net;
 using Microsoft.Extensions.Logging;
@@ -13,7 +14,7 @@ namespace OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemb
 /// <summary>Emails the member a receipt for a paid membership invoice - the provider's invoice stays the official document (number, PDF,
 /// hosted page); this relays it with the plan's perks. A $0 first invoice is a trial start. Best effort: failures are logged.</summary>
 public class MembershipReceiptSender(IEmailOutboxWriter<IMembershipsOutboxModule> outboxWriter, ISubscriptionGateway subscriptionGateway,
-    IUserContactReader contactReader, IMembershipPlanRepository planRepository, ILogger<MembershipReceiptSender> logger)
+    IUserContactReader contactReader, IMembershipPlanRepository planRepository, ITenantTimeZoneReader timeZoneReader, ILogger<MembershipReceiptSender> logger)
 {
     private static readonly CultureInfo Usd = CultureInfo.GetCultureInfo("en-US");
 
@@ -53,7 +54,8 @@ public class MembershipReceiptSender(IEmailOutboxWriter<IMembershipsOutboxModule
                 ? $"Your {plan?.Name ?? "membership"} free trial has started"
                 : $"Your membership receipt{(invoice.Number is null ? "" : $" ({invoice.Number})")}: {Money(invoice.AmountPaid)} paid";
 
-            await outboxWriter.EnqueueAsync(email, subject, Build(contact.FirstName, plan, invoice, trialStart),
+            var zone = await timeZoneReader.GetAsync(membership.TenantId, cancellationToken);
+            await outboxWriter.EnqueueAsync(email, subject, Build(contact.FirstName, plan, invoice, trialStart, zone),
                 sourceReference: $"MembershipInvoice:{invoice.ProviderInvoiceId}", cancellationToken: cancellationToken);
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
@@ -62,18 +64,18 @@ public class MembershipReceiptSender(IEmailOutboxWriter<IMembershipsOutboxModule
         }
     }
 
-    private static string Build(string firstName, MembershipPlan? plan, SubscriptionInvoice invoice, bool trialStart)
+    private static string Build(string firstName, MembershipPlan? plan, SubscriptionInvoice invoice, bool trialStart, TimeZoneInfo zone)
     {
         var planName = plan?.Name ?? "membership";
         var first = invoice.BillingReason == SubscriptionInvoice.FirstInvoiceReason;
         var intro = trialStart
             ? $"Welcome to {planName}! Your free trial has started and nothing was charged today."
-                + (invoice.PeriodEnd is { } trialEnd ? $" Your first payment will be on {trialEnd.ToString("MMMM d, yyyy", Usd)} unless you cancel before then." : "")
+                + (invoice.PeriodEnd is { } trialEnd ? $" Your first payment will be on {trialEnd.InZone(zone).ToString("MMMM d, yyyy", Usd)} unless you cancel before then." : "")
             : first
                 ? $"Welcome to {planName}! Thanks for joining. Here's the receipt for your first payment."
                 : $"Your {planName} membership has renewed. Thanks for staying with us! Here's your receipt.";
         var period = !trialStart && invoice.PeriodStart is { } start && invoice.PeriodEnd is { } end
-            ? $"<p style=\"color: #777777;\">Membership period: {start.ToString("MMM d, yyyy", Usd)} to {end.ToString("MMM d, yyyy", Usd)}</p>"
+            ? $"<p style=\"color: #777777;\">Membership period: {start.InZone(zone).ToString("MMM d, yyyy", Usd)} to {end.InZone(zone).ToString("MMM d, yyyy", Usd)}</p>"
             : "";
         var perks = plan is null
             ? ""
@@ -98,7 +100,7 @@ public class MembershipReceiptSender(IEmailOutboxWriter<IMembershipsOutboxModule
         return EmailLayout.Wrap($"""
             <p>{(string.IsNullOrWhiteSpace(firstName) ? "Hi," : $"Hi {Encode(firstName)},")}</p>
             <p>{Encode(intro)}</p>
-            <p style="color: #777777; margin-bottom: 4px;">{Encode(invoice.Number ?? "Invoice")} &bull; {DateTimeOffset.UtcNow.ToString("MMMM d, yyyy", Usd)}</p>
+            <p style="color: #777777; margin-bottom: 4px;">{Encode(invoice.Number ?? "Invoice")} &bull; {DateTimeOffset.UtcNow.InZone(zone).ToString("MMMM d, yyyy", Usd)}</p>
             {period}
             <table style="width: 100%; max-width: 520px; border-collapse: collapse; margin: 8px 0 16px;">
                 {lines}

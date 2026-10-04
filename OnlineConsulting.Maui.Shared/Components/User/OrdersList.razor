@@ -79,7 +79,7 @@ else
                 <span class="order-card-icon"><MudIcon Icon="@PaymentIcon(order.PaymentStatus)" /></span>
                 <span class="order-card-main">
                     <span class="order-card-number">Order #@order.OrderNumber</span>
-                    <span class="order-card-date">@DateTimeFormat.FormatDateTime(order.CreatedDate)</span>
+                    <span class="order-card-date">@BusinessTime.FormatDateTime(order.CreatedDate)</span>
                 </span>
                 <span class="order-card-badges">
                     <StatusBadge Label="@PaymentLabel(order.PaymentStatus)" Kind="@PaymentKind(order.PaymentStatus)" />

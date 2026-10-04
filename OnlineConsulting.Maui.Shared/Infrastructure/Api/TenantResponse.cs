@@ -9,7 +9,8 @@ public record TenantResponse(
     string PrimaryContactEmail,
     List<string> ActiveModuleKeys,
     decimal TotalActivePrice,
-    DateTimeOffset? CreatedDate = null) : IQueryableFields
+    DateTimeOffset? CreatedDate = null,
+    string? TimeZoneId = null) : IQueryableFields
 {
     public static string[] SearchFields => [nameof(Name), nameof(Slug), nameof(PrimaryContactEmail)];
 }

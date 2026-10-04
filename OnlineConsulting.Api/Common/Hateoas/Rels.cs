@@ -33,6 +33,7 @@ public static class Rels
     public const string SetShipping = "set-shipping";
     public const string SetBilling = "set-billing";
     public const string ChangeAddresses = "change-addresses";
+    public const string ChangeTimeZone = "change-time-zone";
     public const string Checkout = "checkout";
     public const string Clear = "clear";
     public const string Remove = "remove";
@@ -76,6 +77,7 @@ public static class Rels
         [SetShipping] = "Makes the address the default shipping address.",
         [SetBilling] = "Makes the address the default billing address.",
         [ChangeAddresses] = "Points an unpaid order at the caller's current default addresses.",
+        [ChangeTimeZone] = "Sets the caller's own business time zone (tenant admins).",
         [Checkout] = "Places an order from the basket.",
         [Clear] = "Removes every item from the basket.",
         [Remove] = "Removes the item from its parent resource.",

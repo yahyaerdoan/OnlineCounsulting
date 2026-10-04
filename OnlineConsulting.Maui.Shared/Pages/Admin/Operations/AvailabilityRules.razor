@@ -34,8 +34,8 @@ else
         </HeaderContent>
         <RowTemplate Context="rule">
             <MudTd DataLabel="Day" Class="cell-primary">@rule.DayOfWeek</MudTd>
-            <MudTd DataLabel="Start">@DateTimeFormat.FormatTime(rule.StartTime)</MudTd>
-            <MudTd DataLabel="End">@DateTimeFormat.FormatTime(rule.EndTime)</MudTd>
+            <MudTd DataLabel="Start">@BusinessTime.FormatTime(rule.StartTime)</MudTd>
+            <MudTd DataLabel="End">@BusinessTime.FormatTime(rule.EndTime)</MudTd>
             <MudTd DataLabel="Slot Length">@rule.SlotDurationMinutes min</MudTd>
             <MudTd DataLabel="Actions">
                 <MudTooltip Text="Delete">
@@ -76,7 +76,7 @@ else
 
     private async Task DeleteAsync(AvailabilityRuleResponse rule)
     {
-        if (!await DialogService.ConfirmDeleteAsync("availability window", $"{rule.DayOfWeek} {DateTimeFormat.FormatTime(rule.StartTime)}-{DateTimeFormat.FormatTime(rule.EndTime)}"))
+        if (!await DialogService.ConfirmDeleteAsync("availability window", $"{rule.DayOfWeek} {BusinessTime.FormatTime(rule.StartTime)}-{BusinessTime.FormatTime(rule.EndTime)}"))
         {
             return;
         }

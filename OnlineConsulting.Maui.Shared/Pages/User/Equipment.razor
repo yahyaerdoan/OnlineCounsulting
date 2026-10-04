@@ -73,11 +73,11 @@ else
                     </div>
                     <div class="member-fact">
                         <dt>Installed</dt>
-                        <dd>@(item.InstallDate is { } installed ? DateTimeFormat.FormatDate(installed) : "-")</dd>
+                        <dd>@(item.InstallDate is { } installed ? BusinessTime.FormatDate(installed) : "-")</dd>
                     </div>
                     <div class="member-fact">
                         <dt>Warranty Until</dt>
-                        <dd>@(item.WarrantyExpiresAt is { } warrantyEnd ? DateTimeFormat.FormatDate(warrantyEnd) : "-")</dd>
+                        <dd>@(item.WarrantyExpiresAt is { } warrantyEnd ? BusinessTime.FormatDate(warrantyEnd) : "-")</dd>
                     </div>
                     <div class="member-fact">
                         <dt>Age</dt>
@@ -116,7 +116,7 @@ else
                                 @foreach (var workOrder in history)
                                 {
                                     <li class="@(workOrder.CompletedAt is null ? "current" : "")">
-                                        <span class="equipment-timeline-date">@(workOrder.CompletedAt is { } completed ? DateTimeFormat.FormatDate(completed) : "In Progress")</span>
+                                        <span class="equipment-timeline-date">@(workOrder.CompletedAt is { } completed ? BusinessTime.FormatDate(completed) : "In Progress")</span>
                                         @if (!string.IsNullOrWhiteSpace(workOrder.TechnicianNotes))
                                         {
                                             <span class="equipment-timeline-text">@workOrder.TechnicianNotes</span>

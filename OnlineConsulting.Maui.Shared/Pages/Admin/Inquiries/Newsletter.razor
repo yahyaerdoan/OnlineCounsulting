@@ -19,7 +19,7 @@
     </HeaderContent>
     <RowTemplate Context="subscriber">
         <MudTd DataLabel="Email" Class="cell-primary">@subscriber.Email</MudTd>
-        <MudTd DataLabel="Subscribed">@DateTimeFormat.FormatDateTime(subscriber.CreatedDate)</MudTd>
+        <MudTd DataLabel="Subscribed">@BusinessTime.FormatDateTime(subscriber.CreatedDate)</MudTd>
         <MudTd DataLabel="Actions">
             <MudTooltip Text="Remove">
                 <MudIconButton aria-label="Remove" Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" Size="Size.Small"

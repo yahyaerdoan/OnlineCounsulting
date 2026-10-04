@@ -22,7 +22,7 @@
         <MudTh>Actions</MudTh>
     </HeaderContent>
     <RowTemplate Context="order">
-        <MudTd DataLabel="Date">@DateTimeFormat.FormatDateTime(order.CreatedDate)</MudTd>
+        <MudTd DataLabel="Date">@BusinessTime.FormatDateTime(order.CreatedDate)</MudTd>
         <MudTd DataLabel="Order #" Class="cell-primary">@order.OrderNumber</MudTd>
         <MudTd DataLabel="Customer">@(order.UserName ?? order.UserEmail ?? "-")</MudTd>
         <MudTd DataLabel="Status">@order.OrderStatus</MudTd>

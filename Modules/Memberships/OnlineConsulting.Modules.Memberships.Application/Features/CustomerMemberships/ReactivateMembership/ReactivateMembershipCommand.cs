@@ -4,6 +4,7 @@ using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMembersh
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Constants;
 using OnlineConsulting.Modules.Memberships.Domain;
 using OnlineConsulting.SharedKernel.Payments;
+using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -18,7 +19,7 @@ public record ReactivateMembershipCommand(Guid UserId) : IRequest<OperationResul
     public string[] Roles => [];
 }
 
-public class ReactivateMembershipHandler(ICustomerMembershipRepository repository, ISubscriptionGateway subscriptionGateway) : IRequestHandler<ReactivateMembershipCommand, OperationResult>
+public class ReactivateMembershipHandler(ICustomerMembershipRepository repository, ISubscriptionGateway subscriptionGateway, ITenantTimeZoneReader timeZoneReader) : IRequestHandler<ReactivateMembershipCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(ReactivateMembershipCommand request, CancellationToken cancellationToken)
     {
@@ -26,6 +27,6 @@ public class ReactivateMembershipHandler(ICustomerMembershipRepository repositor
 
         return membership is null
             ? Result.NotFound(CustomerMembershipMessages.NoActiveMembership)
-            : await MembershipReactivation.RunAsync(membership, repository, subscriptionGateway, cancellationToken);
+            : await MembershipReactivation.RunAsync(membership, repository, subscriptionGateway, timeZoneReader, cancellationToken);
     }
 }

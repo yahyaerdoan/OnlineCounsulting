@@ -44,9 +44,9 @@
             </span>
         </MudTd>
         <MudTd DataLabel="Status"><StatusBadge Label="@StatusLabel(membership)" Kind="@StatusKind(membership)" /></MudTd>
-        <MudTd DataLabel="Member Since">@DateTimeFormat.FormatDate(membership.StartDate)</MudTd>
+        <MudTd DataLabel="Member Since">@BusinessTime.FormatDate(membership.StartDate)</MudTd>
         <MudTd DataLabel="@(membership.IsEnding || membership.Status == "Cancelled" ? "Ends" : "Renews")">
-            @(membership.RenewalDate is { } renewal ? DateTimeFormat.FormatDate(renewal) : "-")
+            @(membership.RenewalDate is { } renewal ? BusinessTime.FormatDate(renewal) : "-")
         </MudTd>
         <MudTd DataLabel="Actions" Class="cell-actions">
             @if (membership.IsEnding)

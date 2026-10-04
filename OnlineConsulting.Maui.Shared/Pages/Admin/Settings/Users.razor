@@ -46,7 +46,7 @@
         <MudTd DataLabel="Status">
             <StatusBadge Label="@(user.IsActive ? "Active" : "Inactive")" Kind="@(user.IsActive ? StatusKinds.Success : StatusKinds.Neutral)" />
         </MudTd>
-        <MudTd DataLabel="Joined">@(user.CreatedDate is { } joined ? DateTimeFormat.FormatDate(joined) : "-")</MudTd>
+        <MudTd DataLabel="Joined">@(user.CreatedDate is { } joined ? BusinessTime.FormatDate(joined) : "-")</MudTd>
         <MudTd DataLabel="Actions" Class="cell-actions">
             <MudTooltip Text="Edit">
                 <MudIconButton Icon="@Icons.Material.Outlined.EditNote" Size="Size.Small" aria-label="Edit"

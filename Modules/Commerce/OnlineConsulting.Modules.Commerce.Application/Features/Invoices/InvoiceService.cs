@@ -11,6 +11,7 @@ using OnlineConsulting.SharedKernel.Memberships;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
 using OnlineConsulting.SharedKernel.Persistence;
+using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Invoices;
 
@@ -24,6 +25,7 @@ public class InvoiceService(IInvoiceRepository invoiceRepository,
                             IEmailTemplate<InvoiceEmailModel> emailTemplate,
                             IPushNotificationSender pushSender,
                             InvoiceBusinessInfo business,
+    ITenantTimeZoneReader timeZoneReader,
                             ILogger<InvoiceService> logger)
     : IInvoiceService, IServiceInvoiceIssuer
 {
@@ -100,7 +102,7 @@ public class InvoiceService(IInvoiceRepository invoiceRepository,
 
         var response = InvoiceResponse.FromDomain(invoice, lines);
 
-        await EmailAsync(InvoiceEmailKind.Issued, response, cancellationToken);
+        await EmailAsync(InvoiceEmailKind.Issued, response, invoice.TenantId, cancellationToken);
 
         await PushAsync(invoice, "New invoice", $"{invoice.InvoiceNumber} for {invoice.Title}: {Money(invoice.Total)} due.", cancellationToken);
 
@@ -115,7 +117,7 @@ public class InvoiceService(IInvoiceRepository invoiceRepository,
 
         var response = await ToResponseAsync(invoice, cancellationToken);
 
-        await EmailAsync(InvoiceEmailKind.Receipt, response, cancellationToken);
+        await EmailAsync(InvoiceEmailKind.Receipt, response, invoice.TenantId, cancellationToken);
 
         await PushAsync(invoice, "Payment received", $"Thanks! {invoice.InvoiceNumber} is paid.", cancellationToken);
     }
@@ -128,7 +130,7 @@ public class InvoiceService(IInvoiceRepository invoiceRepository,
 
         var response = await ToResponseAsync(invoice, cancellationToken);
 
-        await EmailAsync(InvoiceEmailKind.Voided, response, cancellationToken);
+        await EmailAsync(InvoiceEmailKind.Voided, response, invoice.TenantId, cancellationToken);
 
         await PushAsync(invoice, "Invoice cancelled", $"{invoice.InvoiceNumber} was cancelled. There's nothing to pay for it.", cancellationToken);
     }
@@ -158,7 +160,7 @@ public class InvoiceService(IInvoiceRepository invoiceRepository,
         }
     }
 
-    private async Task EmailAsync(InvoiceEmailKind kind, InvoiceResponse invoice, CancellationToken cancellationToken)
+    private async Task EmailAsync(InvoiceEmailKind kind, InvoiceResponse invoice, Guid tenantId, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(invoice.BillToEmail))
         {
@@ -167,7 +169,7 @@ public class InvoiceService(IInvoiceRepository invoiceRepository,
 
         try
         {
-            var model = new InvoiceEmailModel(kind, invoice, business.BusinessName, ViewUrl(invoice.Id));
+            var model = new InvoiceEmailModel(kind, invoice, business.BusinessName, ViewUrl(invoice.Id), await timeZoneReader.GetAsync(tenantId, cancellationToken));
 
             await outboxWriter.EnqueueAsync(invoice.BillToEmail, emailTemplate.Subject(model), emailTemplate.Build(model), sourceReference: $"Invoice:{invoice.Id}:{kind}", cancellationToken: cancellationToken);
         }

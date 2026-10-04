@@ -1,3 +1,4 @@
+using OnlineConsulting.SharedKernel.Tenancy;
 using System.Globalization;
 using System.Net;
 using Microsoft.Extensions.Logging;
@@ -45,12 +46,13 @@ public class TenantReceiptSender(IEmailOutboxWriter<ITenancyOutboxModule> outbox
 
     private static string Build(Tenant tenant, SubscriptionInvoice invoice)
     {
+        var zone = BusinessTimeZones.FindOrDefault(tenant.TimeZoneId);
         var first = invoice.BillingReason == SubscriptionInvoice.FirstInvoiceReason;
         var intro = first
             ? $"Welcome aboard! Thanks for subscribing. Here's the receipt for {tenant.Name}'s first payment."
             : $"Thanks! Your subscription for {tenant.Name} has renewed. Here's your receipt.";
         var period = invoice.PeriodStart is { } start && invoice.PeriodEnd is { } end
-            ? $"<p style=\"color: #777777;\">Service period: {start.ToString("MMM d, yyyy", Usd)} to {end.ToString("MMM d, yyyy", Usd)}</p>"
+            ? $"<p style=\"color: #777777;\">Service period: {start.InZone(zone).ToString("MMM d, yyyy", Usd)} to {end.InZone(zone).ToString("MMM d, yyyy", Usd)}</p>"
             : "";
         var lines = string.Concat(invoice.Lines.Select(line => $"""
             <tr>
@@ -65,7 +67,7 @@ public class TenantReceiptSender(IEmailOutboxWriter<ITenancyOutboxModule> outbox
         return EmailLayout.Wrap($"""
             <p>Hi,</p>
             <p>{Encode(intro)}</p>
-            <p style="color: #777777; margin-bottom: 4px;">{Encode(invoice.Number ?? "Invoice")} &bull; paid {DateTimeOffset.UtcNow.ToString("MMMM d, yyyy", Usd)}</p>
+            <p style="color: #777777; margin-bottom: 4px;">{Encode(invoice.Number ?? "Invoice")} &bull; paid {DateTimeOffset.UtcNow.InZone(zone).ToString("MMMM d, yyyy", Usd)}</p>
             {period}
             <table style="width: 100%; max-width: 520px; border-collapse: collapse; margin: 8px 0 16px;">
                 {lines}

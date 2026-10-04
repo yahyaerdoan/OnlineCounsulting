@@ -6,5 +6,6 @@ namespace OnlineConsulting.Modules.Commerce.Application.Features.Invoices.Abstra
 /// <summary>Turns an invoice into a printable PDF; the rendering library stays in Infrastructure.</summary>
 public interface IInvoicePdfRenderer
 {
-    byte[] Render(InvoiceResponse invoice, InvoiceBusinessInfo business);
+    /// <summary>Dates are shown in <paramref name="timeZone"/>, the business's zone.</summary>
+    byte[] Render(InvoiceResponse invoice, InvoiceBusinessInfo business, TimeZoneInfo timeZone);
 }

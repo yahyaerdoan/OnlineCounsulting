@@ -30,7 +30,7 @@
         <MudTd DataLabel="Status">
             <MudChip T="string" Size="Size.Small" Color="@InviteStatusColor(invite.Status)">@invite.Status</MudChip>
         </MudTd>
-        <MudTd DataLabel="Expires">@invite.ExpiresAt.ToLocalTime().ToString("d")</MudTd>
+        <MudTd DataLabel="Expires">@BusinessTime.FormatDate(invite.ExpiresAt)</MudTd>
         <MudTd DataLabel="Actions">
             @if (invite.Status == "Pending")
             {

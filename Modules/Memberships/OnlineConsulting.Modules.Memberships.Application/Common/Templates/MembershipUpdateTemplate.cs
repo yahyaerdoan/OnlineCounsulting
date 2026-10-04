@@ -12,7 +12,7 @@ public enum MembershipUpdateKind
     ReactivatedByStaff,
 }
 
-/// <summary>RenewsOn is the next renewal date, shown when the membership keeps running.</summary>
+/// <summary>RenewsOn is the next renewal date, already on the business's clock, shown when the membership keeps running.</summary>
 public record MembershipUpdateEmailModel(MembershipUpdateKind Kind, string? FirstName, string PlanName, DateTimeOffset? RenewsOn);
 
 /// <summary>Membership changes the member did not make themselves (staff actions, failed payments).</summary>

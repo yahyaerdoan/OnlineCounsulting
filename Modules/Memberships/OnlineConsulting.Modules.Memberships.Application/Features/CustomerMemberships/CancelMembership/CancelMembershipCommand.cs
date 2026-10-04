@@ -4,8 +4,10 @@ using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMembersh
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Constants;
 using OnlineConsulting.Modules.Memberships.Domain;
 using OnlineConsulting.SharedKernel.Payments;
+using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
+using System.Globalization;
 using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.CancelMembership;
@@ -17,7 +19,8 @@ public record CancelMembershipCommand(Guid UserId) : IRequest<OperationResult>, 
     public string[] Roles => [];
 }
 
-public class CancelMembershipHandler(ICustomerMembershipRepository repository, ISubscriptionGateway subscriptionGateway) : IRequestHandler<CancelMembershipCommand, OperationResult>
+public class CancelMembershipHandler(ICustomerMembershipRepository repository, ISubscriptionGateway subscriptionGateway, ITenantTimeZoneReader timeZoneReader)
+    : IRequestHandler<CancelMembershipCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(CancelMembershipCommand request, CancellationToken cancellationToken)
     {
@@ -42,7 +45,8 @@ public class CancelMembershipHandler(ICustomerMembershipRepository repository, I
 
         _ = await repository.UpdateAsync(membership);
 
-        var renewalDate = membership.RenewalDate?.ToString("MMMM d, yyyy") ?? "the end of the current period";
+        var zone = await timeZoneReader.GetAsync(membership.TenantId, cancellationToken);
+        var renewalDate = membership.RenewalDate?.InZone(zone).ToString("MMMM d, yyyy", CultureInfo.GetCultureInfo("en-US")) ?? "the end of the current period";
 
         return Result.Success($"Your membership will remain active until {renewalDate} and won't renew after that.");
     }

@@ -7,6 +7,7 @@ using OnlineConsulting.SharedKernel.Catalog;
 using OnlineConsulting.SharedKernel.Identity;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
+using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Scheduling.Infrastructure.Notifications;
 
@@ -18,6 +19,7 @@ public class AppointmentNotifier(IEmailOutboxWriter<ISchedulingOutboxModule> out
                                  IUserContactReader contactReader,
                                  IStaffDirectory staffDirectory,
                                  IServiceCatalogReader catalogReader,
+                                 ITenantTimeZoneReader timeZoneReader,
                                  ILogger<AppointmentNotifier> logger) : IAppointmentNotifier
 {
     private static readonly string[] DispatcherPermissions = [SchedulingOperationClaims.Admin, SchedulingOperationClaims.Write, SchedulingOperationClaims.Update];
@@ -108,7 +110,10 @@ public class AppointmentNotifier(IEmailOutboxWriter<ISchedulingOutboxModule> out
             $"Your {visit.ServiceTitle} visit is done. Thanks for choosing us!", cancellationToken);
     }
 
-    private sealed record VisitDescription(UserContact? Customer, string CustomerName, string ServiceTitle, string When);
+    private sealed record VisitDescription(UserContact? Customer, string CustomerName, string ServiceTitle, DateTimeOffset LocalStart, DateTimeOffset LocalEnd)
+    {
+        public string When => AppointmentTimeText.When(LocalStart);
+    }
 
     private async Task<VisitDescription> DescribeAsync(Appointment appointment, CancellationToken cancellationToken)
     {
@@ -118,7 +123,10 @@ public class AppointmentNotifier(IEmailOutboxWriter<ISchedulingOutboxModule> out
             ? service.Title
             : "Consultation";
 
-        return new VisitDescription(customer, customer?.FullName is { Length: > 0 } name ? name : "A customer", serviceTitle, AppointmentTimeText.When(appointment.ScheduledStart));
+        var zone = await timeZoneReader.GetAsync(appointment.TenantId, cancellationToken);
+
+        return new VisitDescription(customer, customer?.FullName is { Length: > 0 } name ? name : "A customer", serviceTitle,
+            TimeZoneInfo.ConvertTime(appointment.ScheduledStart, zone), TimeZoneInfo.ConvertTime(appointment.ScheduledEnd, zone));
     }
 
     private async Task EmailCustomerAsync(Appointment appointment, VisitDescription visit, AppointmentUpdateKind kind, string? technicianName = null, string? reason = null, CancellationToken cancellationToken = default)
@@ -130,7 +138,7 @@ public class AppointmentNotifier(IEmailOutboxWriter<ISchedulingOutboxModule> out
             return;
         }
 
-        var model = new AppointmentUpdateEmailModel(kind, visit.Customer.FirstName, visit.ServiceTitle, appointment.ScheduledStart, appointment.ScheduledEnd,
+        var model = new AppointmentUpdateEmailModel(kind, visit.Customer.FirstName, visit.ServiceTitle, visit.LocalStart, visit.LocalEnd,
             appointment.ServiceAddress, technicianName, reason, IsOnline(appointment), appointment.Topic);
 
         try

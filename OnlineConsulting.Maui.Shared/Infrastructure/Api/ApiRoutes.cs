@@ -490,6 +490,12 @@ public static class ApiRoutes
 
         /// <summary>Authenticated - the caller's own tenant (any tenant admin, not just SuperAdmin).</summary>
         public const string MyTenant = "/api/tenancy/my-tenant";
+
+        /// <summary>Tenant admins - sets the caller's own business time zone.</summary>
+        public const string MyTimeZone = "/api/tenancy/my-tenant/time-zone";
+
+        /// <summary>Public - the IANA time zone of the caller's business (the default tenant's when anonymous).</summary>
+        public const string TimeZone = "/api/tenancy/time-zone";
     }
 
     public static class Platform

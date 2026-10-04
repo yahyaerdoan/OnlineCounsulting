@@ -16,6 +16,7 @@ using OnlineConsulting.Modules.Tenancy.Infrastructure.Pipelines;
 using OnlineConsulting.Modules.Tenancy.Infrastructure.Pricing;
 using OnlineConsulting.Modules.Tenancy.Infrastructure.Repositories;
 using OnlineConsulting.Modules.Tenancy.Infrastructure.Status;
+using OnlineConsulting.Modules.Tenancy.Infrastructure.TimeZones;
 using OnlineConsulting.SharedKernel.Auditing;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Tenancy;
@@ -40,12 +41,17 @@ public static class TenancyModule
         _ = services.AddScoped<ITenantSubscriptionRepository, TenantSubscriptionRepository>();
         _ = services.AddScoped<ITenantSubscriptionItemRepository, TenantSubscriptionItemRepository>();
         _ = services.AddScoped<ITenantStatusReader, TenantStatusReader>();
+        _ = services.AddMemoryCache();
+        _ = services.AddScoped<TenantTimeZoneReader>();
+        _ = services.AddScoped<ITenantTimeZoneReader>(sp => sp.GetRequiredService<TenantTimeZoneReader>());
+        _ = services.AddScoped<ITenantTimeZoneCacheInvalidator>(sp => sp.GetRequiredService<TenantTimeZoneReader>());
         _ = services.AddScoped<ITenantModulePricingReader, TenantModulePricingReader>();
         _ = services.AddScoped<ITenantOwnershipReader, TenantOwnershipReader>();
         _ = services.AddScoped<IEmailOutboxWriter<ITenancyOutboxModule>, EmailOutboxWriter>();
         _ = services.AddScoped<OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.TenantReceiptSender>();
 
         _ = services.Configure<TenancyCleanupOptions>(configuration.GetSection("Tenancy:OrphanCleanup"));
+        _ = services.Configure<TenantTimeZoneOptions>(configuration.GetSection("Tenancy:TimeZone"));
         _ = services.AddHostedService<OrphanedTenantCleanupService>();
 
         _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));

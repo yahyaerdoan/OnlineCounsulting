@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using OnlineConsulting.Modules.Tenancy.Domain;
 using OnlineConsulting.SharedKernel.Notifications;
+using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Tenancy.Infrastructure.Persistence;
 
@@ -26,6 +27,7 @@ public class TenancyDbContext(DbContextOptions<TenancyDbContext> options) : DbCo
             _ = builder.Property(t => t.Status).HasMaxLength(30).IsRequired();
             _ = builder.Property(t => t.PrimaryContactEmail).HasMaxLength(256).IsRequired();
             _ = builder.Property(t => t.ProviderCustomerId).HasMaxLength(100);
+            _ = builder.Property(t => t.TimeZoneId).HasMaxLength(64).IsRequired().HasDefaultValue(BusinessTimeZones.Default);
             _ = builder.Property(t => t.RowVersion).IsRowVersion();
             _ = builder.HasIndex(t => t.Slug).IsUnique();
         });

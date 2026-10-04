@@ -49,7 +49,7 @@
         </MudTd>
         <MudTd DataLabel="Monthly" Class="mud-table-cell-align-right cell-strong">@CurrencyFormat.Format(tenant.TotalActivePrice)</MudTd>
         <MudTd DataLabel="Status"><StatusBadge Label="@StatusLabel(tenant.Status)" Kind="@StatusKind(tenant.Status)" /></MudTd>
-        <MudTd DataLabel="Since">@(tenant.CreatedDate is { } created ? DateTimeFormat.FormatDate(created) : "-")</MudTd>
+        <MudTd DataLabel="Since">@(tenant.CreatedDate is { } created ? BusinessTime.FormatDate(created) : "-")</MudTd>
         <MudTd DataLabel="Actions" Class="cell-actions">
             <MudTooltip Text="View subscription">
                 <MudIconButton Icon="@Icons.Material.Outlined.Receipt" Size="Size.Small" aria-label="View subscription"

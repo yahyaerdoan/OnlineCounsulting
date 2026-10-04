@@ -7,7 +7,7 @@
         <span class="notification-item-body">
             <span class="notification-item-title">@notification.Title</span>
             <span class="notification-item-text">@notification.Body</span>
-            <span class="notification-item-time">@NotificationState.Ago(notification.CreatedAt)</span>
+            <span class="notification-item-time">@BusinessTime.Ago(notification.CreatedAt)</span>
         </span>
         @if (!notification.IsRead)
         {

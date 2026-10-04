@@ -251,7 +251,7 @@
     private string DueTodayText => CurrencyFormat.Format(IsTrial ? 0 : RecurringPrice);
 
     private string ThenText => IsTrial
-        ? $"Then {CurrencyFormat.Format(RecurringPrice)} / {CycleWord} from {DateTime.Today.AddDays(_plan?.TrialDays ?? 0):MMM d, yyyy}"
+        ? $"Then {CurrencyFormat.Format(RecurringPrice)} / {CycleWord} from {BusinessTime.Today.AddDays(_plan?.TrialDays ?? 0):MMM d, yyyy}"
         : $"Renews at {CurrencyFormat.Format(RecurringPrice)} / {CycleWord}";
 
     private string PayButtonText => IsTrial ? "Start my free trial" : $"Pay {DueTodayText} and join";

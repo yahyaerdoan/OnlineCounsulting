@@ -21,13 +21,13 @@
         <MudTh>Actions</MudTh>
     </HeaderContent>
     <RowTemplate Context="message">
-        <MudTd DataLabel="Received">@DateTimeFormat.FormatDateTime(message.CreatedDate)</MudTd>
+        <MudTd DataLabel="Received">@BusinessTime.FormatDateTime(message.CreatedDate)</MudTd>
         <MudTd DataLabel="From">@($"{message.FirstName} {message.LastName}") (@message.Email)</MudTd>
         <MudTd DataLabel="Subject" Class="cell-primary">@message.Subject</MudTd>
         <MudTd DataLabel="Status">
             @if (message.RepliedAt is { } repliedAt)
             {
-                <MudChip T="string" Color="Color.Success" Size="Size.Small">Replied @DateTimeFormat.FormatDateTime(repliedAt)</MudChip>
+                <MudChip T="string" Color="Color.Success" Size="Size.Small">Replied @BusinessTime.FormatDateTime(repliedAt)</MudChip>
             }
             else
             {

@@ -11,8 +11,9 @@ public record TenantSummaryResponse(
     string PrimaryContactEmail,
     List<string> ActiveModuleKeys,
     decimal TotalActivePrice,
-    DateTimeOffset CreatedDate) : LinkedRecord
+    DateTimeOffset CreatedDate,
+    string TimeZoneId) : LinkedRecord
 {
     public static TenantSummaryResponse FromDomain(Tenant tenant, List<string> activeModuleKeys, decimal totalActivePrice) =>
-        new(tenant.Id, tenant.Name, tenant.Slug, tenant.Status, tenant.PrimaryContactEmail, activeModuleKeys, totalActivePrice, tenant.CreatedDate);
+        new(tenant.Id, tenant.Name, tenant.Slug, tenant.Status, tenant.PrimaryContactEmail, activeModuleKeys, totalActivePrice, tenant.CreatedDate, tenant.TimeZoneId);
 }

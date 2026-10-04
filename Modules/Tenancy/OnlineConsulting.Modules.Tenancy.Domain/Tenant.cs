@@ -1,4 +1,5 @@
 using Core.PersistenceLayer.Repositories.Entities;
+using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Tenancy.Domain;
 
@@ -22,6 +23,9 @@ public class Tenant : SequentialGuidEntity
 
     /// <summary>The first admin, who gets owner-only protections; null for tenants created before owners were recorded.</summary>
     public Guid? OwnerUserId { get; private set; }
+
+    /// <summary>IANA zone the business runs in (e.g. "America/Chicago"); appointments are scheduled and shown in it.</summary>
+    public string TimeZoneId { get; private set; } = BusinessTimeZones.Default;
 
     /// <summary>Signup not finished: payment pending or the attempt failed.</summary>
     public bool IsAwaitingSignup => TenantRules.IsAwaitingSignup(Status);
@@ -53,6 +57,17 @@ public class Tenant : SequentialGuidEntity
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(providerCustomerId);
         ProviderCustomerId = providerCustomerId;
+    }
+
+    /// <summary>Sets the business's time zone; must be a known IANA id.</summary>
+    public void ChangeTimeZone(string timeZoneId)
+    {
+        if (!BusinessTimeZones.IsKnown(timeZoneId))
+        {
+            throw new ArgumentException($"Unknown time zone '{timeZoneId}'.", nameof(timeZoneId));
+        }
+
+        TimeZoneId = timeZoneId;
     }
 
     /// <summary>Records the tenant's first admin as its owner.</summary>

@@ -42,7 +42,7 @@ else
         @if (NextVisit is { } next)
         {
             <button type="button" class="orders-stat orders-stat-alert" @onclick="@(() => _filter = FilterUpcoming)">
-                <span class="orders-stat-value">@DateTimeFormat.FormatShortDate(next.ScheduledStart)</span>
+                <span class="orders-stat-value">@BusinessTime.FormatShortDate(next.ScheduledStart)</span>
                 <span class="orders-stat-label">next visit</span>
             </button>
         }
@@ -92,7 +92,7 @@ else
                 <div class="equipment-card-top">
                     <span class="order-card-icon"><MudIcon Icon="@(appointment.IsOnline ? Icons.Material.Outlined.VideoCall : Icons.Material.Outlined.HomeRepairService)" /></span>
                     <div class="equipment-card-title">
-                        <span class="order-hero-label">@DateTimeFormat.FormatDateTime(appointment.ScheduledStart)</span>
+                        <span class="order-hero-label">@BusinessTime.FormatDateTime(appointment.ScheduledStart)</span>
                         <span class="equipment-card-name">@ServiceName(appointment)</span>
                     </div>
                     <span class="order-card-badges">
@@ -270,7 +270,7 @@ else
 
     private async Task CancelAsync(AppointmentResponse appointment)
     {
-        if (_busy || !await DialogService.ConfirmAsync("Cancel visit", $"Cancel your {ServiceName(appointment)} visit on {DateTimeFormat.FormatDateTime(appointment.ScheduledStart)}?"))
+        if (_busy || !await DialogService.ConfirmAsync("Cancel visit", $"Cancel your {ServiceName(appointment)} visit on {BusinessTime.FormatDateTime(appointment.ScheduledStart)}?"))
         {
             return;
         }

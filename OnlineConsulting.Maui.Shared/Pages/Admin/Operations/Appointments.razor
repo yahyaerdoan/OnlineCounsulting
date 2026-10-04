@@ -21,7 +21,7 @@
         <MudTh>Actions</MudTh>
     </HeaderContent>
     <RowTemplate Context="appointment">
-        <MudTd DataLabel="Scheduled" Class="cell-primary">@DateTimeFormat.FormatDateTime(appointment.ScheduledStart)</MudTd>
+        <MudTd DataLabel="Scheduled" Class="cell-primary">@BusinessTime.FormatDateTime(appointment.ScheduledStart)</MudTd>
         <MudTd DataLabel="Where">
             <span class="appointment-where">
                 <MudIcon Icon="@(appointment.IsOnline ? Icons.Material.Outlined.VideoCall : Icons.Material.Outlined.LocationOn)" Size="Size.Small" />

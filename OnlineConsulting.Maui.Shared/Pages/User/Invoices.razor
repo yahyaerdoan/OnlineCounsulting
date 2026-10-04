@@ -85,7 +85,7 @@ else
                 <span class="order-card-icon"><MudIcon Icon="@(invoice.IsPaid ? Icons.Material.Outlined.TaskAlt : isVisit ? Icons.Material.Outlined.HomeRepairService : Icons.Material.Outlined.ShoppingBag)" /></span>
                 <span class="order-card-main">
                     <span class="order-card-number">@invoice.Title</span>
-                    <span class="order-card-date">@(isVisit ? "Service visit" : "Online order") · @invoice.InvoiceNumber · @DateTimeFormat.FormatDate(invoice.IssuedAt)</span>
+                    <span class="order-card-date">@(isVisit ? "Service visit" : "Online order") · @invoice.InvoiceNumber · @BusinessTime.FormatDate(invoice.IssuedAt)</span>
                 </span>
                 <span class="order-card-badges">
                     <StatusBadge Label="@StatusLabel(invoice)" Kind="@StatusKind(invoice)" />

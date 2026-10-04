@@ -26,7 +26,7 @@
             <MudIcon Icon="@Icons.Material.Outlined.CheckCircle" Color="Color.Success" Style="font-size: 3rem;" />
             <MudText Typo="Typo.h5" Class="mt-2">You're booked</MudText>
             <MudText Color="Color.Secondary" Class="mb-4">
-                @SelectedServiceTitle on @DateTimeFormat.FormatDateTime(_confirmedSlot.Start)@(_model.IsOnline ? " (online meeting)" : ""). We've sent a confirmation email.
+                @SelectedServiceTitle on @BusinessTime.FormatDateTime(_confirmedSlot.Start)@(_model.IsOnline ? " (online meeting)" : ""). We've sent a confirmation email.
             </MudText>
             <MudButton Href="/user/appointments" Variant="Variant.Filled" Color="Color.Primary">View my appointments</MudButton>
         </div>
@@ -115,7 +115,7 @@
                                         var isSelected = _selectedSlot == slot;
                                         <button type="button" role="option" aria-selected="@isSelected" class="booking-slot @(isSelected ? "selected" : null)"
                                                 @onclick="@(() => _selectedSlot = slot)">
-                                            @slot.Start.ToString("h:mm tt")
+                                            @BusinessTime.FormatTime(slot.Start)
                                         </button>
                                     }
                                 </div>
@@ -135,7 +135,7 @@
             <MudPaper Outlined="true" Class="pa-4 mb-4">
                 <MudText Typo="Typo.overline" Color="Color.Secondary">Your Visit</MudText>
                 <MudText Typo="Typo.subtitle1">@SelectedServiceTitle</MudText>
-                <MudText Color="Color.Secondary">@selected.Start.ToString("dddd, MMM d") at @selected.Start.ToString("h:mm tt")</MudText>
+                <MudText Color="Color.Secondary">@BusinessTime.Format(selected.Start, "dddd, MMM d") at @BusinessTime.FormatTime(selected.Start)</MudText>
             </MudPaper>
 
             <MudText Typo="Typo.subtitle1" Class="mb-2">How would you like to meet?</MudText>
@@ -333,16 +333,22 @@
         !string.IsNullOrWhiteSpace(_model.AddressLine) && !string.IsNullOrWhiteSpace(_model.City) &&
         !string.IsNullOrWhiteSpace(_model.State) && UsZip.IsMatch(_model.Zipcode.Trim());
 
-    private static DateTime FirstBookableDay => DateTime.Today.AddDays(1);
+    private DateTime FirstBookableDay => BusinessTime.Today.AddDays(1).ToDateTime(TimeOnly.MinValue);
 
-    private static DateTime LastBookableDay => DateTime.Today.AddDays(90);
+    private DateTime LastBookableDay => BusinessTime.Today.AddDays(90).ToDateTime(TimeOnly.MinValue);
 
     private IEnumerable<(string Period, List<AvailableSlotResponse> Slots)> SlotsByPeriod =>
-        _slots.GroupBy(slot => slot.Start.Hour switch { < 12 => "Morning", < 17 => "Afternoon", _ => "Evening" })
+        _slots.GroupBy(slot => BusinessTime.ToLocal(slot.Start).Hour switch { < 12 => "Morning", < 17 => "Afternoon", _ => "Evening" })
               .Select(group => (group.Key, group.OrderBy(slot => slot.Start).ToList()));
 
     [SupplyParameterFromQuery(Name = "service")]
     public Guid? PreselectedServiceId { get; set; }
+
+    [SupplyParameterFromQuery(Name = "date")]
+    public DateOnly? PreselectedDate { get; set; }
+
+    [SupplyParameterFromQuery(Name = "slot")]
+    public string? PreselectedSlot { get; set; }
 
     private string SelectedServiceTitle => _services.FirstOrDefault(s => s.Id == _serviceId)?.Title ?? "Service visit";
 
@@ -363,7 +369,28 @@
             _step = 1;
         }
 
+        await PreselectSlotAsync();
+
         _initialized = true;
+    }
+
+    /// <summary>Picks the day and time passed in by "Grab this slot"; the customer still chooses the service first.</summary>
+    private async Task PreselectSlotAsync()
+    {
+        if (PreselectedDate is not { } day || day.ToDateTime(TimeOnly.MinValue) < FirstBookableDay
+            || !DateTimeOffset.TryParse(PreselectedSlot, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.RoundtripKind, out var slotStart))
+        {
+            return;
+        }
+
+        await OnDateChangedAsync(day.ToDateTime(TimeOnly.MinValue));
+        _selectedSlot = _slots.FirstOrDefault(slot => slot.Start == slotStart);
+        _scrollToTimes = false;
+
+        if (_selectedSlot is null)
+        {
+            _ = Snackbar.Add("That time was just taken, please choose another.", Severity.Info);
+        }
     }
 
     private async Task OnDateChangedAsync(DateTime? newDate)

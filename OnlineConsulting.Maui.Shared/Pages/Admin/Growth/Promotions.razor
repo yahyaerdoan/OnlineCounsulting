@@ -25,7 +25,7 @@
     </HeaderContent>
     <RowTemplate Context="promotion">
         <MudTd DataLabel="Title" Class="cell-primary">@promotion.Title</MudTd>
-        <MudTd DataLabel="Expires">@(promotion.ExpiresAt is { } expires ? DateTimeFormat.FormatDateTime(expires) : "Never")</MudTd>
+        <MudTd DataLabel="Expires">@(promotion.ExpiresAt is { } expires ? BusinessTime.FormatDateTime(expires) : "Never")</MudTd>
         <MudTd DataLabel="Actions">
             <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
                 <MudTooltip Text="Edit">

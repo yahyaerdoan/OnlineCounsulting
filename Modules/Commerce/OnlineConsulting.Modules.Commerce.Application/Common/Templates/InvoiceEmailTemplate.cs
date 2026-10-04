@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using OnlineConsulting.SharedKernel.Tenancy;
+using System.Globalization;
 using System.Net;
 using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.Contracts;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
@@ -12,7 +13,8 @@ public enum InvoiceEmailKind
     Voided,
 }
 
-public record InvoiceEmailModel(InvoiceEmailKind Kind, InvoiceResponse Invoice, string BusinessName, string? ViewUrl);
+/// <summary>TimeZone is the business's; the invoice's dates are shown in it.</summary>
+public record InvoiceEmailModel(InvoiceEmailKind Kind, InvoiceResponse Invoice, string BusinessName, string? ViewUrl, TimeZoneInfo TimeZone);
 
 /// <summary>An open invoice asks the customer to pay with a "View and pay" link; a receipt confirms the payment; a voided invoice tells them nothing is owed. All list every line and the totals.</summary>
 public class InvoiceEmailTemplate : IEmailTemplate<InvoiceEmailModel>
@@ -60,7 +62,7 @@ public class InvoiceEmailTemplate : IEmailTemplate<InvoiceEmailModel>
         };
 
         var due = model.Kind == InvoiceEmailKind.Issued && invoice.DueAt is { } dueAt
-            ? $"<p style=\"color: #777777;\">Due by {dueAt.ToString("MMMM d, yyyy", Usd)}.</p>"
+            ? $"<p style=\"color: #777777;\">Due by {dueAt.InZone(model.TimeZone).ToString("MMMM d, yyyy", Usd)}.</p>"
             : "";
 
         var button = string.IsNullOrWhiteSpace(model.ViewUrl)
@@ -76,7 +78,7 @@ public class InvoiceEmailTemplate : IEmailTemplate<InvoiceEmailModel>
         return EmailLayout.Wrap($"""
             <p>{(string.IsNullOrWhiteSpace(firstName) ? "Hi," : $"Hi {Encode(firstName)},")}</p>
             <p>{Encode(intro)}</p>
-            <p style="color: #777777; margin-bottom: 4px;">{Encode(invoice.InvoiceNumber)} &bull; issued {invoice.IssuedAt.ToString("MMMM d, yyyy", Usd)}</p>
+            <p style="color: #777777; margin-bottom: 4px;">{Encode(invoice.InvoiceNumber)} &bull; issued {invoice.IssuedAt.InZone(model.TimeZone).ToString("MMMM d, yyyy", Usd)}</p>
             <table style="width: 100%; max-width: 520px; border-collapse: collapse; margin: 8px 0 16px;">
                 {lines}
                 {TotalRow("Subtotal", Money(invoice.Subtotal))}

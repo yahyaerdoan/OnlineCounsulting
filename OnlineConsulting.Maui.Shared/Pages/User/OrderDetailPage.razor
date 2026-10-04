@@ -32,7 +32,7 @@ else if (_detail is not null)
             <div class="order-hero-title">
                 <span class="order-hero-label">Order</span>
                 <span class="order-hero-number">#@order.OrderNumber</span>
-                <span class="order-hero-date">Placed @DateTimeFormat.FormatDateTime(order.CreatedDate)</span>
+                <span class="order-hero-date">Placed @BusinessTime.FormatDateTime(order.CreatedDate)</span>
             </div>
             <span class="order-card-badges">
                 <StatusBadge Label="@PaymentLabel(order.PaymentStatus)" Kind="@PaymentKind(order.PaymentStatus)" />

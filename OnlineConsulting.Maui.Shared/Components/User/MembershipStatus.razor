@@ -24,7 +24,7 @@ else if (_membership is null && _previous is not null)
                 <span class="order-hero-label">We'd Love to Have You Back</span>
                 <span class="order-hero-number">@(_previous.PlanName ?? "Membership")</span>
                 <span class="member-hero-note">
-                    Ended@(_previous.RenewalDate is { } ended ? $" {DateTimeFormat.FormatDate(ended)}" : ""). Rejoin to get your member discounts and priority visits again.
+                    Ended@(_previous.RenewalDate is { } ended ? $" {BusinessTime.FormatDate(ended)}" : ""). Rejoin to get your member discounts and priority visits again.
                 </span>
             </div>
         </div>
@@ -64,7 +64,7 @@ else
             <div class="order-hero-title">
                 <span class="order-hero-label">Your Plan</span>
                 <span class="order-hero-number">@(membership.PlanName ?? _plan?.Name ?? "Membership")</span>
-                <span class="order-hero-date">Member since @DateTimeFormat.FormatDate(membership.StartDate)</span>
+                <span class="order-hero-date">Member since @BusinessTime.FormatDate(membership.StartDate)</span>
             </div>
             <span class="order-card-badges">
                 <StatusBadge Label="@StatusLabel(status)" Kind="@StatusKind(status)" />
@@ -81,7 +81,7 @@ else
             }
             <div class="member-fact">
                 <dt>@(status is Ending or Cancelled ? "Ends" : status == Paused ? "Billing" : "Renews")</dt>
-                <dd>@(status == Paused ? "Paused" : membership.RenewalDate is { } renewal ? DateTimeFormat.FormatDate(renewal) : "-")</dd>
+                <dd>@(status == Paused ? "Paused" : membership.RenewalDate is { } renewal ? BusinessTime.FormatDate(renewal) : "-")</dd>
             </div>
             @if (_plan is { IncludedVisitsPerYear: > 0 } visitsPlan)
             {
@@ -101,13 +101,13 @@ else
 
         @if (membership.TrialEndDate is { } trialEnd && trialEnd > DateTimeOffset.UtcNow)
         {
-            <MudAlert Severity="Severity.Info" Dense="true">Free trial until @DateTimeFormat.FormatDate(trialEnd).</MudAlert>
+            <MudAlert Severity="Severity.Info" Dense="true">Free trial until @BusinessTime.FormatDate(trialEnd).</MudAlert>
         }
 
         @if (status == Ending)
         {
             <MudAlert Severity="Severity.Warning" Dense="true">
-                Your membership won't renew and ends on @(membership.RenewalDate is { } end ? DateTimeFormat.FormatDate(end) : "your next renewal date").
+                Your membership won't renew and ends on @(membership.RenewalDate is { } end ? BusinessTime.FormatDate(end) : "your next renewal date").
                 @(membership.Status == Paused
                     ? "Keep it and nothing changes: no new charge now, it stays paused until you resume."
                     : "Keep it and nothing changes: no new charge now, it simply renews as before.")

@@ -27,7 +27,7 @@ else if (_workOrder is not null)
             <tbody>
                 <tr><td>Technician</td><td>@_technicianLabel</td></tr>
                 <tr><td>Equipment</td><td>@_equipmentLabel</td></tr>
-                <tr><td>Completed At</td><td>@(_workOrder.CompletedAt is { } completedAt ? DateTimeFormat.FormatDateTime(completedAt) : "-")</td></tr>
+                <tr><td>Completed At</td><td>@(_workOrder.CompletedAt is { } completedAt ? BusinessTime.FormatDateTime(completedAt) : "-")</td></tr>
                 <tr><td>Parts Used</td><td>@(_workOrder.PartsUsed ?? "-")</td></tr>
                 <tr><td>Technician Notes</td><td>@(_workOrder.TechnicianNotes ?? "-")</td></tr>
             </tbody>

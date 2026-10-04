@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Components.Authorization;
 using OnlineConsulting.Maui.Shared.Infrastructure.Api;
@@ -65,20 +64,6 @@ public sealed class NotificationState : IDisposable
             _ when data.ContainsKey("customerMembershipId") => "/user/membership",
             _ when data.ContainsKey("referralId") => "/user/referrals",
             _ => null,
-        };
-    }
-
-    /// <summary>"just now", "5m ago", "3h ago", "2d ago", then the date.</summary>
-    public static string Ago(DateTimeOffset createdAt)
-    {
-        var elapsed = DateTimeOffset.UtcNow - createdAt;
-        return elapsed switch
-        {
-            { TotalMinutes: < 1 } => "just now",
-            { TotalHours: < 1 } => $"{(int)elapsed.TotalMinutes}m ago",
-            { TotalDays: < 1 } => $"{(int)elapsed.TotalHours}h ago",
-            { TotalDays: < 7 } => $"{(int)elapsed.TotalDays}d ago",
-            _ => createdAt.LocalDateTime.ToString("MMM d", CultureInfo.GetCultureInfo("en-US")),
         };
     }
 

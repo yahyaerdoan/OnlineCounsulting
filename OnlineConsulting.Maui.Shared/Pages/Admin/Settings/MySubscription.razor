@@ -5,6 +5,7 @@
 @attribute [Authorize(Roles = "Admin,Super Admin,Member")]
 @inject IApiClient ApiClient
 @inject IDialogService DialogService
+@inject ISnackbar Snackbar
 @using OnlineConsulting.Maui.Shared.Pages.Admin.Platform
 
 <PageTitle>My Subscription</PageTitle>
@@ -28,10 +29,30 @@ else if (_tenant is not null)
     </MudPaper>
 
     <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ManageModulesAsync">Manage Modules</MudButton>
+
+    <AuthorizeView Roles="Admin,Super Admin">
+        <MudPaper Outlined="true" Class="pa-4 rounded-lg mt-4">
+            <MudText Typo="Typo.h6">Business Time Zone</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">Booking hours, appointment times and every date customers and staff see use this time zone.</MudText>
+            <MudStack Row="true" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap" Spacing="2">
+                <MudSelect T="string" Label="Time Zone" Variant="Variant.Outlined" @bind-Value="_timeZoneId" Style="min-width: 280px;">
+                    @foreach (var (id, name) in UsTimeZones.WithCurrent(_tenant.TimeZoneId))
+                    {
+                        <MudSelectItem Value="@id">@name</MudSelectItem>
+                    }
+                </MudSelect>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(_savingTimeZone || _timeZoneId == _tenant.TimeZoneId)" OnClick="SaveTimeZoneAsync">
+                    @(_savingTimeZone ? "Saving..." : "Save")
+                </MudButton>
+            </MudStack>
+        </MudPaper>
+    </AuthorizeView>
 }
 
 @code {
     private TenantResponse? _tenant;
+    private string? _timeZoneId;
+    private bool _savingTimeZone;
     private bool _loading = true;
     private string? _loadError;
 
@@ -49,11 +70,37 @@ else if (_tenant is not null)
         else
         {
             _tenant = result.ResultData;
+            _timeZoneId = _tenant.TimeZoneId;
         }
 
         _loading = false;
     }
 
     private Task ManageModulesAsync() =>
-        DialogService.ShowAndReloadAsync("Manage Modules", new DialogParameters<ManageTenantModulesDialog> { { x => x.Tenant, _tenant! } }, ReloadAsync);
+        DialogService.ShowAndReloadAsync("Manage Modules", new DialogParameters<ManageTenantModulesDialog>
+        {
+            { x => x.Tenant, _tenant ?? throw new InvalidOperationException("The tenant isn't loaded yet.") },
+        }, ReloadAsync);
+
+    private async Task SaveTimeZoneAsync()
+    {
+        if (_timeZoneId is not { Length: > 0 } timeZoneId)
+        {
+            return;
+        }
+
+        _savingTimeZone = true;
+        var result = await ApiClient.PutAsync(ApiRoutes.Tenancy.MyTimeZone, new ChangeTimeZoneRequest(timeZoneId));
+        _savingTimeZone = false;
+
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await BusinessTime.LoadAsync();
+        await ReloadAsync();
+    }
 }

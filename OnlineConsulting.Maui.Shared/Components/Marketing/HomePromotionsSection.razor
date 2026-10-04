@@ -23,7 +23,7 @@
                     <div class="promo-body">
                         @if (promotion.ExpiresAt is { } ends && daysLeft is { } days)
                         {
-                            <span class="@($"promo-expiry {(days <= UrgentDays ? "urgent" : "")}")" title="@($"Ends {ends.ToLocalTime():MMMM d, yyyy}")">
+                            <span class="@($"promo-expiry {(days <= UrgentDays ? "urgent" : "")}")" title="@($"Ends {BusinessTime.Format(ends, "MMMM d, yyyy")}")">
                                 <MudIcon Icon="@Icons.Material.Outlined.Schedule" Size="Size.Small" />@ExpiryText(ends, days)
                             </span>
                         }
@@ -55,11 +55,11 @@
             .OrderBy(p => p.DisplayOrder)];
     }
 
-    private static string ExpiryText(DateTimeOffset ends, int daysLeft) => daysLeft switch
+    private string ExpiryText(DateTimeOffset ends, int daysLeft) => daysLeft switch
     {
-        <= 1 when ends.ToLocalTime().Date == DateTime.Today => "Ends today",
+        <= 1 when DateOnly.FromDateTime(BusinessTime.ToLocal(ends).DateTime) == BusinessTime.Today => "Ends today",
         <= 1 => "Ends tomorrow",
         <= 7 => $"{daysLeft} days left",
-        _ => $"Ends {ends.ToLocalTime():MMM d}",
+        _ => $"Ends {BusinessTime.Format(ends, "MMM d")}",
     };
 }

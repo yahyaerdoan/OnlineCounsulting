@@ -67,13 +67,13 @@
                     <aside class="hero-wow-card hide-on-phone hero-wow-in" style="--delay:400ms" aria-label="Next open visit">
                         <span class="hero-wow-card-eyebrow"><span class="hero-wow-live-dot" aria-hidden="true"></span>Booking Live</span>
                         <span class="hero-wow-card-label">Next open visit</span>
-                        <span class="hero-wow-card-day">@slot.Start.ToString("dddd, MMM d")</span>
-                        <span class="hero-wow-card-time">@slot.Start.ToString("h:mm tt")</span>
+                        <span class="hero-wow-card-day">@BusinessTime.Format(slot.Start, "dddd, MMM d")</span>
+                        <span class="hero-wow-card-time">@BusinessTime.FormatTime(slot.Start)</span>
                         @if (_openThatDay > 1)
                         {
                             <span class="hero-wow-card-note">@(_openThatDay - 1) more open @(_openThatDay == 2 ? "time" : "times") that day</span>
                         }
-                        <MudButton Href="/appointment" Variant="Variant.Filled" Class="sell-btn hero-wow-card-cta" FullWidth="true"
+                        <MudButton Href="@BookingLink(slot)" Variant="Variant.Filled" Class="sell-btn hero-wow-card-cta" FullWidth="true"
                                    EndIcon="@Icons.Material.Filled.ArrowForward">Grab this slot</MudButton>
                         <span class="hero-wow-card-foot"><MudIcon Icon="@Icons.Material.Outlined.Timer" Size="Size.Small" />Takes about 2 minutes online</span>
                     </aside>
@@ -153,7 +153,7 @@
     {
         for (var offset = 1; offset <= DaysToSearch; offset++)
         {
-            var date = DateOnly.FromDateTime(DateTime.Today.AddDays(offset));
+            var date = BusinessTime.Today.AddDays(offset);
             var result = await ApiClient.GetAsync<List<AvailableSlotResponse>>($"{ApiRoutes.Scheduling.Availability.Base}?date={date:yyyy-MM-dd}");
             if (result.IsSuccessful && result.ResultData is { Count: > 0 } slots)
             {
@@ -176,6 +176,12 @@
         return (string.Join(' ', words[..^2]) + " ", string.Join(' ', words[^2..]));
     }
 
-    private static string SlotText(AvailableSlotResponse slot) =>
-        slot.Start.Date == DateTime.Today.AddDays(1) ? $"Tomorrow {slot.Start:h:mm tt}" : $"{slot.Start:ddd, MMM d} {slot.Start:h:mm tt}";
+    private string SlotText(AvailableSlotResponse slot) =>
+        DateOnly.FromDateTime(BusinessTime.ToLocal(slot.Start).DateTime) == BusinessTime.Today.AddDays(1)
+            ? $"Tomorrow {BusinessTime.FormatTime(slot.Start)}"
+            : $"{BusinessTime.Format(slot.Start, "ddd, MMM d")} {BusinessTime.FormatTime(slot.Start)}";
+
+    /// <summary>Opens the booking page with this slot's day and time already picked.</summary>
+    private string BookingLink(AvailableSlotResponse slot) =>
+        $"/appointment?date={BusinessTime.Format(slot.Start, "yyyy-MM-dd")}&slot={Uri.EscapeDataString(slot.Start.UtcDateTime.ToString("o", System.Globalization.CultureInfo.InvariantCulture))}";
 }
