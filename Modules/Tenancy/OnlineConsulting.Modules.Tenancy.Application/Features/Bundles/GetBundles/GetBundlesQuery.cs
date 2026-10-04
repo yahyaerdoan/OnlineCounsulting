@@ -1,0 +1,42 @@
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+using Core.ApplicationLayer.Requests.Page;
+using Core.PersistenceLayer.Pagings.Paging;
+using MediatR;
+using OnlineConsulting.Modules.Tenancy.Application.Features.Bundles.Abstractions;
+using OnlineConsulting.Modules.Tenancy.Application.Features.Bundles.Contracts;
+using OnlineConsulting.SharedKernel.Authorization;
+using ResultHandler.Core.Base;
+using ResultHandler.Facade;
+using System.Text.Json.Serialization;
+
+namespace OnlineConsulting.Modules.Tenancy.Application.Features.Bundles.GetBundles;
+
+/// <summary>Platform-owner catalog listing - every bundle regardless of IsPubliclyVisible, unlike GetPublicBundlesQuery.</summary>
+public record GetBundlesQuery(PageRequest PageRequest) : IRequest<OperationDataResult<Paginate<BundleAdminResponse>>>, ISecureAddRequest
+{
+    [JsonIgnore]
+    public string[] Roles => [GlobalOperationClaims.SuperAdmin];
+
+    /// <summary>Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.</summary>
+    [JsonIgnore]
+    public bool AllowTenantBypass => false;
+}
+
+public class GetBundlesHandler(IBundleRepository repository) : IRequestHandler<GetBundlesQuery, OperationDataResult<Paginate<BundleAdminResponse>>>
+{
+    public async Task<OperationDataResult<Paginate<BundleAdminResponse>>> Handle(GetBundlesQuery request, CancellationToken cancellationToken)
+    {
+        var bundles = await repository.GetListAsync(orderBy: q => q.OrderBy(b => b.Id), index: request.PageRequest.PageIndex, size: request.PageRequest.PageSize, cancellationToken: cancellationToken);
+
+        var response = new Paginate<BundleAdminResponse>
+        {
+            Items = [.. bundles.Items.Select(BundleAdminResponse.FromDomain)],
+            Index = bundles.Index,
+            Size = bundles.Size,
+            Count = bundles.Count,
+            Pages = bundles.Pages,
+        };
+
+        return Result.Success(response, "Bundles retrieved successfully.");
+    }
+}

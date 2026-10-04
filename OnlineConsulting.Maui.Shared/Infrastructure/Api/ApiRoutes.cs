@@ -100,7 +100,6 @@ public static class ApiRoutes
     public static class Media
     {
         public const string Upload = "/api/media";
-        public const string List = "/api/media";
 
         public static string ById(Guid id) => $"/api/media/{id}";
     }
