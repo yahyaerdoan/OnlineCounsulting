@@ -17,8 +17,7 @@ public class UpdateCategory : IEndpoint
             .WithDescription("Updates an existing category.");
     }
 
-    private static async Task<IResult> Handle(
-        Guid id, [FromBody] UpdateCategoryRequest request, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateCategoryRequest request, ISender sender, HttpContext httpContext)
     {
         var result = await sender.Send(request.ToCommand(id));
         return result.ToEnvelopedResult(httpContext);
