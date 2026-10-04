@@ -92,6 +92,7 @@ public class CommerceDbContext(DbContextOptions<CommerceDbContext> options, ITen
             _ = builder.HasIndex(i => i.UserId);
             _ = builder.HasIndex(i => new { i.TenantId, i.InvoiceNumber }).IsUnique();
             _ = builder.HasIndex(i => new { i.SourceType, i.SourceId });
+            _ = builder.HasMany(i => i.Lines).WithOne().HasForeignKey(l => l.InvoiceId).OnDelete(DeleteBehavior.Cascade);
             _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
         });
 

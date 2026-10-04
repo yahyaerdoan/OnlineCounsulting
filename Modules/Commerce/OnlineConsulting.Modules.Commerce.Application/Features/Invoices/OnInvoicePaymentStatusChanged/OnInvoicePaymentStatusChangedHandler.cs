@@ -18,6 +18,6 @@ public class OnInvoicePaymentStatusChangedHandler(IInvoiceRepository repository,
 
     private async Task<Invoice?> FindAsync(string referenceId, string providerPaymentId, CancellationToken cancellationToken) =>
         Guid.TryParse(referenceId, out var invoiceId)
-            ? await repository.GetAsync(i => i.Id == invoiceId && i.ProviderPaymentId == providerPaymentId, cancellationToken: cancellationToken)
+            ? await repository.GetWithLinesAsync(i => i.Id == invoiceId && i.ProviderPaymentId == providerPaymentId, cancellationToken: cancellationToken)
             : null;
 }

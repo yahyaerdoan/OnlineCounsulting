@@ -11,10 +11,11 @@ public sealed record InvoiceResponse(
     DateTimeOffset IssuedAt, DateTimeOffset? DueAt, DateTimeOffset? PaidAt, string? PaymentMethod, string? VoidReason,
     IReadOnlyList<InvoiceLineResponse> Lines) : LinkedRecord
 {
-    public static InvoiceResponse FromDomain(Invoice invoice, IEnumerable<InvoiceLine>? lines = null) => new(
+    /// <summary>Lines are listed only when the invoice was loaded with them; list queries leave them out.</summary>
+    public static InvoiceResponse FromDomain(Invoice invoice) => new(
         invoice.Id, invoice.InvoiceNumber, invoice.UserId, invoice.SourceType, invoice.SourceId, invoice.Status, invoice.Currency, invoice.Title,
         invoice.BillToName, invoice.BillToEmail, invoice.BillToAddress,
         invoice.Subtotal, invoice.DiscountAmount, invoice.DiscountLabel, invoice.TaxAmount, invoice.Total,
         invoice.IssuedAt, invoice.DueAt, invoice.PaidAt, invoice.PaymentMethod, invoice.VoidReason,
-        [.. (lines ?? []).OrderBy(l => l.SortOrder).Select(InvoiceLineResponse.FromDomain)]);
+        [.. invoice.Lines.OrderBy(l => l.SortOrder).Select(InvoiceLineResponse.FromDomain)]);
 }

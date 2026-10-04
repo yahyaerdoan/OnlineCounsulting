@@ -65,7 +65,6 @@ public static class CommerceModule
         _ = services.AddScoped<IOrderFulfillment, OrderFulfillment>();
         _ = services.AddScoped<IEmailTemplate<InvoiceEmailModel>, InvoiceEmailTemplate>();
         _ = services.AddScoped<IInvoiceRepository, InvoiceRepository>();
-        _ = services.AddScoped<IInvoiceLineRepository, InvoiceLineRepository>();
         _ = services.AddScoped<InvoiceService>();
         _ = services.AddScoped<IInvoiceService>(sp => sp.GetRequiredService<InvoiceService>());
         _ = services.AddScoped<IServiceInvoiceIssuer>(sp => sp.GetRequiredService<InvoiceService>());

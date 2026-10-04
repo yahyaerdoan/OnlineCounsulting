@@ -15,7 +15,6 @@ using OnlineConsulting.SharedKernel.Tenancy;
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Invoices;
 
 public class InvoiceService(IInvoiceRepository invoiceRepository,
-                            IInvoiceLineRepository lineRepository,
                             IUserAddressRepository addressRepository,
                             IUserContactReader contactReader,
                             IMemberDiscountReader memberDiscountReader,
@@ -51,12 +50,12 @@ public class InvoiceService(IInvoiceRepository invoiceRepository,
         var charges = items.Select(item => new InvoiceCharge(titles.TryGetValue(item.ServiceId, out var entry) ? entry.Title : "Item", item.Quantity, item.UnitPrice,
             item.TaxRate)).ToList();
 
-        var (invoice, lines) = Invoice.Issue(InvoiceNumberGenerator.Generate(now), order.UserId, InvoiceSources.Order, order.Id, order.OrderNumber,
+        var invoice = Invoice.Issue(InvoiceNumberGenerator.Generate(now), order.UserId, InvoiceSources.Order, order.Id, order.OrderNumber,
             Currency, billTo, charges, discount: null, now, dueAt: null);
 
         invoice.MarkPaid(InvoicePaymentMethods.Card, order.PaymentProvider, order.ProviderPaymentId, now);
 
-        await SaveAsync(invoice, lines, cancellationToken);
+        _ = await invoiceRepository.AddAsync(invoice, cancellationToken: cancellationToken);
 
         return invoice;
     }
@@ -87,10 +86,10 @@ public class InvoiceService(IInvoiceRepository invoiceRepository,
 
         var memberDiscount = discount is null ? null : new InvoiceDiscount(discount.Percent, $"Member discount ({discount.PlanName}, {discount.Percent:0.##}%)");
 
-        var (invoice, lines) = Invoice.Issue(InvoiceNumberGenerator.Generate(now), request.CustomerUserId, InvoiceSources.Appointment, request.AppointmentId,
+        var invoice = Invoice.Issue(InvoiceNumberGenerator.Generate(now), request.CustomerUserId, InvoiceSources.Appointment, request.AppointmentId,
             $"Service visit: {request.ServiceTitle}", Currency, billTo, charges, memberDiscount, now, now.AddDays(business.PaymentTermsDays));
 
-        await SaveAsync(invoice, lines, cancellationToken);
+        _ = await invoiceRepository.AddAsync(invoice, cancellationToken: cancellationToken);
 
         if (invoice.Total <= 0)
         {
@@ -99,7 +98,7 @@ public class InvoiceService(IInvoiceRepository invoiceRepository,
             return invoice.Id;
         }
 
-        var response = InvoiceResponse.FromDomain(invoice, lines);
+        var response = InvoiceResponse.FromDomain(invoice);
 
         await EmailAsync(InvoiceEmailKind.Issued, response, invoice.TenantId, cancellationToken);
 
@@ -114,7 +113,7 @@ public class InvoiceService(IInvoiceRepository invoiceRepository,
 
         _ = await invoiceRepository.UpdateAsync(invoice, cancellationToken: cancellationToken);
 
-        var response = await ToResponseAsync(invoice, cancellationToken);
+        var response = InvoiceResponse.FromDomain(invoice);
 
         await EmailAsync(InvoiceEmailKind.Receipt, response, invoice.TenantId, cancellationToken);
 
@@ -127,18 +126,11 @@ public class InvoiceService(IInvoiceRepository invoiceRepository,
 
         _ = await invoiceRepository.UpdateAsync(invoice, cancellationToken: cancellationToken);
 
-        var response = await ToResponseAsync(invoice, cancellationToken);
+        var response = InvoiceResponse.FromDomain(invoice);
 
         await EmailAsync(InvoiceEmailKind.Voided, response, invoice.TenantId, cancellationToken);
 
         await PushAsync(invoice, "Invoice cancelled", $"{invoice.InvoiceNumber} was cancelled. There's nothing to pay for it.", cancellationToken);
-    }
-
-    public async Task<InvoiceResponse> ToResponseAsync(Invoice invoice, CancellationToken cancellationToken = default)
-    {
-        var lines = await lineRepository.GetAllAsync(l => l.InvoiceId == invoice.Id, orderBy: q => q.OrderBy(l => l.SortOrder), cancellationToken: cancellationToken);
-
-        return InvoiceResponse.FromDomain(invoice, lines);
     }
 
     public string? ViewUrl(Guid invoiceId) =>
@@ -148,16 +140,6 @@ public class InvoiceService(IInvoiceRepository invoiceRepository,
 
     private async Task<Invoice?> FindForSourceAsync(string sourceType, Guid sourceId, CancellationToken cancellationToken) =>
         await invoiceRepository.GetAsync(i => i.SourceType == sourceType && i.SourceId == sourceId && i.Status != InvoiceStatuses.Void, cancellationToken: cancellationToken);
-
-    private async Task SaveAsync(Invoice invoice, IReadOnlyList<InvoiceLine> lines, CancellationToken cancellationToken)
-    {
-        _ = await invoiceRepository.AddAsync(invoice, cancellationToken: cancellationToken);
-
-        foreach (var line in lines)
-        {
-            _ = await lineRepository.AddAsync(line, cancellationToken: cancellationToken);
-        }
-    }
 
     private async Task EmailAsync(InvoiceEmailKind kind, InvoiceResponse invoice, Guid tenantId, CancellationToken cancellationToken)
     {

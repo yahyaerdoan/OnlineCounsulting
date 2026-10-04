@@ -17,7 +17,7 @@ public class PayInvoiceHandler(IInvoiceRepository repository, IPaymentGateway pa
 {
     public async Task<OperationDataResult<PayInvoiceResult>> Handle(PayInvoiceCommand request, CancellationToken cancellationToken)
     {
-        var invoice = await repository.GetAsync(i => i.Id == request.Id && i.UserId == request.UserId, cancellationToken: cancellationToken);
+        var invoice = await repository.GetWithLinesAsync(i => i.Id == request.Id && i.UserId == request.UserId, cancellationToken: cancellationToken);
 
         if (invoice is null)
         {

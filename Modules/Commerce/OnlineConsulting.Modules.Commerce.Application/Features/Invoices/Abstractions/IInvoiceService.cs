@@ -9,12 +9,11 @@ public interface IInvoiceService
 {
     Task<Invoice> IssueForPaidOrderAsync(Order order, IReadOnlyList<OrderItem> items, CancellationToken cancellationToken = default);
 
+    /// <summary>Settles the invoice and sends the receipt; load it with <see cref="IInvoiceRepository.GetWithLinesAsync"/> so the receipt lists its lines.</summary>
     Task MarkPaidAsync(Invoice invoice, string paymentMethod, string? paymentProvider, string? providerPaymentId, CancellationToken cancellationToken = default);
 
-    /// <summary>Voids an open invoice and tells the customer nothing is owed for it.</summary>
+    /// <summary>Voids an open invoice and tells the customer nothing is owed for it; load it with <see cref="IInvoiceRepository.GetWithLinesAsync"/>.</summary>
     Task VoidAsync(Invoice invoice, string? reason, CancellationToken cancellationToken = default);
-
-    Task<InvoiceResponse> ToResponseAsync(Invoice invoice, CancellationToken cancellationToken = default);
 
     string? ViewUrl(Guid invoiceId);
 }

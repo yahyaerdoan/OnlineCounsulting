@@ -2,9 +2,14 @@
 
 namespace OnlineConsulting.Modules.Commerce.Domain;
 
-/// <summary>The bill for one paid order or one completed visit. State changes only through its methods, which throw when called in the wrong state.</summary>
+/// <summary>
+/// The bill for one paid order or one completed visit, the aggregate root of its <see cref="Lines"/>. State changes only through its methods, which throw
+/// when called in the wrong state; load it with its lines when they're needed and save them together.
+/// </summary>
 public class Invoice : SequentialGuidTenantEntity
 {
+    private readonly List<InvoiceLine> _lines = [];
+
     private Invoice()
     {
     }
@@ -45,14 +50,17 @@ public class Invoice : SequentialGuidTenantEntity
     public string? ProviderPaymentId { get; private set; }
     public string? VoidReason { get; private set; }
 
+    /// <summary>The charges in billing order; fixed once issued.</summary>
+    public IReadOnlyList<InvoiceLine> Lines => _lines;
+
     /// <summary>Open, so it can be paid or voided.</summary>
     public bool IsOpen => InvoiceRules.IsOpen(Status);
 
     /// <summary>Open with something left to pay.</summary>
     public bool CanBePaidByCustomer => InvoiceRules.CanBePaidByCustomer(Status, Total);
 
-    /// <summary>Creates an open invoice and its lines; totals are the sums of the rounded line amounts.</summary>
-    public static (Invoice Invoice, IReadOnlyList<InvoiceLine> Lines) Issue(string invoiceNumber, Guid userId, string sourceType, Guid sourceId, string title,
+    /// <summary>Creates an open invoice with its lines; totals are the sums of the rounded line amounts.</summary>
+    public static Invoice Issue(string invoiceNumber, Guid userId, string sourceType, Guid sourceId, string title,
         string currency, InvoiceBillTo billTo, IReadOnlyList<InvoiceCharge> charges, InvoiceDiscount? discount, DateTimeOffset issuedAt, DateTimeOffset? dueAt)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(invoiceNumber);
@@ -91,13 +99,13 @@ public class Invoice : SequentialGuidTenantEntity
             DueAt = dueAt,
         };
 
-        var lines = charges.Select((charge, index) => InvoiceLine.Create(invoice.Id, index, charge, discountPercent)).ToList();
-        invoice.Subtotal = lines.Sum(l => l.Subtotal);
-        invoice.DiscountAmount = lines.Sum(l => l.DiscountAmount);
-        invoice.TaxAmount = lines.Sum(l => l.TaxAmount);
-        invoice.Total = lines.Sum(l => l.Total);
+        invoice._lines.AddRange(charges.Select((charge, index) => InvoiceLine.Create(invoice.Id, index, charge, discountPercent)));
+        invoice.Subtotal = invoice._lines.Sum(l => l.Subtotal);
+        invoice.DiscountAmount = invoice._lines.Sum(l => l.DiscountAmount);
+        invoice.TaxAmount = invoice._lines.Sum(l => l.TaxAmount);
+        invoice.Total = invoice._lines.Sum(l => l.Total);
 
-        return (invoice, lines);
+        return invoice;
     }
 
     /// <summary>Records the card payment the customer started; it stays open until the payment succeeds. Requires <see cref="CanBePaidByCustomer"/>.</summary>

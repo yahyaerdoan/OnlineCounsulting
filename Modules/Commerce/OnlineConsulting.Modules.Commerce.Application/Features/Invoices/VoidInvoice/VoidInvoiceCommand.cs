@@ -20,7 +20,7 @@ public class VoidInvoiceHandler(IInvoiceRepository repository, IInvoiceService i
 {
     public async Task<OperationResult> Handle(VoidInvoiceCommand request, CancellationToken cancellationToken)
     {
-        var invoice = await repository.GetAsync(i => i.Id == request.Id, cancellationToken: cancellationToken);
+        var invoice = await repository.GetWithLinesAsync(i => i.Id == request.Id, cancellationToken: cancellationToken);
 
         if (invoice is null)
         {

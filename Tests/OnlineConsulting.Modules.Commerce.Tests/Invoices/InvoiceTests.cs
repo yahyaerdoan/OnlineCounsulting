@@ -7,9 +7,9 @@ public class InvoiceTests
     private static readonly DateTimeOffset Now = new(2026, 10, 3, 12, 0, 0, TimeSpan.Zero);
     private static readonly InvoiceBillTo BillTo = new("Jane Doe", "jane@example.test", "1 Main St");
 
-    private static Invoice Issue(params InvoiceCharge[] charges) => IssueWith(null, charges).Invoice;
+    private static Invoice Issue(params InvoiceCharge[] charges) => IssueWith(null, charges);
 
-    private static (Invoice Invoice, IReadOnlyList<InvoiceLine> Lines) IssueWith(InvoiceDiscount? discount, params InvoiceCharge[] charges) =>
+    private static Invoice IssueWith(InvoiceDiscount? discount, params InvoiceCharge[] charges) =>
         Invoice.Issue("INV-2610-ABC123", Guid.NewGuid(), InvoiceSources.Appointment, Guid.NewGuid(), "Service visit: Duct cleaning", "USD", BillTo,
             charges, discount, Now, Now.AddDays(14));
 
@@ -34,7 +34,8 @@ public class InvoiceTests
     [Fact]
     public void Issue_BuildsOrderedLinesOwnedByTheInvoice()
     {
-        var (invoice, lines) = IssueWith(null, new InvoiceCharge("  Filter  ", 2, 10m, 0), new InvoiceCharge("Labor", 1, 50m, 0));
+        var invoice = IssueWith(null, new InvoiceCharge("  Filter  ", 2, 10m, 0), new InvoiceCharge("Labor", 1, 50m, 0));
+        var lines = invoice.Lines;
 
         Assert.Equal(2, lines.Count);
         Assert.All(lines, l => Assert.Equal(invoice.Id, l.InvoiceId));
@@ -45,7 +46,8 @@ public class InvoiceTests
     [Fact]
     public void Issue_AppliesDiscountBeforeTaxAndSumsRoundedLines()
     {
-        var (invoice, lines) = IssueWith(new InvoiceDiscount(10, "Member discount"), new InvoiceCharge("Filter", 3, 3.335m, 8), new InvoiceCharge("Labor", 1, 100m, 0));
+        var invoice = IssueWith(new InvoiceDiscount(10, "Member discount"), new InvoiceCharge("Filter", 3, 3.335m, 8), new InvoiceCharge("Labor", 1, 100m, 0));
+        var lines = invoice.Lines;
 
         Assert.Equal(10.01m, lines[0].Subtotal);
         Assert.Equal(1.00m, lines[0].DiscountAmount);

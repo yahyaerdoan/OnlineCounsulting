@@ -2,8 +2,8 @@ using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Commerce.Domain;
 
-/// <summary>One charge on an invoice. Amounts are stored at issue time, so later price or tax changes never rewrite it.</summary>
-public class InvoiceLine : SequentialGuidTenantEntity
+/// <summary>One charge on an invoice, created only by <see cref="Invoice.Issue"/>. Amounts are stored at issue time, so later price or tax changes never rewrite it.</summary>
+public class InvoiceLine : TenantEntity<Guid>
 {
     private InvoiceLine()
     {
