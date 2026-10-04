@@ -1,6 +1,6 @@
-namespace OnlineConsulting.Modules.Identity.Infrastructure.Seeding;
+namespace OnlineConsulting.Modules.Identity.Infrastructure.Bootstrapping;
 
-public class SuperAdminSeedOptions
+public class SuperAdminBootstrapOptions
 {
     public string? Email { get; set; }
     public string? Password { get; set; }

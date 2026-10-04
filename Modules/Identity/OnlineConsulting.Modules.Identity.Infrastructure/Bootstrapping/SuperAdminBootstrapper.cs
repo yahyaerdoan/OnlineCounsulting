@@ -5,17 +5,17 @@ using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.Tenancy;
 
-namespace OnlineConsulting.Modules.Identity.Infrastructure.Seeding;
+namespace OnlineConsulting.Modules.Identity.Infrastructure.Bootstrapping;
 
-public static class SuperAdminSeeder
+public static class SuperAdminBootstrapper
 {
-    /// <summary>Ensures the platform-owner SuperAdmin account exists, reading credentials from Seed:SuperAdmin config. No-ops when the email/password aren't configured.</summary>
-    public static async Task SeedAsync(IServiceProvider services)
+    /// <summary>Ensures the platform-owner SuperAdmin account exists, reading credentials from Bootstrap:SuperAdmin config. No-ops when the email/password aren't configured.</summary>
+    public static async Task EnsureAsync(IServiceProvider services)
     {
         using var scope = services.CreateScope();
-        var seedOptions = scope.ServiceProvider.GetRequiredService<IOptions<SuperAdminSeedOptions>>().Value;
-        var email = seedOptions.Email;
-        var password = seedOptions.Password;
+        var options = scope.ServiceProvider.GetRequiredService<IOptions<SuperAdminBootstrapOptions>>().Value;
+        var email = options.Email;
+        var password = options.Password;
 
         if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
         {

@@ -33,7 +33,7 @@ using OnlineConsulting.Modules.Identity.Application.Features.Roles.Constants;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Constants;
 using OnlineConsulting.Modules.Identity.Infrastructure;
 using OnlineConsulting.Modules.Identity.Infrastructure.Persistence;
-using OnlineConsulting.Modules.Identity.Infrastructure.Seeding;
+using OnlineConsulting.Modules.Identity.Infrastructure.Bootstrapping;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Contact.Constants;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Messages.Constants;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.Constants;
@@ -178,8 +178,8 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 
 var app = builder.Build();
 
-await RoleSeeder.SeedAsync(app.Services);
-await SuperAdminSeeder.SeedAsync(app.Services);
+await RoleBootstrapper.EnsureAsync(app.Services);
+await SuperAdminBootstrapper.EnsureAsync(app.Services);
 
 app.MapDefaultEndpoints();
 

@@ -5,9 +5,9 @@ using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
 using System.Security.Claims;
 
-namespace OnlineConsulting.Modules.Identity.Infrastructure.Seeding;
+namespace OnlineConsulting.Modules.Identity.Infrastructure.Bootstrapping;
 
-public static class RoleSeeder
+public static class RoleBootstrapper
 {
     private static readonly string[] _roles = [GeneralOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, GlobalOperationClaims.Member, GlobalOperationClaims.User];
 
@@ -18,7 +18,7 @@ public static class RoleSeeder
     /// of a coarse bypass, so unregistered modules stay out of its reach; any leftover coarse bypass claim
     /// from before that change is revoked.
     /// </summary>
-    public static async Task SeedAsync(IServiceProvider services)
+    public static async Task EnsureAsync(IServiceProvider services)
     {
         using var scope = services.CreateScope();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<Role>>();

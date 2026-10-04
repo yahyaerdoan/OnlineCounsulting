@@ -29,7 +29,7 @@ public record AssignPermissionsToRoleCommand(Guid RoleId, List<string> Permissio
 
 /// <summary>
 /// Replaces a role's permission claims with the given set. Granting FullAccess or Super Admin requires the
-/// caller already hold that same privilege. SuperAdmin is a bypass sentinel (see RoleSeeder), not a catalog
+/// caller already hold that same privilege. SuperAdmin is a bypass sentinel (see RoleBootstrapper), not a catalog
 /// permission, so it is validated the same way as FullAccess rather than checked against the catalog.
 /// </summary>
 public class AssignPermissionsToRoleHandler(RoleManager<Role> roleManager, IHttpContextAccessor httpContextAccessor, IPermissionCatalog permissionCatalog) : IRequestHandler<AssignPermissionsToRoleCommand, OperationResult>

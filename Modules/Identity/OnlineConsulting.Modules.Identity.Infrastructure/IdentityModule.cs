@@ -26,7 +26,7 @@ using OnlineConsulting.Modules.Identity.Infrastructure.Notifications;
 using OnlineConsulting.Modules.Identity.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Identity.Infrastructure.Repositories;
 using OnlineConsulting.Modules.Identity.Infrastructure.Security;
-using OnlineConsulting.Modules.Identity.Infrastructure.Seeding;
+using OnlineConsulting.Modules.Identity.Infrastructure.Bootstrapping;
 using OnlineConsulting.Modules.Identity.Infrastructure.Status;
 using OnlineConsulting.Modules.Identity.Infrastructure.Storage;
 using OnlineConsulting.SharedKernel.Authorization;
@@ -85,7 +85,7 @@ public static class IdentityModule
         _ = services.AddScoped<IEmailTemplate<InviteEmailModel>, InviteTemplate>();
         _ = services.AddScoped<IEmailTemplate<ForgotPasswordEmailModel>, ForgotPasswordTemplate>();
         _ = services.Configure<AuthEmailOptions>(configuration.GetSection("Auth"));
-        _ = services.Configure<SuperAdminSeedOptions>(configuration.GetSection("Seed:SuperAdmin"));
+        _ = services.Configure<SuperAdminBootstrapOptions>(configuration.GetSection("Bootstrap:SuperAdmin"));
 
         _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
         _ = services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
