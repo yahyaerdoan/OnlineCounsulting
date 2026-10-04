@@ -2,8 +2,8 @@ using Core.PersistenceLayer.Repositories.Entities;
 
 namespace OnlineConsulting.Modules.Tenancy.Domain;
 
-/// <summary>One purchased module within a tenant's subscription; not tenant-scoped itself.</summary>
-public class TenantSubscriptionItem : SequentialGuidEntity
+/// <summary>One purchased module within a tenant's subscription; created, billed and removed only through <see cref="TenantSubscription"/>. Not tenant-scoped itself.</summary>
+public class TenantSubscriptionItem : Entity<Guid>
 {
     private TenantSubscriptionItem()
     {
@@ -28,8 +28,9 @@ public class TenantSubscriptionItem : SequentialGuidEntity
     /// <summary>Pending or failed, so billing can be (re)tried.</summary>
     public bool IsAwaitingBilling => Status is TenantSubscriptionItemStatuses.Pending or TenantSubscriptionItemStatuses.Failed;
 
-    /// <summary>Adds a module awaiting billing.</summary>
-    public static TenantSubscriptionItem Add(Guid tenantSubscriptionId, string moduleKey, decimal price, DateTime addedAt)
+    internal bool IsActive => Status == TenantSubscriptionItemStatuses.Active && DeletedDate is null;
+
+    internal static TenantSubscriptionItem Add(Guid tenantSubscriptionId, string moduleKey, decimal price, DateTime addedAt)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(moduleKey);
         ArgumentOutOfRangeException.ThrowIfNegative(price);
@@ -37,27 +38,26 @@ public class TenantSubscriptionItem : SequentialGuidEntity
         return new TenantSubscriptionItem { TenantSubscriptionId = tenantSubscriptionId, ModuleKey = moduleKey, PriceAtAddition = price, AddedAt = addedAt };
     }
 
-    /// <summary>The module is billed; the item id is null for providers without separate item ids. Requires <see cref="IsAwaitingBilling"/>.</summary>
-    public void Activate(string? providerSubscriptionItemId)
+    internal void Activate(string? providerSubscriptionItemId)
     {
         EnsureAwaitingBilling(nameof(Activate));
         ProviderSubscriptionItemId = providerSubscriptionItemId;
         Status = TenantSubscriptionItemStatuses.Active;
     }
 
-    /// <summary>Billing failed; a retry resumes it. Requires <see cref="IsAwaitingBilling"/>.</summary>
-    public void MarkBillingFailed()
+    internal void MarkBillingFailed()
     {
         EnsureAwaitingBilling(nameof(MarkBillingFailed));
         Status = TenantSubscriptionItemStatuses.Failed;
     }
 
-    /// <summary>Undoes billing after a rolled-back signup.</summary>
-    public void ResetForRetry()
+    internal void ResetForRetry()
     {
         ProviderSubscriptionItemId = null;
         Status = TenantSubscriptionItemStatuses.Pending;
     }
+
+    internal void Remove(DateTimeOffset removedAt) => DeletedDate = removedAt;
 
     private void EnsureAwaitingBilling(string action)
     {

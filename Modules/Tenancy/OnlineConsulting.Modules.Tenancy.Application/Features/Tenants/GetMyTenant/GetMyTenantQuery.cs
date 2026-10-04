@@ -3,7 +3,6 @@ using MediatR;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.Constants;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.Contracts;
-using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Domain;
 using OnlineConsulting.SharedKernel.Tenancy;
@@ -20,7 +19,7 @@ public record GetMyTenantQuery : IRequest<OperationDataResult<TenantSummaryRespo
     public string[] Roles => [];
 }
 
-public class GetMyTenantHandler(ITenantRepository tenantRepository, ITenantSubscriptionRepository tenantSubscriptionRepository, ITenantSubscriptionItemRepository tenantSubscriptionItemRepository, ITenantProvider tenantProvider)
+public class GetMyTenantHandler(ITenantRepository tenantRepository, ITenantSubscriptionRepository tenantSubscriptionRepository, ITenantProvider tenantProvider)
     : IRequestHandler<GetMyTenantQuery, OperationDataResult<TenantSummaryResponse>>
 {
     public async Task<OperationDataResult<TenantSummaryResponse>> Handle(GetMyTenantQuery request, CancellationToken cancellationToken)
@@ -32,12 +31,10 @@ public class GetMyTenantHandler(ITenantRepository tenantRepository, ITenantSubsc
             return Result.NotFound<TenantSummaryResponse>(TenantMessages.TenantNotFound);
         }
 
-        var subscription = await tenantSubscriptionRepository.GetAsync(s => s.TenantId == tenant.Id && s.Status != TenantSubscriptionStatuses.Cancelled, cancellationToken: cancellationToken);
+        var subscription = await tenantSubscriptionRepository.GetWithItemsAsync(s => s.TenantId == tenant.Id && s.Status != TenantSubscriptionStatuses.Cancelled, enableTracking: false,
+            cancellationToken: cancellationToken);
 
-        var items = subscription is null
-            ? []
-            : (await tenantSubscriptionItemRepository
-            .GetAllAsync(i => i.TenantSubscriptionId == subscription.Id && i.Status == TenantSubscriptionItemStatuses.Active, cancellationToken: cancellationToken)).ToList();
+        var items = subscription?.ActiveItems ?? [];
 
         var response = TenantSummaryResponse.FromDomain(tenant, [.. items.Select(i => i.ModuleKey)], items.Sum(i => i.PriceAtAddition));
         return Result.Success(response, "Tenant retrieved successfully.");

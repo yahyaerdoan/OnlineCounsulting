@@ -3,7 +3,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.Abstractions;
-using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Domain;
 using OnlineConsulting.SharedKernel.Identity;
@@ -38,7 +37,6 @@ public class OrphanedTenantCleanupService(IServiceScopeFactory scopeFactory, IOp
         using var scope = scopeFactory.CreateScope();
         var tenantRepository = scope.ServiceProvider.GetRequiredService<ITenantRepository>();
         var tenantSubscriptionRepository = scope.ServiceProvider.GetRequiredService<ITenantSubscriptionRepository>();
-        var tenantSubscriptionItemRepository = scope.ServiceProvider.GetRequiredService<ITenantSubscriptionItemRepository>();
         var userExistenceReader = scope.ServiceProvider.GetRequiredService<IUserExistenceReader>();
 
         var cutoff = DateTimeOffset.UtcNow - settings.GracePeriod;
@@ -67,19 +65,11 @@ public class OrphanedTenantCleanupService(IServiceScopeFactory scopeFactory, IOp
                 continue;
             }
 
-            var subscription = await tenantSubscriptionRepository.GetAsync(
+            var subscription = await tenantSubscriptionRepository.GetWithItemsAsync(
                 s => s.TenantId == tenant.Id, cancellationToken: cancellationToken);
 
             if (subscription is not null)
             {
-                var items = await tenantSubscriptionItemRepository.GetAllAsync(predicate: i => i.TenantSubscriptionId == subscription.Id,
-                    cancellationToken: cancellationToken);
-
-                foreach (var item in items)
-                {
-                    _ = await tenantSubscriptionItemRepository.DeleteAsync(item, cancellationToken: cancellationToken);
-                }
-
                 _ = await tenantSubscriptionRepository.DeleteAsync(subscription, cancellationToken: cancellationToken);
             }
 

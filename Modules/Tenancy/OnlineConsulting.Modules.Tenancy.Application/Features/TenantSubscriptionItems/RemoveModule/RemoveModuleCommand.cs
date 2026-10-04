@@ -1,7 +1,6 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using Microsoft.AspNetCore.Http;
-using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.Constants;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.Rules;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.Abstractions;
@@ -22,7 +21,7 @@ public record RemoveModuleCommand(Guid TenantId, string ModuleKey) : IRequest<Op
     public string[] Roles => [];
 }
 
-public class RemoveModuleHandler(ITenantSubscriptionRepository tenantSubscriptionRepository, ITenantSubscriptionItemRepository tenantSubscriptionItemRepository, ISubscriptionGateway subscriptionGateway, IFeatureFlagWriter featureFlagWriter, ITenantProvider tenantProvider, IHttpContextAccessor httpContextAccessor)
+public class RemoveModuleHandler(ITenantSubscriptionRepository tenantSubscriptionRepository, ISubscriptionGateway subscriptionGateway, IFeatureFlagWriter featureFlagWriter, ITenantProvider tenantProvider, IHttpContextAccessor httpContextAccessor)
     : IRequestHandler<RemoveModuleCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(RemoveModuleCommand request, CancellationToken cancellationToken)
@@ -32,24 +31,21 @@ public class RemoveModuleHandler(ITenantSubscriptionRepository tenantSubscriptio
             return TenantSubscriptionItemBusinessRules.NotAuthorizedForTenant();
         }
 
-        var tenantSubscription = await tenantSubscriptionRepository.GetAsync(s => s.TenantId == request.TenantId && s.Status != TenantSubscriptionStatuses.Cancelled, cancellationToken: cancellationToken);
+        var tenantSubscription = await tenantSubscriptionRepository.GetWithItemsAsync(s => s.TenantId == request.TenantId && s.Status != TenantSubscriptionStatuses.Cancelled, cancellationToken: cancellationToken);
 
         if (tenantSubscription is null)
         {
             return TenantSubscriptionItemBusinessRules.NoActiveSubscription();
         }
 
-        var item = await tenantSubscriptionItemRepository
-            .GetAsync(i => i.TenantSubscriptionId == tenantSubscription.Id && i.ModuleKey == request.ModuleKey && i.Status == TenantSubscriptionItemStatuses.Active, cancellationToken: cancellationToken);
+        var item = tenantSubscription.ActiveItems.FirstOrDefault(i => i.ModuleKey == request.ModuleKey);
 
         if (item is null)
         {
             return TenantSubscriptionItemBusinessRules.ModuleNotActive();
         }
 
-        var hasAnotherActiveItem = await tenantSubscriptionItemRepository.AnyAsync(i => i.TenantSubscriptionId == tenantSubscription.Id && i.Status == TenantSubscriptionItemStatuses.Active && i.Id != item.Id, cancellationToken: cancellationToken);
-
-        if (!hasAnotherActiveItem)
+        if (!tenantSubscription.CanRemoveModule(request.ModuleKey))
         {
             return TenantSubscriptionItemBusinessRules.CannotRemoveLastModule();
         }
@@ -64,7 +60,9 @@ public class RemoveModuleHandler(ITenantSubscriptionRepository tenantSubscriptio
             return failure;
         }
 
-        _ = await tenantSubscriptionItemRepository.DeleteAsync(item, cancellationToken: cancellationToken);
+        tenantSubscription.RemoveModule(request.ModuleKey, DateTimeOffset.UtcNow);
+
+        _ = await tenantSubscriptionRepository.UpdateAsync(tenantSubscription, cancellationToken: cancellationToken);
 
         await featureFlagWriter.SetAsync(request.TenantId, request.ModuleKey, false, cancellationToken);
 

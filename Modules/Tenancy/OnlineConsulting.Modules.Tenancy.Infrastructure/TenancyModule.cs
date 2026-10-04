@@ -9,7 +9,6 @@ using OnlineConsulting.Modules.Tenancy.Application;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Bundles.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.ModuleOfferings.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.Abstractions;
-using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Infrastructure.Cleanup;
 using OnlineConsulting.Modules.Tenancy.Infrastructure.Notifications;
@@ -39,7 +38,6 @@ public static class TenancyModule
         _ = services.AddScoped<IModuleOfferingRepository, ModuleOfferingRepository>();
         _ = services.AddScoped<IBundleRepository, BundleRepository>();
         _ = services.AddScoped<ITenantSubscriptionRepository, TenantSubscriptionRepository>();
-        _ = services.AddScoped<ITenantSubscriptionItemRepository, TenantSubscriptionItemRepository>();
         _ = services.AddScoped<ITenantStatusReader, TenantStatusReader>();
         _ = services.AddMemoryCache();
         _ = services.AddScoped<TenantTimeZoneReader>();

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OnlineConsulting.Modules.Tenancy.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using OnlineConsulting.Modules.Tenancy.Infrastructure.Persistence;
 namespace OnlineConsulting.Modules.Tenancy.Infrastructure.Migrations
 {
     [DbContext(typeof(TenancyDbContext))]
-    partial class TenancyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20261004182811_TenantSubscriptionItemsBelongToSubscription")]
+    partial class TenantSubscriptionItemsBelongToSubscription
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -201,8 +204,7 @@ namespace OnlineConsulting.Modules.Tenancy.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Slug")
-                        .IsUnique()
-                        .HasFilter("[DeletedDate] IS NULL");
+                        .IsUnique();
 
                     b.ToTable("Tenants", "Tenancy");
                 });

@@ -2,9 +2,14 @@ using Core.PersistenceLayer.Repositories.Entities;
 
 namespace OnlineConsulting.Modules.Tenancy.Domain;
 
-/// <summary>A tenant's provider subscription, made of one <see cref="TenantSubscriptionItem"/> per purchased module.</summary>
+/// <summary>
+/// A tenant's provider subscription and the aggregate root of its modules (<see cref="Items"/>): modules are added, billed and removed only through
+/// its methods, which keep one live item per module and at least one active module. Load it with its items and save them together.
+/// </summary>
 public class TenantSubscription : SequentialGuidEntity
 {
+    private readonly List<TenantSubscriptionItem> _items = [];
+
     private TenantSubscription()
     {
     }
@@ -19,6 +24,17 @@ public class TenantSubscription : SequentialGuidEntity
     public string? ProviderSubscriptionId { get; private set; }
 
     public bool IsCancelled => Status == TenantSubscriptionStatuses.Cancelled;
+
+    /// <summary>The modules not removed yet, in any billing state.</summary>
+    public IReadOnlyList<TenantSubscriptionItem> Items => [.. _items.Where(i => i.DeletedDate is null)];
+
+    /// <summary>The billed modules the tenant can use.</summary>
+    public IReadOnlyList<TenantSubscriptionItem> ActiveItems => [.. _items.Where(i => i.IsActive)];
+
+    public bool HasActiveModule(string moduleKey) => _items.Any(i => i.IsActive && i.ModuleKey == moduleKey);
+
+    /// <summary>The module is active and isn't the last one, so it can be removed.</summary>
+    public bool CanRemoveModule(string moduleKey) => HasActiveModule(moduleKey) && ActiveItems.Count > 1;
 
     /// <summary>Starts a subscription awaiting its first payment.</summary>
     public static TenantSubscription Start(Guid tenantId, DateTime startDate) => new() { TenantId = tenantId, StartDate = startDate };
@@ -58,11 +74,16 @@ public class TenantSubscription : SequentialGuidEntity
         Status = TenantSubscriptionStatuses.Active;
     }
 
-    /// <summary>Undoes a signup: forgets the provider subscription and cancels.</summary>
+    /// <summary>Undoes a signup: forgets the provider subscription, cancels and puts every module back to awaiting billing.</summary>
     public void CancelSignup()
     {
         ProviderSubscriptionId = null;
         Status = TenantSubscriptionStatuses.Cancelled;
+
+        foreach (var item in Items)
+        {
+            item.ResetForRetry();
+        }
     }
 
     public void Cancel()
@@ -84,6 +105,62 @@ public class TenantSubscription : SequentialGuidEntity
         RenewalDate = renewalDate;
         Status = TenantSubscriptionStatuses.Active;
     }
+
+    /// <summary>Records the modules chosen at signup: adds the missing ones and, until the provider subscription exists, drops the ones no longer chosen.</summary>
+    public void SelectSignupModules(IReadOnlyDictionary<string, decimal> pricesByModuleKey, DateTimeOffset now)
+    {
+        if (ProviderSubscriptionId is null)
+        {
+            foreach (var dropped in Items.Where(i => !pricesByModuleKey.ContainsKey(i.ModuleKey)))
+            {
+                dropped.Remove(now);
+            }
+        }
+
+        var recorded = Items.Select(i => i.ModuleKey).ToHashSet();
+        foreach (var (moduleKey, price) in pricesByModuleKey.Where(p => !recorded.Contains(p.Key)))
+        {
+            _items.Add(TenantSubscriptionItem.Add(Id, moduleKey, price, now.UtcDateTime));
+        }
+    }
+
+    /// <summary>The module's item awaiting billing: the one a failed attempt left, or a new one. Throws when the module is already active.</summary>
+    public TenantSubscriptionItem AddModule(string moduleKey, decimal price, DateTimeOffset now)
+    {
+        if (HasActiveModule(moduleKey))
+        {
+            throw new InvalidOperationException($"Module {moduleKey} is already active on subscription {Id}.");
+        }
+
+        if (Items.FirstOrDefault(i => i.ModuleKey == moduleKey && i.IsAwaitingBilling) is { } awaiting)
+        {
+            return awaiting;
+        }
+
+        var item = TenantSubscriptionItem.Add(Id, moduleKey, price, now.UtcDateTime);
+        _items.Add(item);
+        return item;
+    }
+
+    /// <summary>The module is billed; the provider item id is null for providers without separate item ids.</summary>
+    public void ActivateModule(string moduleKey, string? providerSubscriptionItemId) => GetItem(moduleKey).Activate(providerSubscriptionItemId);
+
+    /// <summary>Billing the module failed; adding it again retries the same item.</summary>
+    public void FailModuleBilling(string moduleKey) => GetItem(moduleKey).MarkBillingFailed();
+
+    /// <summary>Removes an active module, keeping its row as history. Requires <see cref="CanRemoveModule"/>.</summary>
+    public void RemoveModule(string moduleKey, DateTimeOffset now)
+    {
+        if (!CanRemoveModule(moduleKey))
+        {
+            throw new InvalidOperationException($"Module {moduleKey} cannot be removed from subscription {Id}: it isn't active or it's the last module.");
+        }
+
+        ActiveItems.First(i => i.ModuleKey == moduleKey).Remove(now);
+    }
+
+    private TenantSubscriptionItem GetItem(string moduleKey) =>
+        Items.FirstOrDefault(i => i.ModuleKey == moduleKey) ?? throw new InvalidOperationException($"Subscription {Id} has no module {moduleKey}.");
 
     private void EnsureNoProviderSubscription(string action)
     {

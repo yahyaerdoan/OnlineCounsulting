@@ -1,6 +1,5 @@
 using MediatR;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.Abstractions;
-using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Domain;
 using OnlineConsulting.SharedKernel.Payments;
@@ -15,7 +14,7 @@ namespace OnlineConsulting.Modules.Tenancy.Application.Features.Signup.RollbackT
 public record RollbackTenantSignupCommand(Guid TenantId) : IRequest<OperationResult>;
 
 public class RollbackTenantSignupHandler(ITenantRepository tenantRepository, ITenantSubscriptionRepository tenantSubscriptionRepository,
-    ITenantSubscriptionItemRepository tenantSubscriptionItemRepository, ISubscriptionGateway subscriptionGateway)
+    ISubscriptionGateway subscriptionGateway)
     : IRequestHandler<RollbackTenantSignupCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(RollbackTenantSignupCommand request, CancellationToken cancellationToken)
@@ -27,7 +26,7 @@ public class RollbackTenantSignupHandler(ITenantRepository tenantRepository, ITe
             return Result.Success("Nothing to roll back.");
         }
 
-        var tenantSubscription = await tenantSubscriptionRepository.GetAsync(s => s.TenantId == tenant.Id, cancellationToken: cancellationToken);
+        var tenantSubscription = await tenantSubscriptionRepository.GetWithItemsAsync(s => s.TenantId == tenant.Id, cancellationToken: cancellationToken);
 
         if (tenantSubscription is not null)
         {
@@ -38,13 +37,6 @@ public class RollbackTenantSignupHandler(ITenantRepository tenantRepository, ITe
 
             tenantSubscription.CancelSignup();
             _ = await tenantSubscriptionRepository.UpdateAsync(tenantSubscription, cancellationToken: cancellationToken);
-
-            var items = await tenantSubscriptionItemRepository.GetAllAsync(i => i.TenantSubscriptionId == tenantSubscription.Id, enableTracking: true, cancellationToken: cancellationToken);
-            foreach (var item in items)
-            {
-                item.ResetForRetry();
-                _ = await tenantSubscriptionItemRepository.UpdateAsync(item, cancellationToken: cancellationToken);
-            }
         }
 
         tenant.FailSignup();

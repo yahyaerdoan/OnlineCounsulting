@@ -4,7 +4,6 @@ using OnlineConsulting.Modules.Tenancy.Application.Features.ModuleOfferings.Abst
 using OnlineConsulting.Modules.Tenancy.Application.Features.Signup.Constants;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Signup.Contracts;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.Abstractions;
-using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Domain;
 using OnlineConsulting.SharedKernel.Payments;
@@ -22,7 +21,7 @@ public record ActivateTenantSubscriptionCommand(Guid TenantId, string PaymentMet
 /// <summary>Idempotency keys include the payment method: a network retry of the same submission can't charge twice, while a new attempt after
 /// a rollback gets a fresh key (Stripe keeps keys for 24h and would otherwise replay the cancelled subscription or reject the new parameters).
 /// A declined first charge is a hard failure (Failed), not PastDue - PastDue means an already-paying tenant's renewal failed. A stale Failed status found once ProviderSubscriptionId is already set is treated as recoverable, since that id is only ever set after CreateSubscriptionAsync genuinely succeeded.</summary>
-public class ActivateTenantSubscriptionHandler(ITenantRepository tenantRepository, ITenantSubscriptionRepository tenantSubscriptionRepository, ITenantSubscriptionItemRepository tenantSubscriptionItemRepository, IModuleOfferingRepository moduleOfferingRepository, ISubscriptionGateway subscriptionGateway,
+public class ActivateTenantSubscriptionHandler(ITenantRepository tenantRepository, ITenantSubscriptionRepository tenantSubscriptionRepository, IModuleOfferingRepository moduleOfferingRepository, ISubscriptionGateway subscriptionGateway,
     ILogger<ActivateTenantSubscriptionHandler> logger)
     : IRequestHandler<ActivateTenantSubscriptionCommand, OperationDataResult<ActivateTenantSubscriptionResult>>
 {
@@ -39,13 +38,10 @@ public class ActivateTenantSubscriptionHandler(ITenantRepository tenantRepositor
             return Result.Conflict<ActivateTenantSubscriptionResult>(SignupMessages.TenantHeldByStaff);
         }
 
-        var tenantSubscription = await tenantSubscriptionRepository.GetAsync(s => s.TenantId == tenant.Id, cancellationToken: cancellationToken)
+        var tenantSubscription = await tenantSubscriptionRepository.GetWithItemsAsync(s => s.TenantId == tenant.Id, cancellationToken: cancellationToken)
             ?? throw new InvalidOperationException($"Tenant {tenant.Id} has no TenantSubscription row.");
 
-        var itemsPage = await tenantSubscriptionItemRepository
-            .GetAllAsync(predicate: i => i.TenantSubscriptionId == tenantSubscription.Id, enableTracking: true, cancellationToken: cancellationToken);
-
-        var pendingItems = itemsPage.Where(i => i.IsAwaitingBilling).ToList();
+        var pendingItems = tenantSubscription.Items.Where(i => i.IsAwaitingBilling).ToList();
 
         var pendingModuleKeys = pendingItems.Select(i => i.ModuleKey).ToList();
 
@@ -99,10 +95,8 @@ public class ActivateTenantSubscriptionHandler(ITenantRepository tenantRepositor
 
                 tenantSubscription.AttachProviderSubscription(subscription.ProviderSubscriptionId, subscription.CurrentPeriodEnd.UtcDateTime,
                     paid: subscription.Status == PaymentStatuses.Succeeded);
+                tenantSubscription.ActivateModule(firstItem.ModuleKey, subscription.FirstItemProviderId);
                 _ = await tenantSubscriptionRepository.UpdateAsync(tenantSubscription, cancellationToken: cancellationToken);
-
-                firstItem.Activate(subscription.FirstItemProviderId);
-                _ = await tenantSubscriptionItemRepository.UpdateAsync(firstItem, cancellationToken: cancellationToken);
 
                 clientSecret = subscription.ClientSecret;
                 _ = pendingItems.Remove(firstItem);
@@ -132,8 +126,8 @@ public class ActivateTenantSubscriptionHandler(ITenantRepository tenantRepositor
                         .AddSubscriptionItemAsync(activeProviderSubscriptionId, offeringPriceId, idempotencyKey: $"tenant-signup-item:{activeProviderSubscriptionId}:{offering.Key}", cancellationToken: cancellationToken);
                 }
 
-                item.Activate(providerSubscriptionItemId);
-                _ = await tenantSubscriptionItemRepository.UpdateAsync(item, cancellationToken: cancellationToken);
+                tenantSubscription.ActivateModule(item.ModuleKey, providerSubscriptionItemId);
+                _ = await tenantSubscriptionRepository.UpdateAsync(tenantSubscription, cancellationToken: cancellationToken);
             }
         }
         catch (Exception exception)

@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Core.PersistenceLayer.Repositories.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using OnlineConsulting.Modules.Tenancy.Domain;
 using OnlineConsulting.SharedKernel.Notifications;
@@ -29,7 +30,8 @@ public class TenancyDbContext(DbContextOptions<TenancyDbContext> options) : DbCo
             _ = builder.Property(t => t.ProviderCustomerId).HasMaxLength(100);
             _ = builder.Property(t => t.TimeZoneId).HasMaxLength(64).IsRequired().HasDefaultValue(BusinessTimeZones.Default);
             _ = builder.Property(t => t.RowVersion).IsRowVersion();
-            _ = builder.HasIndex(t => t.Slug).IsUnique();
+            _ = builder.HasIndex(t => t.Slug).IsUnique().HasFilter("[DeletedDate] IS NULL");
+            _ = builder.HasQueryFilter(QueryFilterNames.SoftDelete, t => t.DeletedDate == null);
         });
 
         _ = modelBuilder.Entity<ModuleOffering>(builder =>
@@ -65,6 +67,10 @@ public class TenancyDbContext(DbContextOptions<TenancyDbContext> options) : DbCo
             _ = builder.Property(s => s.ProviderSubscriptionId).HasMaxLength(100);
             _ = builder.Property(s => s.RowVersion).IsRowVersion();
             _ = builder.HasIndex(s => s.TenantId);
+            _ = builder.HasMany(s => s.Items).WithOne().HasForeignKey(i => i.TenantSubscriptionId).OnDelete(DeleteBehavior.Cascade);
+            _ = builder.Navigation(s => s.Items).HasField("_items");
+            _ = builder.Ignore(s => s.ActiveItems);
+            _ = builder.HasQueryFilter(QueryFilterNames.SoftDelete, s => s.DeletedDate == null);
         });
 
         _ = modelBuilder.Entity<TenantSubscriptionItem>(builder =>
@@ -75,6 +81,7 @@ public class TenancyDbContext(DbContextOptions<TenancyDbContext> options) : DbCo
             _ = builder.Property(i => i.PriceAtAddition).HasColumnType("decimal(18,2)");
             _ = builder.Property(i => i.RowVersion).IsRowVersion();
             _ = builder.HasIndex(i => i.TenantSubscriptionId);
+            _ = builder.HasQueryFilter(QueryFilterNames.SoftDelete, i => i.DeletedDate == null);
         });
 
         modelBuilder.ConfigureOutboxEmail(ownsMigration: false);
