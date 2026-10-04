@@ -12,7 +12,7 @@ public class ChangePassword : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/users/me/password", Handle)
+        _ = app.MapPut("/users/me/password", Handle)
             .WithTags("Identity/Users")
             .RequireAuthorization()
             .WithName("ChangePassword")

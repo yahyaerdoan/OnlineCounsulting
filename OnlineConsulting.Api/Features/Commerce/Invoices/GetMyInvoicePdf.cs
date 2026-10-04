@@ -11,7 +11,7 @@ public class GetMyInvoicePdf : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/invoices/{id:guid}/pdf", Handle)
+        _ = app.MapGet("/invoices/{id:guid}/pdf", Handle)
             .WithTags("Commerce/Invoices")
             .RequireAuthorization()
             .WithName("GetMyInvoicePdf")

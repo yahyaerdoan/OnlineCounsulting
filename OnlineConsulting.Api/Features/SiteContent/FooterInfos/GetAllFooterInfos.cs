@@ -9,7 +9,7 @@ public class GetAllFooterInfos : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/site-content/footer-info", Handle)
+        _ = app.MapGet("/site-content/footer-info", Handle)
             .WithTags("SiteContent/FooterInfo")
             .WithName("GetAllFooterInfos")
             .WithDescription("Returns the tenant's footer content blocks. Public - no login required.");

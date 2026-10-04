@@ -9,7 +9,7 @@ public class GetAllServiceAreas : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/site-content/service-areas", Handle)
+        _ = app.MapGet("/site-content/service-areas", Handle)
             .WithTags("SiteContent/ServiceAreas")
             .WithName("GetAllServiceAreas")
             .WithDescription("Returns the tenant's service-area landing pages. Public - no login required.");

@@ -10,7 +10,7 @@ public class GetMediaAsset : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/media/{id:guid}", Handle)
+        _ = app.MapGet("/media/{id:guid}", Handle)
             .WithTags("Media")
             .WithName("GetMediaAsset")
             .WithDescription("Returns a single media asset by id. Public - no login required.");

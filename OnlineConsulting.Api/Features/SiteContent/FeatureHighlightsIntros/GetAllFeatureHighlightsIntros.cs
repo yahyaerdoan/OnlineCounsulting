@@ -9,7 +9,7 @@ public class GetAllFeatureHighlightsIntros : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/site-content/feature-highlights-intro", Handle)
+        _ = app.MapGet("/site-content/feature-highlights-intro", Handle)
             .WithTags("SiteContent/FeatureHighlightsIntros")
             .WithName("GetAllFeatureHighlightsIntros")
             .WithDescription("Returns the tenant's feature highlights section intro. Public - no login required.");

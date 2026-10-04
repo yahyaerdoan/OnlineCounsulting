@@ -11,7 +11,7 @@ public class ResumeMembership : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/memberships/resume", Handle)
+        _ = app.MapPost("/memberships/resume", Handle)
             .WithTags("Memberships/CustomerMemberships")
             .RequireAuthorization()
             .WithName("ResumeMembership")

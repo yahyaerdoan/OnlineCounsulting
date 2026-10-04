@@ -11,7 +11,7 @@ public class GetMyMembership : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/memberships/mine", Handle)
+        _ = app.MapGet("/memberships/mine", Handle)
             .WithTags("Memberships/CustomerMemberships")
             .RequireAuthorization()
             .WithName("GetMyMembership")

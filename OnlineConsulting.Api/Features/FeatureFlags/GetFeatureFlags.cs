@@ -10,7 +10,7 @@ public class GetFeatureFlags : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/admin/feature-flags", Handle)
+        _ = app.MapGet("/admin/feature-flags", Handle)
             .WithTags("FeatureFlags")
             .RequireAuthorization()
             .WithName("GetFeatureFlags")

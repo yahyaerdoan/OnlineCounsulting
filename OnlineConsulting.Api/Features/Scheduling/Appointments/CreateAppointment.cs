@@ -13,7 +13,7 @@ public class CreateAppointment : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/appointments", Handle)
+        _ = app.MapPost("/appointments", Handle)
             .WithTags("Scheduling/Appointments")
             .RequireAuthorization()
             .WithName("CreateAppointment")

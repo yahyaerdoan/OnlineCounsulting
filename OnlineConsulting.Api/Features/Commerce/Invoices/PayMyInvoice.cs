@@ -11,7 +11,7 @@ public class PayMyInvoice : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/invoices/{id:guid}/pay", Handle)
+        _ = app.MapPost("/invoices/{id:guid}/pay", Handle)
             .WithTags("Commerce/Invoices")
             .RequireAuthorization()
             .WithName("PayMyInvoice")

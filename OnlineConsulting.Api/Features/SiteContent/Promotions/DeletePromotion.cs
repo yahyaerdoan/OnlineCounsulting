@@ -9,7 +9,7 @@ public class DeletePromotion : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapDelete("/api/site-content/promotions/{id:guid}", Handle)
+        _ = app.MapDelete("/site-content/promotions/{id:guid}", Handle)
             .WithTags("SiteContent/Promotions")
             .RequireAuthorization()
             .WithName("DeletePromotion")

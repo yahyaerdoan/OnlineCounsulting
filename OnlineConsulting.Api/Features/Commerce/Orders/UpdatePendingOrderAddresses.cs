@@ -11,7 +11,7 @@ public class UpdatePendingOrderAddresses : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/orders/{id:guid}/addresses", Handle)
+        _ = app.MapPut("/orders/{id:guid}/addresses", Handle)
             .WithTags("Commerce/Orders")
             .RequireAuthorization()
             .WithName("UpdatePendingOrderAddresses")

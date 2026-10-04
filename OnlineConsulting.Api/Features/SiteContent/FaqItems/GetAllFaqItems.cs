@@ -9,7 +9,7 @@ public class GetAllFaqItems : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/site-content/faq-items", Handle)
+        _ = app.MapGet("/site-content/faq-items", Handle)
             .WithTags("SiteContent/FaqItems")
             .WithName("GetAllFaqItems")
             .WithDescription("Returns FAQ items, optionally filtered to a single service. Public - no login required.");

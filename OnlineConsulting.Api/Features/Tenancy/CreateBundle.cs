@@ -11,7 +11,7 @@ public class CreateBundle : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/tenancy/admin/bundles", Handle)
+        _ = app.MapPost("/tenancy/admin/bundles", Handle)
             .WithTags("Tenancy")
             .RequireAuthorization()
             .WithName("CreateBundle")

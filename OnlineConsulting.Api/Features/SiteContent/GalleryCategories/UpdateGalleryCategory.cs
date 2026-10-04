@@ -10,7 +10,7 @@ public class UpdateGalleryCategory : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/site-content/gallery-categories/{id:guid}", Handle)
+        _ = app.MapPut("/site-content/gallery-categories/{id:guid}", Handle)
             .WithTags("SiteContent/GalleryCategories")
             .RequireAuthorization()
             .WithName("UpdateGalleryCategory")

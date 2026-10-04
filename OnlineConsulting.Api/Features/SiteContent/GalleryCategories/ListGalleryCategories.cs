@@ -11,7 +11,7 @@ public class ListGalleryCategories : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/site-content/gallery-categories/query", Handle)
+        _ = app.MapPost("/site-content/gallery-categories/query", Handle)
             .WithTags("SiteContent/GalleryCategories")
             .WithName("ListGalleryCategories")
             .WithDescription("Returns gallery categories, paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body.");

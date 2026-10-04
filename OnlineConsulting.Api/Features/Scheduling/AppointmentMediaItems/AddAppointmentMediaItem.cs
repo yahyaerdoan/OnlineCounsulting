@@ -12,7 +12,7 @@ public class AddAppointmentMediaItem : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/appointments/media-items", Handle)
+        _ = app.MapPost("/appointments/media-items", Handle)
             .WithTags("Scheduling/Appointments")
             .RequireAuthorization()
             .WithName("AddAppointmentMediaItem")

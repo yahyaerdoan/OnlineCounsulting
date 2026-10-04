@@ -11,7 +11,7 @@ public class GetUnreadNotificationCount : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/notifications/unread-count", Handle)
+        _ = app.MapGet("/notifications/unread-count", Handle)
             .WithTags("Identity/Notifications")
             .RequireAuthorization()
             .WithName("GetUnreadNotificationCount")

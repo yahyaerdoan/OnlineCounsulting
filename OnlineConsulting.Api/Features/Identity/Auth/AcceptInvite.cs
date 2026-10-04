@@ -11,7 +11,7 @@ public class AcceptInvite : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/auth/invites/accept", Handle)
+        _ = app.MapPost("/auth/invites/accept", Handle)
             .WithTags("Identity/Auth")
             .RequireRateLimiting(ServiceRegistration.AuthRateLimiterPolicy)
             .WithName("AcceptInvite")

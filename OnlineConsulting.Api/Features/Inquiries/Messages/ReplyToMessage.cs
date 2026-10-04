@@ -10,7 +10,7 @@ public class ReplyToMessage : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/inquiries/messages/{id:guid}/reply", Handle)
+        _ = app.MapPost("/inquiries/messages/{id:guid}/reply", Handle)
             .WithTags("Inquiries/Messages")
             .RequireAuthorization()
             .WithName("ReplyToMessage")

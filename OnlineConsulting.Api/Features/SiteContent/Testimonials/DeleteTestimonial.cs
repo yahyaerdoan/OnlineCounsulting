@@ -9,7 +9,7 @@ public class DeleteTestimonial : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapDelete("/api/site-content/testimonials/{id:guid}", Handle)
+        _ = app.MapDelete("/site-content/testimonials/{id:guid}", Handle)
             .WithTags("SiteContent/Testimonials")
             .RequireAuthorization()
             .WithName("DeleteTestimonial")

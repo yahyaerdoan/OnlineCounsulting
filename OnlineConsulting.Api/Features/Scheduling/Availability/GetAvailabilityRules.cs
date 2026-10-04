@@ -9,7 +9,7 @@ public class GetAvailabilityRules : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/scheduling/availability-rules", Handle)
+        _ = app.MapGet("/scheduling/availability-rules", Handle)
             .WithTags("Scheduling/Availability")
             .RequireAuthorization()
             .WithName("GetAvailabilityRules")

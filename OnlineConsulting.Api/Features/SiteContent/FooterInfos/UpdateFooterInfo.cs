@@ -10,7 +10,7 @@ public class UpdateFooterInfo : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/site-content/footer-info/{id:guid}", Handle)
+        _ = app.MapPut("/site-content/footer-info/{id:guid}", Handle)
             .WithTags("SiteContent/FooterInfo")
             .RequireAuthorization()
             .WithName("UpdateFooterInfo")

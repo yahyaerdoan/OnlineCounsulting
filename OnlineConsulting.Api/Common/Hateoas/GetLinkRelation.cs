@@ -1,7 +1,7 @@
 namespace OnlineConsulting.Api.Common.Hateoas;
 
 /// <summary>Documentation target of the "oc" CURIE: what an "oc:{rel}" link relation means.</summary>
-public class GetLinkRelation : IEndpoint
+public class GetLinkRelation : IVersionNeutralEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {

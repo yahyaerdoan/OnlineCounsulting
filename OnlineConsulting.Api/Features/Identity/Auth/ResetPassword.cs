@@ -11,7 +11,7 @@ public class ResetPassword : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/auth/reset-password", Handle)
+        _ = app.MapPost("/auth/reset-password", Handle)
             .WithTags("Identity/Auth")
             .RequireRateLimiting(ServiceRegistration.AuthRateLimiterPolicy)
             .WithName("ResetPassword")

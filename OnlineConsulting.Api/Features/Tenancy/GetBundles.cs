@@ -9,7 +9,7 @@ public class GetBundles : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/tenancy/admin/bundles", Handle)
+        _ = app.MapGet("/tenancy/admin/bundles", Handle)
             .WithTags("Tenancy")
             .RequireAuthorization()
             .WithName("GetBundles")

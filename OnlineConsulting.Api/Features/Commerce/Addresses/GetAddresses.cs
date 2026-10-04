@@ -11,7 +11,7 @@ public class GetAddresses : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/addresses", Handle)
+        _ = app.MapGet("/addresses", Handle)
             .WithTags("Commerce/Addresses")
             .RequireAuthorization()
             .WithName("GetAddresses")

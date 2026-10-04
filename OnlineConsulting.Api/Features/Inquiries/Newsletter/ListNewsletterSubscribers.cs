@@ -11,7 +11,7 @@ public class ListNewsletterSubscribers : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/inquiries/newsletter/query", Handle)
+        _ = app.MapPost("/inquiries/newsletter/query", Handle)
             .WithTags("Inquiries/Newsletter")
             .RequireAuthorization()
             .WithName("ListNewsletterSubscribers")

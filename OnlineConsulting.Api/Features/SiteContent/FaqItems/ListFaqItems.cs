@@ -11,7 +11,7 @@ public class ListFaqItems : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/site-content/faq-items/query", Handle)
+        _ = app.MapPost("/site-content/faq-items/query", Handle)
             .WithTags("SiteContent/FaqItems")
             .WithName("ListFaqItems")
             .WithDescription("Returns FAQ items across all services, paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body.");

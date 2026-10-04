@@ -11,7 +11,7 @@ public class GetMyAppointments : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/appointments/mine", Handle)
+        _ = app.MapGet("/appointments/mine", Handle)
             .WithTags("Scheduling/Appointments")
             .RequireAuthorization()
             .WithName("GetMyAppointments")

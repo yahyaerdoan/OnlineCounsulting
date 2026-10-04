@@ -10,7 +10,7 @@ public class CreatePartnershipSocialLink : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/site-content/partnership-social-links", Handle)
+        _ = app.MapPost("/site-content/partnership-social-links", Handle)
             .WithTags("SiteContent/PartnershipSocialLinks")
             .RequireAuthorization()
             .WithName("CreatePartnershipSocialLink")

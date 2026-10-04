@@ -10,7 +10,7 @@ public class SetUserPermissionOverrides : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/users/{id:guid}/permission-overrides", Handle)
+        _ = app.MapPut("/users/{id:guid}/permission-overrides", Handle)
             .WithTags("Identity/Users")
             .RequireAuthorization()
             .WithName("SetUserPermissionOverrides")

@@ -10,7 +10,7 @@ public class CreateServiceProcessStep : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/site-content/service-process-steps", Handle)
+        _ = app.MapPost("/site-content/service-process-steps", Handle)
             .WithTags("SiteContent/ServiceProcessSteps")
             .RequireAuthorization()
             .WithName("CreateServiceProcessStep")

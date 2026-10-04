@@ -10,7 +10,7 @@ public class AddWorkOrderMediaItem : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/work-orders/{workOrderId:guid}/media-items", Handle)
+        _ = app.MapPost("/work-orders/{workOrderId:guid}/media-items", Handle)
             .WithTags("Scheduling/WorkOrders")
             .RequireAuthorization()
             .WithName("AddWorkOrderMediaItem")

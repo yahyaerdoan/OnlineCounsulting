@@ -10,7 +10,7 @@ public class CompleteReferral : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/referrals/{id:guid}/complete", Handle)
+        _ = app.MapPost("/referrals/{id:guid}/complete", Handle)
             .WithTags("Referrals")
             .RequireAuthorization()
             .WithName("CompleteReferral")

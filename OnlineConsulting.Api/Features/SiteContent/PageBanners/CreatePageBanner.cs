@@ -10,7 +10,7 @@ public class CreatePageBanner : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/site-content/page-banners", Handle)
+        _ = app.MapPost("/site-content/page-banners", Handle)
             .WithTags("SiteContent/PageBanners")
             .RequireAuthorization()
             .WithName("CreatePageBanner")

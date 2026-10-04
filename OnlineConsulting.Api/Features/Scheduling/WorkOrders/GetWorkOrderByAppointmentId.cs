@@ -9,7 +9,7 @@ public class GetWorkOrderByAppointmentId : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/appointments/{appointmentId:guid}/work-order", Handle)
+        _ = app.MapGet("/appointments/{appointmentId:guid}/work-order", Handle)
             .WithTags("Scheduling/WorkOrders")
             .RequireAuthorization()
             .WithName("GetWorkOrderByAppointmentId")

@@ -9,7 +9,7 @@ public class AdminReactivateMembership : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/memberships/{id:guid}/reactivate", Handle)
+        _ = app.MapPost("/memberships/{id:guid}/reactivate", Handle)
             .WithTags("Memberships/CustomerMemberships")
             .RequireAuthorization()
             .WithName("AdminReactivateMembership")

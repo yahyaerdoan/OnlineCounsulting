@@ -9,7 +9,7 @@ public class DeleteServiceOffering : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapDelete("/api/site-content/service-offerings/{id:guid}", Handle)
+        _ = app.MapDelete("/site-content/service-offerings/{id:guid}", Handle)
             .WithTags("SiteContent/ServiceOfferings")
             .RequireAuthorization()
             .WithName("DeleteServiceOffering")

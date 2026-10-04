@@ -10,7 +10,7 @@ public class UpdateFeatureHighlight : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/site-content/feature-highlights/{id:guid}", Handle)
+        _ = app.MapPut("/site-content/feature-highlights/{id:guid}", Handle)
             .WithTags("SiteContent/FeatureHighlights")
             .RequireAuthorization()
             .WithName("UpdateFeatureHighlight")

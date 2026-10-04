@@ -11,7 +11,7 @@ public class CreateModuleOffering : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/tenancy/admin/module-offerings", Handle)
+        _ = app.MapPost("/tenancy/admin/module-offerings", Handle)
             .WithTags("Tenancy")
             .RequireAuthorization()
             .WithName("CreateModuleOffering")

@@ -11,7 +11,7 @@ public class GetOrderDetail : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/orders/{id:guid}", Handle)
+        _ = app.MapGet("/orders/{id:guid}", Handle)
             .WithTags("Commerce/Orders")
             .RequireAuthorization()
             .WithName("GetOrderDetail")

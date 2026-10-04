@@ -1,6 +1,6 @@
 namespace OnlineConsulting.Maui.Shared.Infrastructure.Api;
 
-/// <summary>Mirrors GET /api/addresses's response shape - current-user-scoped saved addresses.</summary>
+/// <summary>Mirrors GET /api/v1/addresses's response shape - current-user-scoped saved addresses.</summary>
 public record UserAddressResponse(
     Guid Id,
     string AddressName,

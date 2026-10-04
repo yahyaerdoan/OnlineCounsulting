@@ -11,7 +11,7 @@ public class PauseMembership : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/memberships/pause", Handle)
+        _ = app.MapPost("/memberships/pause", Handle)
             .WithTags("Memberships/CustomerMemberships")
             .RequireAuthorization()
             .WithName("PauseMembership")

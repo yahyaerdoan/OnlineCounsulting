@@ -1,6 +1,6 @@
 namespace OnlineConsulting.Maui.Shared.Infrastructure.Api;
 
-/// <summary>Mirrors GET /api/basket's response shape.</summary>
+/// <summary>Mirrors GET /api/v1/basket's response shape.</summary>
 public record BasketResponse(Guid Id, int Quantity, decimal SubTotalPrice, decimal TotalPrice, IReadOnlyList<BasketItemResponse> Items);
 
 /// <summary>One basket line - Id is the basket item id (pass to RemoveItem), not the ServiceId.</summary>

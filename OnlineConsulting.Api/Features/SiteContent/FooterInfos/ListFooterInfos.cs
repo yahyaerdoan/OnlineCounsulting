@@ -11,7 +11,7 @@ public class ListFooterInfos : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/site-content/footer-info/query", Handle)
+        _ = app.MapPost("/site-content/footer-info/query", Handle)
             .WithTags("SiteContent/FooterInfos")
             .WithName("ListFooterInfos")
             .WithDescription("Returns footer info entries, paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body.");

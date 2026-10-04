@@ -10,7 +10,7 @@ public class UpdateBundle : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/tenancy/admin/bundles/{id:guid}", Handle)
+        _ = app.MapPut("/tenancy/admin/bundles/{id:guid}", Handle)
             .WithTags("Tenancy")
             .RequireAuthorization()
             .WithName("UpdateBundle")

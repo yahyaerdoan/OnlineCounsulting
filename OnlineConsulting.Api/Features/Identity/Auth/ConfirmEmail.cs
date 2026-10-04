@@ -11,7 +11,7 @@ public class ConfirmEmail : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/auth/confirm-email", Handle)
+        _ = app.MapPost("/auth/confirm-email", Handle)
             .WithTags("Identity/Auth")
             .RequireRateLimiting(ServiceRegistration.AuthRateLimiterPolicy)
             .WithName("ConfirmEmail")

@@ -1,4 +1,4 @@
-@* Name/email are read-only - PUT /api/users/{id} is admin-gated (Update claim), not a customer
+@* Name/email are read-only - PUT /api/v1/users/{id} is admin-gated (Update claim), not a customer
    self-edit endpoint. Split from the former AccountProfileTab - addresses moved to Addresses.razor. *@
 @page "/user/profile"
 @attribute [Authorize(Roles = AppRoles.User)]

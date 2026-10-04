@@ -9,7 +9,7 @@ public class DeleteAvailabilityRule : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapDelete("/api/scheduling/availability-rules/{id:guid}", Handle)
+        _ = app.MapDelete("/scheduling/availability-rules/{id:guid}", Handle)
             .WithTags("Scheduling/Availability")
             .RequireAuthorization()
             .WithName("DeleteAvailabilityRule")

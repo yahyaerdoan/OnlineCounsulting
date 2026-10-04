@@ -10,7 +10,7 @@ public class UpdateTestimonial : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/site-content/testimonials/{id:guid}", Handle)
+        _ = app.MapPut("/site-content/testimonials/{id:guid}", Handle)
             .WithTags("SiteContent/Testimonials")
             .RequireAuthorization()
             .WithName("UpdateTestimonial")

@@ -10,7 +10,7 @@ public class UpdatePageBanner : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/site-content/page-banners/{id:guid}", Handle)
+        _ = app.MapPut("/site-content/page-banners/{id:guid}", Handle)
             .WithTags("SiteContent/PageBanners")
             .RequireAuthorization()
             .WithName("UpdatePageBanner")

@@ -9,7 +9,7 @@ public class CancelInvite : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapDelete("/api/invites/{id:guid}", Handle)
+        _ = app.MapDelete("/invites/{id:guid}", Handle)
             .WithTags("Identity/Invites")
             .RequireAuthorization()
             .WithName("CancelInvite")

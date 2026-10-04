@@ -9,7 +9,7 @@ public class GetCurrentUser : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/users/me", Handle)
+        _ = app.MapGet("/users/me", Handle)
             .WithTags("Identity/Users")
             .RequireAuthorization()
             .WithName("GetCurrentUser")

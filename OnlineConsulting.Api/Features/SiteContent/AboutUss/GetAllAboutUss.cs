@@ -9,7 +9,7 @@ public class GetAllAboutUss : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/site-content/about-us", Handle)
+        _ = app.MapGet("/site-content/about-us", Handle)
             .WithTags("SiteContent/AboutUs")
             .WithName("GetAllAboutUss")
             .WithDescription("Returns the tenant's About Us content blocks. Public - no login required.");

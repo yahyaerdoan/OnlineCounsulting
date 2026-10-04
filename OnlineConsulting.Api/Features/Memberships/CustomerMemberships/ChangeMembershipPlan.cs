@@ -11,7 +11,7 @@ public class ChangeMembershipPlan : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/memberships/change-plan", Handle)
+        _ = app.MapPost("/memberships/change-plan", Handle)
             .WithTags("Memberships/CustomerMemberships")
             .RequireAuthorization()
             .WithName("ChangeMembershipPlan")

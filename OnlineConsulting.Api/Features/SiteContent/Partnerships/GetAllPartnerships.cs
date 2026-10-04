@@ -9,7 +9,7 @@ public class GetAllPartnerships : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/site-content/partnerships", Handle)
+        _ = app.MapGet("/site-content/partnerships", Handle)
             .WithTags("SiteContent/Partnerships")
             .WithName("GetAllPartnerships")
             .WithDescription("Returns the tenant's partnership showcase entries, with their social links. Public - no login required. Returns an empty list when the tenant's Partnerships feature flag is off.");

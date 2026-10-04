@@ -11,7 +11,7 @@ public class SyncMyInvoicePayment : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/invoices/{id:guid}/sync-payment", Handle)
+        _ = app.MapPost("/invoices/{id:guid}/sync-payment", Handle)
             .WithTags("Commerce/Invoices")
             .RequireAuthorization()
             .WithName("SyncMyInvoicePayment")

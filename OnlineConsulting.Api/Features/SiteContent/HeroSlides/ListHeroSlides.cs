@@ -11,7 +11,7 @@ public class ListHeroSlides : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/site-content/hero-slides/query", Handle)
+        _ = app.MapPost("/site-content/hero-slides/query", Handle)
             .WithTags("SiteContent/HeroSlides")
             .WithName("ListHeroSlides")
             .WithDescription("Returns hero slides, paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body.");

@@ -9,7 +9,7 @@ public class DeleteSocialLink : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapDelete("/api/site-content/social-links/{id:guid}", Handle)
+        _ = app.MapDelete("/site-content/social-links/{id:guid}", Handle)
             .WithTags("SiteContent/SocialLinks")
             .RequireAuthorization()
             .WithName("DeleteSocialLink")

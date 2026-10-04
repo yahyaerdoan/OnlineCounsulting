@@ -9,7 +9,7 @@ public class GetFeaturedServices : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/services/featured", Handle)
+        _ = app.MapGet("/services/featured", Handle)
             .WithTags("Services")
             .WithName("GetFeaturedServices")
             .WithDescription("Returns services marked as featured. Public - no login required.");

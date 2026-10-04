@@ -1,5 +1,5 @@
 @* Subscribe to a membership plan: tokenize the card via Stripe.js first (subscribeStripe.js), then
-   POST /api/memberships/subscribe with the resulting PaymentMethodId. ClientSecret only comes back
+   POST /api/v1/memberships/subscribe with the resulting PaymentMethodId. ClientSecret only comes back
    non-null for PayPal (an approval URL to redirect to) - Stripe/Mock settle synchronously. *@
 @* Anonymous can browse the plan; only promo/subscribe need a signed-in user, so only that part sits behind AuthorizeView (Appointment.razor pattern). *@
 @page "/user/membership/subscribe/{PlanId:guid}"

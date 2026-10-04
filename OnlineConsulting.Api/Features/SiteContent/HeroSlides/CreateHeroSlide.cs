@@ -10,7 +10,7 @@ public class CreateHeroSlide : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/site-content/hero-slides", Handle)
+        _ = app.MapPost("/site-content/hero-slides", Handle)
             .WithTags("SiteContent/HeroSlides")
             .RequireAuthorization()
             .WithName("CreateHeroSlide")

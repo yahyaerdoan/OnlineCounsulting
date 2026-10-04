@@ -11,7 +11,7 @@ public class ListPromotions : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/site-content/promotions/query", Handle)
+        _ = app.MapPost("/site-content/promotions/query", Handle)
             .WithTags("SiteContent/Promotions")
             .WithName("ListPromotions")
             .WithDescription("Returns promotions, paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body.");

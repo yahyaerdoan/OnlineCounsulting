@@ -9,7 +9,7 @@ public class GetAllTestimonials : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/site-content/testimonials", Handle)
+        _ = app.MapGet("/site-content/testimonials", Handle)
             .WithTags("SiteContent/Testimonials")
             .WithName("GetAllTestimonials")
             .WithDescription("Returns the tenant's customer testimonials. Public - no login required.");

@@ -9,7 +9,7 @@ public class GetAllRoles : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/roles", Handle)
+        _ = app.MapGet("/roles", Handle)
             .WithTags("Identity/Roles")
             .RequireAuthorization()
             .WithName("GetAllRoles")

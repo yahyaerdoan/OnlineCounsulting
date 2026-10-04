@@ -11,7 +11,7 @@ public class GetMyReferrals : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/referrals/mine", Handle)
+        _ = app.MapGet("/referrals/mine", Handle)
             .WithTags("Referrals")
             .RequireAuthorization()
             .WithName("GetMyReferrals")

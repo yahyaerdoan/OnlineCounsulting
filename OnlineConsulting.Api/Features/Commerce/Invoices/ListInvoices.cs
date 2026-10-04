@@ -11,7 +11,7 @@ public class ListInvoices : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/invoices/admin/query", Handle)
+        _ = app.MapPost("/invoices/admin/query", Handle)
             .WithTags("Commerce/Invoices")
             .RequireAuthorization()
             .WithName("ListInvoices")

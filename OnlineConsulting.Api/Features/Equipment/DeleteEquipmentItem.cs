@@ -9,7 +9,7 @@ public class DeleteEquipmentItem : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapDelete("/api/equipment/{id:guid}", Handle)
+        _ = app.MapDelete("/equipment/{id:guid}", Handle)
             .WithTags("Equipment")
             .RequireAuthorization()
             .WithName("DeleteEquipmentItem")

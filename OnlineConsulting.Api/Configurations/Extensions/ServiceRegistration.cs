@@ -1,6 +1,8 @@
-﻿using Core.CrossCuttingConcernLayer.Loggings.Serilogs.Loggers;
+﻿using Asp.Versioning;
+using Core.CrossCuttingConcernLayer.Loggings.Serilogs.Loggers;
 using Core.CrossCuttingConcernLayer.Loggings.Serilogs.Services;
 using Microsoft.OpenApi;
+using OnlineConsulting.Api.Common;
 using OnlineConsulting.SharedKernel.DependencyInjection;
 using System.Threading.RateLimiting;
 
@@ -75,6 +77,17 @@ public static class ServiceRegistration
 
     private static void AddApiOpenApi(this IServiceCollection services)
     {
+        _ = services.AddApiVersioning(options =>
+        {
+            options.DefaultApiVersion = ApiVersions.V1;
+            options.ReportApiVersions = true;
+            options.ApiVersionReader = new UrlSegmentApiVersionReader();
+        }).AddApiExplorer(options =>
+        {
+            options.GroupNameFormat = "'v'V";
+            options.SubstituteApiVersionInUrl = true;
+        });
+
         _ = services.AddOpenApi("v1", options =>
         {
             _ = options.AddDocumentTransformer((document, _, _) =>

@@ -11,7 +11,7 @@ public class CreateCategory : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/categories", Handle)
+        _ = app.MapPost("/categories", Handle)
             .WithTags("Categories")
             .RequireAuthorization()
             .WithName("CreateCategory")

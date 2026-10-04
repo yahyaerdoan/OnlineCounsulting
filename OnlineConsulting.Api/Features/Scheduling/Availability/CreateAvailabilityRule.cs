@@ -10,7 +10,7 @@ public class CreateAvailabilityRule : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/scheduling/availability-rules", Handle)
+        _ = app.MapPost("/scheduling/availability-rules", Handle)
             .WithTags("Scheduling/Availability")
             .RequireAuthorization()
             .WithName("CreateAvailabilityRule")

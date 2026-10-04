@@ -12,7 +12,7 @@ public class SubscribeToMembership : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/memberships/subscribe", Handle)
+        _ = app.MapPost("/memberships/subscribe", Handle)
             .WithTags("Memberships/CustomerMemberships")
             .RequireAuthorization()
             .WithName("SubscribeToMembership")

@@ -11,7 +11,7 @@ public class ListTestimonials : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/site-content/testimonials/query", Handle)
+        _ = app.MapPost("/site-content/testimonials/query", Handle)
             .WithTags("SiteContent/Testimonials")
             .WithName("ListTestimonials")
             .WithDescription("Returns testimonials, paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body.");

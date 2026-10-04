@@ -5,7 +5,7 @@ using OnlineConsulting.SharedKernel.Payments;
 namespace OnlineConsulting.Api.Features.Payments;
 
 /// <summary>Reads the raw request body (not model-bound JSON) so signature verification runs over the exact original bytes.</summary>
-public class PaymentWebhook : IEndpoint
+public class PaymentWebhook : IVersionNeutralEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {

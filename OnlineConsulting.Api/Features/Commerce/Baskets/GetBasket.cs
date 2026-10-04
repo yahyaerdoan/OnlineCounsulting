@@ -10,7 +10,7 @@ public class GetBasket : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/basket", Handle)
+        _ = app.MapGet("/basket", Handle)
             .WithTags("Commerce/Baskets")
             .WithName("GetBasket")
             .WithDescription("Returns the current user's (or guest's) basket, with its items.");

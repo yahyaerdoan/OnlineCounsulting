@@ -11,7 +11,7 @@ public class ListEquipmentItems : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/equipment/query", Handle)
+        _ = app.MapPost("/equipment/query", Handle)
             .WithTags("Equipment")
             .RequireAuthorization()
             .WithName("ListEquipmentItems")

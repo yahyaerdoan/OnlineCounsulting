@@ -10,7 +10,7 @@ public class UpdateFaqItem : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/site-content/faq-items/{id:guid}", Handle)
+        _ = app.MapPut("/site-content/faq-items/{id:guid}", Handle)
             .WithTags("SiteContent/FaqItems")
             .RequireAuthorization()
             .WithName("UpdateFaqItem")

@@ -9,7 +9,7 @@ public class DeletePartnership : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapDelete("/api/site-content/partnerships/{id:guid}", Handle)
+        _ = app.MapDelete("/site-content/partnerships/{id:guid}", Handle)
             .WithTags("SiteContent/Partnerships")
             .RequireAuthorization()
             .WithName("DeletePartnership")

@@ -9,7 +9,7 @@ public class GetInvoicePdfForStaff : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/invoices/admin/{id:guid}/pdf", Handle)
+        _ = app.MapGet("/invoices/admin/{id:guid}/pdf", Handle)
             .WithTags("Commerce/Invoices")
             .RequireAuthorization()
             .WithName("GetInvoicePdfForStaff")

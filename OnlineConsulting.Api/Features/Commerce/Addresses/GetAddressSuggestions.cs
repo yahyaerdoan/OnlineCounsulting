@@ -9,7 +9,7 @@ public class GetAddressSuggestions : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/addresses/suggestions", Handle)
+        _ = app.MapGet("/addresses/suggestions", Handle)
             .WithTags("Commerce/Addresses")
             .RequireAuthorization()
             .WithName("GetAddressSuggestions")

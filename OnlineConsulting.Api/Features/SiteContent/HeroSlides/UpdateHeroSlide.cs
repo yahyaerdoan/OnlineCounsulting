@@ -10,7 +10,7 @@ public class UpdateHeroSlide : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/site-content/hero-slides/{id:guid}", Handle)
+        _ = app.MapPut("/site-content/hero-slides/{id:guid}", Handle)
             .WithTags("SiteContent/HeroSlides")
             .RequireAuthorization()
             .WithName("UpdateHeroSlide")

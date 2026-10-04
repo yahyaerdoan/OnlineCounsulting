@@ -11,7 +11,7 @@ public class AddBasketItem : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/basket/items", Handle)
+        _ = app.MapPost("/basket/items", Handle)
             .WithTags("Commerce/Baskets")
             .WithName("AddBasketItem")
             .WithDescription("Adds a service to the current user's (or guest's) basket, increasing its quantity if already present.");

@@ -9,7 +9,7 @@ public class GetBundleById : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/tenancy/admin/bundles/{id:guid}", Handle)
+        _ = app.MapGet("/tenancy/admin/bundles/{id:guid}", Handle)
             .WithTags("Tenancy")
             .RequireAuthorization()
             .WithName("GetBundleById")

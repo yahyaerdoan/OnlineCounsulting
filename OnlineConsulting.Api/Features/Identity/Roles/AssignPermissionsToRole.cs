@@ -10,7 +10,7 @@ public class AssignPermissionsToRole : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/roles/{id:guid}/permissions", Handle)
+        _ = app.MapPut("/roles/{id:guid}/permissions", Handle)
             .WithTags("Identity/Roles")
             .RequireAuthorization()
             .WithName("AssignPermissionsToRole")

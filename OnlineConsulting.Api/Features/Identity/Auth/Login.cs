@@ -13,7 +13,7 @@ public class Login : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/auth/login", Handle)
+        _ = app.MapPost("/auth/login", Handle)
             .WithTags("Identity/Auth")
             .RequireRateLimiting(ServiceRegistration.AuthRateLimiterPolicy)
             .WithName("Login")

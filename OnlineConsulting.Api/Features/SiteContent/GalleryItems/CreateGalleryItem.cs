@@ -10,7 +10,7 @@ public class CreateGalleryItem : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/site-content/gallery-items", Handle)
+        _ = app.MapPost("/site-content/gallery-items", Handle)
             .WithTags("SiteContent/GalleryItems")
             .RequireAuthorization()
             .WithName("CreateGalleryItem")

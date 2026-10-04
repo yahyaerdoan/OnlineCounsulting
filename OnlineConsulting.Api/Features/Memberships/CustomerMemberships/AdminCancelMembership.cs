@@ -9,7 +9,7 @@ public class AdminCancelMembership : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/memberships/{id:guid}/cancel", Handle)
+        _ = app.MapPost("/memberships/{id:guid}/cancel", Handle)
             .WithTags("Memberships/CustomerMemberships")
             .RequireAuthorization()
             .WithName("AdminCancelMembership")

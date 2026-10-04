@@ -11,7 +11,7 @@ public class ListInvites : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/invites/query", Handle)
+        _ = app.MapPost("/invites/query", Handle)
             .WithTags("Identity/Invites")
             .RequireAuthorization()
             .WithName("ListInvites")

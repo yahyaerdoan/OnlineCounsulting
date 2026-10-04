@@ -9,7 +9,7 @@ public class GetPromoCodes : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/promo-codes", Handle)
+        _ = app.MapGet("/promo-codes", Handle)
             .WithTags("Memberships/PromoCodes")
             .RequireAuthorization()
             .WithName("GetPromoCodes")

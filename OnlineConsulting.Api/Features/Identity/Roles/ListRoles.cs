@@ -11,7 +11,7 @@ public class ListRoles : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/roles/query", Handle)
+        _ = app.MapPost("/roles/query", Handle)
             .WithTags("Identity/Roles")
             .RequireAuthorization()
             .WithName("ListRoles")

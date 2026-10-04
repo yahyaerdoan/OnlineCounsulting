@@ -11,7 +11,7 @@ public class SetBasketItemQuantity : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/basket/items/{id:guid}", Handle)
+        _ = app.MapPut("/basket/items/{id:guid}", Handle)
             .WithTags("Commerce/Baskets")
             .WithName("SetBasketItemQuantity")
             .WithDescription("Sets a basket line's quantity to an absolute value - the cart page's +/- stepper.");

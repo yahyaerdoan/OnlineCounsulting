@@ -10,7 +10,7 @@ public class CreateGalleryCategory : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/site-content/gallery-categories", Handle)
+        _ = app.MapPost("/site-content/gallery-categories", Handle)
             .WithTags("SiteContent/GalleryCategories")
             .RequireAuthorization()
             .WithName("CreateGalleryCategory")

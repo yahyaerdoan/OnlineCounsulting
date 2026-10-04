@@ -11,7 +11,7 @@ public class ListCustomerMemberships : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/memberships/query", Handle)
+        _ = app.MapPost("/memberships/query", Handle)
             .WithTags("Memberships/CustomerMemberships")
             .RequireAuthorization()
             .WithName("ListCustomerMemberships")

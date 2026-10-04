@@ -10,7 +10,7 @@ public class CreateFooterInfo : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/site-content/footer-info", Handle)
+        _ = app.MapPost("/site-content/footer-info", Handle)
             .WithTags("SiteContent/FooterInfo")
             .RequireAuthorization()
             .WithName("CreateFooterInfo")

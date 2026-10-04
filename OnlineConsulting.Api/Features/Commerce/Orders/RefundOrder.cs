@@ -10,7 +10,7 @@ public class RefundOrder : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/orders/{id:guid}/refund", Handle)
+        _ = app.MapPost("/orders/{id:guid}/refund", Handle)
             .WithTags("Commerce/Orders")
             .RequireAuthorization()
             .WithName("RefundOrder")

@@ -10,7 +10,7 @@ public class CreateFeatureHighlight : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/site-content/feature-highlights", Handle)
+        _ = app.MapPost("/site-content/feature-highlights", Handle)
             .WithTags("SiteContent/FeatureHighlights")
             .RequireAuthorization()
             .WithName("CreateFeatureHighlight")

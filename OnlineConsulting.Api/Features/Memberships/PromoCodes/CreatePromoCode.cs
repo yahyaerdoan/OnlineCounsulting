@@ -10,7 +10,7 @@ public class CreatePromoCode : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/promo-codes", Handle)
+        _ = app.MapPost("/promo-codes", Handle)
             .WithTags("Memberships/PromoCodes")
             .RequireAuthorization()
             .WithName("CreatePromoCode")

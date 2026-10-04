@@ -11,7 +11,7 @@ public class MarkAllNotificationsRead : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/notifications/read-all", Handle)
+        _ = app.MapPost("/notifications/read-all", Handle)
             .WithTags("Identity/Notifications")
             .RequireAuthorization()
             .WithName("MarkAllNotificationsRead")

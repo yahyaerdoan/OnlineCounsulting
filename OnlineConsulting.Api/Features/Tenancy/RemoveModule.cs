@@ -10,7 +10,7 @@ public class RemoveModule : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapDelete("/api/tenancy/{tenantId:guid}/modules/{key}", Handle)
+        _ = app.MapDelete("/tenancy/{tenantId:guid}/modules/{key}", Handle)
             .WithTags("Tenancy")
             .RequireAuthorization()
             .WithName("RemoveModule")

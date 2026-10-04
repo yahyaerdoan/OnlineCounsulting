@@ -10,7 +10,7 @@ public class CreatePromotion : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/site-content/promotions", Handle)
+        _ = app.MapPost("/site-content/promotions", Handle)
             .WithTags("SiteContent/Promotions")
             .RequireAuthorization()
             .WithName("CreatePromotion")

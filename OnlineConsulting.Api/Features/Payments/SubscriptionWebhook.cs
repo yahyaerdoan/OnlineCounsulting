@@ -5,7 +5,7 @@ using OnlineConsulting.SharedKernel.Payments;
 namespace OnlineConsulting.Api.Features.Payments;
 
 /// <summary>Separate from PaymentWebhook because subscription and one-time-payment events use different gateway interfaces/vocabularies, even though both are served by Stripe today.</summary>
-public class SubscriptionWebhook : IEndpoint
+public class SubscriptionWebhook : IVersionNeutralEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {

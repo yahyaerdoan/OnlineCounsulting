@@ -11,7 +11,7 @@ public class GetMyEquipment : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/equipment/mine", Handle)
+        _ = app.MapGet("/equipment/mine", Handle)
             .WithTags("Equipment")
             .RequireAuthorization()
             .WithName("GetMyEquipment")

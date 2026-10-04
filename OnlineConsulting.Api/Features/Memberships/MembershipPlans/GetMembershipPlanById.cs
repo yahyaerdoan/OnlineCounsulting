@@ -9,7 +9,7 @@ public class GetMembershipPlanById : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/membership-plans/{id:guid}", Handle)
+        _ = app.MapGet("/membership-plans/{id:guid}", Handle)
             .WithTags("Memberships/Plans")
             .WithName("GetMembershipPlanById")
             .WithDescription("Returns a single membership plan by id. Public - used by the pricing page.");

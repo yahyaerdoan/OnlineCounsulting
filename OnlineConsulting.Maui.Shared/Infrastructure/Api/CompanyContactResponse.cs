@@ -1,4 +1,4 @@
 namespace OnlineConsulting.Maui.Shared.Infrastructure.Api;
 
-/// <summary>Mirrors GET /api/contact's response shape.</summary>
+/// <summary>Mirrors GET /api/v1/contact's response shape.</summary>
 public record CompanyContactResponse(Guid Id, string Email, string Phone, string Address, string Description, string WorkingHours);

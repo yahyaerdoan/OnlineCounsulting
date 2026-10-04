@@ -9,7 +9,7 @@ public class RemoveDeviceToken : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapDelete("/api/device-tokens/{token}", Handle)
+        _ = app.MapDelete("/device-tokens/{token}", Handle)
             .WithTags("Identity/DeviceTokens")
             .RequireAuthorization()
             .WithName("RemoveDeviceToken")

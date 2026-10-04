@@ -10,7 +10,7 @@ public class CreateFaqItem : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/site-content/faq-items", Handle)
+        _ = app.MapPost("/site-content/faq-items", Handle)
             .WithTags("SiteContent/FaqItems")
             .RequireAuthorization()
             .WithName("CreateFaqItem")

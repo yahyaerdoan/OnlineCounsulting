@@ -11,7 +11,7 @@ public class CreateService : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/services", Handle)
+        _ = app.MapPost("/services", Handle)
             .WithTags("Services")
             .RequireAuthorization()
             .WithName("CreateService")

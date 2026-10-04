@@ -11,7 +11,7 @@ public class ListPartnerships : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/site-content/partnerships/query", Handle)
+        _ = app.MapPost("/site-content/partnerships/query", Handle)
             .WithTags("SiteContent/Partnerships")
             .WithName("ListPartnerships")
             .WithDescription("Returns partnerships with their social links, paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body.");

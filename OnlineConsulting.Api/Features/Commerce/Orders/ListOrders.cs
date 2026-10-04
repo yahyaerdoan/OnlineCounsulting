@@ -14,7 +14,7 @@ public class ListOrders : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/orders/admin/query", Handle)
+        _ = app.MapPost("/orders/admin/query", Handle)
             .WithTags("Commerce/Orders")
             .RequireAuthorization()
             .WithName("ListOrders")

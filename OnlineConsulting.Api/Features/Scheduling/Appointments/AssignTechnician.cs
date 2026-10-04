@@ -10,7 +10,7 @@ public class AssignTechnician : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/appointments/{id:guid}/assign-technician", Handle)
+        _ = app.MapPost("/appointments/{id:guid}/assign-technician", Handle)
             .WithTags("Scheduling/Appointments")
             .RequireAuthorization()
             .WithName("AssignTechnician")

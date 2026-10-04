@@ -11,7 +11,7 @@ public class VoidInvoice : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/invoices/admin/{id:guid}/void", Handle)
+        _ = app.MapPost("/invoices/admin/{id:guid}/void", Handle)
             .WithTags("Commerce/Invoices")
             .RequireAuthorization()
             .WithName("VoidInvoice")

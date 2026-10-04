@@ -11,7 +11,7 @@ public class GetMyNotifications : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/notifications", Handle)
+        _ = app.MapGet("/notifications", Handle)
             .WithTags("Identity/Notifications")
             .RequireAuthorization()
             .WithName("GetMyNotifications")

@@ -9,7 +9,7 @@ public class GetServiceBySlug : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/services/by-slug/{slug}", Handle)
+        _ = app.MapGet("/services/by-slug/{slug}", Handle)
             .WithTags("Services")
             .WithName("GetServiceBySlug")
             .WithDescription("Returns a single service by its SEO slug. Public - no login required.");

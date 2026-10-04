@@ -9,7 +9,7 @@ public class GetAllPromotions : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/site-content/promotions", Handle)
+        _ = app.MapGet("/site-content/promotions", Handle)
             .WithTags("SiteContent/Promotions")
             .WithName("GetAllPromotions")
             .WithDescription("Returns the tenant's promotional offers. Public - no login required.");

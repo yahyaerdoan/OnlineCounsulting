@@ -10,7 +10,7 @@ public class CreateEquipmentItem : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/equipment", Handle)
+        _ = app.MapPost("/equipment", Handle)
             .WithTags("Equipment")
             .RequireAuthorization()
             .WithName("CreateEquipmentItem")

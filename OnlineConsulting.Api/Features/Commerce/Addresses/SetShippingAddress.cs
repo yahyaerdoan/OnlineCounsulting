@@ -11,7 +11,7 @@ public class SetShippingAddress : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/addresses/{id:guid}/shipping", Handle)
+        _ = app.MapPut("/addresses/{id:guid}/shipping", Handle)
             .WithTags("Commerce/Addresses")
             .RequireAuthorization()
             .WithName("SetShippingAddress")

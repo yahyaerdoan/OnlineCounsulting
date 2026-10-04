@@ -10,7 +10,7 @@ public class CreateInvite : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/auth/invites", Handle)
+        _ = app.MapPost("/auth/invites", Handle)
             .WithTags("Identity/Auth")
             .RequireAuthorization()
             .WithName("CreateInvite")

@@ -11,7 +11,7 @@ public class ListUsers : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/users/query", Handle)
+        _ = app.MapPost("/users/query", Handle)
             .WithTags("Identity/Users")
             .RequireAuthorization()
             .WithName("ListUsers")

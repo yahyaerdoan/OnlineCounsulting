@@ -9,7 +9,7 @@ public class GetCategories : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/categories", Handle)
+        _ = app.MapGet("/categories", Handle)
             .WithTags("Categories")
             .WithName("GetCategories")
             .WithDescription("Returns the current tenant's categories, paginated.");

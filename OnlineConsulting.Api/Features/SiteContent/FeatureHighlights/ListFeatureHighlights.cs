@@ -11,7 +11,7 @@ public class ListFeatureHighlights : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/site-content/feature-highlights/query", Handle)
+        _ = app.MapPost("/site-content/feature-highlights/query", Handle)
             .WithTags("SiteContent/FeatureHighlights")
             .WithName("ListFeatureHighlights")
             .WithDescription("Returns feature highlights, paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body.");

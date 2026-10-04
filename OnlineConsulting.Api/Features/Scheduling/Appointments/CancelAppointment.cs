@@ -11,7 +11,7 @@ public class CancelAppointment : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/appointments/{id:guid}/cancel", Handle)
+        _ = app.MapPost("/appointments/{id:guid}/cancel", Handle)
             .WithTags("Scheduling/Appointments")
             .RequireAuthorization()
             .WithName("CancelAppointment")

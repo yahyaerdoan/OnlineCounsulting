@@ -11,7 +11,7 @@ public class SetFeatureFlag : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/admin/feature-flags/{key}", Handle)
+        _ = app.MapPut("/admin/feature-flags/{key}", Handle)
             .WithTags("FeatureFlags")
             .RequireAuthorization()
             .WithName("SetFeatureFlag")

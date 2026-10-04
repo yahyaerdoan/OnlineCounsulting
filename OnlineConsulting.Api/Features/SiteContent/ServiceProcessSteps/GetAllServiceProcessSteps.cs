@@ -9,7 +9,7 @@ public class GetAllServiceProcessSteps : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/site-content/service-process-steps", Handle)
+        _ = app.MapGet("/site-content/service-process-steps", Handle)
             .WithTags("SiteContent/ServiceProcessSteps")
             .WithName("GetAllServiceProcessSteps")
             .WithDescription("Returns the \"how you get our service\" steps. Public - no login required.");

@@ -9,7 +9,7 @@ public class ChangeTenantTimeZone : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/tenancy/my-tenant/time-zone", Handle)
+        _ = app.MapPut("/tenancy/my-tenant/time-zone", Handle)
             .WithTags("Tenancy")
             .RequireAuthorization()
             .WithName("ChangeTenantTimeZone")

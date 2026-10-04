@@ -11,7 +11,7 @@ public class ForgotPassword : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/auth/forgot-password", Handle)
+        _ = app.MapPost("/auth/forgot-password", Handle)
             .WithTags("Identity/Auth")
             .RequireRateLimiting(ServiceRegistration.AuthRateLimiterPolicy)
             .WithName("ForgotPassword")

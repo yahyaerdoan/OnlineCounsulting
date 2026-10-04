@@ -9,7 +9,7 @@ public class SearchServices : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/services/search", Handle)
+        _ = app.MapGet("/services/search", Handle)
             .WithTags("Services")
             .WithName("SearchServices")
             .WithDescription("Searches services by title/description. Public - no login required.");

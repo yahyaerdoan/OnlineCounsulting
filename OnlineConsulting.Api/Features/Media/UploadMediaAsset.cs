@@ -12,7 +12,7 @@ public class UploadMediaAsset : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/media", Handle)
+        _ = app.MapPost("/media", Handle)
             .WithTags("Media")
             .RequireAuthorization()
             .DisableAntiforgery()

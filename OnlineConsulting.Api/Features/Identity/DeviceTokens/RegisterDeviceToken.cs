@@ -12,7 +12,7 @@ public class RegisterDeviceToken : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/device-tokens", Handle)
+        _ = app.MapPost("/device-tokens", Handle)
             .WithTags("Identity/DeviceTokens")
             .RequireAuthorization()
             .WithName("RegisterDeviceToken")

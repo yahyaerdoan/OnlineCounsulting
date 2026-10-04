@@ -11,7 +11,7 @@ public class DeleteUserAddress : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapDelete("/api/addresses/{id:guid}", Handle)
+        _ = app.MapDelete("/addresses/{id:guid}", Handle)
             .WithTags("Commerce/Addresses")
             .RequireAuthorization()
             .WithName("DeleteUserAddress")

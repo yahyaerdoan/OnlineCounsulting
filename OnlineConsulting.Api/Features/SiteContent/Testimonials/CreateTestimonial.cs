@@ -10,7 +10,7 @@ public class CreateTestimonial : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/site-content/testimonials", Handle)
+        _ = app.MapPost("/site-content/testimonials", Handle)
             .WithTags("SiteContent/Testimonials")
             .RequireAuthorization()
             .WithName("CreateTestimonial")

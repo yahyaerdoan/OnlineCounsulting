@@ -9,7 +9,7 @@ public class GetAllGalleryItems : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/site-content/gallery-items", Handle)
+        _ = app.MapGet("/site-content/gallery-items", Handle)
             .WithTags("SiteContent/GalleryItems")
             .WithName("GetAllGalleryItems")
             .WithDescription("Returns the tenant's gallery items with their category tags. Public - no login required.");

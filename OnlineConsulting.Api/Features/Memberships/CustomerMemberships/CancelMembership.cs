@@ -11,7 +11,7 @@ public class CancelMembership : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/memberships/cancel", Handle)
+        _ = app.MapPost("/memberships/cancel", Handle)
             .WithTags("Memberships/CustomerMemberships")
             .RequireAuthorization()
             .WithName("CancelMembership")

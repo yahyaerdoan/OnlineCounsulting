@@ -10,7 +10,7 @@ public class UpdateMembershipPlan : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/membership-plans/{id:guid}", Handle)
+        _ = app.MapPut("/membership-plans/{id:guid}", Handle)
             .WithTags("Memberships/Plans")
             .RequireAuthorization()
             .WithName("UpdateMembershipPlan")

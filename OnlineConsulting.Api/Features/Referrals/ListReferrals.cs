@@ -14,7 +14,7 @@ public class ListReferrals : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/referrals/query", Handle)
+        _ = app.MapPost("/referrals/query", Handle)
             .WithTags("Referrals")
             .RequireAuthorization()
             .WithName("ListReferrals")

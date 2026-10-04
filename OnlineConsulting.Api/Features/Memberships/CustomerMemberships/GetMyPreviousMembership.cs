@@ -11,7 +11,7 @@ public class GetMyPreviousMembership : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/memberships/mine/previous", Handle)
+        _ = app.MapGet("/memberships/mine/previous", Handle)
             .WithTags("Memberships/CustomerMemberships")
             .RequireAuthorization()
             .WithName("GetMyPreviousMembership")

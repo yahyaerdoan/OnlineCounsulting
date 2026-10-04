@@ -11,7 +11,7 @@ public class ListTenants : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/tenancy/admin/tenants/query", Handle)
+        _ = app.MapPost("/tenancy/admin/tenants/query", Handle)
             .WithTags("Tenancy")
             .RequireAuthorization()
             .WithName("ListTenants")

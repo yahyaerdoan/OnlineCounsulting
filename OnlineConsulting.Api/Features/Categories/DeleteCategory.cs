@@ -9,7 +9,7 @@ public class DeleteCategory : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapDelete("/api/categories/{id:guid}", Handle)
+        _ = app.MapDelete("/categories/{id:guid}", Handle)
             .WithTags("Categories")
             .RequireAuthorization()
             .WithName("DeleteCategory")

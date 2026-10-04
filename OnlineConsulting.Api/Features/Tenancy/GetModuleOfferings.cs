@@ -9,7 +9,7 @@ public class GetModuleOfferings : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/tenancy/admin/module-offerings", Handle)
+        _ = app.MapGet("/tenancy/admin/module-offerings", Handle)
             .WithTags("Tenancy")
             .RequireAuthorization()
             .WithName("GetModuleOfferings")

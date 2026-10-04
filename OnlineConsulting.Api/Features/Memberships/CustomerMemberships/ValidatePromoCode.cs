@@ -12,7 +12,7 @@ public class ValidatePromoCode : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/memberships/promo-codes/validate", Handle)
+        _ = app.MapPost("/memberships/promo-codes/validate", Handle)
             .WithTags("Memberships/CustomerMemberships")
             .RequireAuthorization()
             .WithName("ValidatePromoCode")

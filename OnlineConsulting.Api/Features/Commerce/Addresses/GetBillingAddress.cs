@@ -11,7 +11,7 @@ public class GetBillingAddress : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/addresses/billing", Handle)
+        _ = app.MapGet("/addresses/billing", Handle)
             .WithTags("Commerce/Addresses")
             .RequireAuthorization()
             .WithName("GetBillingAddress")

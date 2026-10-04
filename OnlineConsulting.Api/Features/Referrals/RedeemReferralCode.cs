@@ -13,7 +13,7 @@ public class RedeemReferralCode : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/referrals/redeem", Handle)
+        _ = app.MapPost("/referrals/redeem", Handle)
             .WithTags("Referrals")
             .RequireAuthorization()
             .RequireRateLimiting(ServiceRegistration.ReferralRedeemRateLimiterPolicy)

@@ -11,7 +11,7 @@ public class GetMyInvoice : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/invoices/{id:guid}", Handle)
+        _ = app.MapGet("/invoices/{id:guid}", Handle)
             .WithTags("Commerce/Invoices")
             .RequireAuthorization()
             .WithName("GetMyInvoice")

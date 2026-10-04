@@ -10,7 +10,7 @@ public class UpdateEquipmentItem : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/equipment/{id:guid}", Handle)
+        _ = app.MapPut("/equipment/{id:guid}", Handle)
             .WithTags("Equipment")
             .RequireAuthorization()
             .WithName("UpdateEquipmentItem")

@@ -9,7 +9,7 @@ public class GetPublicBundles : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/tenancy/bundles", Handle)
+        _ = app.MapGet("/tenancy/bundles", Handle)
             .WithTags("Tenancy")
             .WithName("GetPublicBundles")
             .WithDescription("Returns every publicly visible bundle - pricing-page shortcut data source for the signup form.");

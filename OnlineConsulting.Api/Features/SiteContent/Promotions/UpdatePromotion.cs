@@ -10,7 +10,7 @@ public class UpdatePromotion : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/site-content/promotions/{id:guid}", Handle)
+        _ = app.MapPut("/site-content/promotions/{id:guid}", Handle)
             .WithTags("SiteContent/Promotions")
             .RequireAuthorization()
             .WithName("UpdatePromotion")

@@ -9,7 +9,7 @@ public class GetContact : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/contact", Handle)
+        _ = app.MapGet("/contact", Handle)
             .WithTags("Inquiries/Contact")
             .WithName("GetContact")
             .WithDescription("Returns the company's contact information. Public - no login required.");

@@ -11,7 +11,7 @@ public class ListSocialLinks : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/site-content/social-links/query", Handle)
+        _ = app.MapPost("/site-content/social-links/query", Handle)
             .WithTags("SiteContent/SocialLinks")
             .WithName("ListSocialLinks")
             .WithDescription("Returns social links, paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body.");

@@ -10,7 +10,7 @@ public class RemoveBasketItem : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapDelete("/api/basket/items/{id:guid}", Handle)
+        _ = app.MapDelete("/basket/items/{id:guid}", Handle)
             .WithTags("Commerce/Baskets")
             .WithName("RemoveBasketItem")
             .WithDescription("Removes an item from the current user's (or guest's) basket.");

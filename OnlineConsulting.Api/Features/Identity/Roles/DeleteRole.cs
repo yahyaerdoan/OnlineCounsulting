@@ -9,7 +9,7 @@ public class DeleteRole : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapDelete("/api/roles/{id:guid}", Handle)
+        _ = app.MapDelete("/roles/{id:guid}", Handle)
             .WithTags("Identity/Roles")
             .RequireAuthorization()
             .WithName("DeleteRole")

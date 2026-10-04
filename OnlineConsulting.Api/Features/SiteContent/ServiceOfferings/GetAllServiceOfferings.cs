@@ -9,7 +9,7 @@ public class GetAllServiceOfferings : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/site-content/service-offerings", Handle)
+        _ = app.MapGet("/site-content/service-offerings", Handle)
             .WithTags("SiteContent/ServiceOfferings")
             .WithName("GetAllServiceOfferings")
             .WithDescription("Returns the \"what we provide\" cards. Public - no login required.");

@@ -9,7 +9,7 @@ public class GetMembershipPlans : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/membership-plans", Handle)
+        _ = app.MapGet("/membership-plans", Handle)
             .WithTags("Memberships/Plans")
             .WithName("GetMembershipPlans")
             .WithDescription("Returns the current tenant's membership plans, paginated. Public - used by the pricing page.");

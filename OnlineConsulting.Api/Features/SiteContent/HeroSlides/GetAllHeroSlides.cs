@@ -9,7 +9,7 @@ public class GetAllHeroSlides : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/site-content/hero-slides", Handle)
+        _ = app.MapGet("/site-content/hero-slides", Handle)
             .WithTags("SiteContent/HeroSlides")
             .WithName("GetAllHeroSlides")
             .WithDescription("Returns the tenant's homepage hero slides. Public - no login required.");

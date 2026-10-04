@@ -11,7 +11,7 @@ public class GetMyAccountCredit : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/referrals/my-credit", Handle)
+        _ = app.MapGet("/referrals/my-credit", Handle)
             .WithTags("Referrals")
             .RequireAuthorization()
             .WithName("GetMyAccountCredit")

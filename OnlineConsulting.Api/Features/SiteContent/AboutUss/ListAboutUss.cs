@@ -11,7 +11,7 @@ public class ListAboutUss : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/site-content/about-us/query", Handle)
+        _ = app.MapPost("/site-content/about-us/query", Handle)
             .WithTags("SiteContent/AboutUs")
             .WithName("ListAboutUss")
             .WithDescription("Returns About Us entries, paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body.");

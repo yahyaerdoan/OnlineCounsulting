@@ -22,7 +22,7 @@ public class SignUp : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/tenancy/signup", Handle)
+        _ = app.MapPost("/tenancy/signup", Handle)
             .WithTags("Tenancy")
             .RequireRateLimiting(ServiceRegistration.AuthRateLimiterPolicy)
             .WithName("SignUpTenant")

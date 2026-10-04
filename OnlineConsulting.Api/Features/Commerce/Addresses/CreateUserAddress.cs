@@ -12,7 +12,7 @@ public class CreateUserAddress : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/addresses", Handle)
+        _ = app.MapPost("/addresses", Handle)
             .WithTags("Commerce/Addresses")
             .RequireAuthorization()
             .WithName("CreateUserAddress")

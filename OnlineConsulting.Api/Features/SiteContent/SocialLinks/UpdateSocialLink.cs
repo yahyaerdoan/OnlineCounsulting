@@ -10,7 +10,7 @@ public class UpdateSocialLink : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/site-content/social-links/{id:guid}", Handle)
+        _ = app.MapPut("/site-content/social-links/{id:guid}", Handle)
             .WithTags("SiteContent/SocialLinks")
             .RequireAuthorization()
             .WithName("UpdateSocialLink")

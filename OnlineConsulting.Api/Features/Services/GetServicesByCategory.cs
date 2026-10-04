@@ -9,7 +9,7 @@ public class GetServicesByCategory : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/categories/{categoryId:guid}/services", Handle)
+        _ = app.MapGet("/categories/{categoryId:guid}/services", Handle)
             .WithTags("Services")
             .WithName("GetServicesByCategory")
             .WithDescription("Returns a category's services, paginated. Public - no login required.");

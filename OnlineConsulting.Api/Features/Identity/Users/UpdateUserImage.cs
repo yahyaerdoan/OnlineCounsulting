@@ -11,7 +11,7 @@ public class UpdateUserImage : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/users/me/image", Handle)
+        _ = app.MapPost("/users/me/image", Handle)
             .WithTags("Identity/Users")
             .RequireAuthorization()
             .WithName("UpdateUserImage")

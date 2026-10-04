@@ -10,7 +10,7 @@ public class CreateServiceArea : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/site-content/service-areas", Handle)
+        _ = app.MapPost("/site-content/service-areas", Handle)
             .WithTags("SiteContent/ServiceAreas")
             .RequireAuthorization()
             .WithName("CreateServiceArea")

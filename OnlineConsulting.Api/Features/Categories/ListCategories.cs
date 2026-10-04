@@ -11,7 +11,7 @@ public class ListCategories : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/categories/query", Handle)
+        _ = app.MapPost("/categories/query", Handle)
             .WithTags("Categories")
             .WithName("ListCategories")
             .WithDescription("Returns categories, paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body.");

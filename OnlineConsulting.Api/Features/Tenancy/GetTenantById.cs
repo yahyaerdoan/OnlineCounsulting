@@ -9,7 +9,7 @@ public class GetTenantById : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/tenancy/admin/tenants/{tenantId:guid}", Handle)
+        _ = app.MapGet("/tenancy/admin/tenants/{tenantId:guid}", Handle)
             .WithTags("Tenancy")
             .RequireAuthorization()
             .WithName("GetTenantById")

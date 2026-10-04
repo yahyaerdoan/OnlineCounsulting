@@ -9,7 +9,7 @@ public class GetBusinessTimeZone : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/tenancy/time-zone", Handle)
+        _ = app.MapGet("/tenancy/time-zone", Handle)
             .WithTags("Tenancy")
             .WithName("GetBusinessTimeZone")
             .WithDescription("Returns the IANA time zone the caller's business runs in (the default tenant's for anonymous callers). Clients show every date and time in it. Public.");

@@ -11,7 +11,7 @@ public class ResumeOrderPayment : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/orders/{id:guid}/resume-payment", Handle)
+        _ = app.MapGet("/orders/{id:guid}/resume-payment", Handle)
             .WithTags("Commerce/Orders")
             .RequireAuthorization()
             .WithName("ResumeOrderPayment")

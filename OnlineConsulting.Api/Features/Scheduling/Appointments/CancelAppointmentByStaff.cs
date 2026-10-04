@@ -9,7 +9,7 @@ public class CancelAppointmentByStaff : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/appointments/admin/{id:guid}/cancel", Handle)
+        _ = app.MapPost("/appointments/admin/{id:guid}/cancel", Handle)
             .WithTags("Scheduling/Appointments")
             .RequireAuthorization()
             .WithName("CancelAppointmentByStaff")

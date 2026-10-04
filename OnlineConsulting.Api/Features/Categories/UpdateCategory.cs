@@ -10,7 +10,7 @@ public class UpdateCategory : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/categories/{id:guid}", Handle)
+        _ = app.MapPut("/categories/{id:guid}", Handle)
             .WithTags("Categories")
             .RequireAuthorization()
             .WithName("UpdateCategory")

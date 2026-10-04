@@ -12,7 +12,7 @@ public class UpdateUserAddress : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/addresses/{id:guid}", Handle)
+        _ = app.MapPut("/addresses/{id:guid}", Handle)
             .WithTags("Commerce/Addresses")
             .RequireAuthorization()
             .WithName("UpdateUserAddress")

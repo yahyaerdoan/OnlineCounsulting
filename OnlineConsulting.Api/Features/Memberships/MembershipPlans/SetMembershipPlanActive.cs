@@ -9,7 +9,7 @@ public class SetMembershipPlanActive : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/membership-plans/{id:guid}/active", Handle)
+        _ = app.MapPut("/membership-plans/{id:guid}/active", Handle)
             .WithTags("Memberships/Plans")
             .RequireAuthorization()
             .WithName("SetMembershipPlanActive")

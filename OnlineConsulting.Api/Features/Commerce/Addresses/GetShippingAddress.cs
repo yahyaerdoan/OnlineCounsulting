@@ -11,7 +11,7 @@ public class GetShippingAddress : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/addresses/shipping", Handle)
+        _ = app.MapGet("/addresses/shipping", Handle)
             .WithTags("Commerce/Addresses")
             .RequireAuthorization()
             .WithName("GetShippingAddress")

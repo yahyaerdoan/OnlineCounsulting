@@ -9,7 +9,7 @@ public class GetAllPageBanners : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/site-content/page-banners", Handle)
+        _ = app.MapGet("/site-content/page-banners", Handle)
             .WithTags("SiteContent/PageBanners")
             .WithName("GetAllPageBanners")
             .WithDescription("Returns the tenant's page header banners. Public - no login required.");

@@ -93,7 +93,7 @@ else if (!_loading)
             _model.DisplayOrder = faqItem.DisplayOrder;
         }
 
-        // /api/services is paginated - fetch a large-enough page for a dropdown, same idiom as CategoryLookupHelper.
+        // /api/v1/services is paginated - fetch a large-enough page for a dropdown, same idiom as CategoryLookupHelper.
         var servicesResult = await ApiClient.GetAsync<PaginatedResponse<ServiceResponse>>($"{ApiRoutes.Services.Base}?size=100");
         _services = servicesResult.IsSuccessful && servicesResult.ResultData is not null ? servicesResult.ResultData.Items : [];
 

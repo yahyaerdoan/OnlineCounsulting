@@ -11,7 +11,7 @@ public class MarkInvoicePaid : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/invoices/admin/{id:guid}/mark-paid", Handle)
+        _ = app.MapPost("/invoices/admin/{id:guid}/mark-paid", Handle)
             .WithTags("Commerce/Invoices")
             .RequireAuthorization()
             .WithName("MarkInvoicePaid")

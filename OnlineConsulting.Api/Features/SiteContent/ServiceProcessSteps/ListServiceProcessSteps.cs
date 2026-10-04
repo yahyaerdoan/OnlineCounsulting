@@ -11,7 +11,7 @@ public class ListServiceProcessSteps : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/site-content/service-process-steps/query", Handle)
+        _ = app.MapPost("/site-content/service-process-steps/query", Handle)
             .WithTags("SiteContent/ServiceProcessSteps")
             .WithName("ListServiceProcessSteps")
             .WithDescription("Returns service process steps, paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body.");

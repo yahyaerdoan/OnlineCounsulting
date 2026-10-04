@@ -10,7 +10,7 @@ public class CreateAboutUs : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/site-content/about-us", Handle)
+        _ = app.MapPost("/site-content/about-us", Handle)
             .WithTags("SiteContent/AboutUs")
             .RequireAuthorization()
             .WithName("CreateAboutUs")

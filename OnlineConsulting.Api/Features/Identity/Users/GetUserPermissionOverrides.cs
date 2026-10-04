@@ -9,7 +9,7 @@ public class GetUserPermissionOverrides : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/users/{id:guid}/permission-overrides", Handle)
+        _ = app.MapGet("/users/{id:guid}/permission-overrides", Handle)
             .WithTags("Identity/Users")
             .RequireAuthorization()
             .WithName("GetUserPermissionOverrides")

@@ -9,7 +9,7 @@ public class SetPromoCodeActive : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/promo-codes/{id:guid}/active", Handle)
+        _ = app.MapPut("/promo-codes/{id:guid}/active", Handle)
             .WithTags("Memberships/PromoCodes")
             .RequireAuthorization()
             .WithName("SetPromoCodeActive")

@@ -10,7 +10,7 @@ public class SubscribeNewsletter : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/inquiries/newsletter", Handle)
+        _ = app.MapPost("/inquiries/newsletter", Handle)
             .WithTags("Inquiries/Newsletter")
             .WithName("SubscribeNewsletter")
             .WithDescription("Subscribes an email address to the newsletter. Public - no login required.");

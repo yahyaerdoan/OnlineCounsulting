@@ -11,7 +11,7 @@ public class ListMessages : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/inquiries/messages/query", Handle)
+        _ = app.MapPost("/inquiries/messages/query", Handle)
             .WithTags("Inquiries/Messages")
             .RequireAuthorization()
             .WithName("ListMessages")

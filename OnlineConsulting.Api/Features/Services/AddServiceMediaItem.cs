@@ -10,7 +10,7 @@ public class AddServiceMediaItem : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/services/media-items", Handle)
+        _ = app.MapPost("/services/media-items", Handle)
             .WithTags("Services")
             .RequireAuthorization()
             .WithName("AddServiceMediaItem")

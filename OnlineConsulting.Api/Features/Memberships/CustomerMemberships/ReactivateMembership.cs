@@ -11,7 +11,7 @@ public class ReactivateMembership : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/memberships/reactivate", Handle)
+        _ = app.MapPost("/memberships/reactivate", Handle)
             .WithTags("Memberships/CustomerMemberships")
             .RequireAuthorization()
             .WithName("ReactivateMembership")

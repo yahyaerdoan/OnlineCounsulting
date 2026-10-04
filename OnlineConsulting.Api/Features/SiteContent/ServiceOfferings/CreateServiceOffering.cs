@@ -10,7 +10,7 @@ public class CreateServiceOffering : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/site-content/service-offerings", Handle)
+        _ = app.MapPost("/site-content/service-offerings", Handle)
             .WithTags("SiteContent/ServiceOfferings")
             .RequireAuthorization()
             .WithName("CreateServiceOffering")

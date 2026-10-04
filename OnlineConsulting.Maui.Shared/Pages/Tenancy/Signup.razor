@@ -1,5 +1,5 @@
 @* Tenant self-service signup - public, pay-first: card is tokenized and the whole flow (reserve/charge/
-   create admin/set owner) is submitted as one POST /api/tenancy/signup call. Modeled on
+   create admin/set owner) is submitted as one POST /api/v1/tenancy/signup call. Modeled on
    Pages/User/Checkout.razor's phased single-page pattern since both need Stripe Elements + a mid-flow
    client-side transition, unlike the static-SSR Login/Register auth forms. *@
 @page "/signup"

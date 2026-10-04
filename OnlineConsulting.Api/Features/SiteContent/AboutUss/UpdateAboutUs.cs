@@ -10,7 +10,7 @@ public class UpdateAboutUs : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/site-content/about-us/{id:guid}", Handle)
+        _ = app.MapPut("/site-content/about-us/{id:guid}", Handle)
             .WithTags("SiteContent/AboutUs")
             .RequireAuthorization()
             .WithName("UpdateAboutUs")

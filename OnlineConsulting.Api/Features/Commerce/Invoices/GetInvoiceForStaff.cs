@@ -9,7 +9,7 @@ public class GetInvoiceForStaff : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/invoices/admin/{id:guid}", Handle)
+        _ = app.MapGet("/invoices/admin/{id:guid}", Handle)
             .WithTags("Commerce/Invoices")
             .RequireAuthorization()
             .WithName("GetInvoiceForStaff")

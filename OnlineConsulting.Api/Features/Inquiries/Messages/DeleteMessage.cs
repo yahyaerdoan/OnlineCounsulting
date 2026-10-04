@@ -9,7 +9,7 @@ public class DeleteMessage : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapDelete("/api/inquiries/messages/{id:guid}", Handle)
+        _ = app.MapDelete("/inquiries/messages/{id:guid}", Handle)
             .WithTags("Inquiries/Messages")
             .RequireAuthorization()
             .WithName("DeleteMessage")

@@ -9,7 +9,7 @@ public class DeleteServiceProcessStep : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapDelete("/api/site-content/service-process-steps/{id:guid}", Handle)
+        _ = app.MapDelete("/site-content/service-process-steps/{id:guid}", Handle)
             .WithTags("SiteContent/ServiceProcessSteps")
             .RequireAuthorization()
             .WithName("DeleteServiceProcessStep")

@@ -11,7 +11,7 @@ public class MarkNotificationRead : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/notifications/{id:guid}/read", Handle)
+        _ = app.MapPost("/notifications/{id:guid}/read", Handle)
             .WithTags("Identity/Notifications")
             .RequireAuthorization()
             .WithName("MarkNotificationRead")

@@ -11,7 +11,7 @@ public class CancelPendingOrder : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/orders/{id:guid}/cancel", Handle)
+        _ = app.MapPost("/orders/{id:guid}/cancel", Handle)
             .WithTags("Commerce/Orders")
             .RequireAuthorization()
             .WithName("CancelPendingOrder")

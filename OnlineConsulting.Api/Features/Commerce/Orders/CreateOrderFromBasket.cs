@@ -11,7 +11,7 @@ public class CreateOrderFromBasket : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/orders/checkout", Handle)
+        _ = app.MapPost("/orders/checkout", Handle)
             .WithTags("Commerce/Orders")
             .RequireAuthorization()
             .WithName("CreateOrderFromBasket")

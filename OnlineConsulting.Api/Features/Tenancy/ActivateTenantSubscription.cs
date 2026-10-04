@@ -18,7 +18,7 @@ public class ActivateTenantSubscription : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/tenancy/{tenantId:guid}/activate", Handle)
+        _ = app.MapPost("/tenancy/{tenantId:guid}/activate", Handle)
             .WithTags("Tenancy")
             .RequireAuthorization()
             .WithName("ActivateTenantSubscription")

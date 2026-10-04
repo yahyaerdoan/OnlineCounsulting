@@ -11,7 +11,7 @@ public class ListGalleryItems : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/site-content/gallery-items/query", Handle)
+        _ = app.MapPost("/site-content/gallery-items/query", Handle)
             .WithTags("SiteContent/GalleryItems")
             .WithName("ListGalleryItems")
             .WithDescription("Returns gallery items, paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body.");

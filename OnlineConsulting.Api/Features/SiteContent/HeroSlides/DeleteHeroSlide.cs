@@ -9,7 +9,7 @@ public class DeleteHeroSlide : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapDelete("/api/site-content/hero-slides/{id:guid}", Handle)
+        _ = app.MapDelete("/site-content/hero-slides/{id:guid}", Handle)
             .WithTags("SiteContent/HeroSlides")
             .RequireAuthorization()
             .WithName("DeleteHeroSlide")

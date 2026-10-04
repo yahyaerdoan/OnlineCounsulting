@@ -9,7 +9,7 @@ public class SuspendTenant : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/tenancy/admin/tenants/{tenantId:guid}/suspend", Handle)
+        _ = app.MapPost("/tenancy/admin/tenants/{tenantId:guid}/suspend", Handle)
             .WithTags("Tenancy")
             .RequireAuthorization()
             .WithName("SuspendTenant")

@@ -10,7 +10,7 @@ public class UpdateService : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/services/{id:guid}", Handle)
+        _ = app.MapPut("/services/{id:guid}", Handle)
             .WithTags("Services")
             .RequireAuthorization()
             .WithName("UpdateService")

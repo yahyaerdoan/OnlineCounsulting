@@ -11,7 +11,7 @@ public class ListAppointments : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/appointments/admin/query", Handle)
+        _ = app.MapPost("/appointments/admin/query", Handle)
             .WithTags("Scheduling/Appointments")
             .RequireAuthorization()
             .WithName("ListAppointments")

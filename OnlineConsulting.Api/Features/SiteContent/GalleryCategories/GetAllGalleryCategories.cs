@@ -9,7 +9,7 @@ public class GetAllGalleryCategories : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/site-content/gallery-categories", Handle)
+        _ = app.MapGet("/site-content/gallery-categories", Handle)
             .WithTags("SiteContent/GalleryCategories")
             .WithName("GetAllGalleryCategories")
             .WithDescription("Returns the tenant's gallery category tags.");

@@ -9,7 +9,7 @@ public class GetServiceById : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/services/{id:guid}", Handle)
+        _ = app.MapGet("/services/{id:guid}", Handle)
             .WithTags("Services")
             .WithName("GetServiceById")
             .WithDescription("Returns a single service by id. Public - no login required to browse the catalog.");

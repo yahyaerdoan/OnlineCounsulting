@@ -9,7 +9,7 @@ public class CancelTenant : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/tenancy/admin/tenants/{tenantId:guid}/cancel", Handle)
+        _ = app.MapPost("/tenancy/admin/tenants/{tenantId:guid}/cancel", Handle)
             .WithTags("Tenancy")
             .RequireAuthorization()
             .WithName("CancelTenant")

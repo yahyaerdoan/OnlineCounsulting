@@ -9,7 +9,7 @@ public class GetCategoryById : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/categories/{id:guid}", Handle)
+        _ = app.MapGet("/categories/{id:guid}", Handle)
             .WithTags("Categories")
             .WithName("GetCategoryById")
             .WithDescription("Returns a single category by id.");

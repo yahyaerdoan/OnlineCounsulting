@@ -11,7 +11,7 @@ public class CreateMembershipPlan : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/membership-plans", Handle)
+        _ = app.MapPost("/membership-plans", Handle)
             .WithTags("Memberships/Plans")
             .RequireAuthorization()
             .WithName("CreateMembershipPlan")

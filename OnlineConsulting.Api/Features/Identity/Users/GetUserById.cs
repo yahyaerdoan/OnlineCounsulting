@@ -9,7 +9,7 @@ public class GetUserById : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/users/{id:guid}", Handle)
+        _ = app.MapGet("/users/{id:guid}", Handle)
             .WithTags("Identity/Users")
             .RequireAuthorization()
             .WithName("GetUserById")

@@ -11,7 +11,7 @@ public class SetBillingAddress : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/addresses/{id:guid}/billing", Handle)
+        _ = app.MapPut("/addresses/{id:guid}/billing", Handle)
             .WithTags("Commerce/Addresses")
             .RequireAuthorization()
             .WithName("SetBillingAddress")

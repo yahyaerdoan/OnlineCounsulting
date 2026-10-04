@@ -11,7 +11,7 @@ public class ListServiceAreas : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/site-content/service-areas/query", Handle)
+        _ = app.MapPost("/site-content/service-areas/query", Handle)
             .WithTags("SiteContent/ServiceAreas")
             .WithName("ListServiceAreas")
             .WithDescription("Returns service areas, paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body.");

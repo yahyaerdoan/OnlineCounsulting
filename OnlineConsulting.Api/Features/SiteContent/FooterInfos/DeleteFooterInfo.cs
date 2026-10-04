@@ -9,7 +9,7 @@ public class DeleteFooterInfo : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapDelete("/api/site-content/footer-info/{id:guid}", Handle)
+        _ = app.MapDelete("/site-content/footer-info/{id:guid}", Handle)
             .WithTags("SiteContent/FooterInfo")
             .RequireAuthorization()
             .WithName("DeleteFooterInfo")

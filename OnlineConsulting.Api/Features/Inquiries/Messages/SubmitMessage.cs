@@ -10,7 +10,7 @@ public class SubmitMessage : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/inquiries/messages", Handle)
+        _ = app.MapPost("/inquiries/messages", Handle)
             .WithTags("Inquiries/Messages")
             .WithName("SubmitMessage")
             .WithDescription("Submits a contact-form message. Public - no login required.");

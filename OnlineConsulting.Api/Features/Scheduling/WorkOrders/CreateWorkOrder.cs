@@ -17,7 +17,7 @@ public class CreateWorkOrder : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/work-orders", Handle)
+        _ = app.MapPost("/work-orders", Handle)
             .WithTags("Scheduling/WorkOrders")
             .RequireAuthorization()
             .WithName("CreateWorkOrder")

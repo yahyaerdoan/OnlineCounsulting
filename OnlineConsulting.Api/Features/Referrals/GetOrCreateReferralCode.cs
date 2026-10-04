@@ -11,7 +11,7 @@ public class GetOrCreateReferralCode : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/referrals/my-code", Handle)
+        _ = app.MapPost("/referrals/my-code", Handle)
             .WithTags("Referrals")
             .RequireAuthorization()
             .WithName("GetOrCreateReferralCode")

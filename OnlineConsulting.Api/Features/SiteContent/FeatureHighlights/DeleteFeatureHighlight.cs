@@ -9,7 +9,7 @@ public class DeleteFeatureHighlight : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapDelete("/api/site-content/feature-highlights/{id:guid}", Handle)
+        _ = app.MapDelete("/site-content/feature-highlights/{id:guid}", Handle)
             .WithTags("SiteContent/FeatureHighlights")
             .RequireAuthorization()
             .WithName("DeleteFeatureHighlight")
