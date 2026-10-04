@@ -3,7 +3,6 @@ using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Scheduling.Application.Common;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Abstractions;
-using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Constants;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Rules;
 using OnlineConsulting.Modules.Scheduling.Application.Features.WorkOrders.Abstractions;
 using OnlineConsulting.Modules.Scheduling.Application.Features.WorkOrders.Rules;
@@ -19,16 +18,25 @@ namespace OnlineConsulting.Modules.Scheduling.Application.Features.WorkOrders.Cr
 
 /// <summary>Recording a WorkOrder is what completes the Appointment - no separate CompleteAppointment command, so the two stay in sync; hence ITransactionAddRequest.
 /// Charges become the customer's invoice; none means the visit isn't billed (e.g. warranty work).</summary>
-public record CreateWorkOrderCommand(Guid AppointmentId, Guid TechnicianUserId, string? PartsUsed, string? TechnicianNotes, DateTimeOffset? CompletedAt, Guid? EquipmentId = null,
-    IReadOnlyList<WorkOrderChargeInput>? Charges = null)
+public record CreateWorkOrderCommand(Guid AppointmentId,
+                                     Guid TechnicianUserId,
+                                     string? PartsUsed,
+                                     string? TechnicianNotes,
+                                     DateTimeOffset? CompletedAt,
+                                     Guid? EquipmentId = null,
+                                     IReadOnlyList<WorkOrderChargeInput>? Charges = null)
     : IRequest<OperationDataResult<Guid>>, ISecureAddRequest, ITransactionAddRequest
 {
     [JsonIgnore]
     public string[] Roles => [SchedulingOperationClaims.Admin, SchedulingOperationClaims.Write, SchedulingOperationClaims.Add];
 }
 
-public class CreateWorkOrderHandler(IWorkOrderRepository workOrderRepository, IAppointmentRepository appointmentRepository, IAppointmentNotifier notifier,
-    IServiceInvoiceIssuer invoiceIssuer, IServiceCatalogReader catalogReader) : IRequestHandler<CreateWorkOrderCommand, OperationDataResult<Guid>>
+public class CreateWorkOrderHandler(IWorkOrderRepository workOrderRepository,
+                                    IAppointmentRepository appointmentRepository,
+                                    IAppointmentNotifier notifier,
+                                    IServiceInvoiceIssuer invoiceIssuer,
+                                    IServiceCatalogReader catalogReader)
+    : IRequestHandler<CreateWorkOrderCommand, OperationDataResult<Guid>>
 {
     public async Task<OperationDataResult<Guid>> Handle(CreateWorkOrderCommand request, CancellationToken cancellationToken)
     {
@@ -51,6 +59,11 @@ public class CreateWorkOrderHandler(IWorkOrderRepository workOrderRepository, IA
             return WorkOrderBusinessRules.WorkOrderAlreadyExistsForAppointment().ToErrorDataResult<Guid>();
         }
 
+        if (appointment.IsClosed)
+        {
+            return Result.Conflict<Guid>(SchedulingMessages.AppointmentAlreadyClosed);
+        }
+
         var workOrder = new WorkOrder
         {
             AppointmentId = request.AppointmentId,
@@ -63,7 +76,7 @@ public class CreateWorkOrderHandler(IWorkOrderRepository workOrderRepository, IA
 
         _ = await workOrderRepository.AddAsync(workOrder);
 
-        appointment.Status = AppointmentStatuses.Completed;
+        appointment.Complete();
 
         _ = await appointmentRepository.UpdateAsync(appointment);
 

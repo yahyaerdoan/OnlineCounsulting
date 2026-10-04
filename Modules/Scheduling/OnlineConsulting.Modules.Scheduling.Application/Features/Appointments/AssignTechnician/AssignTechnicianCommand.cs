@@ -1,10 +1,10 @@
-using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Scheduling.Application.Common;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Abstractions;
-using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Constants;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Rules;
 using OnlineConsulting.Modules.Scheduling.Application.Features.TechnicianTracking.Abstractions;
+using OnlineConsulting.Modules.Scheduling.Domain;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Text.Json.Serialization;
@@ -18,18 +18,18 @@ public record AssignTechnicianCommand(Guid Id, Guid TechnicianUserId) : IRequest
     public string[] Roles => [SchedulingOperationClaims.Admin, SchedulingOperationClaims.Write, SchedulingOperationClaims.Update];
 }
 
-public class AssignTechnicianHandler(IAppointmentRepository repository, ITechnicianTrackingHubService hubService, IAppointmentNotifier notifier)
-    : IRequestHandler<AssignTechnicianCommand, OperationResult>
+public class AssignTechnicianHandler(IAppointmentRepository repository, ITechnicianTrackingHubService hubService, IAppointmentNotifier notifier) : IRequestHandler<AssignTechnicianCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(AssignTechnicianCommand request, CancellationToken cancellationToken)
     {
         var appointment = await repository.GetAsync(a => a.Id == request.Id, cancellationToken: cancellationToken);
+
         if (appointment is null)
         {
             return AppointmentBusinessRules.AppointmentNotFound(request.Id);
         }
 
-        if (appointment.Status is AppointmentStatuses.Cancelled or AppointmentStatuses.Completed)
+        if (appointment.IsClosed)
         {
             return Result.Conflict(SchedulingMessages.CannotAssignTechnicianToClosedAppointment);
         }
@@ -40,10 +40,13 @@ public class AssignTechnicianHandler(IAppointmentRepository repository, ITechnic
         }
 
         var previousTechnicianUserId = appointment.AssignedTechnicianUserId;
-        appointment.AssignedTechnicianUserId = request.TechnicianUserId;
+
+        appointment.AssignTechnician(request.TechnicianUserId);
+
         _ = await repository.UpdateAsync(appointment);
 
         await hubService.NotifyTechnicianAssignedAsync(appointment.Id, request.TechnicianUserId, cancellationToken);
+
         await notifier.TechnicianAssignedAsync(appointment, previousTechnicianUserId, cancellationToken);
 
         return Result.Success("Technician assigned successfully.");

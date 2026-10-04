@@ -3,7 +3,6 @@ using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Scheduling.Application.Common;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Abstractions;
-using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Constants;
 using OnlineConsulting.Modules.Scheduling.Domain;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -22,8 +21,7 @@ public record CreateAppointmentCommand(Guid UserId, Guid? ServiceId, DateTimeOff
 }
 
 /// <summary>A chosen service must be a Booking service - Products are bought through the basket, not scheduled.</summary>
-public class CreateAppointmentHandler(IAppointmentRepository repository, IServiceCatalogReader catalogReader, IAppointmentNotifier notifier)
-    : IRequestHandler<CreateAppointmentCommand, OperationDataResult<Guid>>
+public class CreateAppointmentHandler(IAppointmentRepository repository, IServiceCatalogReader catalogReader, IAppointmentNotifier notifier) : IRequestHandler<CreateAppointmentCommand, OperationDataResult<Guid>>
 {
     public async Task<OperationDataResult<Guid>> Handle(CreateAppointmentCommand request, CancellationToken cancellationToken)
     {
@@ -35,6 +33,7 @@ public class CreateAppointmentHandler(IAppointmentRepository repository, IServic
         if (request.ServiceId is Guid serviceId)
         {
             var catalogEntry = await catalogReader.GetAsync(serviceId, cancellationToken);
+
             if (catalogEntry is null)
             {
                 return Result.NotFound<Guid>(SchedulingMessages.ServiceNotFound);
@@ -53,19 +52,7 @@ public class CreateAppointmentHandler(IAppointmentRepository repository, IServic
             return Result.Conflict<Guid>(SchedulingMessages.SlotNoLongerAvailable);
         }
 
-        var appointment = new Appointment
-        {
-            UserId = request.UserId,
-            ServiceId = request.ServiceId,
-            ScheduledStart = request.ScheduledStart,
-            ScheduledEnd = request.ScheduledEnd,
-            Status = AppointmentStatuses.Pending,
-            CustomerNote = request.CustomerNote,
-            MeetingType = request.MeetingType,
-            Topic = request.MeetingType == AppointmentMeetingTypes.Online ? request.Topic?.Trim() : null,
-            ServiceAddress = request.MeetingType == AppointmentMeetingTypes.InPerson ? request.ServiceAddress?.Trim() : null,
-            RequiresPrepayment = false,
-        };
+        var appointment = Appointment.Request(request.UserId, request.ServiceId, request.ScheduledStart, request.ScheduledEnd, request.MeetingType, request.Topic, request.ServiceAddress, request.CustomerNote);
 
         _ = await repository.AddAsync(appointment);
 

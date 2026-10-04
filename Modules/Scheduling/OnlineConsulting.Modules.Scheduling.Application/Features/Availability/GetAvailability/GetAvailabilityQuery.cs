@@ -1,8 +1,8 @@
 ﻿using MediatR;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Abstractions;
-using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Constants;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Availability.Abstractions;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Availability.Contracts;
+using OnlineConsulting.Modules.Scheduling.Domain;
 using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -13,12 +13,12 @@ namespace OnlineConsulting.Modules.Scheduling.Application.Features.Availability.
 /// <param name="Date">Combined with rule times as UTC - tenant timezone isn't modeled yet, so this must already be aligned to UTC.</param>
 public record GetAvailabilityQuery(DateOnly Date) : IRequest<OperationDataResult<List<AvailableSlotResponse>>>;
 
-public class GetAvailabilityHandler(IAvailabilityRuleRepository ruleRepository, IAppointmentRepository appointmentRepository)
-    : IRequestHandler<GetAvailabilityQuery, OperationDataResult<List<AvailableSlotResponse>>>
+public class GetAvailabilityHandler(IAvailabilityRuleRepository ruleRepository, IAppointmentRepository appointmentRepository) : IRequestHandler<GetAvailabilityQuery, OperationDataResult<List<AvailableSlotResponse>>>
 {
     public async Task<OperationDataResult<List<AvailableSlotResponse>>> Handle(GetAvailabilityQuery request, CancellationToken cancellationToken)
     {
         var dayOfWeek = request.Date.DayOfWeek;
+
         var rules = await ruleRepository.GetListAsync(r => r.DayOfWeek == dayOfWeek, orderBy: q => q.OrderBy(r => r.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
 
         if (rules.Items.Count == 0)
@@ -29,8 +29,7 @@ public class GetAvailabilityHandler(IAvailabilityRuleRepository ruleRepository, 
         var dayStart = new DateTimeOffset(request.Date.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
         var dayEnd = dayStart.AddDays(1);
 
-        var existingAppointments = await appointmentRepository.GetListAsync(
-            a => a.Status != AppointmentStatuses.Cancelled && a.ScheduledStart < dayEnd && a.ScheduledEnd > dayStart,
+        var existingAppointments = await appointmentRepository.GetListAsync(a => a.Status != AppointmentStatuses.Cancelled && a.ScheduledStart < dayEnd && a.ScheduledEnd > dayStart,
             orderBy: q => q.OrderBy(a => a.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
 
         var slots = new List<AvailableSlotResponse>();

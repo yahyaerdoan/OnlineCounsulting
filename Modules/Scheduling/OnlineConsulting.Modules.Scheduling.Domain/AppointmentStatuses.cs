@@ -1,5 +1,6 @@
-namespace OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Constants;
+namespace OnlineConsulting.Modules.Scheduling.Domain;
 
+/// <summary>Values of <see cref="Appointment.Status"/>.</summary>
 public static class AppointmentStatuses
 {
     public const string Pending = "Pending";
@@ -7,6 +8,6 @@ public static class AppointmentStatuses
     public const string Cancelled = "Cancelled";
     public const string Completed = "Completed";
 
-    /// <summary>Not produced yet - reserved for when a real payment gateway lands and RequiresPrepayment starts gating confirmation on a paid Commerce order.</summary>
+    /// <summary>Reserved for prepaid bookings; not produced yet.</summary>
     public const string PendingPayment = "PendingPayment";
 }

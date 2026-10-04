@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Constants;
+using OnlineConsulting.Modules.Scheduling.Domain;
 
 namespace OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.CreateAppointment;
 
