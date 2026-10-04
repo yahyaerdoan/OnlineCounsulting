@@ -5,14 +5,10 @@ using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.Constants
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Abstractions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using OrderPaymentStatuses = OnlineConsulting.Modules.Commerce.Application.Features.Orders.Constants.PaymentStatuses;
-using OrderStatuses = OnlineConsulting.Modules.Commerce.Application.Features.Orders.Constants.OrderStatuses;
 
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Orders.UpdatePendingOrderAddresses;
 
-/// <summary>Points the caller's own still-unpaid order at their current default shipping and billing addresses, so going back from the
-/// payment step to change an address keeps the same order and payment instead of opening a second one. Amounts don't depend on the
-/// address and the receipt is only issued once paid (from the order's addresses at that time), so nothing else needs updating.</summary>
+/// <summary>Points the caller's unpaid order at their current default shipping and billing addresses.</summary>
 public record UpdatePendingOrderAddressesCommand(Guid OrderId, Guid UserId) : IRequest<OperationResult>, ITransactionAddRequest;
 
 public class UpdatePendingOrderAddressesHandler(IOrderRepository orderRepository, IUserAddressRepository userAddressRepository)
@@ -26,7 +22,7 @@ public class UpdatePendingOrderAddressesHandler(IOrderRepository orderRepository
             return Result.NotFound($"Order {request.OrderId} was not found.");
         }
 
-        if (order.PaymentStatus != OrderPaymentStatuses.Pending || order.OrderStatus == OrderStatuses.Cancelled)
+        if (!order.IsAwaitingPayment)
         {
             return Result.Conflict("Only a pending, unpaid order's addresses can be changed.");
         }
@@ -43,8 +39,7 @@ public class UpdatePendingOrderAddressesHandler(IOrderRepository orderRepository
             return Result.Conflict(AddressMessages.BillingAddressNotFound);
         }
 
-        order.ShippingAddressId = shippingAddress.Id;
-        order.InvoiceAddressId = billingAddress.Id;
+        order.ChangeAddresses(shippingAddress.Id, billingAddress.Id);
         _ = await orderRepository.UpdateAsync(order);
 
         return Result.Success("Order addresses updated.");
