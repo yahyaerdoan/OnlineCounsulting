@@ -18,9 +18,9 @@ public class ListNewsletterSubscribers : IEndpoint
             .WithDescription("Returns newsletter subscribers, paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body. Admin only.");
     }
 
-    private static async Task<IResult> Handle(ISender sender, HttpContext httpContext, [AsParameters] ListQueryParameters query, [FromBody] DynamicQuery? dynamicQuery)
+    private static async Task<IResult> Handle(ISender sender, HttpContext httpContext, [AsParameters] ListQueryParameters query, [FromBody] DynamicQueryRequest? dynamicQuery)
     {
-        var result = await sender.Send(new ListNewsletterSubscribersQuery(query.ToPageRequest(), dynamicQuery));
+        var result = await sender.Send(new ListNewsletterSubscribersQuery(query.ToPageRequest(), dynamicQuery?.ToDynamicQuery()));
         return result.ToEnvelopedResult(httpContext);
     }
 }

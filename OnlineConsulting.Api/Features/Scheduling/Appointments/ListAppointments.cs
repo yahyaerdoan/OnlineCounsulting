@@ -18,9 +18,9 @@ public class ListAppointments : IEndpoint
             .WithDescription("Admin/dispatch listing of every appointment for the tenant, paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body.");
     }
 
-    private static async Task<IResult> Handle(ISender sender, HttpContext httpContext, [AsParameters] ListQueryParameters query, [FromBody] DynamicQuery? dynamicQuery)
+    private static async Task<IResult> Handle(ISender sender, HttpContext httpContext, [AsParameters] ListQueryParameters query, [FromBody] DynamicQueryRequest? dynamicQuery)
     {
-        var result = await sender.Send(new ListAppointmentsQuery(query.ToPageRequest(), dynamicQuery));
+        var result = await sender.Send(new ListAppointmentsQuery(query.ToPageRequest(), dynamicQuery?.ToDynamicQuery()));
         return result.ToEnvelopedResult(httpContext);
     }
 }

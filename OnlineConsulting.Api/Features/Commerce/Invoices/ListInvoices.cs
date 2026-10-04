@@ -18,6 +18,6 @@ public class ListInvoices : IEndpoint
             .WithDescription("Every invoice for the tenant (staff), paginated, optionally filtered/sorted via a DynamicQuery body.");
     }
 
-    private static async Task<IResult> Handle(ISender sender, HttpContext httpContext, [AsParameters] ListQueryParameters query, [FromBody] DynamicQuery? dynamicQuery)
-        => (await sender.Send(new ListInvoicesQuery(query.ToPageRequest(), dynamicQuery))).ToEnvelopedResult(httpContext);
+    private static async Task<IResult> Handle(ISender sender, HttpContext httpContext, [AsParameters] ListQueryParameters query, [FromBody] DynamicQueryRequest? dynamicQuery)
+        => (await sender.Send(new ListInvoicesQuery(query.ToPageRequest(), dynamicQuery?.ToDynamicQuery()))).ToEnvelopedResult(httpContext);
 }

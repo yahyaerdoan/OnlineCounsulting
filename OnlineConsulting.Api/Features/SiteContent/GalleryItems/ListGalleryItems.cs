@@ -17,9 +17,9 @@ public class ListGalleryItems : IEndpoint
             .WithDescription("Returns gallery items, paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body.");
     }
 
-    private static async Task<IResult> Handle(ISender sender, HttpContext httpContext, [AsParameters] ListQueryParameters query, [FromBody] DynamicQuery? dynamicQuery)
+    private static async Task<IResult> Handle(ISender sender, HttpContext httpContext, [AsParameters] ListQueryParameters query, [FromBody] DynamicQueryRequest? dynamicQuery)
     {
-        var result = await sender.Send(new ListGalleryItemsQuery(query.ToPageRequest(), dynamicQuery));
+        var result = await sender.Send(new ListGalleryItemsQuery(query.ToPageRequest(), dynamicQuery?.ToDynamicQuery()));
         return result.ToEnvelopedResult(httpContext);
     }
 }

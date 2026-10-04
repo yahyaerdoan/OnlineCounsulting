@@ -22,9 +22,9 @@ public class ListReferrals : IEndpoint
     }
 
     private static async Task<IResult> Handle(ISender sender, IUserContactReader contactReader, HttpContext httpContext, [AsParameters] ListQueryParameters query,
-        [FromBody] DynamicQuery? dynamicQuery)
+        [FromBody] DynamicQueryRequest? dynamicQuery)
     {
-        var referralsResult = await sender.Send(new ListReferralsQuery(query.ToPageRequest(), dynamicQuery));
+        var referralsResult = await sender.Send(new ListReferralsQuery(query.ToPageRequest(), dynamicQuery?.ToDynamicQuery()));
 
         if (!referralsResult.IsSuccessful || referralsResult.Data is null)
         {

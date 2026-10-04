@@ -18,10 +18,10 @@ public class ListUsers : IEndpoint
             .WithDescription("Returns users, paginated (?index=&size=), optionally narrowed to one role (?role=) and filtered/sorted via a DynamicQuery body. POST rather than HTTP QUERY, since Swagger can't document that verb.");
     }
 
-    private static async Task<IResult> Handle(ISender sender, HttpContext httpContext, [AsParameters] ListQueryParameters query, [FromBody] DynamicQuery? dynamicQuery,
+    private static async Task<IResult> Handle(ISender sender, HttpContext httpContext, [AsParameters] ListQueryParameters query, [FromBody] DynamicQueryRequest? dynamicQuery,
         [FromQuery] string? role = null)
     {
-        var result = await sender.Send(new ListUsersQuery(query.ToPageRequest(), dynamicQuery, role));
+        var result = await sender.Send(new ListUsersQuery(query.ToPageRequest(), dynamicQuery?.ToDynamicQuery(), role));
 
         return result.ToEnvelopedResult(httpContext);
     }

@@ -21,9 +21,9 @@ public class ListOrders : IEndpoint
             .WithDescription("Returns every user's orders (Super Admin only), paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body, with per-order totals and the owner's email and user name for the orders on the page.");
     }
 
-    private static async Task<IResult> Handle(ISender sender, IUserContactReader contactReader, HttpContext httpContext, [AsParameters] ListQueryParameters query, [FromBody] DynamicQuery? dynamicQuery)
+    private static async Task<IResult> Handle(ISender sender, IUserContactReader contactReader, HttpContext httpContext, [AsParameters] ListQueryParameters query, [FromBody] DynamicQueryRequest? dynamicQuery)
     {
-        var ordersResult = await sender.Send(new ListOrdersQuery(query.ToPageRequest(), dynamicQuery));
+        var ordersResult = await sender.Send(new ListOrdersQuery(query.ToPageRequest(), dynamicQuery?.ToDynamicQuery()));
 
         if (!ordersResult.IsSuccessful || ordersResult.Data is null)
         {
