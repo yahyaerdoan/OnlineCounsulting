@@ -40,7 +40,7 @@ public class PendingOrderCleanupService(IServiceScopeFactory scopeFactory, IOpti
         var reconcileCutoff = DateTimeOffset.UtcNow - settings.ReconcileAfter;
 
         var candidates = await orderRepository
-            .GetListAsync(predicate: o => o.PaymentStatus == OrderPaymentStatuses.Pending && o.CreatedDate <= reconcileCutoff, orderBy: q => q.OrderBy(o => o.CreatedDate), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+            .GetListAsync(predicate: o => o.PaymentStatus == OrderPaymentStatuses.Pending && o.OrderStatus != OrderStatuses.Cancelled && o.CreatedDate <= reconcileCutoff, orderBy: q => q.OrderBy(o => o.CreatedDate), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
 
         if (candidates.Items.Count == 0)
         {
