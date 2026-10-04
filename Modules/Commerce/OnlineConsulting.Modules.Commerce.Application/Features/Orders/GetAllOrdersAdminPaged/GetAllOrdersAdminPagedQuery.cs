@@ -14,7 +14,7 @@ using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Orders.GetAllOrdersAdminPaged;
 
-/// <summary>Paginated sibling of GetAllOrdersAdminQuery - same Super Admin gate, page-scoped order-item join.</summary>
+/// <summary>Every user's orders for staff, one page at a time, with per-order totals.</summary>
 public record GetAllOrdersAdminPagedQuery(PageRequest PageRequest, DynamicQuery? DynamicQuery = null)
     : IRequest<OperationDataResult<Paginate<AdminOrderResponse>>>, ISecureAddRequest
 {

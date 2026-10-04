@@ -4,14 +4,11 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.GetAllOrdersAdminPaged;
-using OnlineConsulting.Modules.Identity.Application.Features.Users.GetAllUsers;
+using OnlineConsulting.SharedKernel.Identity;
 using ResultHandler.AspNetCore.Extensions;
 using ResultHandler.Facade;
-using PageRequest = Core.ApplicationLayer.Requests.Page.PageRequest;
 
 namespace OnlineConsulting.Api.Features.Commerce.Orders;
-
-// AdminOrderResponse reused from GetAllOrdersAdmin.cs - same namespace, same shape, no need to redeclare.
 
 public class GetAllOrdersAdminPaged : IEndpoint
 {
@@ -21,10 +18,10 @@ public class GetAllOrdersAdminPaged : IEndpoint
             .WithTags("Commerce/Orders")
             .RequireAuthorization()
             .WithName("GetAllOrdersAdminPaged")
-            .WithDescription("Returns every user's orders (Super Admin only), paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body, with per-order totals and basic owner display info. Loads all users unbounded for the owner-info join, not a paged listing of its own.");
+            .WithDescription("Returns every user's orders (Super Admin only), paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body, with per-order totals and the owner's email and user name for the orders on the page.");
     }
 
-    private static async Task<IResult> Handle(ISender sender, HttpContext httpContext, [AsParameters] ListQueryParameters query, [FromBody] DynamicQuery? dynamicQuery)
+    private static async Task<IResult> Handle(ISender sender, IUserContactReader contactReader, HttpContext httpContext, [AsParameters] ListQueryParameters query, [FromBody] DynamicQuery? dynamicQuery)
     {
         var ordersResult = await sender.Send(new GetAllOrdersAdminPagedQuery(query.ToPageRequest(), dynamicQuery));
 
@@ -33,16 +30,13 @@ public class GetAllOrdersAdminPaged : IEndpoint
             return ordersResult.ToEnvelopedResult(httpContext);
         }
 
-        var usersResult = await sender.Send(new GetAllUsersQuery(new PageRequest { PageIndex = 0, PageSize = int.MaxValue }));
-
-        var usersById = (usersResult.IsSuccessful ? usersResult.Data?.Items : null)?.ToDictionary(u => u.Id) ?? [];
+        var owners = (await contactReader.GetContactsAsync([.. ordersResult.Data.Items.Select(o => o.UserId).Distinct()], httpContext.RequestAborted))
+            .ToDictionary(c => c.Id);
 
         var responseItems = ordersResult.Data.Items.Select(o =>
         {
-            _ = usersById.TryGetValue(o.UserId, out var user);
-
-            return new AdminOrderResponse(o.Id, o.OrderNumber, o.OrderStatus, o.PaymentStatus, o.TotalPrice, o.CreatedDate, o.UserId, user?.Email, user?.UserName);
-
+            var owner = owners.GetValueOrDefault(o.UserId);
+            return new AdminOrderResponse(o.Id, o.OrderNumber, o.OrderStatus, o.PaymentStatus, o.TotalPrice, o.CreatedDate, o.UserId, owner?.Email, owner?.UserName);
         }).ToList();
 
         var response = new Paginate<AdminOrderResponse>

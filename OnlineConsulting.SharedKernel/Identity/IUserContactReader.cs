@@ -1,6 +1,6 @@
 namespace OnlineConsulting.SharedKernel.Identity;
 
-public sealed record UserContact(Guid Id, string? Email, string FirstName, string LastName)
+public sealed record UserContact(Guid Id, string? Email, string FirstName, string LastName, string? UserName)
 {
     public string FullName => $"{FirstName} {LastName}".Trim();
 }

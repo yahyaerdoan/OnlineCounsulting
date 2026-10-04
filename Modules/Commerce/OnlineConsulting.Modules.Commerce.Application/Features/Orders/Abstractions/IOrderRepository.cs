@@ -5,4 +5,6 @@ namespace OnlineConsulting.Modules.Commerce.Application.Features.Orders.Abstract
 
 public interface IOrderRepository : IAsyncRepository<Order, Guid>
 {
+    /// <summary>The user's order count and the total of their paid orders, computed in the database.</summary>
+    Task<(int TotalOrders, decimal TotalSpent)> GetStatsAsync(Guid userId, CancellationToken cancellationToken = default);
 }

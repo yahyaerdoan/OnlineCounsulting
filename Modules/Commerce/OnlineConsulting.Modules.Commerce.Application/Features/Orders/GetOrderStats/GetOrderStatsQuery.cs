@@ -1,29 +1,20 @@
-﻿using MediatR;
+using MediatR;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Abstractions;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Contracts;
-using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Orders.GetOrderStats;
 
+/// <summary>The caller's order count and how much they paid; unpaid, cancelled and refunded orders don't count as spent.</summary>
 public record GetOrderStatsQuery(Guid UserId) : IRequest<OperationDataResult<OrderStatsResponse>>;
 
-public class GetOrderStatsHandler(IOrderRepository orderRepository, IOrderItemRepository orderItemRepository)
-    : IRequestHandler<GetOrderStatsQuery, OperationDataResult<OrderStatsResponse>>
+public class GetOrderStatsHandler(IOrderRepository orderRepository) : IRequestHandler<GetOrderStatsQuery, OperationDataResult<OrderStatsResponse>>
 {
     public async Task<OperationDataResult<OrderStatsResponse>> Handle(GetOrderStatsQuery request, CancellationToken cancellationToken)
     {
-        var orders = await orderRepository.GetListAsync(o => o.UserId == request.UserId, orderBy: q => q.OrderBy(o => o.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
-        if (orders.Items.Count == 0)
-        {
-            return Result.Success(new OrderStatsResponse(0, 0), "No orders found for this user.");
-        }
+        var (totalOrders, totalSpent) = await orderRepository.GetStatsAsync(request.UserId, cancellationToken);
 
-        var orderIds = orders.Items.Select(o => o.Id).ToList();
-        var items = await orderItemRepository.GetListAsync(i => orderIds.Contains(i.OrderId), orderBy: q => q.OrderBy(i => i.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
-        var totalSpent = items.Items.Sum(i => i.TotalPrice);
-
-        return Result.Success(new OrderStatsResponse(orders.Items.Count, totalSpent), "Order stats retrieved successfully.");
+        return Result.Success(new OrderStatsResponse(totalOrders, totalSpent), "Order stats retrieved successfully.");
     }
 }
