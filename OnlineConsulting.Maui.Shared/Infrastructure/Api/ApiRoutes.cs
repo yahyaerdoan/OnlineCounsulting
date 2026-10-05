@@ -259,9 +259,6 @@ public static class ApiRoutes
 
             /// <summary>POST submits a contact-form message - public, no login required.</summary>
             public const string Submit = Base;
-
-            public static string ById(Guid id) => $"{Base}/{id}";
-            public static string Reply(Guid id) => $"{Base}/{id}/reply";
         }
 
         public static class Newsletter
@@ -272,8 +269,6 @@ public static class ApiRoutes
 
             /// <summary>POST subscribes an email - public, no login required.</summary>
             public const string Subscribe = Base;
-
-            public static string ById(Guid id) => $"{Base}/{id}";
         }
     }
 
@@ -284,8 +279,6 @@ public static class ApiRoutes
             public const string Base = V1 + "/scheduling/availability-rules";
 
             public const string All = Base;
-
-            public static string ById(Guid id) => $"{Base}/{id}";
         }
 
         public static class Availability

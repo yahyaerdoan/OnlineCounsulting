@@ -1,7 +1,9 @@
+using OnlineConsulting.Maui.Shared.Infrastructure.Hateoas;
+
 namespace OnlineConsulting.Maui.Shared.Infrastructure.Api;
 
 /// <summary>Mirrors POST /api/v1/site-content/gallery-items/query's response shape.</summary>
-public record GalleryItemResponse(Guid Id, string Description, Guid? PhotoMediaAssetId, int DisplayOrder, List<GalleryCategoryResponse> Categories) : IQueryableFields
+public record GalleryItemResponse(Guid Id, string Description, Guid? PhotoMediaAssetId, int DisplayOrder, List<GalleryCategoryResponse> Categories) : HalResource, IQueryableFields
 {
     public static string[] SearchFields => [nameof(Description)];
 }

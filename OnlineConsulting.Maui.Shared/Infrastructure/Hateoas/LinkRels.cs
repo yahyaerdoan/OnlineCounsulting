@@ -28,4 +28,5 @@ public static class LinkRels
     public const string AssignRoles = "oc:assign-roles";
     public const string PermissionOverrides = "oc:permission-overrides";
     public const string MarkRead = "oc:mark-read";
+    public const string Reply = "oc:reply";
 }

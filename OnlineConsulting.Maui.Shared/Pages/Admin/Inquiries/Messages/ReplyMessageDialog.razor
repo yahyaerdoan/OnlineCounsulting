@@ -35,9 +35,14 @@
 
     private async Task SendAsync()
     {
+        if (Message.Links.Find(LinkRels.Reply) is not { } reply)
+        {
+            return;
+        }
+
         _isBusy = true;
 
-        var result = await ApiClient.PostAsync(ApiRoutes.Inquiries.Messages.Reply(Message.Id), new { replyBody = _model.ReplyBody });
+        var result = await ApiClient.FollowAsync(reply, new { replyBody = _model.ReplyBody });
 
         _isBusy = false;
 

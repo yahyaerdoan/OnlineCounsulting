@@ -1,3 +1,4 @@
+using OnlineConsulting.Maui.Shared.Infrastructure.Hateoas;
 
 namespace OnlineConsulting.Maui.Shared.Infrastructure.Api;
 
@@ -19,7 +20,7 @@ public record ServiceResponse(
     bool RequiresPrepayment,
     bool IsEmergencyAvailable,
     Guid? CoverMediaAssetId,
-    string Kind = ServiceKinds.Booking) : IQueryableFields
+    string Kind = ServiceKinds.Booking) : HalResource, IQueryableFields
 {
     public static string[] SearchFields => [nameof(Title), nameof(Description)];
 }

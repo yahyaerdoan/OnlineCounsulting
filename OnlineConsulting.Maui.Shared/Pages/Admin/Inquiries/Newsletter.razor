@@ -22,7 +22,7 @@
         <MudTd DataLabel="Subscribed">@BusinessTime.FormatDateTime(subscriber.CreatedDate)</MudTd>
         <MudTd DataLabel="Actions">
             <MudTooltip Text="Remove">
-                <MudIconButton aria-label="Remove" Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" Size="Size.Small"
+                <MudIconButton Disabled="@(!subscriber.Can(LinkRels.Delete))" aria-label="Remove" Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" Size="Size.Small"
                                OnClick="@(() => RemoveAsync(subscriber))" />
             </MudTooltip>
         </MudTd>
@@ -40,7 +40,12 @@
             return;
         }
 
-        var result = await ApiClient.DeleteAsync(ApiRoutes.Inquiries.Newsletter.ById(subscriber.Id));
+        if (subscriber.Links.Find(LinkRels.Delete) is not { } delete)
+        {
+            return;
+        }
+
+        var result = await ApiClient.FollowAsync(delete);
         if (!result.IsSuccessful)
         {
             Snackbar.ShowError(result.DisplayMessage);
