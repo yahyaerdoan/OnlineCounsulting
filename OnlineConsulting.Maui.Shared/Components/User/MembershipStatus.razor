@@ -123,30 +123,35 @@ else
         }
 
         <div class="order-hero-actions">
-            @switch (status)
+            @if (membership.Can(LinkRels.Reactivate))
             {
-                case Ending:
-                    <MudButton Variant="Variant.Filled" Class="sell-btn" StartIcon="@Icons.Material.Outlined.Replay" Disabled="@_busy"
-                               OnClick="@(() => RunAsync(ApiRoutes.Growth.CustomerMemberships.Reactivate))">Keep my membership</MudButton>
-                    break;
-                case Active:
-                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" Class="svc-action" StartIcon="@Icons.Material.Outlined.SwapHoriz" Disabled="@_busy"
-                               OnClick="ChangePlanAsync">Change plan</MudButton>
-                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" Class="svc-action" StartIcon="@Icons.Material.Outlined.PauseCircle" Disabled="@_busy"
-                               OnClick="PauseAsync">Pause</MudButton>
-                    break;
-                case Paused:
-                    <MudButton Variant="Variant.Filled" Class="sell-btn" StartIcon="@Icons.Material.Outlined.PlayCircle" Disabled="@_busy"
-                               OnClick="ResumeAsync">Resume membership</MudButton>
-                    break;
-                case PastDue or PendingPayment:
-                    <MudButton Href="/contact" Variant="Variant.Filled" Class="sell-btn" StartIcon="@Icons.Material.Outlined.SupportAgent">Contact us</MudButton>
-                    break;
-                case Cancelled:
-                    <MudButton Href="/membership" Variant="Variant.Filled" Class="sell-btn" EndIcon="@Icons.Material.Filled.ArrowForward">View membership plans</MudButton>
-                    break;
+                <MudButton Variant="Variant.Filled" Class="sell-btn" StartIcon="@Icons.Material.Outlined.Replay" Disabled="@_busy"
+                           OnClick="@(() => RunAsync(membership.Links.Find(LinkRels.Reactivate)))">Keep my membership</MudButton>
             }
-            @if (status is not Ending and not Cancelled)
+            @if (membership.Can(LinkRels.Resume))
+            {
+                <MudButton Variant="Variant.Filled" Class="sell-btn" StartIcon="@Icons.Material.Outlined.PlayCircle" Disabled="@_busy"
+                           OnClick="ResumeAsync">Resume membership</MudButton>
+            }
+            @if (membership.Can(LinkRels.ChangePlan))
+            {
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" Class="svc-action" StartIcon="@Icons.Material.Outlined.SwapHoriz" Disabled="@_busy"
+                           OnClick="ChangePlanAsync">Change plan</MudButton>
+            }
+            @if (membership.Can(LinkRels.Pause))
+            {
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" Class="svc-action" StartIcon="@Icons.Material.Outlined.PauseCircle" Disabled="@_busy"
+                           OnClick="PauseAsync">Pause</MudButton>
+            }
+            @if (status is PastDue or PendingPayment)
+            {
+                <MudButton Href="/contact" Variant="Variant.Filled" Class="sell-btn" StartIcon="@Icons.Material.Outlined.SupportAgent">Contact us</MudButton>
+            }
+            @if (status == Cancelled)
+            {
+                <MudButton Href="/membership" Variant="Variant.Filled" Class="sell-btn" EndIcon="@Icons.Material.Filled.ArrowForward">View membership plans</MudButton>
+            }
+            @if (membership.Can(LinkRels.Cancel))
             {
                 <MudButton Variant="Variant.Text" Color="Color.Error" Class="member-cancel" Disabled="@_busy" OnClick="CancelAsync">Cancel membership</MudButton>
             }
@@ -217,7 +222,7 @@ else
     {
         if (await DialogService.ConfirmAsync("Cancel membership", "Cancel your membership? You'll keep your benefits until the end of the current billing period, then it won't renew."))
         {
-            await RunAsync(ApiRoutes.Growth.CustomerMemberships.Cancel);
+            await RunAsync(_membership?.Links.Find(LinkRels.Cancel));
         }
     }
 
@@ -225,7 +230,7 @@ else
     {
         if (await DialogService.ConfirmAsync("Pause membership", "Pause your membership? Billing stops until you resume."))
         {
-            await RunAsync(ApiRoutes.Growth.CustomerMemberships.Pause);
+            await RunAsync(_membership?.Links.Find(LinkRels.Pause));
         }
     }
 
@@ -233,7 +238,7 @@ else
     {
         if (await DialogService.ConfirmAsync("Resume membership", "Resume your membership? Billing will continue normally."))
         {
-            await RunAsync(ApiRoutes.Growth.CustomerMemberships.Resume);
+            await RunAsync(_membership?.Links.Find(LinkRels.Resume));
         }
     }
 
@@ -262,13 +267,13 @@ else
         var dialogResult = await dialog.Result;
         if (dialogResult is { Canceled: false, Data: Guid newPlanId })
         {
-            await RunAsync(ApiRoutes.Growth.CustomerMemberships.ChangePlan(newPlanId));
+            await RunAsync(_membership?.Links.Find(LinkRels.ChangePlan)?.WithQuery("newMembershipPlanId", newPlanId.ToString()));
         }
     }
 
-    private async Task RunAsync(string route)
+    private async Task RunAsync(HalLink? link)
     {
-        if (_busy)
+        if (_busy || link is null)
         {
             return;
         }
@@ -276,7 +281,7 @@ else
         _busy = true;
         try
         {
-            var result = await ApiClient.PostAsync(route, new { });
+            var result = await ApiClient.FollowAsync(link, new { });
             if (!result.IsSuccessful)
             {
                 Snackbar.ShowError(result.DisplayMessage);

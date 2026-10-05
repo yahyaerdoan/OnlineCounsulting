@@ -8,4 +8,8 @@ public sealed record HalLink(string Href, string? Method = null)
 
     /// <summary>Path and query only, sent to the client's own Api origin, so a token never follows a link to another host.</summary>
     public string RelativePath => Uri.TryCreate(Href, UriKind.Absolute, out var absolute) ? absolute.PathAndQuery : Href;
+
+    /// <summary>The same link with a query parameter appended, for actions that take their input in the query string.</summary>
+    public HalLink WithQuery(string name, string value) =>
+        this with { Href = $"{Href}{(Href.Contains('?') ? '&' : '?')}{Uri.EscapeDataString(name)}={Uri.EscapeDataString(value)}" };
 }

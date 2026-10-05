@@ -4,6 +4,7 @@
 public static class LinkRels
 {
     public const string Self = "self";
+    public const string Edit = "edit";
     public const string Pay = "oc:pay";
     public const string Cancel = "oc:cancel";
     public const string ChangeAddresses = "oc:change-addresses";
@@ -15,4 +16,9 @@ public static class LinkRels
     public const string AssignTechnician = "oc:assign-technician";
     public const string WorkOrder = "oc:work-order";
     public const string RecordWorkOrder = "oc:record-work-order";
+    public const string Pause = "oc:pause";
+    public const string Resume = "oc:resume";
+    public const string Reactivate = "oc:reactivate";
+    public const string ChangePlan = "oc:change-plan";
+    public const string SetActive = "oc:set-active";
 }

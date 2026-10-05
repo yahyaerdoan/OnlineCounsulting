@@ -441,7 +441,6 @@ public static class ApiRoutes
             public const string All = Base;
 
             public static string ById(Guid id) => $"{Base}/{id}";
-            public static string SetActive(Guid id, bool isActive) => $"{Base}/{id}/active?isActive={isActive}";
         }
 
         public static class CustomerMemberships
@@ -453,23 +452,7 @@ public static class ApiRoutes
             /// <summary>GET the caller's own membership - 404 means not currently a member.</summary>
             public const string Mine = Base + "/mine";
 
-            public const string Cancel = Base + "/cancel";
-
             public const string Subscribe = Base + "/subscribe";
-
-            public static string ChangePlan(Guid newMembershipPlanId) => $"{Base}/change-plan?newMembershipPlanId={newMembershipPlanId}";
-
-            public const string Pause = Base + "/pause";
-
-            public const string Resume = Base + "/resume";
-
-            /// <summary>Admin-cancel a specific customer's membership by CustomerMembership.Id.</summary>
-            public static string AdminCancel(Guid id) => $"{Base}/{id}/cancel";
-
-            /// <summary>Undoes a pending cancellation before the period ends.</summary>
-            public const string Reactivate = Base + "/reactivate";
-
-            public static string AdminReactivate(Guid id) => $"{Base}/{id}/reactivate";
 
             /// <summary>GET the caller's most recent ended membership - 404 when none or already a member.</summary>
             public const string MinePrevious = Base + "/mine/previous";
@@ -484,7 +467,6 @@ public static class ApiRoutes
 
             public const string All = Base;
 
-            public static string SetActive(Guid id, bool isActive) => $"{Base}/{id}/active?isActive={isActive}";
         }
 
         public static class Referrals
