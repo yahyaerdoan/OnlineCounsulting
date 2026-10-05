@@ -1,3 +1,5 @@
+using OnlineConsulting.Maui.Shared.Infrastructure.Hateoas;
+
 namespace OnlineConsulting.Maui.Shared.Infrastructure.Api;
 
 /// <summary>Mirrors Tenancy's ModuleOfferingAdminResponse - flat-consumed, no ServerDataTable.</summary>
@@ -9,4 +11,4 @@ public record ModuleOfferingResponse(
     string BillingCycle,
     bool IsPubliclyVisible,
     string? ProviderProductId,
-    string? ProviderPriceId);
+    string? ProviderPriceId) : HalResource;

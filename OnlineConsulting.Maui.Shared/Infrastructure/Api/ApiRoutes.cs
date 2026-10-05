@@ -512,9 +512,6 @@ public static class ApiRoutes
         /// <summary>Authenticated - the caller's own tenant (any tenant admin, not just SuperAdmin).</summary>
         public const string MyTenant = Base + "/my-tenant";
 
-        /// <summary>Tenant admins - sets the caller's own business time zone.</summary>
-        public const string MyTimeZone = Base + "/my-tenant/time-zone";
-
         /// <summary>Public - the IANA time zone of the caller's business (the default tenant's when anonymous).</summary>
         public const string TimeZone = Base + "/time-zone";
     }
@@ -546,9 +543,6 @@ public static class ApiRoutes
             public const string All = Base + "/admin/tenants/query";
 
             public static string ById(Guid tenantId) => $"{Base}/admin/tenants/{tenantId}";
-            public static string Suspend(Guid tenantId) => $"{Base}/admin/tenants/{tenantId}/suspend";
-            public static string Reactivate(Guid tenantId) => $"{Base}/admin/tenants/{tenantId}/reactivate";
-            public static string Cancel(Guid tenantId) => $"{Base}/admin/tenants/{tenantId}/cancel";
             public static string AddModule(Guid tenantId, string key) => $"{Base}/{tenantId}/modules/{key}";
             public static string RemoveModule(Guid tenantId, string key) => $"{Base}/{tenantId}/modules/{key}";
         }

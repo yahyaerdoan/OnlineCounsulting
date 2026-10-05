@@ -21,4 +21,6 @@ public static class LinkRels
     public const string Reactivate = "oc:reactivate";
     public const string ChangePlan = "oc:change-plan";
     public const string SetActive = "oc:set-active";
+    public const string Suspend = "oc:suspend";
+    public const string ChangeTimeZone = "oc:change-time-zone";
 }

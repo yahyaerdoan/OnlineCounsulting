@@ -41,7 +41,7 @@ else if (_tenant is not null)
                         <MudSelectItem Value="@id">@name</MudSelectItem>
                     }
                 </MudSelect>
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(_savingTimeZone || _timeZoneId == _tenant.TimeZoneId)" OnClick="SaveTimeZoneAsync">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(_savingTimeZone || _timeZoneId == _tenant.TimeZoneId || !_tenant.Can(LinkRels.ChangeTimeZone))" OnClick="SaveTimeZoneAsync">
                     @(_savingTimeZone ? "Saving..." : "Save")
                 </MudButton>
             </MudStack>
@@ -84,13 +84,13 @@ else if (_tenant is not null)
 
     private async Task SaveTimeZoneAsync()
     {
-        if (_timeZoneId is not { Length: > 0 } timeZoneId)
+        if (_timeZoneId is not { Length: > 0 } timeZoneId || _tenant?.Links.Find(LinkRels.ChangeTimeZone) is not { } changeTimeZone)
         {
             return;
         }
 
         _savingTimeZone = true;
-        var result = await ApiClient.PutAsync(ApiRoutes.Tenancy.MyTimeZone, new ChangeTimeZoneRequest(timeZoneId));
+        var result = await ApiClient.FollowAsync(changeTimeZone, new ChangeTimeZoneRequest(timeZoneId));
         _savingTimeZone = false;
 
         if (!result.IsSuccessful)
