@@ -5,6 +5,7 @@ public static class BusinessTimeZones
 {
     public const string Default = "America/Chicago";
 
+    /// <summary>True when the id is a time zone this machine knows.</summary>
     public static bool IsKnown(string? timeZoneId) => Find(timeZoneId) is not null;
 
     /// <summary>The zone for the id, or the <see cref="Default"/> zone when the id is missing or unknown.</summary>

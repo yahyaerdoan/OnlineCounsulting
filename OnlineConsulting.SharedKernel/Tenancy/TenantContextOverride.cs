@@ -7,6 +7,7 @@ public static class TenantContextOverride
 
     public static Guid? TenantId => _current.Value;
 
+    /// <summary>Points tenant-scoped reads and writes at tenantId until the returned scope is disposed.</summary>
     public static IDisposable BeginScope(Guid tenantId)
     {
         var previous = _current.Value;

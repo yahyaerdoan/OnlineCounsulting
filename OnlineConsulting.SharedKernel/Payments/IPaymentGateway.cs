@@ -9,6 +9,7 @@ public interface IPaymentGateway
     /// <summary>Starts a payment for the given amount. Idempotent per idempotencyKey - retrying the same call (e.g. after a network timeout) must not create a second charge.</summary>
     Task<PaymentIntentResult> CreatePaymentIntentAsync(CreatePaymentIntentRequest request, CancellationToken cancellationToken = default);
 
+    /// <summary>The payment's current status at the provider.</summary>
     Task<PaymentStatusResult> GetStatusAsync(string providerPaymentId, CancellationToken cancellationToken = default);
 
     /// <summary>amount null means a full refund.</summary>
@@ -17,14 +18,3 @@ public interface IPaymentGateway
     /// <summary>Verifies the webhook signature and normalizes the payload; null if it's not a payment-status event (providers send many unrelated event types on the same endpoint).</summary>
     Task<PaymentWebhookEvent?> VerifyAndParseWebhookAsync(string rawBody, string? signatureHeader, CancellationToken cancellationToken = default);
 }
-
-public record CreatePaymentIntentRequest(decimal Amount, string Currency, string ReferenceId, string? CustomerEmail, string IdempotencyKey);
-
-public record PaymentIntentResult(string ProviderPaymentId, string Status, string? ClientSecret);
-
-/// <summary>ClientSecret is populated on a fresh retrieve so a caller can resume client-side payment
-/// confirmation for an already-created intent (e.g. after a page reload) without creating a new one.</summary>
-public record PaymentStatusResult(string ProviderPaymentId, string Status, string? ClientSecret = null);
-
-/// <summary>ReferenceId round-trips whatever CreatePaymentIntentRequest.ReferenceId was, so the webhook handler can map back to the Order/Appointment without querying the provider for it.</summary>
-public record PaymentWebhookEvent(string ProviderPaymentId, string ReferenceId, bool Succeeded);

@@ -1,5 +1,6 @@
 namespace OnlineConsulting.Notifications.Dispatch;
 
+/// <summary>Bound from the "OutboxDispatcher" config section.</summary>
 public class OutboxDispatcherOptions
 {
     public TimeSpan PollInterval { get; set; } = TimeSpan.FromSeconds(15);

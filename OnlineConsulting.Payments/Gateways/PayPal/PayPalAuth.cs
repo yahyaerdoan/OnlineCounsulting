@@ -6,6 +6,7 @@ namespace OnlineConsulting.Payments.Gateways.PayPal;
 
 internal static class PayPalAuth
 {
+    /// <summary>An OAuth access token for the PayPal REST API (client credentials).</summary>
     public static async Task<string> GetAccessTokenAsync(HttpClient client, PayPalOptions options, CancellationToken cancellationToken)
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, "/v1/oauth2/token")
@@ -24,5 +25,3 @@ internal static class PayPalAuth
 
     private record PayPalTokenResponse([property: JsonPropertyName("access_token")] string AccessToken);
 }
-
-internal record PayPalLink(string Rel, string Href);

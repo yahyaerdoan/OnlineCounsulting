@@ -18,7 +18,9 @@ public interface ICurrentUserAccessor
 
     IReadOnlyCollection<string> Permissions { get; }
 
+    /// <summary>True when the caller's token carries the role.</summary>
     bool IsInRole(string role);
 
+    /// <summary>True when the caller's token carries the permission.</summary>
     bool HasPermission(string permission);
 }

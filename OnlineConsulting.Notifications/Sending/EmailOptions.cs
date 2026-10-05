@@ -1,5 +1,6 @@
 namespace OnlineConsulting.Notifications.Sending;
 
+/// <summary>SMTP settings, bound from the "Email" config section.</summary>
 public class EmailOptions
 {
     public required string SmtpHost { get; set; }

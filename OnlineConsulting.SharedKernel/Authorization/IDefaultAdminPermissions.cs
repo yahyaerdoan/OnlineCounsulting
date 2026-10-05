@@ -5,8 +5,3 @@ public interface IDefaultAdminPermissions
 {
     string[] Permissions { get; }
 }
-
-public class DefaultAdminPermissions(string[] permissions) : IDefaultAdminPermissions
-{
-    public string[] Permissions { get; } = permissions;
-}

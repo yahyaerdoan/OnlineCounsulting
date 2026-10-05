@@ -6,6 +6,7 @@ namespace OnlineConsulting.SharedKernel.Persistence;
 /// <summary>Shared boilerplate for `IDesignTimeDbContextFactory` implementations - `dotnet ef` runs outside DI, so options must be built by hand.</summary>
 public static class DesignTimeDbContextOptionsFactory
 {
+    /// <summary>SQL Server options from DefaultConnection in the working directory's appsettings.json.</summary>
     public static DbContextOptions<TContext> Build<TContext>() where TContext : DbContext
     {
         var configuration = new ConfigurationBuilder()
