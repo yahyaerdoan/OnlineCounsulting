@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Contracts;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.ResumeOrderPayment;
 using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
@@ -15,7 +16,8 @@ public class ResumeOrderPayment : IEndpoint
             .WithTags("Commerce/Orders")
             .RequireAuthorization()
             .WithName("ResumeOrderPayment")
-            .WithDescription("Re-fetches a fresh PaymentClientSecret for the current user's own still-unpaid order.");
+            .WithDescription("Re-fetches a fresh PaymentClientSecret for the current user's own still-unpaid order.")
+            .ProducesEnveloped<CreateOrderResult>();
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, Guid id, ISender sender, HttpContext httpContext)

@@ -15,7 +15,8 @@ public class SetBillingAddress : IEndpoint
             .WithTags("Commerce/Addresses")
             .RequireAuthorization()
             .WithName("SetBillingAddress")
-            .WithDescription("Marks one of the current user's addresses as the billing address.");
+            .WithDescription("Marks one of the current user's addresses as the billing address.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, Guid id, ISender sender, HttpContext httpContext)

@@ -13,7 +13,8 @@ public class AdminCancelMembership : IEndpoint
             .WithTags("Memberships/CustomerMemberships")
             .RequireAuthorization()
             .WithName("AdminCancelMembership")
-            .WithDescription("Cancels a specific customer's membership immediately (admin).");
+            .WithDescription("Cancels a specific customer's membership immediately (admin).")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

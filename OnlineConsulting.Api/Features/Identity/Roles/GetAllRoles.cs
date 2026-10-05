@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Identity.Application.Features.Roles.Contracts;
 using OnlineConsulting.Modules.Identity.Application.Features.Roles.GetAllRoles;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -13,7 +14,8 @@ public class GetAllRoles : IEndpoint
             .WithTags("Identity/Roles")
             .RequireAuthorization()
             .WithName("GetAllRoles")
-            .WithDescription("Returns all roles.");
+            .WithDescription("Returns all roles.")
+            .ProducesEnveloped<List<RoleResponse>>();
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext)

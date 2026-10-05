@@ -14,7 +14,8 @@ public class ClearBasket : IEndpoint
         _ = app.MapDelete("/basket", Handle)
             .WithTags("Commerce/Baskets")
             .WithName("ClearBasket")
-            .WithDescription("Removes every item from the current user's (or guest's) basket.");
+            .WithDescription("Removes every item from the current user's (or guest's) basket.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, ISender sender, HttpContext httpContext, IGuestIdAccessor guestIdAccessor)

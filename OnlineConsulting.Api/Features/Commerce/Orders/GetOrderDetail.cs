@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Contracts;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.GetOrderDetail;
 using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
@@ -15,7 +16,8 @@ public class GetOrderDetail : IEndpoint
             .WithTags("Commerce/Orders")
             .RequireAuthorization()
             .WithName("GetOrderDetail")
-            .WithDescription("Returns a single order belonging to the current user, with its items and address ids.");
+            .WithDescription("Returns a single order belonging to the current user, with its items and address ids.")
+            .ProducesEnveloped<OrderDetailResponse>();
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, Guid id, ISender sender, HttpContext httpContext)

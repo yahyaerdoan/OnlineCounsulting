@@ -13,7 +13,9 @@ public class SubscribeNewsletter : IEndpoint
         _ = app.MapPost("/inquiries/newsletter", Handle)
             .WithTags("Inquiries/Newsletter")
             .WithName("SubscribeNewsletter")
-            .WithDescription("Subscribes an email address to the newsletter. Public - no login required.");
+            .WithDescription("Subscribes an email address to the newsletter. Public - no login required.")
+            .ProducesEnveloped()
+            .ProducesEnveloped(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle([FromBody] SubscribeNewsletterRequest request, ISender sender, HttpContext httpContext)

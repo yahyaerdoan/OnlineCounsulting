@@ -14,7 +14,8 @@ public class AddServiceMediaItem : IEndpoint
             .WithTags("Services")
             .RequireAuthorization()
             .WithName("AddServiceMediaItem")
-            .WithDescription("Attaches an already-uploaded photo or video to a service's gallery.");
+            .WithDescription("Attaches an already-uploaded photo or video to a service's gallery.")
+            .ProducesEnveloped<Guid>(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle([FromBody] AddServiceMediaItemRequest request, ISender sender, HttpContext httpContext)

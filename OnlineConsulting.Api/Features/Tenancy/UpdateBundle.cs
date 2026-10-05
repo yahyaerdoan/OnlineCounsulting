@@ -14,7 +14,8 @@ public class UpdateBundle : IEndpoint
             .WithTags("Tenancy")
             .RequireAuthorization()
             .WithName("UpdateBundle")
-            .WithDescription("Updates a bundle's name, module keys and visibility (SuperAdmin).");
+            .WithDescription("Updates a bundle's name, module keys and visibility (SuperAdmin).")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, [FromBody] UpdateBundleRequest request, ISender sender, HttpContext httpContext)

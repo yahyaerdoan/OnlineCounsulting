@@ -13,7 +13,8 @@ public class DeleteUser : IEndpoint
             .WithTags("Identity/Users")
             .RequireAuthorization()
             .WithName("DeleteUser")
-            .WithDescription("Deletes a user.");
+            .WithDescription("Deletes a user.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

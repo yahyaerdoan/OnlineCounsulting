@@ -1,5 +1,7 @@
+using Core.PersistenceLayer.Pagings.Paging;
 using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Identity.Application.Features.Notifications.Contracts;
 using OnlineConsulting.Modules.Identity.Application.Features.Notifications.GetMyNotifications;
 using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
@@ -15,7 +17,8 @@ public class GetMyNotifications : IEndpoint
             .WithTags("Identity/Notifications")
             .RequireAuthorization()
             .WithName("GetMyNotifications")
-            .WithDescription("Returns the current user's in-app notifications, newest first, paginated.");
+            .WithDescription("Returns the current user's in-app notifications, newest first, paginated.")
+            .ProducesEnveloped<Paginate<UserNotificationResponse>>();
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, ISender sender, HttpContext httpContext, int? index = null, int? size = null)

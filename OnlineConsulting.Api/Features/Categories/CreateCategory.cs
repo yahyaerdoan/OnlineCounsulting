@@ -16,7 +16,8 @@ public class CreateCategory : IEndpoint
             .RequireAuthorization()
             .WithName("CreateCategory")
             .WithCreatedLocation("GetCategoryById")
-            .WithDescription("Creates a new category for the current tenant.");
+            .WithDescription("Creates a new category for the current tenant.")
+            .ProducesEnveloped<Guid>(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle([FromBody] CreateCategoryRequest request, ISender sender, HttpContext httpContext)

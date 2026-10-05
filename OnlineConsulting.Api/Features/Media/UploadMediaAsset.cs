@@ -18,7 +18,8 @@ public class UploadMediaAsset : IEndpoint
             .DisableAntiforgery()
             .WithName("UploadMediaAsset")
             .WithCreatedLocation("GetMediaAsset")
-            .WithDescription("Uploads a file (image) and registers it as a MediaAsset - the returned id can be referenced from any module that needs to show an image.");
+            .WithDescription("Uploads a file (image) and registers it as a MediaAsset - the returned id can be referenced from any module that needs to show an image.")
+            .ProducesEnveloped<Guid>(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle(IFormFile file, [FromForm] string folder, [FromForm] string? altText, ISender sender, HttpContext httpContext)

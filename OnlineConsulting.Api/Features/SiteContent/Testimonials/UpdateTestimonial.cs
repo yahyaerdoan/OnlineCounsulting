@@ -14,7 +14,8 @@ public class UpdateTestimonial : IEndpoint
             .WithTags("SiteContent/Testimonials")
             .RequireAuthorization()
             .WithName("UpdateTestimonial")
-            .WithDescription("Updates a customer testimonial.");
+            .WithDescription("Updates a customer testimonial.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, [FromBody] UpdateTestimonialRequest request, ISender sender, HttpContext httpContext)

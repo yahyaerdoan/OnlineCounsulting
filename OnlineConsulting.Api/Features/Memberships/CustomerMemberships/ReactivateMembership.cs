@@ -15,7 +15,8 @@ public class ReactivateMembership : IEndpoint
             .WithTags("Memberships/CustomerMemberships")
             .RequireAuthorization()
             .WithName("ReactivateMembership")
-            .WithDescription("Undoes the current user's pending cancellation before the period ends - the membership renews again, no new charge.");
+            .WithDescription("Undoes the current user's pending cancellation before the period ends - the membership renews again, no new charge.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, ISender sender, HttpContext httpContext)

@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Contracts;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.CreateOrderFromBasket;
 using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
@@ -15,7 +16,8 @@ public class CreateOrderFromBasket : IEndpoint
             .WithTags("Commerce/Orders")
             .RequireAuthorization()
             .WithName("CreateOrderFromBasket")
-            .WithDescription("Checks out the current user's basket into a new order, using their current shipping/billing address.");
+            .WithDescription("Checks out the current user's basket into a new order, using their current shipping/billing address.")
+            .ProducesEnveloped<CreateOrderResult>(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, ISender sender, HttpContext httpContext)

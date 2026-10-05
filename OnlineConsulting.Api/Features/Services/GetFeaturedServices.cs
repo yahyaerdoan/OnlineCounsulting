@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Services.Application.Features.Services.Contracts;
 using OnlineConsulting.Modules.Services.Application.Features.Services.GetFeaturedServices;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -12,7 +13,8 @@ public class GetFeaturedServices : IEndpoint
         _ = app.MapGet("/services/featured", Handle)
             .WithTags("Services")
             .WithName("GetFeaturedServices")
-            .WithDescription("Returns services marked as featured. Public - no login required.");
+            .WithDescription("Returns services marked as featured. Public - no login required.")
+            .ProducesEnveloped<List<ServiceResponse>>();
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext)

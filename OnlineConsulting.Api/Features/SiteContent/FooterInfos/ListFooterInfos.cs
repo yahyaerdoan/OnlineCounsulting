@@ -1,7 +1,9 @@
 using Core.PersistenceLayer.Dynamics.Dynamic;
+using Core.PersistenceLayer.Pagings.Paging;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.SiteContent.Application.Features.FooterInfos.Contracts;
 using OnlineConsulting.Modules.SiteContent.Application.Features.FooterInfos.ListFooterInfos;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -14,7 +16,8 @@ public class ListFooterInfos : IEndpoint
         _ = app.MapPost("/site-content/footer-info/query", Handle)
             .WithTags("SiteContent/FooterInfos")
             .WithName("ListFooterInfos")
-            .WithDescription("Returns footer info entries, paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body.");
+            .WithDescription("Returns footer info entries, paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body.")
+            .ProducesEnveloped<Paginate<FooterInfoResponse>>();
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext, [AsParameters] ListQueryParameters query, [FromBody] DynamicQueryRequest? dynamicQuery)

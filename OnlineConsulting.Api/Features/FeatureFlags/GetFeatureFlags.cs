@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.FeatureFlags.Application.Features.FeatureFlags.Contracts;
 using OnlineConsulting.Modules.FeatureFlags.Application.Features.FeatureFlags.GetFeatureFlags;
 using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.AspNetCore.Extensions;
@@ -14,7 +15,8 @@ public class GetFeatureFlags : IEndpoint
             .WithTags("FeatureFlags")
             .RequireAuthorization()
             .WithName("GetFeatureFlags")
-            .WithDescription("Returns every known feature flag key and whether it's enabled for the current tenant.");
+            .WithDescription("Returns every known feature flag key and whether it's enabled for the current tenant.")
+            .ProducesEnveloped<List<FeatureFlagResponse>>();
     }
 
     private static async Task<IResult> Handle(ISender sender, ITenantProvider tenantProvider, HttpContext httpContext)

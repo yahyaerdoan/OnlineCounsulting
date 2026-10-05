@@ -14,7 +14,8 @@ public class UpdateFooterInfo : IEndpoint
             .WithTags("SiteContent/FooterInfo")
             .RequireAuthorization()
             .WithName("UpdateFooterInfo")
-            .WithDescription("Updates a footer content block.");
+            .WithDescription("Updates a footer content block.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, [FromBody] UpdateFooterInfoRequest request, ISender sender, HttpContext httpContext)

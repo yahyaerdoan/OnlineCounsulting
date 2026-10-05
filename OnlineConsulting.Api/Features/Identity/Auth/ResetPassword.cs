@@ -15,7 +15,8 @@ public class ResetPassword : IEndpoint
             .WithTags("Identity/Auth")
             .RequireRateLimiting(ServiceRegistration.AuthRateLimiterPolicy)
             .WithName("ResetPassword")
-            .WithDescription("Sets a new password using the token emailed by ForgotPassword.");
+            .WithDescription("Sets a new password using the token emailed by ForgotPassword.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle([FromBody] ResetPasswordRequest request, ISender sender, HttpContext httpContext)

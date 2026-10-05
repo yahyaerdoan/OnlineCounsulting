@@ -13,7 +13,8 @@ public class DeleteMessage : IEndpoint
             .WithTags("Inquiries/Messages")
             .RequireAuthorization()
             .WithName("DeleteMessage")
-            .WithDescription("Deletes a submitted message. Admin only.");
+            .WithDescription("Deletes a submitted message. Admin only.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

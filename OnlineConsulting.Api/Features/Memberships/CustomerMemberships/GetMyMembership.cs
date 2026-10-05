@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Contracts;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.GetMyMembership;
 using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
@@ -15,7 +16,8 @@ public class GetMyMembership : IEndpoint
             .WithTags("Memberships/CustomerMemberships")
             .RequireAuthorization()
             .WithName("GetMyMembership")
-            .WithDescription("Returns the current user's active membership, if any.");
+            .WithDescription("Returns the current user's active membership, if any.")
+            .ProducesEnveloped<CustomerMembershipResponse>();
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, ISender sender, HttpContext httpContext)

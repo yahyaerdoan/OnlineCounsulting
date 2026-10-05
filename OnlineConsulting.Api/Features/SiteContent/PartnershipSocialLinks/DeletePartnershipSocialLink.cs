@@ -13,7 +13,8 @@ public class DeletePartnershipSocialLink : IEndpoint
             .WithTags("SiteContent/PartnershipSocialLinks")
             .RequireAuthorization()
             .WithName("DeletePartnershipSocialLink")
-            .WithDescription("Deletes a partnership showcase entry's social link.");
+            .WithDescription("Deletes a partnership showcase entry's social link.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

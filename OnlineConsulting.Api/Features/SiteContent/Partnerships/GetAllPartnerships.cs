@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.SiteContent.Application.Features.Partnerships.Contracts;
 using OnlineConsulting.Modules.SiteContent.Application.Features.Partnerships.GetAllPartnerships;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -12,7 +13,8 @@ public class GetAllPartnerships : IEndpoint
         _ = app.MapGet("/site-content/partnerships", Handle)
             .WithTags("SiteContent/Partnerships")
             .WithName("GetAllPartnerships")
-            .WithDescription("Returns the tenant's partnership showcase entries, with their social links. Public - no login required. Returns an empty list when the tenant's Partnerships feature flag is off.");
+            .WithDescription("Returns the tenant's partnership showcase entries, with their social links. Public - no login required. Returns an empty list when the tenant's Partnerships feature flag is off.")
+            .ProducesEnveloped<List<PartnershipResponse>>();
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext)

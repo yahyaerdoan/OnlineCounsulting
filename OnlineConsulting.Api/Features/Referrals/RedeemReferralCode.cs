@@ -18,7 +18,8 @@ public class RedeemReferralCode : IEndpoint
             .RequireAuthorization()
             .RequireRateLimiting(ServiceRegistration.ReferralRedeemRateLimiterPolicy)
             .WithName("RedeemReferralCode")
-            .WithDescription("Redeems a referral code on behalf of the current user - at most once per user.");
+            .WithDescription("Redeems a referral code on behalf of the current user - at most once per user.")
+            .ProducesEnveloped<Guid>(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, [FromBody] RedeemReferralCodeRequest request, ISender sender, HttpContext httpContext)

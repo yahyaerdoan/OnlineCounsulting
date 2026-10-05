@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Equipment.Application.Features.EquipmentItems.Contracts;
 using OnlineConsulting.Modules.Equipment.Application.Features.EquipmentItems.GetMyEquipment;
 using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
@@ -15,7 +16,8 @@ public class GetMyEquipment : IEndpoint
             .WithTags("Equipment")
             .RequireAuthorization()
             .WithName("GetMyEquipment")
-            .WithDescription("Returns the current user's installed equipment - the customer portal's equipment health panel.");
+            .WithDescription("Returns the current user's installed equipment - the customer portal's equipment health panel.")
+            .ProducesEnveloped<List<EquipmentItemResponse>>();
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, ISender sender, HttpContext httpContext)

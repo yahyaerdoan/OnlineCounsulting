@@ -14,7 +14,8 @@ public class CreateRole : IEndpoint
             .WithTags("Identity/Roles")
             .RequireAuthorization()
             .WithName("CreateRole")
-            .WithDescription("Creates a new role.");
+            .WithDescription("Creates a new role.")
+            .ProducesEnveloped(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle([FromBody] CreateRoleRequest request, ISender sender, HttpContext httpContext)

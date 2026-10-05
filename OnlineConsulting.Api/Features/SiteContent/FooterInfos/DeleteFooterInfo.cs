@@ -13,7 +13,8 @@ public class DeleteFooterInfo : IEndpoint
             .WithTags("SiteContent/FooterInfo")
             .RequireAuthorization()
             .WithName("DeleteFooterInfo")
-            .WithDescription("Deletes a footer content block.");
+            .WithDescription("Deletes a footer content block.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

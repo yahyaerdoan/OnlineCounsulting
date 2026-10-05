@@ -13,7 +13,8 @@ public class SetPromoCodeActive : IEndpoint
             .WithTags("Memberships/PromoCodes")
             .RequireAuthorization()
             .WithName("SetPromoCodeActive")
-            .WithDescription("Activates or deactivates a promo code (admin).");
+            .WithDescription("Activates or deactivates a promo code (admin).")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, bool isActive, ISender sender, HttpContext httpContext)

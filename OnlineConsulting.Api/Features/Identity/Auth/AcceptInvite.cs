@@ -15,7 +15,8 @@ public class AcceptInvite : IEndpoint
             .WithTags("Identity/Auth")
             .RequireRateLimiting(ServiceRegistration.AuthRateLimiterPolicy)
             .WithName("AcceptInvite")
-            .WithDescription("Accepts a teammate invite and creates the invited person's account.");
+            .WithDescription("Accepts a teammate invite and creates the invited person's account.")
+            .ProducesEnveloped(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle([FromBody] AcceptInviteRequest request, ISender sender, HttpContext httpContext)

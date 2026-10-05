@@ -1,7 +1,9 @@
 using Core.PersistenceLayer.Dynamics.Dynamic;
+using Core.PersistenceLayer.Pagings.Paging;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.SiteContent.Application.Features.SocialLinks.Contracts;
 using OnlineConsulting.Modules.SiteContent.Application.Features.SocialLinks.ListSocialLinks;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -14,7 +16,8 @@ public class ListSocialLinks : IEndpoint
         _ = app.MapPost("/site-content/social-links/query", Handle)
             .WithTags("SiteContent/SocialLinks")
             .WithName("ListSocialLinks")
-            .WithDescription("Returns social links, paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body.");
+            .WithDescription("Returns social links, paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body.")
+            .ProducesEnveloped<Paginate<SocialLinkResponse>>();
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext, [AsParameters] ListQueryParameters query, [FromBody] DynamicQueryRequest? dynamicQuery)

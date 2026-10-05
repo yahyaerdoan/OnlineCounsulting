@@ -31,7 +31,8 @@ public class CreateWorkOrder : IEndpoint
             .WithTags("Scheduling/WorkOrders")
             .RequireAuthorization()
             .WithName("CreateWorkOrder")
-            .WithDescription("Records completed work against an appointment (parts used, technician notes) - this is what marks the appointment Completed. Pass NewEquipment instead of EquipmentId to record a newly-installed piece of equipment in the same call.");
+            .WithDescription("Records completed work against an appointment (parts used, technician notes) - this is what marks the appointment Completed. Pass NewEquipment instead of EquipmentId to record a newly-installed piece of equipment in the same call.")
+            .ProducesEnveloped<Guid>(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle([FromBody] CreateWorkOrderRequest request, ISender sender, ILogger<CreateWorkOrder> logger, HttpContext httpContext)

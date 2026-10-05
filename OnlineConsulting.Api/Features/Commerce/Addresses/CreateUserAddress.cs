@@ -16,7 +16,8 @@ public class CreateUserAddress : IEndpoint
             .WithTags("Commerce/Addresses")
             .RequireAuthorization()
             .WithName("CreateUserAddress")
-            .WithDescription("Creates a new address for the current user.");
+            .WithDescription("Creates a new address for the current user.")
+            .ProducesEnveloped<Guid>(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, [FromBody] CreateUserAddressRequest request, ISender sender, HttpContext httpContext)

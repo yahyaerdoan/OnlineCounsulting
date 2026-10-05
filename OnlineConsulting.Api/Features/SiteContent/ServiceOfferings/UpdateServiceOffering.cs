@@ -14,7 +14,8 @@ public class UpdateServiceOffering : IEndpoint
             .WithTags("SiteContent/ServiceOfferings")
             .RequireAuthorization()
             .WithName("UpdateServiceOffering")
-            .WithDescription("Updates a service offering card.");
+            .WithDescription("Updates a service offering card.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, [FromBody] UpdateServiceOfferingRequest request, ISender sender, HttpContext httpContext)

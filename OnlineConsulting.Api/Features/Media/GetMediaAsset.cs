@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Media.Application.Features.MediaAssets.Contracts;
 using OnlineConsulting.Modules.Media.Application.Features.MediaAssets.GetMediaAsset;
 using ResultHandler.AspNetCore.Extensions;
 using ResultHandler.Facade;
@@ -13,7 +14,8 @@ public class GetMediaAsset : IEndpoint
         _ = app.MapGet("/media/{id:guid}", Handle)
             .WithTags("Media")
             .WithName("GetMediaAsset")
-            .WithDescription("Returns a single media asset by id. Public - no login required.");
+            .WithDescription("Returns a single media asset by id. Public - no login required.")
+            .ProducesEnveloped<MediaAssetResponse>();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

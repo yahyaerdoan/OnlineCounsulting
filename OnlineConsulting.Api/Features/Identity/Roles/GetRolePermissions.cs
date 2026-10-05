@@ -13,7 +13,8 @@ public class GetRolePermissions : IEndpoint
             .WithTags("Identity/Roles")
             .RequireAuthorization()
             .WithName("GetRolePermissions")
-            .WithDescription("Returns the permission claims currently granted to a role.");
+            .WithDescription("Returns the permission claims currently granted to a role.")
+            .ProducesEnveloped<List<string>>();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

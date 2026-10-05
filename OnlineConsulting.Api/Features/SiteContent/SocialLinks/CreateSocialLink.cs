@@ -14,7 +14,8 @@ public class CreateSocialLink : IEndpoint
             .WithTags("SiteContent/SocialLinks")
             .RequireAuthorization()
             .WithName("CreateSocialLink")
-            .WithDescription("Creates a site-wide social link.");
+            .WithDescription("Creates a site-wide social link.")
+            .ProducesEnveloped<Guid>(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle([FromBody] CreateSocialLinkRequest request, ISender sender, HttpContext httpContext)

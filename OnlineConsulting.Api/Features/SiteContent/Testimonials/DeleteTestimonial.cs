@@ -13,7 +13,8 @@ public class DeleteTestimonial : IEndpoint
             .WithTags("SiteContent/Testimonials")
             .RequireAuthorization()
             .WithName("DeleteTestimonial")
-            .WithDescription("Deletes a customer testimonial.");
+            .WithDescription("Deletes a customer testimonial.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

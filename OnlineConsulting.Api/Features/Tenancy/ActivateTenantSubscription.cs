@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Tenancy.Application.Features.Signup.Contracts;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Signup.RetryTenantSubscriptionActivation;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -15,7 +16,8 @@ public class ActivateTenantSubscription : IEndpoint
             .WithTags("Tenancy")
             .RequireAuthorization()
             .WithName("ActivateTenantSubscription")
-            .WithDescription("Retries billing for a tenant that was reserved and given an admin user but whose subscription activation previously failed.");
+            .WithDescription("Retries billing for a tenant that was reserved and given an admin user but whose subscription activation previously failed.")
+            .ProducesEnveloped<ActivateTenantSubscriptionResult>(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle(Guid tenantId, [FromBody] ActivateTenantSubscriptionRequest request, ISender sender, HttpContext httpContext)

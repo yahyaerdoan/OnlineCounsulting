@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Referrals.Application.Features.Referrals.Contracts;
 using OnlineConsulting.Modules.Referrals.Application.Features.Referrals.GetMyReferrals;
 using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
@@ -15,7 +16,8 @@ public class GetMyReferrals : IEndpoint
             .WithTags("Referrals")
             .RequireAuthorization()
             .WithName("GetMyReferrals")
-            .WithDescription("Returns the referrals the current user has made as a referrer.");
+            .WithDescription("Returns the referrals the current user has made as a referrer.")
+            .ProducesEnveloped<List<ReferralResponse>>();
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, ISender sender, HttpContext httpContext)

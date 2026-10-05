@@ -1,5 +1,6 @@
 using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.Contracts;
 using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.GetAddressSuggestions;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -13,7 +14,8 @@ public class GetAddressSuggestions : IEndpoint
             .WithTags("Commerce/Addresses")
             .RequireAuthorization()
             .WithName("GetAddressSuggestions")
-            .WithDescription("US street address suggestions for type-ahead (signed-in users only, to protect the provider quota).");
+            .WithDescription("US street address suggestions for type-ahead (signed-in users only, to protect the provider quota).")
+            .ProducesEnveloped<IReadOnlyList<AddressSuggestionResponse>>();
     }
 
     private static async Task<IResult> Handle(string? text, ISender sender, HttpContext httpContext)

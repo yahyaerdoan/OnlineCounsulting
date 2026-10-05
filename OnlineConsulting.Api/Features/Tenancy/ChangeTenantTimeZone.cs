@@ -14,7 +14,8 @@ public class ChangeTenantTimeZone : IEndpoint
             .WithTags("Tenancy")
             .RequireAuthorization()
             .WithName("ChangeTenantTimeZone")
-            .WithDescription("Sets the caller's own business time zone (IANA id, e.g. \"America/Chicago\"). Tenant admins only.");
+            .WithDescription("Sets the caller's own business time zone (IANA id, e.g. \"America/Chicago\"). Tenant admins only.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle([FromBody] ChangeTenantTimeZoneRequest request, ISender sender, HttpContext httpContext)

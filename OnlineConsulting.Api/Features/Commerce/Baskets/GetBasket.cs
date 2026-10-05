@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Commerce.Application.Features.Baskets.Contracts;
 using OnlineConsulting.Modules.Commerce.Application.Features.Baskets.GetBasket;
 using OnlineConsulting.SharedKernel.CurrentUser;
 using OnlineConsulting.SharedKernel.GuestIdentity;
@@ -14,7 +15,8 @@ public class GetBasket : IEndpoint
         _ = app.MapGet("/basket", Handle)
             .WithTags("Commerce/Baskets")
             .WithName("GetBasket")
-            .WithDescription("Returns the current user's (or guest's) basket, with its items.");
+            .WithDescription("Returns the current user's (or guest's) basket, with its items.")
+            .ProducesEnveloped<BasketResponse>();
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, ISender sender, HttpContext httpContext, IGuestIdAccessor guestIdAccessor)

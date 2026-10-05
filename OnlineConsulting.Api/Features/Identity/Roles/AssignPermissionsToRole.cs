@@ -14,7 +14,8 @@ public class AssignPermissionsToRole : IEndpoint
             .WithTags("Identity/Roles")
             .RequireAuthorization()
             .WithName("AssignPermissionsToRole")
-            .WithDescription("Replaces a role's permission claims with the given set.");
+            .WithDescription("Replaces a role's permission claims with the given set.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, [FromBody] AssignPermissionsToRoleRequest request, ISender sender, HttpContext httpContext)

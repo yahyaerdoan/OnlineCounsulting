@@ -13,7 +13,8 @@ public class DeletePromotion : IEndpoint
             .WithTags("SiteContent/Promotions")
             .RequireAuthorization()
             .WithName("DeletePromotion")
-            .WithDescription("Deletes a promotional offer/CTA.");
+            .WithDescription("Deletes a promotional offer/CTA.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

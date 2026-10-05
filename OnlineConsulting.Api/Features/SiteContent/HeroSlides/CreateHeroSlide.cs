@@ -14,7 +14,8 @@ public class CreateHeroSlide : IEndpoint
             .WithTags("SiteContent/HeroSlides")
             .RequireAuthorization()
             .WithName("CreateHeroSlide")
-            .WithDescription("Creates a homepage hero slide.");
+            .WithDescription("Creates a homepage hero slide.")
+            .ProducesEnveloped<Guid>(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle([FromBody] CreateHeroSlideRequest request, ISender sender, HttpContext httpContext)

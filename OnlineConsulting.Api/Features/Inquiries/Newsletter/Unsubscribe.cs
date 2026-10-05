@@ -13,7 +13,8 @@ public class Unsubscribe : IEndpoint
             .WithTags("Inquiries/Newsletter")
             .RequireAuthorization()
             .WithName("Unsubscribe")
-            .WithDescription("Removes a newsletter subscriber. Admin only.");
+            .WithDescription("Removes a newsletter subscriber. Admin only.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

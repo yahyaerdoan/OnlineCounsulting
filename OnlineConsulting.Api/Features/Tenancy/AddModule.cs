@@ -14,7 +14,8 @@ public class AddModule : IEndpoint
             .WithTags("Tenancy")
             .RequireAuthorization()
             .WithName("AddModule")
-            .WithDescription("Adds one more module to a tenant's subscription, billed immediately and prorated.");
+            .WithDescription("Adds one more module to a tenant's subscription, billed immediately and prorated.")
+            .ProducesEnveloped(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle(Guid tenantId, string key, ISender sender, HttpContext httpContext)

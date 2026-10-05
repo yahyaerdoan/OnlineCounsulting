@@ -15,7 +15,8 @@ public class Register : IEndpoint
             .WithTags("Identity/Auth")
             .RequireRateLimiting(ServiceRegistration.AuthRateLimiterPolicy)
             .WithName("Register")
-            .WithDescription("Creates a new user account.");
+            .WithDescription("Creates a new user account.")
+            .ProducesEnveloped(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle([FromBody] RegisterRequest request, ISender sender, HttpContext httpContext)

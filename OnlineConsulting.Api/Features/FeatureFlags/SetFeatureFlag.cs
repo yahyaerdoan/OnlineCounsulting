@@ -15,7 +15,8 @@ public class SetFeatureFlag : IEndpoint
             .WithTags("FeatureFlags")
             .RequireAuthorization()
             .WithName("SetFeatureFlag")
-            .WithDescription("Enables or disables a feature flag for the current tenant.");
+            .WithDescription("Enables or disables a feature flag for the current tenant.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(

@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.Contracts;
 using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.GetInvoiceForStaff;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -13,7 +14,8 @@ public class GetInvoiceForStaff : IEndpoint
             .WithTags("Commerce/Invoices")
             .RequireAuthorization()
             .WithName("GetInvoiceForStaff")
-            .WithDescription("Any invoice for the tenant with its lines (staff).");
+            .WithDescription("Any invoice for the tenant with its lines (staff).")
+            .ProducesEnveloped<InvoiceResponse>();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

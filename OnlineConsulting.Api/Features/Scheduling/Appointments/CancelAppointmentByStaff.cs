@@ -13,7 +13,8 @@ public class CancelAppointmentByStaff : IEndpoint
             .WithTags("Scheduling/Appointments")
             .RequireAuthorization()
             .WithName("CancelAppointmentByStaff")
-            .WithDescription("Cancels any pending or confirmed appointment (admin) and notifies the customer and the assigned technician.");
+            .WithDescription("Cancels any pending or confirmed appointment (admin) and notifies the customer and the assigned technician.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, CancelAppointmentByStaffRequest? body, ISender sender, HttpContext httpContext)

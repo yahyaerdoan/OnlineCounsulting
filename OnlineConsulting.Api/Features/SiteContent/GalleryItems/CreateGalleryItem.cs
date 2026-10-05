@@ -14,7 +14,8 @@ public class CreateGalleryItem : IEndpoint
             .WithTags("SiteContent/GalleryItems")
             .RequireAuthorization()
             .WithName("CreateGalleryItem")
-            .WithDescription("Creates a gallery item, tagged with one or more gallery categories.");
+            .WithDescription("Creates a gallery item, tagged with one or more gallery categories.")
+            .ProducesEnveloped<Guid>(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle([FromBody] CreateGalleryItemRequest request, ISender sender, HttpContext httpContext)

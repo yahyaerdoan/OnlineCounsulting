@@ -14,7 +14,8 @@ public class UpdateGalleryCategory : IEndpoint
             .WithTags("SiteContent/GalleryCategories")
             .RequireAuthorization()
             .WithName("UpdateGalleryCategory")
-            .WithDescription("Updates a gallery category tag.");
+            .WithDescription("Updates a gallery category tag.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, [FromBody] UpdateGalleryCategoryRequest request, ISender sender, HttpContext httpContext)

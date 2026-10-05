@@ -16,7 +16,8 @@ public class UpdateUserAddress : IEndpoint
             .WithTags("Commerce/Addresses")
             .RequireAuthorization()
             .WithName("UpdateUserAddress")
-            .WithDescription("Updates one of the current user's addresses.");
+            .WithDescription("Updates one of the current user's addresses.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, Guid id, [FromBody] UpdateUserAddressRequest request, ISender sender, HttpContext httpContext)

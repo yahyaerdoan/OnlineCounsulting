@@ -13,7 +13,8 @@ public class DeleteSocialLink : IEndpoint
             .WithTags("SiteContent/SocialLinks")
             .RequireAuthorization()
             .WithName("DeleteSocialLink")
-            .WithDescription("Deletes a site-wide social link.");
+            .WithDescription("Deletes a site-wide social link.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

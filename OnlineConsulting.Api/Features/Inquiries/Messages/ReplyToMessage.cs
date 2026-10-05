@@ -14,7 +14,8 @@ public class ReplyToMessage : IEndpoint
             .WithTags("Inquiries/Messages")
             .RequireAuthorization()
             .WithName("ReplyToMessage")
-            .WithDescription("Sends an admin reply to a submitted contact-form message. Admin only.");
+            .WithDescription("Sends an admin reply to a submitted contact-form message. Admin only.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, [FromBody] ReplyMessageBody body, ISender sender, HttpContext httpContext)

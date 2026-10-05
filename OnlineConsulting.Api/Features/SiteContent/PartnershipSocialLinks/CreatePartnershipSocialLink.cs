@@ -14,7 +14,8 @@ public class CreatePartnershipSocialLink : IEndpoint
             .WithTags("SiteContent/PartnershipSocialLinks")
             .RequireAuthorization()
             .WithName("CreatePartnershipSocialLink")
-            .WithDescription("Adds a social link to a partnership showcase entry.");
+            .WithDescription("Adds a social link to a partnership showcase entry.")
+            .ProducesEnveloped<Guid>(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle([FromBody] CreatePartnershipSocialLinkRequest request, ISender sender, HttpContext httpContext)

@@ -15,7 +15,8 @@ public class AssignRole : IEndpoint
             .WithTags("Identity/Users")
             .RequireAuthorization()
             .WithName("AssignRoleToUser")
-            .WithDescription("Assigns/unassigns roles for a user.");
+            .WithDescription("Assigns/unassigns roles for a user.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, [FromBody] AssignRoleToUserRequest request, ISender sender, HttpContext httpContext)

@@ -14,7 +14,8 @@ public class CreateAvailabilityRule : IEndpoint
             .WithTags("Scheduling/Availability")
             .RequireAuthorization()
             .WithName("CreateAvailabilityRule")
-            .WithDescription("Tenant/admin: adds a recurring weekly working-hours window that appointments can be booked into.");
+            .WithDescription("Tenant/admin: adds a recurring weekly working-hours window that appointments can be booked into.")
+            .ProducesEnveloped<Guid>(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle([FromBody] CreateAvailabilityRuleRequest request, ISender sender, HttpContext httpContext)

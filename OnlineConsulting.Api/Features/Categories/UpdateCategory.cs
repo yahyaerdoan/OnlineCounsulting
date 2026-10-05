@@ -14,7 +14,8 @@ public class UpdateCategory : IEndpoint
             .WithTags("Categories")
             .RequireAuthorization()
             .WithName("UpdateCategory")
-            .WithDescription("Updates an existing category.");
+            .WithDescription("Updates an existing category.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, [FromBody] UpdateCategoryRequest request, ISender sender, HttpContext httpContext)

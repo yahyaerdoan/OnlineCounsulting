@@ -1,7 +1,9 @@
 using Core.PersistenceLayer.Dynamics.Dynamic;
+using Core.PersistenceLayer.Pagings.Paging;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.SiteContent.Application.Features.HeroSlides.Contracts;
 using OnlineConsulting.Modules.SiteContent.Application.Features.HeroSlides.ListHeroSlides;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -14,7 +16,8 @@ public class ListHeroSlides : IEndpoint
         _ = app.MapPost("/site-content/hero-slides/query", Handle)
             .WithTags("SiteContent/HeroSlides")
             .WithName("ListHeroSlides")
-            .WithDescription("Returns hero slides, paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body.");
+            .WithDescription("Returns hero slides, paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body.")
+            .ProducesEnveloped<Paginate<HeroSlideResponse>>();
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext, [AsParameters] ListQueryParameters query, [FromBody] DynamicQueryRequest? dynamicQuery)

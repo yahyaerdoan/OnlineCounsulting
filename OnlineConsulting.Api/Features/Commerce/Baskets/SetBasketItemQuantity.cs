@@ -15,7 +15,8 @@ public class SetBasketItemQuantity : IEndpoint
         _ = app.MapPut("/basket/items/{id:guid}", Handle)
             .WithTags("Commerce/Baskets")
             .WithName("SetBasketItemQuantity")
-            .WithDescription("Sets a basket line's quantity to an absolute value - the cart page's +/- stepper.");
+            .WithDescription("Sets a basket line's quantity to an absolute value - the cart page's +/- stepper.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, Guid id, [FromBody] SetBasketItemQuantityRequest request, ISender sender, HttpContext httpContext, IGuestIdAccessor guestIdAccessor)

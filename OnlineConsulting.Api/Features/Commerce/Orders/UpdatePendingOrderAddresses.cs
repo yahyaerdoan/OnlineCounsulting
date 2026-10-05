@@ -15,7 +15,8 @@ public class UpdatePendingOrderAddresses : IEndpoint
             .WithTags("Commerce/Orders")
             .RequireAuthorization()
             .WithName("UpdatePendingOrderAddresses")
-            .WithDescription("Points the current user's own unpaid order at their current default shipping and billing addresses (going back from payment to change an address).");
+            .WithDescription("Points the current user's own unpaid order at their current default shipping and billing addresses (going back from payment to change an address).")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, Guid id, ISender sender, HttpContext httpContext)

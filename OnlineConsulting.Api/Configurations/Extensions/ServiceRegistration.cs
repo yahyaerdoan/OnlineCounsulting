@@ -4,6 +4,7 @@ using Core.CrossCuttingConcernLayer.Loggings.Serilogs.Services;
 using Microsoft.OpenApi;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.SharedKernel.DependencyInjection;
+using ResultHandler.Core.Enums;
 using System.Threading.RateLimiting;
 
 namespace OnlineConsulting.Api.Configurations.Extensions;
@@ -118,6 +119,17 @@ public static class ServiceRegistration
             });
 
             _ = options.AddOperationTransformer<AuthorizeOperationTransformer>();
+
+            _ = options.AddSchemaTransformer((schema, context, _) =>
+            {
+                if (context.JsonTypeInfo.Type == typeof(ResultStatus))
+                {
+                    schema.Type = JsonSchemaType.Integer;
+                    schema.Format = "int32";
+                }
+
+                return Task.CompletedTask;
+            });
         });
     }
 }

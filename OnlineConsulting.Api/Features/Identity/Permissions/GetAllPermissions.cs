@@ -13,7 +13,8 @@ public class GetAllPermissions : IEndpoint
             .WithTags("Identity/Permissions")
             .RequireAuthorization()
             .WithName("GetAllPermissions")
-            .WithDescription("Returns every permission defined in the system, grouped by module.");
+            .WithDescription("Returns every permission defined in the system, grouped by module.")
+            .ProducesEnveloped<Dictionary<string, string[]>>();
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext)

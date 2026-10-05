@@ -13,7 +13,8 @@ public class DeleteGalleryCategory : IEndpoint
             .WithTags("SiteContent/GalleryCategories")
             .RequireAuthorization()
             .WithName("DeleteGalleryCategory")
-            .WithDescription("Deletes a gallery category tag.");
+            .WithDescription("Deletes a gallery category tag.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

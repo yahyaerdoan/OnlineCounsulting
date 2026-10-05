@@ -13,7 +13,8 @@ public class SubmitMessage : IEndpoint
         _ = app.MapPost("/inquiries/messages", Handle)
             .WithTags("Inquiries/Messages")
             .WithName("SubmitMessage")
-            .WithDescription("Submits a contact-form message. Public - no login required.");
+            .WithDescription("Submits a contact-form message. Public - no login required.")
+            .ProducesEnveloped(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle([FromBody] SubmitMessageRequest request, ISender sender, HttpContext httpContext)

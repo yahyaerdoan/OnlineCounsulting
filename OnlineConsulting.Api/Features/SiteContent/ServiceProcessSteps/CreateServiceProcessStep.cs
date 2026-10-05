@@ -14,7 +14,8 @@ public class CreateServiceProcessStep : IEndpoint
             .WithTags("SiteContent/ServiceProcessSteps")
             .RequireAuthorization()
             .WithName("CreateServiceProcessStep")
-            .WithDescription("Creates a step in the \"how you get our service\" homepage section.");
+            .WithDescription("Creates a step in the \"how you get our service\" homepage section.")
+            .ProducesEnveloped<Guid>(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle([FromBody] CreateServiceProcessStepRequest request, ISender sender, HttpContext httpContext)

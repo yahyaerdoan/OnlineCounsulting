@@ -14,7 +14,8 @@ public class UpdateUser : IEndpoint
             .WithTags("Identity/Users")
             .RequireAuthorization()
             .WithName("UpdateUser")
-            .WithDescription("Updates an existing user's profile and active status.");
+            .WithDescription("Updates an existing user's profile and active status.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, [FromBody] UpdateUserRequest request, ISender sender, HttpContext httpContext)

@@ -14,7 +14,8 @@ public class AssignTechnician : IEndpoint
             .WithTags("Scheduling/Appointments")
             .RequireAuthorization()
             .WithName("AssignTechnician")
-            .WithDescription("Dispatches a technician to an appointment (admin) - authorizes that technician to push live location updates for it.");
+            .WithDescription("Dispatches a technician to an appointment (admin) - authorizes that technician to push live location updates for it.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, [FromBody] AssignTechnicianRequest request, ISender sender, HttpContext httpContext)

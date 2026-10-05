@@ -13,7 +13,8 @@ public class DeleteAboutUs : IEndpoint
             .WithTags("SiteContent/AboutUs")
             .RequireAuthorization()
             .WithName("DeleteAboutUs")
-            .WithDescription("Deletes an About Us content block.");
+            .WithDescription("Deletes an About Us content block.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

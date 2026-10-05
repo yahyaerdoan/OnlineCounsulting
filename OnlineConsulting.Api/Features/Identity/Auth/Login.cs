@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Api.Configurations.Extensions;
 using OnlineConsulting.Modules.Commerce.Application.Features.Baskets.MergeGuestBasket;
+using OnlineConsulting.Modules.Identity.Application.Features.Auth.Contracts;
 using OnlineConsulting.Modules.Identity.Application.Features.Auth.Login;
 using OnlineConsulting.SharedKernel.GuestIdentity;
 using ResultHandler.AspNetCore.Extensions;
@@ -17,7 +18,8 @@ public class Login : IEndpoint
             .WithTags("Identity/Auth")
             .RequireRateLimiting(ServiceRegistration.AuthRateLimiterPolicy)
             .WithName("Login")
-            .WithDescription("Validates credentials and issues a JWT access token + refresh token. Also folds any guest-cookie basket into the user's basket, since the guest cookie is only meaningful while unauthenticated.");
+            .WithDescription("Validates credentials and issues a JWT access token + refresh token. Also folds any guest-cookie basket into the user's basket, since the guest cookie is only meaningful while unauthenticated.")
+            .ProducesEnveloped<AuthTokensResponse>();
     }
 
     private static async Task<IResult> Handle([FromBody] LoginRequest request, ISender sender, HttpContext httpContext, IGuestIdAccessor guestIdAccessor)

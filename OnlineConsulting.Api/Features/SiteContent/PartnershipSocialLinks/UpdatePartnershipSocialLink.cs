@@ -14,7 +14,8 @@ public class UpdatePartnershipSocialLink : IEndpoint
             .WithTags("SiteContent/PartnershipSocialLinks")
             .RequireAuthorization()
             .WithName("UpdatePartnershipSocialLink")
-            .WithDescription("Updates a partnership showcase entry's social link.");
+            .WithDescription("Updates a partnership showcase entry's social link.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, [FromBody] UpdatePartnershipSocialLinkRequest request, ISender sender, HttpContext httpContext)

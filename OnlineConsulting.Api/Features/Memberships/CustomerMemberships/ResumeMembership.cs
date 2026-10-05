@@ -15,7 +15,8 @@ public class ResumeMembership : IEndpoint
             .WithTags("Memberships/CustomerMemberships")
             .RequireAuthorization()
             .WithName("ResumeMembership")
-            .WithDescription("Resumes the current user's paused membership - billing continues normally.");
+            .WithDescription("Resumes the current user's paused membership - billing continues normally.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, ISender sender, HttpContext httpContext)

@@ -1,5 +1,6 @@
 using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.Contracts;
 using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.SyncInvoicePayment;
 using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
@@ -15,7 +16,8 @@ public class SyncMyInvoicePayment : IEndpoint
             .WithTags("Commerce/Invoices")
             .RequireAuthorization()
             .WithName("SyncMyInvoicePayment")
-            .WithDescription("Checks the provider for the current user's open invoice payment and settles it at once if the charge already succeeded (no wait for the webhook).");
+            .WithDescription("Checks the provider for the current user's open invoice payment and settles it at once if the charge already succeeded (no wait for the webhook).")
+            .ProducesEnveloped<SyncInvoicePaymentResult>();
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, Guid id, ISender sender, HttpContext httpContext)

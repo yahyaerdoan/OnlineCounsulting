@@ -13,7 +13,8 @@ public class DeleteServiceOffering : IEndpoint
             .WithTags("SiteContent/ServiceOfferings")
             .RequireAuthorization()
             .WithName("DeleteServiceOffering")
-            .WithDescription("Deletes a service offering card.");
+            .WithDescription("Deletes a service offering card.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

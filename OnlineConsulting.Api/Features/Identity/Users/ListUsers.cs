@@ -1,7 +1,9 @@
 ﻿using Core.PersistenceLayer.Dynamics.Dynamic;
+using Core.PersistenceLayer.Pagings.Paging;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Identity.Application.Features.Users.Contracts;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.ListUsers;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -15,7 +17,8 @@ public class ListUsers : IEndpoint
             .WithTags("Identity/Users")
             .RequireAuthorization()
             .WithName("ListUsers")
-            .WithDescription("Returns users, paginated (?index=&size=), optionally narrowed to one role (?role=) and filtered/sorted via a DynamicQuery body. POST rather than HTTP QUERY, since Swagger can't document that verb.");
+            .WithDescription("Returns users, paginated (?index=&size=), optionally narrowed to one role (?role=) and filtered/sorted via a DynamicQuery body. POST rather than HTTP QUERY, since Swagger can't document that verb.")
+            .ProducesEnveloped<Paginate<UserResponse>>();
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext, [AsParameters] ListQueryParameters query, [FromBody] DynamicQueryRequest? dynamicQuery,

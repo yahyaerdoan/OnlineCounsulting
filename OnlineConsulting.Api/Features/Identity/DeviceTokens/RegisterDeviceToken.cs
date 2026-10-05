@@ -16,7 +16,8 @@ public class RegisterDeviceToken : IEndpoint
             .WithTags("Identity/DeviceTokens")
             .RequireAuthorization()
             .WithName("RegisterDeviceToken")
-            .WithDescription("Registers (or re-registers) the current user's mobile device push-notification token.");
+            .WithDescription("Registers (or re-registers) the current user's mobile device push-notification token.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, [FromBody] RegisterDeviceTokenRequest request, ISender sender, HttpContext httpContext)

@@ -1,7 +1,9 @@
 using Core.PersistenceLayer.Dynamics.Dynamic;
+using Core.PersistenceLayer.Pagings.Paging;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.Contracts;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.ListNewsletterSubscribers;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -15,7 +17,8 @@ public class ListNewsletterSubscribers : IEndpoint
             .WithTags("Inquiries/Newsletter")
             .RequireAuthorization()
             .WithName("ListNewsletterSubscribers")
-            .WithDescription("Returns newsletter subscribers, paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body. Admin only.");
+            .WithDescription("Returns newsletter subscribers, paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body. Admin only.")
+            .ProducesEnveloped<Paginate<NewsletterSubscriberResponse>>();
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext, [AsParameters] ListQueryParameters query, [FromBody] DynamicQueryRequest? dynamicQuery)

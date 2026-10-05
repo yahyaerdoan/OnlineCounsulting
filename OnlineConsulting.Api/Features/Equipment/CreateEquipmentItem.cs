@@ -14,7 +14,8 @@ public class CreateEquipmentItem : IEndpoint
             .WithTags("Equipment")
             .RequireAuthorization()
             .WithName("CreateEquipmentItem")
-            .WithDescription("Records a piece of a customer's installed equipment (admin/technician).");
+            .WithDescription("Records a piece of a customer's installed equipment (admin/technician).")
+            .ProducesEnveloped<Guid>(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle([FromBody] CreateEquipmentItemRequest request, ISender sender, HttpContext httpContext)

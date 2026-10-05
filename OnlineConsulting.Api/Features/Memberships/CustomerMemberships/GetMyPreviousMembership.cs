@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Contracts;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.GetMyPreviousMembership;
 using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
@@ -15,7 +16,8 @@ public class GetMyPreviousMembership : IEndpoint
             .WithTags("Memberships/CustomerMemberships")
             .RequireAuthorization()
             .WithName("GetMyPreviousMembership")
-            .WithDescription("Returns the current user's most recent ended membership with its plan, for the rejoin offer; 404 if none or already a member.");
+            .WithDescription("Returns the current user's most recent ended membership with its plan, for the rejoin offer; 404 if none or already a member.")
+            .ProducesEnveloped<CustomerMembershipResponse>();
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, ISender sender, HttpContext httpContext)

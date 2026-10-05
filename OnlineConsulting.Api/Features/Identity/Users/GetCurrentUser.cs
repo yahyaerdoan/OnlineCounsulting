@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Identity.Application.Features.Users.Contracts;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -13,7 +14,8 @@ public class GetCurrentUser : IEndpoint
             .WithTags("Identity/Users")
             .RequireAuthorization()
             .WithName("GetCurrentUser")
-            .WithDescription("Returns the currently authenticated user.");
+            .WithDescription("Returns the currently authenticated user.")
+            .ProducesEnveloped<UserResponse>();
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext)

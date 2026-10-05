@@ -14,7 +14,8 @@ public class AddWorkOrderMediaItem : IEndpoint
             .WithTags("Scheduling/WorkOrders")
             .RequireAuthorization()
             .WithName("AddWorkOrderMediaItem")
-            .WithDescription("Attaches an already-uploaded photo/video to a work order's before/after gallery.");
+            .WithDescription("Attaches an already-uploaded photo/video to a work order's before/after gallery.")
+            .ProducesEnveloped<Guid>(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle(Guid workOrderId, [FromBody] AddWorkOrderMediaItemRequest request, ISender sender, HttpContext httpContext)

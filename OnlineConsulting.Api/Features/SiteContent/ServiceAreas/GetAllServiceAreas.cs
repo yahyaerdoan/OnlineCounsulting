@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.SiteContent.Application.Features.ServiceAreas.Contracts;
 using OnlineConsulting.Modules.SiteContent.Application.Features.ServiceAreas.GetAllServiceAreas;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -12,7 +13,8 @@ public class GetAllServiceAreas : IEndpoint
         _ = app.MapGet("/site-content/service-areas", Handle)
             .WithTags("SiteContent/ServiceAreas")
             .WithName("GetAllServiceAreas")
-            .WithDescription("Returns the tenant's service-area landing pages. Public - no login required.");
+            .WithDescription("Returns the tenant's service-area landing pages. Public - no login required.")
+            .ProducesEnveloped<List<ServiceAreaResponse>>();
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext)

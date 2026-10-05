@@ -15,7 +15,8 @@ public class MarkInvoicePaid : IEndpoint
             .WithTags("Commerce/Invoices")
             .RequireAuthorization()
             .WithName("MarkInvoicePaid")
-            .WithDescription("Records an offline payment (Cash, Check or Card taken on site) and emails the customer a receipt (staff).");
+            .WithDescription("Records an offline payment (Cash, Check or Card taken on site) and emails the customer a receipt (staff).")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, MarkInvoicePaidRequest? body, ISender sender, HttpContext httpContext)

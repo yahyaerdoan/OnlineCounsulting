@@ -26,7 +26,8 @@ public class SignUp : IEndpoint
             .WithTags("Tenancy")
             .RequireRateLimiting(ServiceRegistration.AuthRateLimiterPolicy)
             .WithName("SignUpTenant")
-            .WithDescription("Charges the selected modules and, once payment succeeds, creates the tenant's first (admin) user.");
+            .WithDescription("Charges the selected modules and, once payment succeeds, creates the tenant's first (admin) user.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle([FromBody] SignUpTenantRequest request, ISender sender, HttpContext httpContext)

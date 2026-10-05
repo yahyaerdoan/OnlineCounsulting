@@ -14,7 +14,8 @@ public class UpdateMembershipPlan : IEndpoint
             .WithTags("Memberships/Plans")
             .RequireAuthorization()
             .WithName("UpdateMembershipPlan")
-            .WithDescription("Updates a membership plan's local fields (admin). Never changes the provider-side price.");
+            .WithDescription("Updates a membership plan's local fields (admin). Never changes the provider-side price.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, [FromBody] UpdateMembershipPlanRequest request, ISender sender, HttpContext httpContext)

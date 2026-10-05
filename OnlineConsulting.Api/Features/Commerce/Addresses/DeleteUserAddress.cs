@@ -15,7 +15,8 @@ public class DeleteUserAddress : IEndpoint
             .WithTags("Commerce/Addresses")
             .RequireAuthorization()
             .WithName("DeleteUserAddress")
-            .WithDescription("Deletes one of the current user's addresses.");
+            .WithDescription("Deletes one of the current user's addresses.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, Guid id, ISender sender, HttpContext httpContext)

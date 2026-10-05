@@ -15,7 +15,9 @@ public class GetOrCreateReferralCode : IEndpoint
             .WithTags("Referrals")
             .RequireAuthorization()
             .WithName("GetOrCreateReferralCode")
-            .WithDescription("Returns the current user's referral code, creating one on first call.");
+            .WithDescription("Returns the current user's referral code, creating one on first call.")
+            .ProducesEnveloped<string>()
+            .ProducesEnveloped<string>(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, ISender sender, HttpContext httpContext) =>

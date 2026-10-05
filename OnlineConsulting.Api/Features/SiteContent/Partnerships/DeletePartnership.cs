@@ -13,7 +13,8 @@ public class DeletePartnership : IEndpoint
             .WithTags("SiteContent/Partnerships")
             .RequireAuthorization()
             .WithName("DeletePartnership")
-            .WithDescription("Deletes a partnership showcase entry.");
+            .WithDescription("Deletes a partnership showcase entry.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

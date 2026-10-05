@@ -14,7 +14,8 @@ public class CreatePromoCode : IEndpoint
             .WithTags("Memberships/PromoCodes")
             .RequireAuthorization()
             .WithName("CreatePromoCode")
-            .WithDescription("Creates a promo/discount code (admin).");
+            .WithDescription("Creates a promo/discount code (admin).")
+            .ProducesEnveloped<Guid>(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle([FromBody] CreatePromoCodeRequest request, ISender sender, HttpContext httpContext)

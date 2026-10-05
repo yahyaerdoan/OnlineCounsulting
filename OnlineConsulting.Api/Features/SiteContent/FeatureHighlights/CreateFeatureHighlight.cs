@@ -14,7 +14,8 @@ public class CreateFeatureHighlight : IEndpoint
             .WithTags("SiteContent/FeatureHighlights")
             .RequireAuthorization()
             .WithName("CreateFeatureHighlight")
-            .WithDescription("Creates a feature highlight content block.");
+            .WithDescription("Creates a feature highlight content block.")
+            .ProducesEnveloped<Guid>(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle([FromBody] CreateFeatureHighlightRequest request, ISender sender, HttpContext httpContext)

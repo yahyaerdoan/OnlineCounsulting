@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryCategories.Contracts;
 using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryCategories.GetAllGalleryCategories;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -12,7 +13,8 @@ public class GetAllGalleryCategories : IEndpoint
         _ = app.MapGet("/site-content/gallery-categories", Handle)
             .WithTags("SiteContent/GalleryCategories")
             .WithName("GetAllGalleryCategories")
-            .WithDescription("Returns the tenant's gallery category tags.");
+            .WithDescription("Returns the tenant's gallery category tags.")
+            .ProducesEnveloped<List<GalleryCategoryResponse>>();
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext)

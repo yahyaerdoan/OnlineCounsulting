@@ -13,7 +13,8 @@ public class RemoveDeviceToken : IEndpoint
             .WithTags("Identity/DeviceTokens")
             .RequireAuthorization()
             .WithName("RemoveDeviceToken")
-            .WithDescription("Removes a device's push-notification token (call on logout / push opt-out).");
+            .WithDescription("Removes a device's push-notification token (call on logout / push opt-out).")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(string token, ISender sender, HttpContext httpContext)

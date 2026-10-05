@@ -8,11 +8,13 @@ public class GetLinkRelation : IVersionNeutralEndpoint
         _ = app.MapGet("/rels/{rel}", Handle)
             .WithTags("Hypermedia")
             .WithName("GetLinkRelation")
-            .WithDescription("Describes an application link relation used as \"oc:{rel}\" in \"_links\".");
+            .WithDescription("Describes an application link relation used as \"oc:{rel}\" in \"_links\".")
+            .Produces<LinkRelationResponse>()
+            .Produces(StatusCodes.Status404NotFound);
     }
 
     private static IResult Handle(string rel)
         => Rels.Descriptions.TryGetValue(rel, out var description)
-            ? Results.Ok(new { rel = $"{Rels.CurieName}:{rel}", description })
+            ? Results.Ok(new LinkRelationResponse($"{Rels.CurieName}:{rel}", description))
             : Results.NotFound();
 }

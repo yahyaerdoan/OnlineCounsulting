@@ -18,7 +18,8 @@ public class CreateService : IEndpoint
             .RequireAuthorization()
             .WithName("CreateService")
             .WithCreatedLocation("GetServiceById")
-            .WithDescription("Creates a new service in the catalog.");
+            .WithDescription("Creates a new service in the catalog.")
+            .ProducesEnveloped<Guid>(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle([FromBody] CreateServiceRequest request, ISender sender, HttpContext httpContext)

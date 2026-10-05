@@ -14,7 +14,8 @@ public class UpdatePromotion : IEndpoint
             .WithTags("SiteContent/Promotions")
             .RequireAuthorization()
             .WithName("UpdatePromotion")
-            .WithDescription("Updates a promotional offer/CTA.");
+            .WithDescription("Updates a promotional offer/CTA.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, [FromBody] UpdatePromotionRequest request, ISender sender, HttpContext httpContext)

@@ -13,7 +13,8 @@ public class DeleteHeroSlide : IEndpoint
             .WithTags("SiteContent/HeroSlides")
             .RequireAuthorization()
             .WithName("DeleteHeroSlide")
-            .WithDescription("Deletes a homepage hero slide.");
+            .WithDescription("Deletes a homepage hero slide.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

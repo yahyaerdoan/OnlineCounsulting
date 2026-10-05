@@ -14,7 +14,8 @@ public class CreateServiceArea : IEndpoint
             .WithTags("SiteContent/ServiceAreas")
             .RequireAuthorization()
             .WithName("CreateServiceArea")
-            .WithDescription("Creates a service-area SEO landing page.");
+            .WithDescription("Creates a service-area SEO landing page.")
+            .ProducesEnveloped<Guid>(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle([FromBody] CreateServiceAreaRequest request, ISender sender, HttpContext httpContext)

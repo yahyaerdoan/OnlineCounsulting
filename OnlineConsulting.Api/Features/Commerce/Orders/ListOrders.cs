@@ -1,6 +1,8 @@
-﻿using MediatR;
+﻿using Core.PersistenceLayer.Pagings.Paging;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Contracts;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.ListOrders;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -14,7 +16,8 @@ public class ListOrders : IEndpoint
             .WithTags("Commerce/Orders")
             .RequireAuthorization()
             .WithName("ListOrders")
-            .WithDescription("Returns every user's orders (Super Admin only), paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body, with per-order totals and the owner's email and user name for the orders on the page.");
+            .WithDescription("Returns every user's orders (Super Admin only), paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body, with per-order totals and the owner's email and user name for the orders on the page.")
+            .ProducesEnveloped<Paginate<AdminOrderResponse>>();
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext, [AsParameters] ListQueryParameters query, [FromBody] DynamicQueryRequest? dynamicQuery)

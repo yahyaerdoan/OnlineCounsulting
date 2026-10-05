@@ -15,7 +15,8 @@ public class CreatePartnership : IEndpoint
             .WithTags("SiteContent/Partnerships")
             .RequireAuthorization()
             .WithName("CreatePartnership")
-            .WithDescription("Creates a partnership showcase entry.");
+            .WithDescription("Creates a partnership showcase entry.")
+            .ProducesEnveloped<Guid>(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle([FromBody] CreatePartnershipRequest request, ISender sender, HttpContext httpContext)

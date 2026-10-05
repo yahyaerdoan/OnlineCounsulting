@@ -1,7 +1,9 @@
 using Core.PersistenceLayer.Dynamics.Dynamic;
+using Core.PersistenceLayer.Pagings.Paging;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Contracts;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.ListCustomerMemberships;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -15,7 +17,8 @@ public class ListCustomerMemberships : IEndpoint
             .WithTags("Memberships/CustomerMemberships")
             .RequireAuthorization()
             .WithName("ListCustomerMemberships")
-            .WithDescription("Returns all customer memberships with member and plan details, paginated (?index=&size=), optionally narrowed by ?search= (member name/email, plan, status) and ?view= (Active, Ending, NeedsAttention, Paused, Cancelled) and sorted via a DynamicQuery body. Admin only.");
+            .WithDescription("Returns all customer memberships with member and plan details, paginated (?index=&size=), optionally narrowed by ?search= (member name/email, plan, status) and ?view= (Active, Ending, NeedsAttention, Paused, Cancelled) and sorted via a DynamicQuery body. Admin only.")
+            .ProducesEnveloped<Paginate<CustomerMembershipResponse>>();
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext, [AsParameters] ListQueryParameters query, [FromBody] DynamicQueryRequest? dynamicQuery,

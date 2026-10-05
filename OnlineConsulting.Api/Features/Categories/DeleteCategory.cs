@@ -13,7 +13,8 @@ public class DeleteCategory : IEndpoint
             .WithTags("Categories")
             .RequireAuthorization()
             .WithName("DeleteCategory")
-            .WithDescription("Soft-deletes a category.");
+            .WithDescription("Soft-deletes a category.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

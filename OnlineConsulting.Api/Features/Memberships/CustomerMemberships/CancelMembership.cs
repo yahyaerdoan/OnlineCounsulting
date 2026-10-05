@@ -15,7 +15,8 @@ public class CancelMembership : IEndpoint
             .WithTags("Memberships/CustomerMemberships")
             .RequireAuthorization()
             .WithName("CancelMembership")
-            .WithDescription("Cancels the current user's active membership at the end of the current billing period - access continues until then.");
+            .WithDescription("Cancels the current user's active membership at the end of the current billing period - access continues until then.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, ISender sender, HttpContext httpContext)

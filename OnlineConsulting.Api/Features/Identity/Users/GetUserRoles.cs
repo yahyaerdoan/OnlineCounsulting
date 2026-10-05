@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Identity.Application.Features.Users.Contracts;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.GetUserRoles;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -13,7 +14,8 @@ public class GetUserRoles : IEndpoint
             .WithTags("Identity/Users")
             .RequireAuthorization()
             .WithName("GetUserRoles")
-            .WithDescription("Returns every role and whether it's assigned to the given user.");
+            .WithDescription("Returns every role and whether it's assigned to the given user.")
+            .ProducesEnveloped<List<RoleAssignmentResponse>>();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

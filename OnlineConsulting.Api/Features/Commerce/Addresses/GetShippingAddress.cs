@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.Contracts;
 using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.GetShippingAddress;
 using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
@@ -15,7 +16,8 @@ public class GetShippingAddress : IEndpoint
             .WithTags("Commerce/Addresses")
             .RequireAuthorization()
             .WithName("GetShippingAddress")
-            .WithDescription("Returns the current user's shipping address.");
+            .WithDescription("Returns the current user's shipping address.")
+            .ProducesEnveloped<UserAddressResponse>();
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, ISender sender, HttpContext httpContext)

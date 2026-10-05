@@ -15,7 +15,8 @@ public class SetShippingAddress : IEndpoint
             .WithTags("Commerce/Addresses")
             .RequireAuthorization()
             .WithName("SetShippingAddress")
-            .WithDescription("Marks one of the current user's addresses as the shipping address.");
+            .WithDescription("Marks one of the current user's addresses as the shipping address.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, Guid id, ISender sender, HttpContext httpContext)

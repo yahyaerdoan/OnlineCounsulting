@@ -14,7 +14,8 @@ public class UpdateEquipmentItem : IEndpoint
             .WithTags("Equipment")
             .RequireAuthorization()
             .WithName("UpdateEquipmentItem")
-            .WithDescription("Updates a piece of a customer's installed equipment (admin/technician).");
+            .WithDescription("Updates a piece of a customer's installed equipment (admin/technician).")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, [FromBody] UpdateEquipmentItemRequest request, ISender sender, HttpContext httpContext)

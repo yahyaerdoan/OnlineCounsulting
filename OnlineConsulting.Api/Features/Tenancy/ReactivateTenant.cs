@@ -13,7 +13,8 @@ public class ReactivateTenant : IEndpoint
             .WithTags("Tenancy")
             .RequireAuthorization()
             .WithName("ReactivateTenant")
-            .WithDescription("Lifts a suspension, restoring the tenant to Active (SuperAdmin).");
+            .WithDescription("Lifts a suspension, restoring the tenant to Active (SuperAdmin).")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid tenantId, ISender sender, HttpContext httpContext)

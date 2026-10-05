@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.Contracts;
 using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.GetInvoicePdf;
 using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
@@ -15,7 +16,8 @@ public class GetMyInvoicePdf : IEndpoint
             .WithTags("Commerce/Invoices")
             .RequireAuthorization()
             .WithName("GetMyInvoicePdf")
-            .WithDescription("One of the current user's invoices as a PDF (base64 in the envelope).");
+            .WithDescription("One of the current user's invoices as a PDF (base64 in the envelope).")
+            .ProducesEnveloped<InvoicePdfResponse>();
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, Guid id, ISender sender, HttpContext httpContext)

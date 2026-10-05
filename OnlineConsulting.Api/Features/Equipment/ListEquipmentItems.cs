@@ -1,7 +1,9 @@
 using Core.PersistenceLayer.Dynamics.Dynamic;
+using Core.PersistenceLayer.Pagings.Paging;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Equipment.Application.Features.EquipmentItems.Contracts;
 using OnlineConsulting.Modules.Equipment.Application.Features.EquipmentItems.ListEquipmentItems;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -15,7 +17,8 @@ public class ListEquipmentItems : IEndpoint
             .WithTags("Equipment")
             .RequireAuthorization()
             .WithName("ListEquipmentItems")
-            .WithDescription("Returns all equipment items, paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body.");
+            .WithDescription("Returns all equipment items, paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body.")
+            .ProducesEnveloped<Paginate<EquipmentItemResponse>>();
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext, [AsParameters] ListQueryParameters query, [FromBody] DynamicQueryRequest? dynamicQuery)

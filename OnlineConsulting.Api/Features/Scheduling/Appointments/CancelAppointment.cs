@@ -15,7 +15,8 @@ public class CancelAppointment : IEndpoint
             .WithTags("Scheduling/Appointments")
             .RequireAuthorization()
             .WithName("CancelAppointment")
-            .WithDescription("Cancels the current user's own pending or confirmed appointment.");
+            .WithDescription("Cancels the current user's own pending or confirmed appointment.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, Guid id, ISender sender, HttpContext httpContext)

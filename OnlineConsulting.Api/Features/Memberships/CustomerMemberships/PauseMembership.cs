@@ -15,7 +15,8 @@ public class PauseMembership : IEndpoint
             .WithTags("Memberships/CustomerMemberships")
             .RequireAuthorization()
             .WithName("PauseMembership")
-            .WithDescription("Pauses the current user's active membership - billing stops until resumed.");
+            .WithDescription("Pauses the current user's active membership - billing stops until resumed.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, ISender sender, HttpContext httpContext)

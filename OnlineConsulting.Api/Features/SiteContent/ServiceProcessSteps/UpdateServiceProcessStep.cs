@@ -14,7 +14,8 @@ public class UpdateServiceProcessStep : IEndpoint
             .WithTags("SiteContent/ServiceProcessSteps")
             .RequireAuthorization()
             .WithName("UpdateServiceProcessStep")
-            .WithDescription("Updates a service process step.");
+            .WithDescription("Updates a service process step.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, [FromBody] UpdateServiceProcessStepRequest request, ISender sender, HttpContext httpContext)

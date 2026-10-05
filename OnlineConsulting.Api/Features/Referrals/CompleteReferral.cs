@@ -14,7 +14,8 @@ public class CompleteReferral : IEndpoint
             .WithTags("Referrals")
             .RequireAuthorization()
             .WithName("CompleteReferral")
-            .WithDescription("Marks a referral as rewarded (admin).");
+            .WithDescription("Marks a referral as rewarded (admin).")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, [FromBody] CompleteReferralRequest request, ISender sender, HttpContext httpContext)

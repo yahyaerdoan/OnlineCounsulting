@@ -14,7 +14,8 @@ public class UpdatePageBanner : IEndpoint
             .WithTags("SiteContent/PageBanners")
             .RequireAuthorization()
             .WithName("UpdatePageBanner")
-            .WithDescription("Updates a page header banner.");
+            .WithDescription("Updates a page header banner.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, [FromBody] UpdatePageBannerRequest request, ISender sender, HttpContext httpContext)

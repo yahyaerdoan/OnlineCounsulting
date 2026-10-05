@@ -19,7 +19,8 @@ public class CreateAppointment : IEndpoint
             .RequireAuthorization()
             .WithName("CreateAppointment")
             .WithCreatedLocation("GetAppointmentById")
-            .WithDescription("Books a service (pass serviceId) or requests a generic meeting with the tenant (omit serviceId).");
+            .WithDescription("Books a service (pass serviceId) or requests a generic meeting with the tenant (omit serviceId).")
+            .ProducesEnveloped<Guid>(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, [FromBody] CreateAppointmentRequest request, ISender sender, HttpContext httpContext)

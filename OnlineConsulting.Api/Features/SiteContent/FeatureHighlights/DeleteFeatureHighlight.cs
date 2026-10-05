@@ -13,7 +13,8 @@ public class DeleteFeatureHighlight : IEndpoint
             .WithTags("SiteContent/FeatureHighlights")
             .RequireAuthorization()
             .WithName("DeleteFeatureHighlight")
-            .WithDescription("Deletes a feature highlight content block.");
+            .WithDescription("Deletes a feature highlight content block.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

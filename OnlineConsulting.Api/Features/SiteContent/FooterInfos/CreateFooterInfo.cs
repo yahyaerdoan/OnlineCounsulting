@@ -14,7 +14,8 @@ public class CreateFooterInfo : IEndpoint
             .WithTags("SiteContent/FooterInfo")
             .RequireAuthorization()
             .WithName("CreateFooterInfo")
-            .WithDescription("Creates a footer content block.");
+            .WithDescription("Creates a footer content block.")
+            .ProducesEnveloped<Guid>(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle([FromBody] CreateFooterInfoRequest request, ISender sender, HttpContext httpContext)

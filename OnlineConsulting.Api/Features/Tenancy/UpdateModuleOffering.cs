@@ -14,7 +14,8 @@ public class UpdateModuleOffering : IEndpoint
             .WithTags("Tenancy")
             .RequireAuthorization()
             .WithName("UpdateModuleOffering")
-            .WithDescription("Updates a module offering's local fields (SuperAdmin). Never changes the provider-side price.");
+            .WithDescription("Updates a module offering's local fields (SuperAdmin). Never changes the provider-side price.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, [FromBody] UpdateModuleOfferingRequest request, ISender sender, HttpContext httpContext)

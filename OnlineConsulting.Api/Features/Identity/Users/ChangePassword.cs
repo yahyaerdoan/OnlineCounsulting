@@ -16,7 +16,8 @@ public class ChangePassword : IEndpoint
             .WithTags("Identity/Users")
             .RequireAuthorization()
             .WithName("ChangePassword")
-            .WithDescription("Changes the current user's password.");
+            .WithDescription("Changes the current user's password.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, [FromBody] ChangePasswordRequest request, ISender sender, HttpContext httpContext)

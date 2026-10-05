@@ -1,7 +1,9 @@
 using Core.PersistenceLayer.Dynamics.Dynamic;
+using Core.PersistenceLayer.Pagings.Paging;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryCategories.Contracts;
 using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryCategories.ListGalleryCategories;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -14,7 +16,8 @@ public class ListGalleryCategories : IEndpoint
         _ = app.MapPost("/site-content/gallery-categories/query", Handle)
             .WithTags("SiteContent/GalleryCategories")
             .WithName("ListGalleryCategories")
-            .WithDescription("Returns gallery categories, paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body.");
+            .WithDescription("Returns gallery categories, paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body.")
+            .ProducesEnveloped<Paginate<GalleryCategoryResponse>>();
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext, [AsParameters] ListQueryParameters query, [FromBody] DynamicQueryRequest? dynamicQuery)

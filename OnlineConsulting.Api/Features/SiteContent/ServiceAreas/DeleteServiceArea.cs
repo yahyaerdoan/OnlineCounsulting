@@ -13,7 +13,8 @@ public class DeleteServiceArea : IEndpoint
             .WithTags("SiteContent/ServiceAreas")
             .RequireAuthorization()
             .WithName("DeleteServiceArea")
-            .WithDescription("Deletes a service-area SEO landing page.");
+            .WithDescription("Deletes a service-area SEO landing page.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

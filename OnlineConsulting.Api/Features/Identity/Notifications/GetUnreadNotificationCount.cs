@@ -15,7 +15,8 @@ public class GetUnreadNotificationCount : IEndpoint
             .WithTags("Identity/Notifications")
             .RequireAuthorization()
             .WithName("GetUnreadNotificationCount")
-            .WithDescription("Returns how many of the current user's notifications are unread (the bell badge).");
+            .WithDescription("Returns how many of the current user's notifications are unread (the bell badge).")
+            .ProducesEnveloped<int>();
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, ISender sender, HttpContext httpContext)

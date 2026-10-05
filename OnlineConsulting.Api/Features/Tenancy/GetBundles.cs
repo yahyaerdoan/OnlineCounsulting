@@ -1,5 +1,7 @@
+using Core.PersistenceLayer.Pagings.Paging;
 using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Tenancy.Application.Features.Bundles.Contracts;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Bundles.GetBundles;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -13,7 +15,8 @@ public class GetBundles : IEndpoint
             .WithTags("Tenancy")
             .RequireAuthorization()
             .WithName("GetBundles")
-            .WithDescription("Returns every bundle, including hidden ones (SuperAdmin).");
+            .WithDescription("Returns every bundle, including hidden ones (SuperAdmin).")
+            .ProducesEnveloped<Paginate<BundleAdminResponse>>();
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext, int? index = null, int? size = null)

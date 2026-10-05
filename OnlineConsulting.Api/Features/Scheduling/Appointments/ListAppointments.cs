@@ -1,7 +1,9 @@
 using Core.PersistenceLayer.Dynamics.Dynamic;
+using Core.PersistenceLayer.Pagings.Paging;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Contracts;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.ListAppointments;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -15,7 +17,8 @@ public class ListAppointments : IEndpoint
             .WithTags("Scheduling/Appointments")
             .RequireAuthorization()
             .WithName("ListAppointments")
-            .WithDescription("Admin/dispatch listing of every appointment for the tenant, paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body.");
+            .WithDescription("Admin/dispatch listing of every appointment for the tenant, paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body.")
+            .ProducesEnveloped<Paginate<AppointmentResponse>>();
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext, [AsParameters] ListQueryParameters query, [FromBody] DynamicQueryRequest? dynamicQuery)

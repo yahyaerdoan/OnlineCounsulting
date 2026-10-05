@@ -14,7 +14,8 @@ public class CreateTestimonial : IEndpoint
             .WithTags("SiteContent/Testimonials")
             .RequireAuthorization()
             .WithName("CreateTestimonial")
-            .WithDescription("Creates a customer testimonial.");
+            .WithDescription("Creates a customer testimonial.")
+            .ProducesEnveloped<Guid>(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle([FromBody] CreateTestimonialRequest request, ISender sender, HttpContext httpContext)

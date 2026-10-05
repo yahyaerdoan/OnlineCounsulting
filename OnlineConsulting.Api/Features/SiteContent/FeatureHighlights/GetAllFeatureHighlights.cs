@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.SiteContent.Application.Features.FeatureHighlights.Contracts;
 using OnlineConsulting.Modules.SiteContent.Application.Features.FeatureHighlights.GetAllFeatureHighlights;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -12,7 +13,8 @@ public class GetAllFeatureHighlights : IEndpoint
         _ = app.MapGet("/site-content/feature-highlights", Handle)
             .WithTags("SiteContent/FeatureHighlights")
             .WithName("GetAllFeatureHighlights")
-            .WithDescription("Returns the tenant's feature highlight content blocks. Public - no login required.");
+            .WithDescription("Returns the tenant's feature highlight content blocks. Public - no login required.")
+            .ProducesEnveloped<List<FeatureHighlightResponse>>();
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext)

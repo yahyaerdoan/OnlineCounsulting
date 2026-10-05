@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Memberships.Application.Features.PromoCodes.Contracts;
 using OnlineConsulting.Modules.Memberships.Application.Features.PromoCodes.ValidatePromoCode;
 using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
@@ -16,7 +17,8 @@ public class ValidatePromoCode : IEndpoint
             .WithTags("Memberships/CustomerMemberships")
             .RequireAuthorization()
             .WithName("ValidatePromoCode")
-            .WithDescription("Previews a promo code's discount for the current user against a membership plan - does not redeem it.");
+            .WithDescription("Previews a promo code's discount for the current user against a membership plan - does not redeem it.")
+            .ProducesEnveloped<ValidatePromoCodeResult>();
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, [FromBody] ValidatePromoCodeRequest request, ISender sender, HttpContext httpContext)

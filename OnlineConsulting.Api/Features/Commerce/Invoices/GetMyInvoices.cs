@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.Contracts;
 using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.GetMyInvoices;
 using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
@@ -15,7 +16,8 @@ public class GetMyInvoices : IEndpoint
             .WithTags("Commerce/Invoices")
             .RequireAuthorization()
             .WithName("GetMyInvoices")
-            .WithDescription("The current user's invoices and receipts, newest first.");
+            .WithDescription("The current user's invoices and receipts, newest first.")
+            .ProducesEnveloped<List<InvoiceResponse>>();
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, ISender sender, HttpContext httpContext)

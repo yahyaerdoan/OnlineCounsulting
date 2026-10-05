@@ -14,7 +14,8 @@ public class CreatePageBanner : IEndpoint
             .WithTags("SiteContent/PageBanners")
             .RequireAuthorization()
             .WithName("CreatePageBanner")
-            .WithDescription("Creates a page header banner.");
+            .WithDescription("Creates a page header banner.")
+            .ProducesEnveloped<Guid>(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle([FromBody] CreatePageBannerRequest request, ISender sender, HttpContext httpContext)

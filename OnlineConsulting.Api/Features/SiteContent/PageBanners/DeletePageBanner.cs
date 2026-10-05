@@ -13,7 +13,8 @@ public class DeletePageBanner : IEndpoint
             .WithTags("SiteContent/PageBanners")
             .RequireAuthorization()
             .WithName("DeletePageBanner")
-            .WithDescription("Deletes a page header banner.");
+            .WithDescription("Deletes a page header banner.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

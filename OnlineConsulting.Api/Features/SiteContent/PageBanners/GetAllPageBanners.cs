@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.SiteContent.Application.Features.PageBanners.Contracts;
 using OnlineConsulting.Modules.SiteContent.Application.Features.PageBanners.GetAllPageBanners;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -12,7 +13,8 @@ public class GetAllPageBanners : IEndpoint
         _ = app.MapGet("/site-content/page-banners", Handle)
             .WithTags("SiteContent/PageBanners")
             .WithName("GetAllPageBanners")
-            .WithDescription("Returns the tenant's page header banners. Public - no login required.");
+            .WithDescription("Returns the tenant's page header banners. Public - no login required.")
+            .ProducesEnveloped<List<PageBannerResponse>>();
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext)

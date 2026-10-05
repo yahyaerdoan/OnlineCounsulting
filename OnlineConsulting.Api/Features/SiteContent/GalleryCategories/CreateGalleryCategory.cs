@@ -14,7 +14,8 @@ public class CreateGalleryCategory : IEndpoint
             .WithTags("SiteContent/GalleryCategories")
             .RequireAuthorization()
             .WithName("CreateGalleryCategory")
-            .WithDescription("Creates a gallery category tag.");
+            .WithDescription("Creates a gallery category tag.")
+            .ProducesEnveloped<Guid>(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle([FromBody] CreateGalleryCategoryRequest request, ISender sender, HttpContext httpContext)

@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.SiteContent.Application.Features.FooterInfos.Contracts;
 using OnlineConsulting.Modules.SiteContent.Application.Features.FooterInfos.GetAllFooterInfos;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -12,7 +13,8 @@ public class GetAllFooterInfos : IEndpoint
         _ = app.MapGet("/site-content/footer-info", Handle)
             .WithTags("SiteContent/FooterInfo")
             .WithName("GetAllFooterInfos")
-            .WithDescription("Returns the tenant's footer content blocks. Public - no login required.");
+            .WithDescription("Returns the tenant's footer content blocks. Public - no login required.")
+            .ProducesEnveloped<List<FooterInfoResponse>>();
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext)

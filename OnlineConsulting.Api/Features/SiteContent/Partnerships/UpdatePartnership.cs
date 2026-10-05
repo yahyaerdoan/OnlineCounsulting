@@ -15,7 +15,8 @@ public class UpdatePartnership : IEndpoint
             .WithTags("SiteContent/Partnerships")
             .RequireAuthorization()
             .WithName("UpdatePartnership")
-            .WithDescription("Updates a partnership showcase entry.");
+            .WithDescription("Updates a partnership showcase entry.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, [FromBody] UpdatePartnershipRequest request, ISender sender, HttpContext httpContext)

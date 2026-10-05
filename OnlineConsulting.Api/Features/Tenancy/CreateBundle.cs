@@ -16,7 +16,8 @@ public class CreateBundle : IEndpoint
             .RequireAuthorization()
             .WithName("CreateBundle")
             .WithCreatedLocation("GetBundleById")
-            .WithDescription("Creates a bundle - a shortcut group of existing module offerings (SuperAdmin).");
+            .WithDescription("Creates a bundle - a shortcut group of existing module offerings (SuperAdmin).")
+            .ProducesEnveloped<Guid>(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle([FromBody] CreateBundleRequest request, ISender sender, HttpContext httpContext)

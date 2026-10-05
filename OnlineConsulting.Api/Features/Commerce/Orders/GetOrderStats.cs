@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Contracts;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.GetOrderStats;
 using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
@@ -15,7 +16,8 @@ public class GetOrderStats : IEndpoint
             .WithTags("Commerce/Orders")
             .RequireAuthorization()
             .WithName("GetOrderStats")
-            .WithDescription("Returns aggregate order stats (total orders, total spent) for the current user.");
+            .WithDescription("Returns aggregate order stats (total orders, total spent) for the current user.")
+            .ProducesEnveloped<OrderStatsResponse>();
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, ISender sender, HttpContext httpContext)

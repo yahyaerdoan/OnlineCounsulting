@@ -1,5 +1,6 @@
 using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Tenancy.Application.Features.Bundles.Contracts;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Bundles.GetBundleById;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -13,7 +14,8 @@ public class GetBundleById : IEndpoint
             .WithTags("Tenancy")
             .RequireAuthorization()
             .WithName("GetBundleById")
-            .WithDescription("Returns a single bundle, including hidden ones (SuperAdmin).");
+            .WithDescription("Returns a single bundle, including hidden ones (SuperAdmin).")
+            .ProducesEnveloped<BundleAdminResponse>();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

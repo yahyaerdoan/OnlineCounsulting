@@ -13,7 +13,8 @@ public class CancelTenant : IEndpoint
             .WithTags("Tenancy")
             .RequireAuthorization()
             .WithName("CancelTenant")
-            .WithDescription("Permanently cancels a tenant's subscription with the payment provider and marks it Cancelled - irreversible, unlike Suspend (SuperAdmin).");
+            .WithDescription("Permanently cancels a tenant's subscription with the payment provider and marks it Cancelled - irreversible, unlike Suspend (SuperAdmin).")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid tenantId, ISender sender, HttpContext httpContext)

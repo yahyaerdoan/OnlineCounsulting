@@ -14,7 +14,8 @@ public class SetUserPermissionOverrides : IEndpoint
             .WithTags("Identity/Users")
             .RequireAuthorization()
             .WithName("SetUserPermissionOverrides")
-            .WithDescription("Replaces the set of permissions individually denied for a user, narrowing their role's default grant.");
+            .WithDescription("Replaces the set of permissions individually denied for a user, narrowing their role's default grant.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, [FromBody] SetUserPermissionOverridesRequest request, ISender sender, HttpContext httpContext)

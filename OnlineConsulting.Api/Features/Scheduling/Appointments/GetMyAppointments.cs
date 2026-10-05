@@ -1,5 +1,7 @@
-﻿using MediatR;
+﻿using Core.PersistenceLayer.Pagings.Paging;
+using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Contracts;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.GetMyAppointments;
 using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
@@ -15,7 +17,8 @@ public class GetMyAppointments : IEndpoint
             .WithTags("Scheduling/Appointments")
             .RequireAuthorization()
             .WithName("GetMyAppointments")
-            .WithDescription("Returns the current user's own appointments, paginated.");
+            .WithDescription("Returns the current user's own appointments, paginated.")
+            .ProducesEnveloped<Paginate<AppointmentResponse>>();
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, ISender sender, HttpContext httpContext, int? index = null, int? size = null)

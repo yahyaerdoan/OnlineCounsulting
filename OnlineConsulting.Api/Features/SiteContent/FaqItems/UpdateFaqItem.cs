@@ -14,7 +14,8 @@ public class UpdateFaqItem : IEndpoint
             .WithTags("SiteContent/FaqItems")
             .RequireAuthorization()
             .WithName("UpdateFaqItem")
-            .WithDescription("Updates a service-specific FAQ item.");
+            .WithDescription("Updates a service-specific FAQ item.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, [FromBody] UpdateFaqItemRequest request, ISender sender, HttpContext httpContext)

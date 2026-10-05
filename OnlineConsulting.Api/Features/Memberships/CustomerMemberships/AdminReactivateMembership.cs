@@ -13,7 +13,8 @@ public class AdminReactivateMembership : IEndpoint
             .WithTags("Memberships/CustomerMemberships")
             .RequireAuthorization()
             .WithName("AdminReactivateMembership")
-            .WithDescription("Undoes a customer's pending cancellation before the period ends (admin).");
+            .WithDescription("Undoes a customer's pending cancellation before the period ends (admin).")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

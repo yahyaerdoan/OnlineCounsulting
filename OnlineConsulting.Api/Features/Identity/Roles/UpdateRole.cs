@@ -14,7 +14,8 @@ public class UpdateRole : IEndpoint
             .WithTags("Identity/Roles")
             .RequireAuthorization()
             .WithName("UpdateRole")
-            .WithDescription("Updates an existing role.");
+            .WithDescription("Updates an existing role.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, [FromBody] UpdateRoleRequest request, ISender sender, HttpContext httpContext)

@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Referrals.Application.Features.AccountCredits.Contracts;
 using OnlineConsulting.Modules.Referrals.Application.Features.AccountCredits.GetMyAccountCredit;
 using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
@@ -15,7 +16,8 @@ public class GetMyAccountCredit : IEndpoint
             .WithTags("Referrals")
             .RequireAuthorization()
             .WithName("GetMyAccountCredit")
-            .WithDescription("Returns the current user's referral-reward account credit balance and ledger.");
+            .WithDescription("Returns the current user's referral-reward account credit balance and ledger.")
+            .ProducesEnveloped<AccountCreditSummaryResponse>();
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, ISender sender, HttpContext httpContext)

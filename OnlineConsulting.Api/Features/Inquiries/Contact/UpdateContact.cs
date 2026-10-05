@@ -14,7 +14,9 @@ public class UpdateContact : IEndpoint
             .WithTags("Inquiries/Contact")
             .RequireAuthorization()
             .WithName("UpdateContact")
-            .WithDescription("Creates or updates the company's contact information. Admin only.");
+            .WithDescription("Creates or updates the company's contact information. Admin only.")
+            .ProducesEnveloped()
+            .ProducesEnveloped(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle([FromBody] UpdateContactRequest request, ISender sender, HttpContext httpContext)

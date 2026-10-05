@@ -13,7 +13,8 @@ public class RemoveServiceMediaItem : IEndpoint
             .WithTags("Services")
             .RequireAuthorization()
             .WithName("RemoveServiceMediaItem")
-            .WithDescription("Removes a photo or video from a service's gallery.");
+            .WithDescription("Removes a photo or video from a service's gallery.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

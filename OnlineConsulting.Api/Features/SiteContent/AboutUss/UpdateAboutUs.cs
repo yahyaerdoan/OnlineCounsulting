@@ -14,7 +14,8 @@ public class UpdateAboutUs : IEndpoint
             .WithTags("SiteContent/AboutUs")
             .RequireAuthorization()
             .WithName("UpdateAboutUs")
-            .WithDescription("Updates an About Us content block.");
+            .WithDescription("Updates an About Us content block.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, [FromBody] UpdateAboutUsRequest request, ISender sender, HttpContext httpContext)

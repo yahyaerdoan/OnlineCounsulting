@@ -14,7 +14,8 @@ public class UpdateFeatureHighlightsIntro : IEndpoint
             .WithTags("SiteContent/FeatureHighlightsIntros")
             .RequireAuthorization()
             .WithName("UpdateFeatureHighlightsIntro")
-            .WithDescription("Updates the feature highlights section intro.");
+            .WithDescription("Updates the feature highlights section intro.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, [FromBody] UpdateFeatureHighlightsIntroRequest request, ISender sender, HttpContext httpContext)

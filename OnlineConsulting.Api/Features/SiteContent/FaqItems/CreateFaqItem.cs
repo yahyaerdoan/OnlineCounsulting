@@ -14,7 +14,8 @@ public class CreateFaqItem : IEndpoint
             .WithTags("SiteContent/FaqItems")
             .RequireAuthorization()
             .WithName("CreateFaqItem")
-            .WithDescription("Creates a service-specific FAQ item.");
+            .WithDescription("Creates a service-specific FAQ item.")
+            .ProducesEnveloped<Guid>(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle([FromBody] CreateFaqItemRequest request, ISender sender, HttpContext httpContext)

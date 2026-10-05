@@ -1,5 +1,7 @@
+using Core.PersistenceLayer.Pagings.Paging;
 using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Tenancy.Application.Features.ModuleOfferings.Contracts;
 using OnlineConsulting.Modules.Tenancy.Application.Features.ModuleOfferings.GetModuleOfferings;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -13,7 +15,8 @@ public class GetModuleOfferings : IEndpoint
             .WithTags("Tenancy")
             .RequireAuthorization()
             .WithName("GetModuleOfferings")
-            .WithDescription("Returns every module offering, including hidden ones (SuperAdmin).");
+            .WithDescription("Returns every module offering, including hidden ones (SuperAdmin).")
+            .ProducesEnveloped<Paginate<ModuleOfferingAdminResponse>>();
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext, int? index = null, int? size = null)

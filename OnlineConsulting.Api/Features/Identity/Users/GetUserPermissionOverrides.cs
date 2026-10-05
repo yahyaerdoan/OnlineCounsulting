@@ -1,5 +1,6 @@
 using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Identity.Application.Features.Users.Contracts;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.GetUserPermissionOverrides;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -13,7 +14,8 @@ public class GetUserPermissionOverrides : IEndpoint
             .WithTags("Identity/Users")
             .RequireAuthorization()
             .WithName("GetUserPermissionOverrides")
-            .WithDescription("Returns a user's role-granted permissions and which ones have been individually denied.");
+            .WithDescription("Returns a user's role-granted permissions and which ones have been individually denied.")
+            .ProducesEnveloped<UserPermissionOverridesResponse>();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

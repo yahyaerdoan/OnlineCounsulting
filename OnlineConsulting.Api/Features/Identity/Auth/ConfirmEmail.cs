@@ -15,7 +15,8 @@ public class ConfirmEmail : IEndpoint
             .WithTags("Identity/Auth")
             .RequireRateLimiting(ServiceRegistration.AuthRateLimiterPolicy)
             .WithName("ConfirmEmail")
-            .WithDescription("Confirms a user's email address using the token sent at registration.");
+            .WithDescription("Confirms a user's email address using the token sent at registration.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle([FromBody] ConfirmEmailRequest request, ISender sender, HttpContext httpContext)

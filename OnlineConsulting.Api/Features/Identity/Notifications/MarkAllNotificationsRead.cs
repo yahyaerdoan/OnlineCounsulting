@@ -15,7 +15,8 @@ public class MarkAllNotificationsRead : IEndpoint
             .WithTags("Identity/Notifications")
             .RequireAuthorization()
             .WithName("MarkAllNotificationsRead")
-            .WithDescription("Marks all of the current user's notifications as read.");
+            .WithDescription("Marks all of the current user's notifications as read.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, ISender sender, HttpContext httpContext)

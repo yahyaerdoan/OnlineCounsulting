@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.SiteContent.Application.Features.Testimonials.Contracts;
 using OnlineConsulting.Modules.SiteContent.Application.Features.Testimonials.GetAllTestimonials;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -12,7 +13,8 @@ public class GetAllTestimonials : IEndpoint
         _ = app.MapGet("/site-content/testimonials", Handle)
             .WithTags("SiteContent/Testimonials")
             .WithName("GetAllTestimonials")
-            .WithDescription("Returns the tenant's customer testimonials. Public - no login required.");
+            .WithDescription("Returns the tenant's customer testimonials. Public - no login required.")
+            .ProducesEnveloped<List<TestimonialResponse>>();
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext)

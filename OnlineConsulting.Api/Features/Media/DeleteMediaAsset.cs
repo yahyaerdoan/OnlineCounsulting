@@ -13,7 +13,8 @@ public class DeleteMediaAsset : IEndpoint
             .WithTags("Media")
             .RequireAuthorization()
             .WithName("DeleteMediaAsset")
-            .WithDescription("Deletes a media asset and its underlying file.");
+            .WithDescription("Deletes a media asset and its underlying file.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

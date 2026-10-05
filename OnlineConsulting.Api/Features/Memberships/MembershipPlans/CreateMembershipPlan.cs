@@ -16,7 +16,8 @@ public class CreateMembershipPlan : IEndpoint
             .RequireAuthorization()
             .WithName("CreateMembershipPlan")
             .WithCreatedLocation("GetMembershipPlanById")
-            .WithDescription("Creates a membership plan (admin) and its provider-side product/price.");
+            .WithDescription("Creates a membership plan (admin) and its provider-side product/price.")
+            .ProducesEnveloped<Guid>(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle([FromBody] CreateMembershipPlanRequest request, ISender sender, HttpContext httpContext)

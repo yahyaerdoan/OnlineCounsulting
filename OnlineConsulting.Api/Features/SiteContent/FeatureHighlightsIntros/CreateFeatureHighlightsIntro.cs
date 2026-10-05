@@ -14,7 +14,8 @@ public class CreateFeatureHighlightsIntro : IEndpoint
             .WithTags("SiteContent/FeatureHighlightsIntros")
             .RequireAuthorization()
             .WithName("CreateFeatureHighlightsIntro")
-            .WithDescription("Creates the feature highlights section intro (description + cover image).");
+            .WithDescription("Creates the feature highlights section intro (description + cover image).")
+            .ProducesEnveloped<Guid>(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle([FromBody] CreateFeatureHighlightsIntroRequest request, ISender sender, HttpContext httpContext)

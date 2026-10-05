@@ -1,7 +1,9 @@
 using Core.PersistenceLayer.Dynamics.Dynamic;
+using Core.PersistenceLayer.Pagings.Paging;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.SiteContent.Application.Features.Partnerships.Contracts;
 using OnlineConsulting.Modules.SiteContent.Application.Features.Partnerships.ListPartnerships;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -14,7 +16,8 @@ public class ListPartnerships : IEndpoint
         _ = app.MapPost("/site-content/partnerships/query", Handle)
             .WithTags("SiteContent/Partnerships")
             .WithName("ListPartnerships")
-            .WithDescription("Returns partnerships with their social links, paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body.");
+            .WithDescription("Returns partnerships with their social links, paginated (?index=&size=), optionally filtered/sorted via a DynamicQuery body.")
+            .ProducesEnveloped<Paginate<PartnershipResponse>>();
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext, [AsParameters] ListQueryParameters query, [FromBody] DynamicQueryRequest? dynamicQuery)

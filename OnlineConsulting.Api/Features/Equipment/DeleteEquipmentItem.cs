@@ -13,7 +13,8 @@ public class DeleteEquipmentItem : IEndpoint
             .WithTags("Equipment")
             .RequireAuthorization()
             .WithName("DeleteEquipmentItem")
-            .WithDescription("Deletes a piece of a customer's installed equipment (admin/technician).");
+            .WithDescription("Deletes a piece of a customer's installed equipment (admin/technician).")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

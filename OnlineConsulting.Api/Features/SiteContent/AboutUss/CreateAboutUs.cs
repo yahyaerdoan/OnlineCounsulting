@@ -14,7 +14,8 @@ public class CreateAboutUs : IEndpoint
             .WithTags("SiteContent/AboutUs")
             .RequireAuthorization()
             .WithName("CreateAboutUs")
-            .WithDescription("Creates an About Us content block.");
+            .WithDescription("Creates an About Us content block.")
+            .ProducesEnveloped<Guid>(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle([FromBody] CreateAboutUsRequest request, ISender sender, HttpContext httpContext)

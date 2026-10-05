@@ -16,7 +16,8 @@ public class AddAppointmentMediaItem : IEndpoint
             .WithTags("Scheduling/Appointments")
             .RequireAuthorization()
             .WithName("AddAppointmentMediaItem")
-            .WithDescription("Attaches an already-uploaded photo/video of the issue to one of the current user's own appointments, for the technician to review before the visit.");
+            .WithDescription("Attaches an already-uploaded photo/video of the issue to one of the current user's own appointments, for the technician to review before the visit.")
+            .ProducesEnveloped<Guid>(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, [FromBody] AddAppointmentMediaItemRequest request, ISender sender, HttpContext httpContext)

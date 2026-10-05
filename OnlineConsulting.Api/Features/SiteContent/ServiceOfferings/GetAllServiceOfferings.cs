@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.SiteContent.Application.Features.ServiceOfferings.Contracts;
 using OnlineConsulting.Modules.SiteContent.Application.Features.ServiceOfferings.GetAllServiceOfferings;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -12,7 +13,8 @@ public class GetAllServiceOfferings : IEndpoint
         _ = app.MapGet("/site-content/service-offerings", Handle)
             .WithTags("SiteContent/ServiceOfferings")
             .WithName("GetAllServiceOfferings")
-            .WithDescription("Returns the \"what we provide\" cards. Public - no login required.");
+            .WithDescription("Returns the \"what we provide\" cards. Public - no login required.")
+            .ProducesEnveloped<List<ServiceOfferingResponse>>();
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext)

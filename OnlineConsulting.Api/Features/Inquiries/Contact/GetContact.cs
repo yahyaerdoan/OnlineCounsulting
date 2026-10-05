@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Inquiries.Application.Features.Contact.Contracts;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Contact.GetContact;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -12,7 +13,8 @@ public class GetContact : IEndpoint
         _ = app.MapGet("/contact", Handle)
             .WithTags("Inquiries/Contact")
             .WithName("GetContact")
-            .WithDescription("Returns the company's contact information. Public - no login required.");
+            .WithDescription("Returns the company's contact information. Public - no login required.")
+            .ProducesEnveloped<CompanyContactResponse>();
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext)

@@ -1,7 +1,9 @@
 ﻿using Core.PersistenceLayer.Dynamics.Dynamic;
+using Core.PersistenceLayer.Pagings.Paging;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.Contracts;
 using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.ListInvoices;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -15,7 +17,8 @@ public class ListInvoices : IEndpoint
             .WithTags("Commerce/Invoices")
             .RequireAuthorization()
             .WithName("ListInvoices")
-            .WithDescription("Every invoice for the tenant (staff), paginated, optionally filtered/sorted via a DynamicQuery body.");
+            .WithDescription("Every invoice for the tenant (staff), paginated, optionally filtered/sorted via a DynamicQuery body.")
+            .ProducesEnveloped<Paginate<InvoiceResponse>>();
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext, [AsParameters] ListQueryParameters query, [FromBody] DynamicQueryRequest? dynamicQuery)

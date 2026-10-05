@@ -14,7 +14,8 @@ public class CreateInvite : IEndpoint
             .WithTags("Identity/Auth")
             .RequireAuthorization()
             .WithName("CreateInvite")
-            .WithDescription("Invites a new teammate into the caller's own tenant by email.");
+            .WithDescription("Invites a new teammate into the caller's own tenant by email.")
+            .ProducesEnveloped(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle([FromBody] CreateInviteRequest request, ISender sender, HttpContext httpContext)

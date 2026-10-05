@@ -16,7 +16,8 @@ public class UpdateUserImage : IEndpoint
             .RequireAuthorization()
             .WithName("UpdateUserImage")
             .WithDescription("Updates the current user's profile image.")
-            .DisableAntiforgery();
+            .DisableAntiforgery()
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, IFormFile image, ISender sender, HttpContext httpContext)

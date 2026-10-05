@@ -14,7 +14,8 @@ public class CreatePromotion : IEndpoint
             .WithTags("SiteContent/Promotions")
             .RequireAuthorization()
             .WithName("CreatePromotion")
-            .WithDescription("Creates a promotional offer/CTA.");
+            .WithDescription("Creates a promotional offer/CTA.")
+            .ProducesEnveloped<Guid>(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle([FromBody] CreatePromotionRequest request, ISender sender, HttpContext httpContext)

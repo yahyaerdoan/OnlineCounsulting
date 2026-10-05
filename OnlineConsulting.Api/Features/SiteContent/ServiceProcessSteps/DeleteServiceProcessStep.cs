@@ -13,7 +13,8 @@ public class DeleteServiceProcessStep : IEndpoint
             .WithTags("SiteContent/ServiceProcessSteps")
             .RequireAuthorization()
             .WithName("DeleteServiceProcessStep")
-            .WithDescription("Deletes a service process step.");
+            .WithDescription("Deletes a service process step.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

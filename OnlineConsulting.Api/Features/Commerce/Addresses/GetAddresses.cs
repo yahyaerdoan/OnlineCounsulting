@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.Contracts;
 using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.GetAddresses;
 using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
@@ -15,7 +16,8 @@ public class GetAddresses : IEndpoint
             .WithTags("Commerce/Addresses")
             .RequireAuthorization()
             .WithName("GetAddresses")
-            .WithDescription("Returns the current user's addresses.");
+            .WithDescription("Returns the current user's addresses.")
+            .ProducesEnveloped<List<UserAddressResponse>>();
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, ISender sender, HttpContext httpContext)

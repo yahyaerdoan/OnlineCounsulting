@@ -14,7 +14,8 @@ public class UpdateHeroSlide : IEndpoint
             .WithTags("SiteContent/HeroSlides")
             .RequireAuthorization()
             .WithName("UpdateHeroSlide")
-            .WithDescription("Updates a homepage hero slide.");
+            .WithDescription("Updates a homepage hero slide.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, [FromBody] UpdateHeroSlideRequest request, ISender sender, HttpContext httpContext)

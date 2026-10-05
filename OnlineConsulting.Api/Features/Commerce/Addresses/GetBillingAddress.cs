@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.Contracts;
 using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.GetBillingAddress;
 using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
@@ -15,7 +16,8 @@ public class GetBillingAddress : IEndpoint
             .WithTags("Commerce/Addresses")
             .RequireAuthorization()
             .WithName("GetBillingAddress")
-            .WithDescription("Returns the current user's billing address.");
+            .WithDescription("Returns the current user's billing address.")
+            .ProducesEnveloped<UserAddressResponse>();
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, ISender sender, HttpContext httpContext)

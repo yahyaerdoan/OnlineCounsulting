@@ -16,7 +16,8 @@ public class UpdateService : IEndpoint
             .WithTags("Services")
             .RequireAuthorization()
             .WithName("UpdateService")
-            .WithDescription("Updates an existing service.");
+            .WithDescription("Updates an existing service.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, [FromBody] UpdateServiceRequest request, ISender sender, HttpContext httpContext)

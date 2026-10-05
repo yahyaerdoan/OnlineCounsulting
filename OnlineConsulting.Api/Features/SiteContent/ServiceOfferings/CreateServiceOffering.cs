@@ -14,7 +14,8 @@ public class CreateServiceOffering : IEndpoint
             .WithTags("SiteContent/ServiceOfferings")
             .RequireAuthorization()
             .WithName("CreateServiceOffering")
-            .WithDescription("Creates a card in the \"what we provide\" homepage section.");
+            .WithDescription("Creates a card in the \"what we provide\" homepage section.")
+            .ProducesEnveloped<Guid>(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle([FromBody] CreateServiceOfferingRequest request, ISender sender, HttpContext httpContext)

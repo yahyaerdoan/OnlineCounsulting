@@ -15,7 +15,8 @@ public class CancelPendingOrder : IEndpoint
             .WithTags("Commerce/Orders")
             .RequireAuthorization()
             .WithName("CancelPendingOrder")
-            .WithDescription("Cancels the current user's own still-unpaid order and restores its items to their basket.");
+            .WithDescription("Cancels the current user's own still-unpaid order and restores its items to their basket.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, Guid id, ISender sender, HttpContext httpContext)

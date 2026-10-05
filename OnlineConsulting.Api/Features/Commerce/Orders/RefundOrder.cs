@@ -14,7 +14,8 @@ public class RefundOrder : IEndpoint
             .WithTags("Commerce/Orders")
             .RequireAuthorization()
             .WithName("RefundOrder")
-            .WithDescription("Refunds a paid order through whichever payment provider processed it. Amount omitted means a full refund.");
+            .WithDescription("Refunds a paid order through whichever payment provider processed it. Amount omitted means a full refund.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, [FromBody] RefundOrderRequest request, ISender sender, HttpContext httpContext)

@@ -14,7 +14,8 @@ public class UpdateSocialLink : IEndpoint
             .WithTags("SiteContent/SocialLinks")
             .RequireAuthorization()
             .WithName("UpdateSocialLink")
-            .WithDescription("Updates a site-wide social link.");
+            .WithDescription("Updates a site-wide social link.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, [FromBody] UpdateSocialLinkRequest request, ISender sender, HttpContext httpContext)

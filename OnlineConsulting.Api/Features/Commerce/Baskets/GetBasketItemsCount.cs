@@ -14,7 +14,8 @@ public class GetBasketItemsCount : IEndpoint
         _ = app.MapGet("/basket/count", Handle)
             .WithTags("Commerce/Baskets")
             .WithName("GetBasketItemsCount")
-            .WithDescription("Returns the number of items in the current user's (or guest's) basket.");
+            .WithDescription("Returns the number of items in the current user's (or guest's) basket.")
+            .ProducesEnveloped<int>();
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, ISender sender, HttpContext httpContext, IGuestIdAccessor guestIdAccessor)

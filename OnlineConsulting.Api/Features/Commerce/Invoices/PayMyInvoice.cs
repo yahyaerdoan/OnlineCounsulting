@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.Contracts;
 using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.PayInvoice;
 using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
@@ -15,7 +16,8 @@ public class PayMyInvoice : IEndpoint
             .WithTags("Commerce/Invoices")
             .RequireAuthorization()
             .WithName("PayMyInvoice")
-            .WithDescription("Starts the card payment for one of the current user's open invoices; returns a client secret to confirm, or Paid when it settled at once.");
+            .WithDescription("Starts the card payment for one of the current user's open invoices; returns a client secret to confirm, or Paid when it settled at once.")
+            .ProducesEnveloped<PayInvoiceResult>();
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, Guid id, ISender sender, HttpContext httpContext)

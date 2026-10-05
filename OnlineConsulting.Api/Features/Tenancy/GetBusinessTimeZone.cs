@@ -1,5 +1,6 @@
 using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.Contracts;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.GetBusinessTimeZone;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -12,7 +13,8 @@ public class GetBusinessTimeZone : IEndpoint
         _ = app.MapGet("/tenancy/time-zone", Handle)
             .WithTags("Tenancy")
             .WithName("GetBusinessTimeZone")
-            .WithDescription("Returns the IANA time zone the caller's business runs in (the default tenant's for anonymous callers). Clients show every date and time in it. Public.");
+            .WithDescription("Returns the IANA time zone the caller's business runs in (the default tenant's for anonymous callers). Clients show every date and time in it. Public.")
+            .ProducesEnveloped<BusinessTimeZoneResponse>();
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext)

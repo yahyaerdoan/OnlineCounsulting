@@ -14,7 +14,8 @@ public class UpdateServiceArea : IEndpoint
             .WithTags("SiteContent/ServiceAreas")
             .RequireAuthorization()
             .WithName("UpdateServiceArea")
-            .WithDescription("Updates a service-area SEO landing page.");
+            .WithDescription("Updates a service-area SEO landing page.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, [FromBody] UpdateServiceAreaRequest request, ISender sender, HttpContext httpContext)

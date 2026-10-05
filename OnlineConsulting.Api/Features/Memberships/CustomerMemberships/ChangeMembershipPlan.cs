@@ -15,7 +15,8 @@ public class ChangeMembershipPlan : IEndpoint
             .WithTags("Memberships/CustomerMemberships")
             .RequireAuthorization()
             .WithName("ChangeMembershipPlan")
-            .WithDescription("Upgrades or downgrades the current user's active membership to a different plan, prorated.");
+            .WithDescription("Upgrades or downgrades the current user's active membership to a different plan, prorated.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, Guid newMembershipPlanId, ISender sender, HttpContext httpContext)
