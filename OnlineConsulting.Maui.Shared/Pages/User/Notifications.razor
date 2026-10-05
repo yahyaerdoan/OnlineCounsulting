@@ -100,9 +100,9 @@
 
     private async Task OpenAsync(UserNotificationResponse notification)
     {
-        if (!notification.IsRead)
+        if (!notification.IsRead && notification.Links.Find(LinkRels.MarkRead) is { } markRead)
         {
-            _ = await ApiClient.PostAsync(ApiRoutes.Notifications.Read(notification.Id), null);
+            _ = await ApiClient.FollowAsync(markRead);
             NotificationState.SetCount(NotificationState.UnreadCount - 1);
             _items = [.. _items.Select(n => n.Id == notification.Id ? n with { IsRead = true } : n)];
         }

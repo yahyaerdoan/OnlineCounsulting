@@ -39,7 +39,12 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var result = await ApiClient.GetAsync<List<RoleAssignmentResponse>>(ApiRoutes.Users.Roles(User.Id));
+        if (User.Links.Find(LinkRels.Roles) is not { } roles)
+        {
+            return;
+        }
+
+        var result = await ApiClient.FollowAsync<List<RoleAssignmentResponse>>(roles);
         if (result.IsSuccessful && result.ResultData is not null)
         {
             _assignments = result.ResultData;
@@ -55,8 +60,13 @@
 
     private async Task SaveAsync()
     {
+        if (User.Links.Find(LinkRels.AssignRoles) is not { } assignRoles)
+        {
+            return;
+        }
+
         _isSaving = true;
-        var result = await ApiClient.PutAsync(ApiRoutes.Users.Roles(User.Id), new { roleAssignments = _assignments });
+        var result = await ApiClient.FollowAsync(assignRoles, new { roleAssignments = _assignments });
         _isSaving = false;
 
         if (!result.IsSuccessful)

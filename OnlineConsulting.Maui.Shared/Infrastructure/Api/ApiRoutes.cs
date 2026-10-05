@@ -27,8 +27,6 @@ public static class ApiRoutes
     {
         public const string Create = V1 + "/auth/invites";
         public const string All = V1 + "/invites/query";
-
-        public static string ById(Guid id) => $"{V1}/invites/{id}";
     }
 
     public static class Permissions
@@ -43,8 +41,6 @@ public static class ApiRoutes
         /// <summary>GET the caller's inbox, newest first, paginated.</summary>
         public const string UnreadCount = Base + "/unread-count";
         public const string ReadAll = Base + "/read-all";
-
-        public static string Read(Guid id) => $"{Base}/{id}/read";
     }
 
     public static class DeviceTokens
@@ -64,7 +60,6 @@ public static class ApiRoutes
         public const string All = Base + "/query";
 
         public static string ById(Guid id) => $"{Base}/{id}";
-        public static string Roles(Guid id) => $"{Base}/{id}/roles";
         public static string PermissionOverrides(Guid id) => $"{Base}/{id}/permission-overrides";
     }
 
@@ -76,7 +71,6 @@ public static class ApiRoutes
 
         /// <summary>GET for the flat dropdown list, POST for create.</summary>
 
-        public static string ById(Guid id) => $"{Base}/{id}";
         public static string Permissions(Guid id) => $"{Base}/{id}/permissions";
 
         /// <summary>Every role's permissions in one call - backs the permission matrix page.</summary>

@@ -44,7 +44,12 @@
 
     private Task SaveAsync() => Form.SubmitAsync(async () =>
     {
-        var result = await ApiClient.PutAsync(ApiRoutes.Roles.ById(Role.Id), new { name = _model.Name, description = _model.Description });
+        if (Role.Links.Find(LinkRels.Edit) is not { } edit)
+        {
+            return;
+        }
+
+        var result = await ApiClient.FollowAsync(edit, new { name = _model.Name, description = _model.Description });
         if (!result.IsSuccessful)
         {
             Form.DisplayErrors(result, Snackbar);

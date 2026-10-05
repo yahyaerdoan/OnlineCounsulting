@@ -32,7 +32,7 @@
         </MudTd>
         <MudTd DataLabel="Expires">@BusinessTime.FormatDate(invite.ExpiresAt)</MudTd>
         <MudTd DataLabel="Actions">
-            @if (invite.Status == "Pending")
+            @if (invite.Can(LinkRels.Cancel))
             {
                 <MudTooltip Text="Cancel invite">
                     <MudIconButton aria-label="Cancel invite" Icon="@Icons.Material.Outlined.Cancel" Size="Size.Small" Color="Color.Error"
@@ -52,12 +52,17 @@
 
     private async Task CancelInviteAsync(InviteResponse invite)
     {
+        if (invite.Links.Find(LinkRels.Cancel) is not { } cancel)
+        {
+            return;
+        }
+
         if (!await DialogService.ConfirmAsync("Cancel Invite", $"Cancel the invite sent to \"{invite.Email}\"?"))
         {
             return;
         }
 
-        var result = await ApiClient.DeleteAsync(ApiRoutes.Invites.ById(invite.Id));
+        var result = await ApiClient.FollowAsync(cancel);
         if (!result.IsSuccessful)
         {
             Snackbar.ShowError(result.DisplayMessage);

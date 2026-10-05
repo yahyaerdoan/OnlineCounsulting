@@ -146,10 +146,15 @@ else
             return;
         }
 
+        if (address.Links.Find(LinkRels.Delete) is not { } delete)
+        {
+            return;
+        }
+
         _busy = true;
         try
         {
-            var result = await ApiClient.DeleteAsync(ApiRoutes.Addresses.ById(address.Id));
+            var result = await ApiClient.FollowAsync(delete);
             if (!result.IsSuccessful)
             {
                 Snackbar.ShowError(result.DisplayMessage);
