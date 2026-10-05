@@ -38,17 +38,17 @@
         <MudTd DataLabel="Total" Class="mud-table-cell-align-right">@CurrencyFormat.Format(invoice.Total)</MudTd>
         <MudTd DataLabel="Actions">
             <MudTooltip Text="Download PDF">
-                <MudIconButton aria-label="Download PDF" Icon="@Icons.Material.Outlined.FileDownload" Size="Size.Small" OnClick="@(() => DownloadAsync(invoice))" />
+                <MudIconButton aria-label="Download PDF" Icon="@Icons.Material.Outlined.FileDownload" Size="Size.Small" Disabled="@(!invoice.Can(LinkRels.Pdf))" OnClick="@(() => DownloadAsync(invoice))" />
             </MudTooltip>
             <MudTooltip Text="Record payment">
-                <MudMenu aria-label="Record payment" Icon="@Icons.Material.Outlined.Payments" Size="Size.Small" Dense="true" Disabled="@(!invoice.IsOpen)">
+                <MudMenu aria-label="Record payment" Icon="@Icons.Material.Outlined.Payments" Size="Size.Small" Dense="true" Disabled="@(!invoice.Can(LinkRels.MarkPaid))">
                     <MudMenuItem OnClick="@(() => MarkPaidAsync(invoice, "Cash"))">Paid in cash</MudMenuItem>
                     <MudMenuItem OnClick="@(() => MarkPaidAsync(invoice, "Check"))">Paid by check</MudMenuItem>
                     <MudMenuItem OnClick="@(() => MarkPaidAsync(invoice, "Card"))">Card taken on site</MudMenuItem>
                 </MudMenu>
             </MudTooltip>
             <MudTooltip Text="Void">
-                <MudIconButton aria-label="Void" Icon="@Icons.Material.Outlined.Block" Color="Color.Error" Size="Size.Small" Disabled="@(!invoice.IsOpen)"
+                <MudIconButton aria-label="Void" Icon="@Icons.Material.Outlined.Block" Color="Color.Error" Size="Size.Small" Disabled="@(!invoice.Can(LinkRels.Void))"
                                OnClick="@(() => VoidAsync(invoice))" />
             </MudTooltip>
         </MudTd>
@@ -61,7 +61,12 @@
 
     private async Task DownloadAsync(InvoiceResponse invoice)
     {
-        var result = await ApiClient.GetAsync<InvoicePdfResponse>(ApiRoutes.Invoices.StaffPdf(invoice.Id));
+        if (invoice.Links.Find(LinkRels.Pdf) is not { } pdf)
+        {
+            return;
+        }
+
+        var result = await ApiClient.FollowAsync<InvoicePdfResponse>(pdf);
         if (!result.IsSuccessful || result.ResultData is null)
         {
             Snackbar.ShowError(result.DisplayMessage);
@@ -73,23 +78,33 @@
 
     private async Task MarkPaidAsync(InvoiceResponse invoice, string method)
     {
+        if (invoice.Links.Find(LinkRels.MarkPaid) is not { } markPaid)
+        {
+            return;
+        }
+
         if (!await DialogService.ConfirmAsync("Record payment", $"Mark {invoice.InvoiceNumber} ({CurrencyFormat.Format(invoice.Total)}) as paid? The customer gets a receipt."))
         {
             return;
         }
 
-        var result = await ApiClient.PostAsync(ApiRoutes.Invoices.MarkPaid(invoice.Id), new { paymentMethod = method });
+        var result = await ApiClient.FollowAsync(markPaid, new { paymentMethod = method });
         await ShowAndReloadAsync(result);
     }
 
     private async Task VoidAsync(InvoiceResponse invoice)
     {
+        if (invoice.Links.Find(LinkRels.Void) is not { } voidLink)
+        {
+            return;
+        }
+
         if (!await DialogService.ConfirmAsync("Void invoice", $"Void {invoice.InvoiceNumber}? The customer won't be asked to pay it."))
         {
             return;
         }
 
-        var result = await ApiClient.PostAsync(ApiRoutes.Invoices.Void(invoice.Id), new { reason = (string?)null });
+        var result = await ApiClient.FollowAsync(voidLink, new { reason = (string?)null });
         await ShowAndReloadAsync(result);
     }
 

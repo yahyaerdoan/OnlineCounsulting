@@ -101,7 +101,7 @@ else if (_invoice is { } invoice)
         }
     </div>
 
-    @if (invoice.IsOpen)
+    @if (invoice.Can(LinkRels.Pay))
     {
         <section class="subscribe-form invoice-pay">
             @if (_clientSecret is null)
@@ -213,10 +213,15 @@ else if (_invoice is { } invoice)
 
     private async Task StartPaymentAsync()
     {
+        if (_invoice?.Links.Find(LinkRels.Pay) is not { } pay)
+        {
+            return;
+        }
+
         _isBusy = true;
         _paymentError = null;
 
-        var result = await ApiClient.PostAsync<PayInvoiceResult>(ApiRoutes.Invoices.Pay(Id), new { });
+        var result = await ApiClient.FollowAsync<PayInvoiceResult>(pay, new { });
         _isBusy = false;
 
         if (!result.IsSuccessful || result.ResultData is null)
@@ -264,8 +269,13 @@ else if (_invoice is { } invoice)
 
     private async Task DownloadPdfAsync()
     {
+        if (_invoice?.Links.Find(LinkRels.Pdf) is not { } pdf)
+        {
+            return;
+        }
+
         _downloading = true;
-        var result = await ApiClient.GetAsync<InvoicePdfResponse>(ApiRoutes.Invoices.Pdf(Id));
+        var result = await ApiClient.FollowAsync<InvoicePdfResponse>(pdf);
         _downloading = false;
 
         if (!result.IsSuccessful || result.ResultData is null)

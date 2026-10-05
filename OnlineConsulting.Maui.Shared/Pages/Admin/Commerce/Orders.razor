@@ -1,4 +1,4 @@
-@page "/admin/commerce/orders"
+﻿@page "/admin/commerce/orders"
 @attribute [Authorize(Roles = "Admin,Super Admin,Member")]
 @inject IApiClient ApiClient
 @inject IDialogService DialogService
@@ -33,7 +33,7 @@
         <MudTd DataLabel="Actions">
             <MudTooltip Text="Refund">
                 <MudIconButton aria-label="Refund" Icon="@Icons.Material.Outlined.Undo" Color="Color.Error" Size="Size.Small"
-                               Disabled="@(order.PaymentStatus != "Paid")" OnClick="@(() => RefundAsync(order))" />
+                               Disabled="@(!order.Can(LinkRels.Refund))" OnClick="@(() => RefundAsync(order))" />
             </MudTooltip>
         </MudTd>
     </RowTemplate>
@@ -45,6 +45,11 @@
 
     private async Task RefundAsync(AdminOrderResponse order)
     {
+        if (order.Links.Find(LinkRels.Refund) is not { } refund)
+        {
+            return;
+        }
+
         var confirmed = await DialogService.ConfirmAsync(
             "Refund Order",
             $"Refund order {order.OrderNumber} for {CurrencyFormat.Format(order.TotalPrice)}? This issues a real refund through the live payment gateway and cannot be undone.");
@@ -54,7 +59,7 @@
             return;
         }
 
-        var result = await ApiClient.PostAsync(ApiRoutes.Commerce.Orders.Refund(order.Id), new { });
+        var result = await ApiClient.FollowAsync(refund, new { });
         if (!result.IsSuccessful)
         {
             Snackbar.ShowError(result.DisplayMessage);

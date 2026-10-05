@@ -1,4 +1,5 @@
 ﻿using OnlineConsulting.Maui.Shared.Infrastructure.Auth;
+using OnlineConsulting.Maui.Shared.Infrastructure.Hateoas;
 using Polly.CircuitBreaker;
 using System.Net;
 using System.Net.Http.Headers;
@@ -39,6 +40,15 @@ public class ApiClient(HttpClient httpClient, IAccessTokenProvider? tokenProvide
 
     public Task<ApiEnvelope<T>> PostFileAsync<T>(string path, MultipartFormDataContent content, CancellationToken cancellationToken = default) =>
         SendAsync<T>(HttpMethod.Post, path, content, cancellationToken);
+
+    public Task<ApiEnvelope<T>> FollowAsync<T>(HalLink link, object? body = null, CancellationToken cancellationToken = default) =>
+        SendAsync<T>(link.HttpMethod, link.RelativePath, ContentFor(link, body), cancellationToken);
+
+    public Task<ApiEnvelope> FollowAsync(HalLink link, object? body = null, CancellationToken cancellationToken = default) =>
+        SendAsync(link.HttpMethod, link.RelativePath, ContentFor(link, body), cancellationToken);
+
+    private static JsonContent? ContentFor(HalLink link, object? body) =>
+        link.HttpMethod == HttpMethod.Get || link.HttpMethod == HttpMethod.Delete ? null : JsonContent.Create(body, options: JsonOptions);
 
     private async Task<ApiEnvelope<T>> SendAsync<T>(HttpMethod method, string path, HttpContent? content, CancellationToken cancellationToken)
     {

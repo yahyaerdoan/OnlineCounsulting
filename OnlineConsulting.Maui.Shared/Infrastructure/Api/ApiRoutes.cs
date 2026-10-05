@@ -317,16 +317,11 @@ public static class ApiRoutes
             /// requires shipping and billing addresses already set (see Addresses.SetShipping/SetBilling).</summary>
             public const string Checkout = Base + "/checkout";
 
-            public static string Refund(Guid id) => $"{Base}/{id}/refund";
             public static string ById(Guid id) => $"{Base}/{id}";
 
             /// <summary>Re-fetches a fresh PaymentClientSecret for an already-created, still-unpaid order -
             /// lets Checkout.razor resume the Stripe payment step after a page reload.</summary>
             public static string ResumePayment(Guid id) => $"{Base}/{id}/resume-payment";
-
-            /// <summary>POST cancels a still-unpaid order and restores its items to the caller's basket -
-            /// lets Checkout.razor's Payment phase back out to shopping instead of stranding the customer.</summary>
-            public static string CancelPending(Guid id) => $"{Base}/{id}/cancel";
 
             /// <summary>PUT: re-points an unpaid order at the caller's current default shipping/billing addresses.</summary>
             public static string UpdateAddresses(Guid id) => $"{Base}/{id}/addresses";
@@ -360,15 +355,9 @@ public static class ApiRoutes
         public const string All = Base + "/admin/query";
 
         public static string ById(Guid id) => $"{Base}/{id}";
-        public static string Pdf(Guid id) => $"{Base}/{id}/pdf";
-        public static string Pay(Guid id) => $"{Base}/{id}/pay";
 
         /// <summary>POST: settles the caller's open invoice at once if the provider already took the payment.</summary>
         public static string SyncPayment(Guid id) => $"{Base}/{id}/sync-payment";
-        public static string StaffById(Guid id) => $"{Base}/admin/{id}";
-        public static string StaffPdf(Guid id) => $"{Base}/admin/{id}/pdf";
-        public static string MarkPaid(Guid id) => $"{Base}/admin/{id}/mark-paid";
-        public static string Void(Guid id) => $"{Base}/admin/{id}/void";
     }
 
     public static class Addresses

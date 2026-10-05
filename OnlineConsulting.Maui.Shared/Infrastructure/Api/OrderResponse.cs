@@ -1,7 +1,9 @@
+using OnlineConsulting.Maui.Shared.Infrastructure.Hateoas;
+
 namespace OnlineConsulting.Maui.Shared.Infrastructure.Api;
 
 /// <summary>Mirrors GET /api/v1/orders's response shape (the caller's own orders).</summary>
-public record OrderResponse(Guid Id, string OrderNumber, string OrderStatus, string PaymentStatus, decimal TotalPrice, DateTimeOffset CreatedDate);
+public record OrderResponse(Guid Id, string OrderNumber, string OrderStatus, string PaymentStatus, decimal TotalPrice, DateTimeOffset CreatedDate) : HalResource;
 
 /// <summary>Mirrors GET /api/v1/orders/{id}'s response shape.</summary>
 public record OrderDetailResponse(OrderResponse Order, IReadOnlyList<OrderItemResponse> Items, Guid ShippingAddressId, Guid InvoiceAddressId);
