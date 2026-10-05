@@ -16,8 +16,9 @@ public class OrphanedTenantCleanupService(IServiceScopeFactory scopeFactory, IOp
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         var settings = options.Value;
+        using var timer = new PeriodicTimer(settings.PollInterval);
 
-        while (!stoppingToken.IsCancellationRequested)
+        do
         {
             try
             {
@@ -27,9 +28,8 @@ public class OrphanedTenantCleanupService(IServiceScopeFactory scopeFactory, IOp
             {
                 logger.LogError(ex, "Orphaned tenant cleanup cycle failed unexpectedly.");
             }
-
-            await Task.Delay(settings.PollInterval, stoppingToken);
         }
+        while (await timer.WaitForNextTickAsync(stoppingToken));
     }
 
     private async Task CleanupOnceAsync(TenancyCleanupOptions settings, CancellationToken cancellationToken)

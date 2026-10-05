@@ -56,11 +56,5 @@ public class GetOrCreateReferralCodeHandler(IReferralCodeRepository repository) 
         return null;
     }
 
-    private static string GenerateCode() => string.Create(_codeLength, 0, (span, _) =>
-    {
-        foreach (ref var c in span)
-        {
-            c = _alphabet[RandomNumberGenerator.GetInt32(_alphabet.Length)];
-        }
-    });
+    private static string GenerateCode() => RandomNumberGenerator.GetString(_alphabet, _codeLength);
 }

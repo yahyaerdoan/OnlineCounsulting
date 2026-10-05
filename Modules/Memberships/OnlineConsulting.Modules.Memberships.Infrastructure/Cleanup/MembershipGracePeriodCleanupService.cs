@@ -16,8 +16,9 @@ public class MembershipGracePeriodCleanupService(IServiceScopeFactory scopeFacto
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         var settings = options.Value;
+        using var timer = new PeriodicTimer(settings.PollInterval);
 
-        while (!stoppingToken.IsCancellationRequested)
+        do
         {
             try
             {
@@ -27,9 +28,8 @@ public class MembershipGracePeriodCleanupService(IServiceScopeFactory scopeFacto
             {
                 logger.LogError(ex, "Membership grace-period cleanup cycle failed unexpectedly.");
             }
-
-            await Task.Delay(settings.PollInterval, stoppingToken);
         }
+        while (await timer.WaitForNextTickAsync(stoppingToken));
     }
 
     private async Task CleanupOnceAsync(MembershipGracePeriodOptions settings, CancellationToken cancellationToken)

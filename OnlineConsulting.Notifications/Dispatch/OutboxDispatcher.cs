@@ -26,8 +26,9 @@ public class OutboxDispatcher(IServiceScopeFactory scopeFactory, IOptions<Outbox
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         var settings = options.Value;
+        using var timer = new PeriodicTimer(settings.PollInterval);
 
-        while (!stoppingToken.IsCancellationRequested)
+        do
         {
             try
             {
@@ -37,9 +38,8 @@ public class OutboxDispatcher(IServiceScopeFactory scopeFactory, IOptions<Outbox
             {
                 logger.LogError(ex, "Outbox dispatch cycle failed unexpectedly.");
             }
-
-            await Task.Delay(settings.PollInterval, stoppingToken);
         }
+        while (await timer.WaitForNextTickAsync(stoppingToken));
     }
 
     /// <summary>Sends run in parallel, but entity mutations are applied afterward on this thread since ChangeTracker isn't thread-safe.</summary>

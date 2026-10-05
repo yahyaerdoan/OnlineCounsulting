@@ -64,6 +64,7 @@ public static class SiteContentModule
         _ = services.AddScoped<ISocialLinkRepository, SocialLinkRepository>();
         _ = services.AddScoped<IServiceAreaRepository, ServiceAreaRepository>();
         _ = services.AddMemoryCache();
+        _ = services.Configure<Geocoding.GeoapifyOptions>(configuration.GetSection(Geocoding.GeoapifyOptions.SectionName));
         _ = services.AddHttpClient(Geocoding.CityGeocoder.GeoapifyClient, client =>
         {
             client.BaseAddress = new Uri("https://api.geoapify.com/");

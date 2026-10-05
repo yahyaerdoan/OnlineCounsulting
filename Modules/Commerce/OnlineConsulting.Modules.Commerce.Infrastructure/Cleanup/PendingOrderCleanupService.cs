@@ -15,8 +15,9 @@ public class PendingOrderCleanupService(IServiceScopeFactory scopeFactory, IOpti
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         var settings = options.Value;
+        using var timer = new PeriodicTimer(settings.PollInterval);
 
-        while (!stoppingToken.IsCancellationRequested)
+        do
         {
             try
             {
@@ -26,9 +27,8 @@ public class PendingOrderCleanupService(IServiceScopeFactory scopeFactory, IOpti
             {
                 logger.LogError(ex, "Pending order cleanup cycle failed unexpectedly.");
             }
-
-            await Task.Delay(settings.PollInterval, stoppingToken);
         }
+        while (await timer.WaitForNextTickAsync(stoppingToken));
     }
 
     private async Task CleanupOnceAsync(PendingOrderCleanupOptions settings, CancellationToken cancellationToken)

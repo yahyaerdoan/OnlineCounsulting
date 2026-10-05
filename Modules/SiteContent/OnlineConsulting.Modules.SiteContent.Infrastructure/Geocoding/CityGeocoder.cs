@@ -2,8 +2,8 @@ using System.Globalization;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using OnlineConsulting.Modules.SiteContent.Application.Features.ServiceAreas.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Application.Features.ServiceAreas.Contracts;
 
@@ -11,7 +11,7 @@ namespace OnlineConsulting.Modules.SiteContent.Infrastructure.Geocoding;
 
 /// <summary>Geoapify when a key is configured (Geoapify:ApiKey, shared with address autocomplete), otherwise OpenStreetMap Nominatim, which
 /// allows light use with an identifying User-Agent and at most one request a second. Results are cached; failures return null.</summary>
-public sealed class CityGeocoder(IHttpClientFactory httpClientFactory, IMemoryCache cache, IConfiguration configuration, ILogger<CityGeocoder> logger) : ICityGeocoder
+public sealed class CityGeocoder(IHttpClientFactory httpClientFactory, IMemoryCache cache, IOptions<GeoapifyOptions> options, ILogger<CityGeocoder> logger) : ICityGeocoder
 {
     public const string GeoapifyClient = "SiteContent.Geoapify";
     public const string NominatimClient = "SiteContent.Nominatim";
@@ -31,7 +31,7 @@ public sealed class CityGeocoder(IHttpClientFactory httpClientFactory, IMemoryCa
 
         try
         {
-            var apiKey = configuration["Geoapify:ApiKey"];
+            var apiKey = options.Value.ApiKey;
             var point = string.IsNullOrWhiteSpace(apiKey)
                 ? await FromNominatimAsync(city, state, cancellationToken)
                 : await FromGeoapifyAsync(city, state, apiKey, cancellationToken);
