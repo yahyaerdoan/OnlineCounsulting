@@ -23,7 +23,7 @@
     private IMudDialogInstance MudDialog { get; set; } = default!;
 
     [Parameter, EditorRequired]
-    public AppointmentResponse Appointment { get; set; } = default!;
+    public HalLink? AssignLink { get; set; }
 
     private readonly AssignTechnicianModel _model = new();
     private bool _isBusy;
@@ -32,9 +32,14 @@
 
     private async Task AssignAsync()
     {
+        if (AssignLink is null)
+        {
+            return;
+        }
+
         _isBusy = true;
 
-        var result = await ApiClient.PostAsync(ApiRoutes.Operations.Appointments.AssignTechnician(Appointment.Id), new { technicianUserId = _model.TechnicianUserId });
+        var result = await ApiClient.FollowAsync(AssignLink, new { technicianUserId = _model.TechnicianUserId });
 
         _isBusy = false;
 

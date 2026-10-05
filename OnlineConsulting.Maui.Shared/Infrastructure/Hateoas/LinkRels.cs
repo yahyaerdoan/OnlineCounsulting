@@ -11,4 +11,8 @@ public static class LinkRels
     public const string MarkPaid = "oc:mark-paid";
     public const string Void = "oc:void";
     public const string Pdf = "oc:pdf";
+    public const string Confirm = "oc:confirm";
+    public const string AssignTechnician = "oc:assign-technician";
+    public const string WorkOrder = "oc:work-order";
+    public const string RecordWorkOrder = "oc:record-work-order";
 }

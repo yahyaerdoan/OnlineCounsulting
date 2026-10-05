@@ -4,13 +4,15 @@ using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Assi
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.CancelAppointmentByStaff;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.ConfirmAppointment;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Contracts;
+using OnlineConsulting.Modules.Scheduling.Application.Features.WorkOrders.CreateWorkOrder;
 using OnlineConsulting.Modules.Scheduling.Domain;
 
 namespace OnlineConsulting.Api.Features.Scheduling.Appointments;
 
 /// <summary>
 /// The visit's owner can cancel it while Pending or Confirmed. Staff can confirm a Pending visit, assign a technician until it is closed
-/// and cancel it while Pending or Confirmed, each when their permissions allow it. A completed visit links its work order.
+/// and cancel it while Pending or Confirmed, and record its work order until it is closed, each when their permissions allow it.
+/// A completed visit links its work order.
 /// </summary>
 public sealed class AppointmentLinks : LinkProvider<AppointmentResponse>
 {
@@ -27,6 +29,7 @@ public sealed class AppointmentLinks : LinkProvider<AppointmentResponse>
             .AddCustomIf(isOwner && cancellable, Rels.Cancel, "CancelAppointment", HttpMethods.Post, id)
             .AddCustomIf(AppointmentRules.CanBeConfirmed(resource.Status) && links.User.CanSend<ConfirmAppointmentCommand>(), Rels.Confirm, "ConfirmAppointment", HttpMethods.Post, id)
             .AddCustomIf(!closed && links.User.CanSend<AssignTechnicianCommand>(), Rels.AssignTechnician, "AssignTechnician", HttpMethods.Post, id)
+            .AddCustomIf(!closed && links.User.CanSend<CreateWorkOrderCommand>(), Rels.RecordWorkOrder, "CreateWorkOrder", HttpMethods.Post)
             .AddCustomIf(!isOwner && cancellable && links.User.CanSend<CancelAppointmentByStaffCommand>(), Rels.Cancel, "CancelAppointmentByStaff", HttpMethods.Post, id);
     }
 }

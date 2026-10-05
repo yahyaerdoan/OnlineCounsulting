@@ -20,6 +20,7 @@ public static class Rels
     public const string AssignTechnician = "assign-technician";
     public const string WorkOrder = "work-order";
     public const string WorkOrders = "work-orders";
+    public const string RecordWorkOrder = "record-work-order";
     public const string Appointment = "appointment";
     public const string AddMedia = "add-media";
     public const string Media = "media";
@@ -64,6 +65,7 @@ public static class Rels
         [AssignTechnician] = "Assigns a technician to an open visit (staff).",
         [WorkOrder] = "The work order recorded for a visit.",
         [WorkOrders] = "The work orders recorded for a unit of equipment.",
+        [RecordWorkOrder] = "Records the work done on an open visit, which completes it (staff).",
         [Appointment] = "The visit this resource belongs to.",
         [AddMedia] = "Attaches a photo to the resource.",
         [Media] = "The media asset (photo) the item points at.",

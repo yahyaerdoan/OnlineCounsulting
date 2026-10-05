@@ -420,11 +420,6 @@ public static class ApiRoutes
             public const string Mine = Base + "/mine";
 
             public static string ById(Guid id) => $"{Base}/{id}";
-            public static string Confirm(Guid id) => $"{Base}/{id}/confirm";
-            public static string Cancel(Guid id) => $"{Base}/{id}/cancel";
-            /// <summary>Staff-side cancel of any customer's appointment, with an optional reason shown to the customer.</summary>
-            public static string StaffCancel(Guid id) => $"{Base}/admin/{id}/cancel";
-            public static string AssignTechnician(Guid id) => $"{Base}/{id}/assign-technician";
         }
 
         public static class WorkOrders

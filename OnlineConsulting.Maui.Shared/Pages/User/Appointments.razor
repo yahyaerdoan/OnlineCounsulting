@@ -1,6 +1,6 @@
 @* The customer's visits, laid out like My Orders: the next visit and counts up top, search and status pills, then one card per visit
    (service, date and place, a status badge, the Requested / Confirmed / Technician / Completed progress line, Directions and Cancel).
-   Service names are resolved once per distinct service, in parallel. A visit can be cancelled while it is Pending or Confirmed. *@
+   Service names are resolved once per distinct service, in parallel. Cancel shows only when the Api offers the visit's cancel link. *@
 @page "/user/appointments"
 @attribute [Authorize(Roles = AppRoles.User)]
 @layout OnlineConsulting.Maui.Shared.Layout.DashboardLayout
@@ -127,7 +127,7 @@ else
                     </ol>
                 }
 
-                @if (!string.IsNullOrWhiteSpace(appointment.NavigationUrl) || CanCancel(appointment))
+                @if (!string.IsNullOrWhiteSpace(appointment.NavigationUrl) || appointment.Can(LinkRels.Cancel))
                 {
                     <div class="equipment-actions">
                         @if (!string.IsNullOrWhiteSpace(appointment.NavigationUrl))
@@ -135,7 +135,7 @@ else
                             <MudButton Href="@appointment.NavigationUrl" Target="_blank" Variant="Variant.Outlined" Color="Color.Primary" Class="svc-action"
                                        StartIcon="@Icons.Material.Outlined.Directions">Directions</MudButton>
                         }
-                        @if (CanCancel(appointment))
+                        @if (appointment.Can(LinkRels.Cancel))
                         {
                             <MudButton Variant="Variant.Text" Color="Color.Error" StartIcon="@Icons.Material.Outlined.EventBusy" Disabled="@_busy"
                                        OnClick="@(() => CancelAsync(appointment))">Cancel Visit</MudButton>
@@ -232,7 +232,6 @@ else
         _ => appointment.Status == filter,
     };
 
-    private static bool CanCancel(AppointmentResponse appointment) => appointment.Status is Pending or Confirmed;
 
     private static string StatusLabel(string status) => status switch
     {
@@ -270,6 +269,11 @@ else
 
     private async Task CancelAsync(AppointmentResponse appointment)
     {
+        if (appointment.Links.Find(LinkRels.Cancel) is not { } cancel)
+        {
+            return;
+        }
+
         if (_busy || !await DialogService.ConfirmAsync("Cancel visit", $"Cancel your {ServiceName(appointment)} visit on {BusinessTime.FormatDateTime(appointment.ScheduledStart)}?"))
         {
             return;
@@ -278,7 +282,7 @@ else
         _busy = true;
         try
         {
-            var result = await ApiClient.PostAsync(ApiRoutes.Operations.Appointments.Cancel(appointment.Id), new { });
+            var result = await ApiClient.FollowAsync(cancel, new { });
             if (!result.IsSuccessful)
             {
                 Snackbar.ShowError(result.DisplayMessage);
