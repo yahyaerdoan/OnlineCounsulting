@@ -5,8 +5,22 @@ namespace OnlineConsulting.Maui.Shared.Infrastructure.Auth;
 /// <summary>Refreshes a near-expiry token set, single-flight (concurrent callers share one call).</summary>
 public class TokenRefresher(IHttpClientFactory httpClientFactory, IAccessTokenProvider tokenProvider)
 {
+    private static readonly TimeSpan RefreshBuffer = TimeSpan.FromSeconds(30);
+
     private readonly SemaphoreSlim _lock = new(1, 1);
     private Task<TokenSet?>? _inFlight;
+
+    /// <summary>The signed-in user's access token, refreshed first when it is about to expire; null when signed out.</summary>
+    public async Task<string?> GetAccessTokenAsync(CancellationToken cancellationToken)
+    {
+        var tokens = await tokenProvider.GetTokenSetAsync();
+        if (tokens is not null && tokens.IsNearExpiry(RefreshBuffer))
+        {
+            tokens = await RefreshAsync(tokens, cancellationToken) ?? tokens;
+        }
+
+        return tokens?.AccessToken;
+    }
 
     /// <returns>The refreshed token set, or null if the exchange failed.</returns>
     public async Task<TokenSet?> RefreshAsync(TokenSet current, CancellationToken cancellationToken)

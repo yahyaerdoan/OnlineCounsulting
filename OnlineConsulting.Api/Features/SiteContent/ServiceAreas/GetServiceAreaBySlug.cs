@@ -10,7 +10,7 @@ public class GetServiceAreaBySlug : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/site-content/service-areas/{slug}", Handle)
+        _ = app.MapGet("/site-content/service-areas/by-slug/{slug}", Handle)
             .WithTags("SiteContent/ServiceAreas")
             .WithName("GetServiceAreaBySlug")
             .WithDescription("Returns a single service-area landing page by slug. Public - no login required.")
