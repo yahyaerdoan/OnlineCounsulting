@@ -66,6 +66,7 @@ public static class IdentityModule
         _ = services.AddSecurityServices();
 
         _ = services.AddScoped<ITokenService, TokenManager>();
+        _ = services.AddScoped<IPasswordChecker, SignInManagerPasswordChecker>();
         _ = services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         _ = services.AddScoped<IRefreshTokenService, RefreshTokenService>();
         _ = services.AddScoped<IUserImageStorage, UserImageStorage>();

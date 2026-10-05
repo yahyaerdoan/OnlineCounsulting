@@ -12,7 +12,7 @@ namespace OnlineConsulting.Modules.Identity.Application.Features.Auth.Login;
 
 public record LoginCommand(string UserNameOrEmail, string Password) : IRequest<OperationDataResult<AuthTokensResponse>>;
 
-public class LoginHandler(UserManager<User> userManager, RoleManager<Role> roleManager, SignInManager<User> signInManager, ITokenService tokenService, IRefreshTokenService refreshTokenService)
+public class LoginHandler(UserManager<User> userManager, RoleManager<Role> roleManager, IPasswordChecker passwordChecker, ITokenService tokenService, IRefreshTokenService refreshTokenService)
     : IRequestHandler<LoginCommand, OperationDataResult<AuthTokensResponse>>
 {
     public async Task<OperationDataResult<AuthTokensResponse>> Handle(LoginCommand request, CancellationToken cancellationToken)
@@ -25,14 +25,14 @@ public class LoginHandler(UserManager<User> userManager, RoleManager<Role> roleM
             return Result.BadRequest<AuthTokensResponse>(AuthMessages.InvalidCredentials);
         }
 
-        var signInResult = await signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: true);
+        var passwordCheck = await passwordChecker.CheckAsync(user, request.Password);
 
-        if (signInResult.IsLockedOut)
+        if (passwordCheck.IsLockedOut)
         {
             return Result.Forbidden<AuthTokensResponse>(AuthMessages.AccountLocked);
         }
 
-        if (!signInResult.Succeeded)
+        if (!passwordCheck.Succeeded)
         {
             return Result.BadRequest<AuthTokensResponse>(AuthMessages.InvalidCredentials);
         }
