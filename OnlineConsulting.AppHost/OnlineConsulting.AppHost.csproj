@@ -14,4 +14,8 @@
     <ProjectReference Include="..\OnlineConsulting.Maui.Web\OnlineConsulting.Maui.Web.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Aspire.Hosting.MailPit" />
+  </ItemGroup>
+
 </Project>

@@ -8,6 +8,7 @@
     <PackageVersion Include="Asp.Versioning.Mvc.ApiExplorer" Version="10.2.1" />
     <PackageVersion Include="AutoMapper" Version="16.2.0" />
     <PackageVersion Include="Azure.Storage.Blobs" Version="12.29.2" />
+    <PackageVersion Include="CommunityToolkit.Aspire.Hosting.MailPit" Version="13.6.0" />
     <PackageVersion Include="Core.ApplicationLayer" Version="1.0.48" />
     <PackageVersion Include="Core.CrossCuttingConcernLayer" Version="1.0.48" />
     <PackageVersion Include="Core.PersistenceLayer" Version="1.0.48" />
