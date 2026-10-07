@@ -14,10 +14,12 @@ using OnlineConsulting.Modules.Inquiries.Application.Features.Messages.Abstracti
 using OnlineConsulting.Modules.Inquiries.Application.Features.Messages.Constants;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.Abstractions;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.Constants;
+using OnlineConsulting.Modules.Inquiries.Infrastructure.Contacts;
 using OnlineConsulting.Modules.Inquiries.Infrastructure.Notifications;
 using OnlineConsulting.Modules.Inquiries.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Inquiries.Infrastructure.Repositories;
 using OnlineConsulting.SharedKernel.Authorization;
+using OnlineConsulting.SharedKernel.Inquiries;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
 using OnlineConsulting.SharedKernel.Tenancy;
@@ -39,6 +41,7 @@ public static class InquiriesModule
         _ = services.AddScoped<IMessageRepository, MessageRepository>();
         _ = services.AddScoped<INewsletterSubscriberRepository, NewsletterSubscriberRepository>();
         _ = services.AddScoped<ICompanyContactRepository, CompanyContactRepository>();
+        _ = services.AddScoped<IBusinessContactReader, BusinessContactReader>();
         _ = services.AddScoped<IEmailOutboxWriter<IInquiriesOutboxModule>, EmailOutboxWriter>();
 
         _ = services.AddScoped<IEmailTemplate<MessageReceivedEmailModel>, MessageReceivedTemplate>();

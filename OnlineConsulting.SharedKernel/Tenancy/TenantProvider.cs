@@ -6,7 +6,10 @@ public class TenantProvider(IHttpContextAccessor httpContextAccessor) : ITenantP
 {
     public const string TenantClaimType = "tenant_id";
 
-    /// <summary>Falls back to the default tenant instead of throwing when there's no claim, for genuinely anonymous requests. TenantContextOverride.BeginScope takes priority over the JWT claim - see its own doc comment.</summary>
+    /// <summary>HttpContext.Items key holding the tenant resolved from the X-Tenant-Host header.</summary>
+    public const string HostTenantItemKey = "TenantFromHost";
+
+    /// <summary>TenantContextOverride.BeginScope first, then the JWT claim, then the tenant resolved from the caller's host, then the default tenant.</summary>
     public Guid TenantId
     {
         get
@@ -16,10 +19,16 @@ public class TenantProvider(IHttpContextAccessor httpContextAccessor) : ITenantP
                 return overriddenTenantId;
             }
 
-            var claimValue = httpContextAccessor.HttpContext?.User.FindFirst(TenantClaimType)?.Value;
+            var httpContext = httpContextAccessor.HttpContext;
+            var claimValue = httpContext?.User.FindFirst(TenantClaimType)?.Value;
 
-            return !string.IsNullOrEmpty(claimValue) && Guid.TryParse(claimValue, out var tenantId)
-                ? tenantId
+            if (!string.IsNullOrEmpty(claimValue) && Guid.TryParse(claimValue, out var tenantId))
+            {
+                return tenantId;
+            }
+
+            return httpContext?.Items[HostTenantItemKey] is Guid hostTenantId
+                ? hostTenantId
                 : TenantDefaults.DefaultTenantId;
         }
     }

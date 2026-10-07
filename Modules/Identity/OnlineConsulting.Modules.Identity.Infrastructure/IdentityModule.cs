@@ -12,6 +12,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using OnlineConsulting.Modules.Identity.Application;
+using OnlineConsulting.Modules.Identity.Application.Common;
 using OnlineConsulting.Modules.Identity.Application.Common.Templates;
 using OnlineConsulting.Modules.Identity.Application.Features.Auth;
 using OnlineConsulting.Modules.Identity.Application.Features.Auth.Abstractions;
@@ -60,6 +61,7 @@ public static class IdentityModule
 
         _ = services.AddIdentity<User, Role>(options => options.Password.RequiredLength = 6)
             .AddEntityFrameworkStores<AppIdentityDbContext>()
+            .AddUserValidator<TenantEmailUserValidator>()
             .AddDefaultTokenProviders();
 
         _ = services.AddTokenOptions(configuration);
@@ -85,7 +87,7 @@ public static class IdentityModule
         _ = services.AddScoped<IEmailTemplate<PolicyNoticeEmailModel>, PolicyNoticeTemplate>();
         _ = services.AddScoped<IEmailTemplate<InviteEmailModel>, InviteTemplate>();
         _ = services.AddScoped<IEmailTemplate<ForgotPasswordEmailModel>, ForgotPasswordTemplate>();
-        _ = services.Configure<AuthEmailOptions>(configuration.GetSection("Auth"));
+        _ = services.AddScoped<IEmailTemplate<FindMyBusinessEmailModel>, FindMyBusinessTemplate>();
         _ = services.Configure<SuperAdminBootstrapOptions>(configuration.GetSection("Bootstrap:SuperAdmin"));
 
         _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));

@@ -38,6 +38,13 @@
   "ReserveTenantResult": [
     "tenantId: Guid"
   ],
+  "TenantBrandingResponse": [
+    "name: string",
+    "logoMediaAssetId: Guid?",
+    "isPlatform: bool",
+    "platformUrl: string",
+    "_links: LinkCollection?"
+  ],
   "TenantDetailResponse": [
     "id: Guid",
     "name: string",
@@ -50,6 +57,10 @@
     "subscriptionRenewalDate: DateTime?",
     "items: List<TenantSubscriptionItemSummary>",
     "_links: LinkCollection?"
+  ],
+  "TenantSignupResult": [
+    "tenantId: Guid",
+    "siteUrl: string"
   ],
   "TenantSubscriptionItemSummary": [
     "moduleKey: string",
@@ -67,6 +78,7 @@
     "totalActivePrice: decimal",
     "createdDate: DateTimeOffset",
     "timeZoneId: string",
+    "logoMediaAssetId: Guid?",
     "_links: LinkCollection?"
   ]
 }

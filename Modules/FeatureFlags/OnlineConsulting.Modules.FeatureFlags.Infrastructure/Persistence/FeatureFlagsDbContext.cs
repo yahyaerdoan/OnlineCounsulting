@@ -4,8 +4,10 @@ using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.FeatureFlags.Infrastructure.Persistence;
 
-public class FeatureFlagsDbContext(DbContextOptions<FeatureFlagsDbContext> options, ITenantProvider tenantProvider) : DbContext(options)
+public class FeatureFlagsDbContext(DbContextOptions<FeatureFlagsDbContext> options, ITenantProvider tenantProvider) : DbContext(options), ITenantScopedDbContext
 {
+    public Guid CurrentTenantId => tenantProvider.TenantId;
+
     public DbSet<FeatureFlag> FeatureFlags => Set<FeatureFlag>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -17,7 +19,7 @@ public class FeatureFlagsDbContext(DbContextOptions<FeatureFlagsDbContext> optio
             _ = builder.Property(f => f.Key).HasMaxLength(200).IsRequired();
             _ = builder.HasIndex(f => new { f.TenantId, f.Key }).IsUnique();
             _ = builder.Property(f => f.RowVersion).IsRowVersion();
-            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.ApplyTenantAndSoftDeleteFilter(this);
         });
 
         base.OnModelCreating(modelBuilder);

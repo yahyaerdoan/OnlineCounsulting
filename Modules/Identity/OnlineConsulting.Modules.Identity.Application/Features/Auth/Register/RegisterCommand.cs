@@ -1,6 +1,5 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Options;
 using OnlineConsulting.Modules.Identity.Application.Common;
 using OnlineConsulting.Modules.Identity.Application.Common.Templates;
 using OnlineConsulting.Modules.Identity.Domain;
@@ -16,7 +15,7 @@ namespace OnlineConsulting.Modules.Identity.Application.Features.Auth.Register;
 
 public record RegisterCommand(string FirstName, string LastName, string UserName, string Email, string Password) : IRequest<OperationResult>, IIdentityTransactionRequest;
 
-public class RegisterHandler(UserManager<User> userManager, IEmailOutboxWriter<IIdentityOutboxModule> outboxWriter, IEmailTemplate<ConfirmEmailEmailModel> confirmEmailTemplate, IOptions<AuthEmailOptions> emailOptions)
+public class RegisterHandler(UserManager<User> userManager, IEmailOutboxWriter<IIdentityOutboxModule> outboxWriter, IEmailTemplate<ConfirmEmailEmailModel> confirmEmailTemplate, ITenantProvider tenantProvider, ITenantOriginReader originReader)
     : IRequestHandler<RegisterCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(RegisterCommand request, CancellationToken cancellationToken)
@@ -27,7 +26,7 @@ public class RegisterHandler(UserManager<User> userManager, IEmailOutboxWriter<I
             Email = request.Email,
             FirstName = request.FirstName,
             LastName = request.LastName,
-            TenantId = TenantDefaults.DefaultTenantId,
+            TenantId = tenantProvider.TenantId,
             ImageUrl = "/Resource/LocalStorage/DefaultImages/defaultUserImage.png",
         };
 
@@ -45,7 +44,8 @@ public class RegisterHandler(UserManager<User> userManager, IEmailOutboxWriter<I
 
         var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
 
-        var confirmationUrl = $"{emailOptions.Value.ClientOrigin}/confirm-email?userId={user.Id}&token={Uri.EscapeDataString(token)}";
+        var origin = await originReader.GetOriginAsync(user.TenantId, cancellationToken);
+        var confirmationUrl = $"{origin}/confirm-email?userId={user.Id}&token={Uri.EscapeDataString(token)}";
 
         var confirmModel = new ConfirmEmailEmailModel(user.FirstName, confirmationUrl);
 

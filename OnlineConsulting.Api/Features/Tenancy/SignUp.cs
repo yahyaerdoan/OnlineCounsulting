@@ -5,10 +5,13 @@ using OnlineConsulting.Api.Configurations.Extensions;
 using OnlineConsulting.Modules.Identity.Application.Features.Auth.CreateTenantAdmin;
 using OnlineConsulting.Modules.Identity.Application.Features.Auth.ValidateTenantAdmin;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Signup.ActivateTenantSubscription;
+using OnlineConsulting.Modules.Tenancy.Application.Features.Signup.Contracts;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Signup.ReserveTenant;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Signup.RollbackTenantSignup;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Signup.SetTenantOwner;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.SendTenantSignupReceipt;
+using OnlineConsulting.SharedKernel.Tenancy;
+using ResultHandler.Facade;
 using ResultHandler.AspNetCore.Extensions;
 
 namespace OnlineConsulting.Api.Features.Tenancy;
@@ -26,11 +29,11 @@ public class SignUp : IEndpoint
             .WithTags("Tenancy")
             .RequireRateLimiting(ServiceRegistration.AuthRateLimiterPolicy)
             .WithName("SignUpTenant")
-            .WithDescription("Charges the selected modules and, once payment succeeds, creates the tenant's first (admin) user.")
-            .ProducesEnveloped();
+            .WithDescription("Charges the selected modules and, once payment succeeds, creates the tenant's first (admin) user. Returns the tenant's own site, where the admin signs in.")
+            .ProducesEnveloped<TenantSignupResult>();
     }
 
-    private static async Task<IResult> Handle([FromBody] SignUpTenantRequest request, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] SignUpTenantRequest request, ISender sender, ITenantOriginReader originReader, HttpContext httpContext)
     {
         var accountCheck = await sender.Send(new ValidateTenantAdminQuery(request.AdminFirstName, request.AdminLastName, request.AdminEmail, request.AdminPassword));
 
@@ -65,11 +68,14 @@ public class SignUp : IEndpoint
 
         var ownerResult = await sender.Send(new SetTenantOwnerCommand(tenantId, adminResult.Data.UserId));
 
-        if (ownerResult.IsSuccessful)
+        if (!ownerResult.IsSuccessful)
         {
-            _ = await sender.Send(new SendTenantSignupReceiptCommand(tenantId));
+            return ownerResult.ToEnvelopedResult(httpContext);
         }
 
-        return ownerResult.ToEnvelopedResult(httpContext);
+        _ = await sender.Send(new SendTenantSignupReceiptCommand(tenantId));
+
+        var siteUrl = await originReader.GetOriginAsync(tenantId, httpContext.RequestAborted);
+        return Result.Success(new TenantSignupResult(tenantId, siteUrl), ownerResult.Title).ToEnvelopedResult(httpContext);
     }
 }

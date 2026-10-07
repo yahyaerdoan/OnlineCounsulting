@@ -5,8 +5,10 @@ using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Inquiries.Infrastructure.Persistence;
 
-public class InquiriesDbContext(DbContextOptions<InquiriesDbContext> options, ITenantProvider tenantProvider) : DbContext(options)
+public class InquiriesDbContext(DbContextOptions<InquiriesDbContext> options, ITenantProvider tenantProvider) : DbContext(options), ITenantScopedDbContext
 {
+    public Guid CurrentTenantId => tenantProvider.TenantId;
+
     public DbSet<Message> Messages => Set<Message>();
     public DbSet<NewsletterSubscriber> NewsletterSubscribers => Set<NewsletterSubscriber>();
     public DbSet<CompanyContact> CompanyContacts => Set<CompanyContact>();
@@ -24,7 +26,7 @@ public class InquiriesDbContext(DbContextOptions<InquiriesDbContext> options, IT
             _ = builder.Property(m => m.Subject).HasMaxLength(200).IsRequired();
             _ = builder.Property(m => m.Description).HasMaxLength(4000).IsRequired();
             _ = builder.Property(m => m.RowVersion).IsRowVersion();
-            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.ApplyTenantAndSoftDeleteFilter(this);
         });
 
         _ = modelBuilder.Entity<NewsletterSubscriber>(builder =>
@@ -32,7 +34,7 @@ public class InquiriesDbContext(DbContextOptions<InquiriesDbContext> options, IT
             _ = builder.Property(s => s.Email).HasMaxLength(320).IsRequired();
             _ = builder.Property(s => s.RowVersion).IsRowVersion();
             _ = builder.HasIndex(s => s.Email);
-            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.ApplyTenantAndSoftDeleteFilter(this);
         });
 
         _ = modelBuilder.Entity<CompanyContact>(builder =>
@@ -43,7 +45,7 @@ public class InquiriesDbContext(DbContextOptions<InquiriesDbContext> options, IT
             _ = builder.Property(c => c.Description).HasMaxLength(2000).IsRequired();
             _ = builder.Property(c => c.WorkingHours).HasMaxLength(200).IsRequired();
             _ = builder.Property(c => c.RowVersion).IsRowVersion();
-            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.ApplyTenantAndSoftDeleteFilter(this);
         });
 
         modelBuilder.ConfigureOutboxEmail(ownsMigration: false);

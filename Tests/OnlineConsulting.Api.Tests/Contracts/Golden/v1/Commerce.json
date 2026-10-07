@@ -81,6 +81,10 @@
     "lines: IReadOnlyList<InvoiceLineResponse>",
     "_links: LinkCollection?"
   ],
+  "InvoiceSettingsResponse": [
+    "paymentTermsDays: int",
+    "_links: LinkCollection?"
+  ],
   "OrderDetailResponse": [
     "order: OrderResponse",
     "items: IReadOnlyList<OrderItemResponse>",

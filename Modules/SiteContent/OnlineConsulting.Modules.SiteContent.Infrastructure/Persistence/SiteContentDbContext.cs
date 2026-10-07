@@ -8,8 +8,10 @@ using OnlineConsulting.SharedKernel.Tenancy;
 namespace OnlineConsulting.Modules.SiteContent.Infrastructure.Persistence;
 
 /// <summary>EF Core context for the SiteContent module. Applies tenant/soft-delete filtering and per-entity property lengths; enforces per-tenant uniqueness on live ServiceArea slugs and the GalleryItemCategory (TenantId, GalleryItemId, GalleryCategoryId) combination, and indexes FaqItem.ServiceId. AboutUs.Description is sized for rich-text HTML from MudExRichTextEdit rather than plain text.</summary>
-public class SiteContentDbContext(DbContextOptions<SiteContentDbContext> options, ITenantProvider tenantProvider) : DbContext(options)
+public class SiteContentDbContext(DbContextOptions<SiteContentDbContext> options, ITenantProvider tenantProvider) : DbContext(options), ITenantScopedDbContext
 {
+    public Guid CurrentTenantId => tenantProvider.TenantId;
+
     public DbSet<AboutUs> AboutUss => Set<AboutUs>();
     public DbSet<FooterInfo> FooterInfos => Set<FooterInfo>();
     public DbSet<FeatureHighlight> FeatureHighlights => Set<FeatureHighlight>();
@@ -40,7 +42,7 @@ public class SiteContentDbContext(DbContextOptions<SiteContentDbContext> options
             _ = builder.Property(x => x.CoverImage).HasMaxLength(500);
             _ = builder.Property(x => x.VideoUrl).HasMaxLength(500);
             _ = builder.Property(x => x.RowVersion).IsRowVersion();
-            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.ApplyTenantAndSoftDeleteFilter(this);
         });
 
         _ = modelBuilder.Entity<FooterInfo>(builder =>
@@ -48,7 +50,7 @@ public class SiteContentDbContext(DbContextOptions<SiteContentDbContext> options
             _ = builder.Property(x => x.ImageUrl).HasMaxLength(500).IsRequired();
             _ = builder.Property(x => x.Description).HasMaxLength(2000).IsRequired();
             _ = builder.Property(x => x.RowVersion).IsRowVersion();
-            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.ApplyTenantAndSoftDeleteFilter(this);
         });
 
         _ = modelBuilder.Entity<FeatureHighlight>(builder =>
@@ -57,14 +59,14 @@ public class SiteContentDbContext(DbContextOptions<SiteContentDbContext> options
             _ = builder.Property(x => x.Description).HasMaxLength(2000).IsRequired();
             _ = builder.Property(x => x.ImageUrl).HasMaxLength(500).IsRequired();
             _ = builder.Property(x => x.RowVersion).IsRowVersion();
-            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.ApplyTenantAndSoftDeleteFilter(this);
         });
 
         _ = modelBuilder.Entity<FeatureHighlightsIntro>(builder =>
         {
             _ = builder.Property(x => x.Description).HasMaxLength(1000).IsRequired();
             _ = builder.Property(x => x.RowVersion).IsRowVersion();
-            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.ApplyTenantAndSoftDeleteFilter(this);
         });
 
         _ = modelBuilder.Entity<PageBanner>(builder =>
@@ -73,7 +75,7 @@ public class SiteContentDbContext(DbContextOptions<SiteContentDbContext> options
             _ = builder.Property(x => x.Description).HasMaxLength(2000).IsRequired();
             _ = builder.Property(x => x.ImageUrl).HasMaxLength(500).IsRequired();
             _ = builder.Property(x => x.RowVersion).IsRowVersion();
-            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.ApplyTenantAndSoftDeleteFilter(this);
         });
 
         _ = modelBuilder.Entity<HeroSlide>(builder =>
@@ -82,7 +84,7 @@ public class SiteContentDbContext(DbContextOptions<SiteContentDbContext> options
             _ = builder.Property(x => x.Description).HasMaxLength(2000).IsRequired();
             _ = builder.Property(x => x.ImageUrl).HasMaxLength(500).IsRequired();
             _ = builder.Property(x => x.RowVersion).IsRowVersion();
-            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.ApplyTenantAndSoftDeleteFilter(this);
         });
 
         _ = modelBuilder.Entity<Testimonial>(builder =>
@@ -93,7 +95,7 @@ public class SiteContentDbContext(DbContextOptions<SiteContentDbContext> options
             _ = builder.Property(x => x.Description).HasMaxLength(2000).IsRequired();
             _ = builder.Property(x => x.ImageUrl).HasMaxLength(500).IsRequired();
             _ = builder.Property(x => x.RowVersion).IsRowVersion();
-            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.ApplyTenantAndSoftDeleteFilter(this);
         });
 
         _ = modelBuilder.Entity<Partnership>(builder =>
@@ -107,7 +109,7 @@ public class SiteContentDbContext(DbContextOptions<SiteContentDbContext> options
             _ = builder.Property(x => x.WebsiteUrl).HasMaxLength(500).IsRequired();
             _ = builder.Property(x => x.Kind).HasMaxLength(20).IsRequired().HasDefaultValue(PartnershipKinds.Partner);
             _ = builder.Property(x => x.RowVersion).IsRowVersion();
-            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.ApplyTenantAndSoftDeleteFilter(this);
         });
 
         _ = modelBuilder.Entity<PartnershipSocialLink>(builder =>
@@ -117,7 +119,7 @@ public class SiteContentDbContext(DbContextOptions<SiteContentDbContext> options
             _ = builder.Property(x => x.Icon).HasMaxLength(2000).IsRequired();
             _ = builder.Property(x => x.IconColor).HasMaxLength(7);
             _ = builder.Property(x => x.RowVersion).IsRowVersion();
-            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.ApplyTenantAndSoftDeleteFilter(this);
         });
 
         _ = modelBuilder.Entity<GalleryCategory>(builder =>
@@ -125,7 +127,7 @@ public class SiteContentDbContext(DbContextOptions<SiteContentDbContext> options
             _ = builder.Property(x => x.Name).HasMaxLength(100).IsRequired();
             _ = builder.Property(x => x.Description).HasMaxLength(500);
             _ = builder.Property(x => x.RowVersion).IsRowVersion();
-            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.ApplyTenantAndSoftDeleteFilter(this);
         });
 
         _ = modelBuilder.Entity<GalleryItem>(builder =>
@@ -134,14 +136,14 @@ public class SiteContentDbContext(DbContextOptions<SiteContentDbContext> options
             _ = builder.Property(x => x.RowVersion).IsRowVersion();
             _ = builder.HasMany(x => x.Categories).WithOne().HasForeignKey(c => c.GalleryItemId).OnDelete(DeleteBehavior.Cascade);
             _ = builder.Ignore(x => x.CategoryIds);
-            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.ApplyTenantAndSoftDeleteFilter(this);
         });
 
         _ = modelBuilder.Entity<GalleryItemCategory>(builder =>
         {
             _ = builder.HasIndex(x => new { x.TenantId, x.GalleryItemId, x.GalleryCategoryId }).IsUnique().HasFilter("[DeletedDate] IS NULL");
             _ = builder.Property(x => x.RowVersion).IsRowVersion();
-            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.ApplyTenantAndSoftDeleteFilter(this);
         });
 
         _ = modelBuilder.Entity<ServiceProcessStep>(builder =>
@@ -151,7 +153,7 @@ public class SiteContentDbContext(DbContextOptions<SiteContentDbContext> options
             _ = builder.Property(x => x.Icon).HasMaxLength(2000).IsRequired();
             _ = builder.Property(x => x.IconColor).HasMaxLength(7);
             _ = builder.Property(x => x.RowVersion).IsRowVersion();
-            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.ApplyTenantAndSoftDeleteFilter(this);
         });
 
         _ = modelBuilder.Entity<ServiceOffering>(builder =>
@@ -161,7 +163,7 @@ public class SiteContentDbContext(DbContextOptions<SiteContentDbContext> options
             _ = builder.Property(x => x.Icon).HasMaxLength(2000).IsRequired();
             _ = builder.Property(x => x.IconColor).HasMaxLength(7);
             _ = builder.Property(x => x.RowVersion).IsRowVersion();
-            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.ApplyTenantAndSoftDeleteFilter(this);
         });
 
         _ = modelBuilder.Entity<SocialLink>(builder =>
@@ -171,7 +173,7 @@ public class SiteContentDbContext(DbContextOptions<SiteContentDbContext> options
             _ = builder.Property(x => x.Icon).HasMaxLength(2000).IsRequired();
             _ = builder.Property(x => x.IconColor).HasMaxLength(7);
             _ = builder.Property(x => x.RowVersion).IsRowVersion();
-            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.ApplyTenantAndSoftDeleteFilter(this);
         });
 
         _ = modelBuilder.Entity<ServiceArea>(builder =>
@@ -182,7 +184,7 @@ public class SiteContentDbContext(DbContextOptions<SiteContentDbContext> options
             _ = builder.Property(x => x.IntroText).HasMaxLength(2000);
             _ = builder.Property(x => x.RowVersion).IsRowVersion();
             _ = builder.HasIndex(x => new { x.TenantId, x.Slug }).IsUnique().HasFilter("[DeletedDate] IS NULL");
-            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.ApplyTenantAndSoftDeleteFilter(this);
         });
 
         _ = modelBuilder.Entity<FaqItem>(builder =>
@@ -191,7 +193,7 @@ public class SiteContentDbContext(DbContextOptions<SiteContentDbContext> options
             _ = builder.Property(x => x.Answer).HasMaxLength(2000).IsRequired();
             _ = builder.Property(x => x.RowVersion).IsRowVersion();
             _ = builder.HasIndex(x => x.ServiceId);
-            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.ApplyTenantAndSoftDeleteFilter(this);
         });
 
         _ = modelBuilder.Entity<Promotion>(builder =>
@@ -201,7 +203,7 @@ public class SiteContentDbContext(DbContextOptions<SiteContentDbContext> options
             _ = builder.Property(x => x.CtaText).HasMaxLength(100);
             _ = builder.Property(x => x.CtaUrl).HasMaxLength(500);
             _ = builder.Property(x => x.RowVersion).IsRowVersion();
-            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.ApplyTenantAndSoftDeleteFilter(this);
         });
 
         base.OnModelCreating(modelBuilder);

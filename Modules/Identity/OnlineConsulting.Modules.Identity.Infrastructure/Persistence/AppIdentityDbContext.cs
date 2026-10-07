@@ -57,6 +57,8 @@ public class AppIdentityDbContext(DbContextOptions<AppIdentityDbContext> options
         modelBuilder.ConfigureOutboxEmail(ownsMigration: false);
 
         base.OnModelCreating(modelBuilder);
+
+        _ = modelBuilder.Entity<User>().HasIndex(u => new { u.TenantId, u.NormalizedEmail }).IsUnique().HasDatabaseName("TenantEmailIndex");
     }
 
     /// <summary>Forces every newly-added user to start active - IsActive is a manage-time toggle, not a creation input, regardless of what the caller set.</summary>

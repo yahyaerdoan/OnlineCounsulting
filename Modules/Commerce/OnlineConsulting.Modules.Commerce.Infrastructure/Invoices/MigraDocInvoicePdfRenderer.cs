@@ -21,10 +21,22 @@ public sealed class MigraDocInvoicePdfRenderer : IInvoicePdfRenderer
     private static readonly Color Hairline = new(0xE0, 0xE0, 0xE0);
     private static readonly Lock FontGate = new();
 
-    public byte[] Render(InvoiceResponse invoice, InvoiceBusinessInfo business, TimeZoneInfo timeZone)
+    public byte[] Render(InvoiceResponse invoice, InvoiceBusinessInfo business, TimeZoneInfo timeZone, byte[]? logo)
     {
         EnsureFontResolver();
 
+        try
+        {
+            return RenderDocument(invoice, business, timeZone, logo);
+        }
+        catch (Exception) when (logo is not null)
+        {
+            return RenderDocument(invoice, business, timeZone, null);
+        }
+    }
+
+    private static byte[] RenderDocument(InvoiceResponse invoice, InvoiceBusinessInfo business, TimeZoneInfo timeZone, byte[]? logo)
+    {
         var document = new Document();
         document.Info.Title = invoice.InvoiceNumber;
         var normal = document.Styles[StyleNames.Normal] ?? throw new InvalidOperationException("MigraDoc has no Normal style.");
@@ -37,7 +49,7 @@ public sealed class MigraDocInvoicePdfRenderer : IInvoicePdfRenderer
         section.PageSetup.RightMargin = Unit.FromCentimeter(2);
         section.PageSetup.TopMargin = Unit.FromCentimeter(2);
 
-        AddHeader(section, invoice, business, timeZone);
+        AddHeader(section, invoice, business, timeZone, logo);
         AddParties(section, invoice, business);
         AddLines(section, invoice);
         AddTotals(section, invoice);
@@ -50,12 +62,19 @@ public sealed class MigraDocInvoicePdfRenderer : IInvoicePdfRenderer
         return stream.ToArray();
     }
 
-    private static void AddHeader(Section section, InvoiceResponse invoice, InvoiceBusinessInfo business, TimeZoneInfo timeZone)
+    private static void AddHeader(Section section, InvoiceResponse invoice, InvoiceBusinessInfo business, TimeZoneInfo timeZone, byte[]? logo)
     {
         var table = section.AddTable();
         _ = table.AddColumn(Unit.FromCentimeter(10.5));
         _ = table.AddColumn(Unit.FromCentimeter(7));
         var row = table.AddRow();
+
+        if (logo is not null)
+        {
+            var image = row.Cells[0].AddImage($"base64:{Convert.ToBase64String(logo)}");
+            image.Height = Unit.FromCentimeter(1.4);
+            image.LockAspectRatio = true;
+        }
 
         var brand = row.Cells[0].AddParagraph(business.BusinessName);
         brand.Format.Font.Size = 18;

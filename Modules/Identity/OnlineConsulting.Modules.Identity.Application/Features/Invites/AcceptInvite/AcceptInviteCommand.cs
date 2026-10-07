@@ -43,7 +43,7 @@ public class AcceptInviteHandler(IInviteRepository inviteRepository, UserManager
             return Result.Gone(InviteMessages.InviteExpired);
         }
 
-        if (await userManager.FindByEmailAsync(invite.Email) is not null)
+        if (await userManager.FindByEmailInTenantAsync(invite.Email, invite.TenantId, cancellationToken) is not null)
         {
             return Result.Conflict(InviteMessages.EmailAlreadyRegistered);
         }

@@ -197,6 +197,7 @@ app.UseWhen(
 app.UseStaticFiles();
 app.UseCors();
 app.UseAuthentication();
+app.UseMiddleware<TenantHostMiddleware>();
 app.UseAuthorization();
 app.UseRateLimiter();
 

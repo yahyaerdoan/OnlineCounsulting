@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using OnlineConsulting.Modules.Identity.Application.Common;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.Tenancy;
@@ -24,7 +25,7 @@ public static class SuperAdminBootstrapper
 
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
 
-        if (await userManager.FindByEmailAsync(email) is not null)
+        if (await userManager.FindByEmailInTenantAsync(email, TenantDefaults.DefaultTenantId) is not null)
         {
             return;
         }

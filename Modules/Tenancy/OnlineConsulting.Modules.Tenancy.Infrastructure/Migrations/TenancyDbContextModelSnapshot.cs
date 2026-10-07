@@ -153,6 +153,9 @@ namespace OnlineConsulting.Modules.Tenancy.Infrastructure.Migrations
                     b.Property<DateTimeOffset?>("DeletedDate")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<Guid?>("LogoMediaAssetId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)

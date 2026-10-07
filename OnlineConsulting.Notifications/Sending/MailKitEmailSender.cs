@@ -19,12 +19,12 @@ public class MailKitEmailSender(IOptions<EmailOptions> options) : IEmailSender
         _ => SecureSocketOptions.StartTls,
     };
 
-    public async Task SendAsync(string to, string subject, string htmlBody, string? cc, CancellationToken cancellationToken)
+    public async Task SendAsync(string to, string subject, string htmlBody, string? cc, string? fromName, CancellationToken cancellationToken)
     {
         var settings = options.Value;
 
         var message = new MimeMessage();
-        message.From.Add(new MailboxAddress(settings.FromName, settings.FromAddress));
+        message.From.Add(new MailboxAddress(string.IsNullOrWhiteSpace(fromName) ? settings.FromName : fromName, settings.FromAddress));
         message.To.Add(MailboxAddress.Parse(to));
         if (!string.IsNullOrWhiteSpace(cc))
         {

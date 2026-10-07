@@ -27,7 +27,7 @@ public class OrderNotifier(
 
     public async Task PaidAsync(Order order, int itemCount, decimal total, Guid invoiceId, CancellationToken cancellationToken = default)
     {
-        await EmailAsync(order, "Paid", confirmationTemplate, new OrderConfirmationEmailModel(order.OrderNumber, itemCount, total, invoiceService.ViewUrl(invoiceId)), cancellationToken);
+        await EmailAsync(order, "Paid", confirmationTemplate, new OrderConfirmationEmailModel(order.OrderNumber, itemCount, total, await invoiceService.ViewUrlAsync(invoiceId, order.TenantId, cancellationToken)), cancellationToken);
         await PushAsync(order, "Payment received", $"Thanks! Order #{order.OrderNumber} is paid ({total.ToString("C", Usd)}). Your receipt is ready.", cancellationToken);
     }
 

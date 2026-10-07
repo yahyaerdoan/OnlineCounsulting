@@ -22,8 +22,10 @@ public class InvoiceService(IInvoiceRepository invoiceRepository,
                             IEmailOutboxWriter<ICommerceOutboxModule> outboxWriter,
                             IEmailTemplate<InvoiceEmailModel> emailTemplate,
                             IPushNotificationSender pushSender,
-                            InvoiceBusinessInfo business,
+                            IInvoiceBusinessInfoReader businessInfoReader,
+                            ITenantProvider tenantProvider,
     ITenantTimeZoneReader timeZoneReader,
+                            ITenantOriginReader originReader,
                             ILogger<InvoiceService> logger)
     : IInvoiceService, IServiceInvoiceIssuer
 {
@@ -86,6 +88,8 @@ public class InvoiceService(IInvoiceRepository invoiceRepository,
 
         var memberDiscount = discount is null ? null : new InvoiceDiscount(discount.Percent, $"Member discount ({discount.PlanName}, {discount.Percent:0.##}%)");
 
+        var business = await businessInfoReader.GetAsync(tenantProvider.TenantId, cancellationToken);
+
         var invoice = Invoice.Issue(InvoiceNumberGenerator.Generate(now), request.CustomerUserId, InvoiceSources.Appointment, request.AppointmentId,
             $"Service visit: {request.ServiceTitle}", Currency, billTo, charges, memberDiscount, now, now.AddDays(business.PaymentTermsDays));
 
@@ -133,10 +137,8 @@ public class InvoiceService(IInvoiceRepository invoiceRepository,
         await PushAsync(invoice, "Invoice cancelled", $"{invoice.InvoiceNumber} was cancelled. There's nothing to pay for it.", cancellationToken);
     }
 
-    public string? ViewUrl(Guid invoiceId) =>
-        string.IsNullOrWhiteSpace(business.ClientOrigin) || business.ClientOrigin.StartsWith("REPLACE", StringComparison.Ordinal)
-            ? null
-            : $"{business.ClientOrigin.TrimEnd('/')}/user/invoices/{invoiceId}";
+    public async Task<string> ViewUrlAsync(Guid invoiceId, Guid tenantId, CancellationToken cancellationToken = default) =>
+        $"{await originReader.GetOriginAsync(tenantId, cancellationToken)}/user/invoices/{invoiceId}";
 
     private async Task<Invoice?> FindForSourceAsync(string sourceType, Guid sourceId, CancellationToken cancellationToken) =>
         await invoiceRepository.GetAsync(i => i.SourceType == sourceType && i.SourceId == sourceId && i.Status != InvoiceStatuses.Void, cancellationToken: cancellationToken);
@@ -150,7 +152,8 @@ public class InvoiceService(IInvoiceRepository invoiceRepository,
 
         try
         {
-            var model = new InvoiceEmailModel(kind, invoice, business.BusinessName, ViewUrl(invoice.Id), await timeZoneReader.GetAsync(tenantId, cancellationToken));
+            var business = await businessInfoReader.GetAsync(tenantId, cancellationToken);
+            var model = new InvoiceEmailModel(kind, invoice, business.BusinessName, await ViewUrlAsync(invoice.Id, tenantId, cancellationToken), await timeZoneReader.GetAsync(tenantId, cancellationToken));
 
             await outboxWriter.EnqueueAsync(invoice.BillToEmail, emailTemplate.Subject(model), emailTemplate.Build(model), sourceReference: $"Invoice:{invoice.Id}:{kind}", cancellationToken: cancellationToken);
         }

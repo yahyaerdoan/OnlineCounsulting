@@ -11,7 +11,9 @@ using OnlineConsulting.Modules.Tenancy.Application.Features.Bundles.Abstractions
 using OnlineConsulting.Modules.Tenancy.Application.Features.ModuleOfferings.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.Abstractions;
+using OnlineConsulting.Modules.Tenancy.Infrastructure.Branding;
 using OnlineConsulting.Modules.Tenancy.Infrastructure.Cleanup;
+using OnlineConsulting.Modules.Tenancy.Infrastructure.Hosting;
 using OnlineConsulting.Modules.Tenancy.Infrastructure.Notifications;
 using OnlineConsulting.Modules.Tenancy.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Tenancy.Infrastructure.Pricing;
@@ -45,6 +47,11 @@ public static class TenancyModule
         _ = services.AddScoped<ITenantTimeZoneReader>(sp => sp.GetRequiredService<TenantTimeZoneReader>());
         _ = services.AddScoped<ITenantTimeZoneCacheInvalidator>(sp => sp.GetRequiredService<TenantTimeZoneReader>());
         _ = services.AddScoped<ITenantModulePricingReader, TenantModulePricingReader>();
+        _ = services.AddScoped<ITenantHostResolver, TenantHostResolver>();
+        _ = services.AddScoped<ITenantOriginReader, TenantOriginReader>();
+        _ = services.AddScoped<TenantBrandReader>();
+        _ = services.AddScoped<ITenantBrandReader>(sp => sp.GetRequiredService<TenantBrandReader>());
+        _ = services.AddScoped<ITenantBrandCacheInvalidator>(sp => sp.GetRequiredService<TenantBrandReader>());
         _ = services.AddScoped<ITenantOwnershipReader, TenantOwnershipReader>();
         _ = services.AddScoped<TenantSubscriptionActivator>();
         _ = services.AddScoped<IEmailOutboxWriter<ITenancyOutboxModule>, EmailOutboxWriter>();
@@ -52,6 +59,8 @@ public static class TenancyModule
 
         _ = services.Configure<TenancyCleanupOptions>(configuration.GetSection("Tenancy:OrphanCleanup"));
         _ = services.Configure<TenantTimeZoneOptions>(configuration.GetSection("Tenancy:TimeZone"));
+        _ = services.Configure<TenantHostingOptions>(configuration.GetSection("Tenancy:Hosting"));
+        _ = services.Configure<TenantBrandingOptions>(configuration.GetSection("Tenancy:Branding"));
         _ = services.AddHostedService<OrphanedTenantCleanupService>();
 
         _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));

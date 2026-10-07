@@ -27,6 +27,9 @@ public class Tenant : SequentialGuidEntity
     /// <summary>IANA zone the business runs in (e.g. "America/Chicago"); appointments are scheduled and shown in it.</summary>
     public string TimeZoneId { get; private set; } = BusinessTimeZones.Default;
 
+    /// <summary>Logo shown on the tenant's site and app; null shows the name alone.</summary>
+    public Guid? LogoMediaAssetId { get; private set; }
+
     /// <summary>Signup not finished: payment pending or the attempt failed.</summary>
     public bool IsAwaitingSignup => TenantRules.IsAwaitingSignup(Status);
 
@@ -68,6 +71,14 @@ public class Tenant : SequentialGuidEntity
         }
 
         TimeZoneId = timeZoneId;
+    }
+
+    /// <summary>Sets the name and logo customers see on the tenant's site, app and emails.</summary>
+    public void Rebrand(string name, Guid? logoMediaAssetId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        Name = name.Trim();
+        LogoMediaAssetId = logoMediaAssetId;
     }
 
     /// <summary>Records the tenant's first admin as its owner.</summary>

@@ -1,9 +1,11 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+using Core.SecurityLayer.Constants;
 using MediatR;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.Constants;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.Rules;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Domain;
+using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.CurrentUser;
 using OnlineConsulting.SharedKernel.FeatureFlags;
 using OnlineConsulting.SharedKernel.Payments;
@@ -13,10 +15,10 @@ using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.RemoveModule;
 
-/// <summary>Mirror of AddModuleCommand - removes one à la carte module, prorated refund/credit. Same Roles => [] + TenantOwnershipGuard authorization shape.</summary>
+/// <summary>Mirror of AddModuleCommand - removes one à la carte module, prorated refund/credit. Same authorization: tenant admins (own tenant, via TenantOwnershipGuard) or a SuperAdmin.</summary>
 public record RemoveModuleCommand(Guid TenantId, string ModuleKey) : IRequest<OperationResult>, ISecureAddRequest
 {
-    public string[] Roles => [];
+    public string[] Roles => [GeneralOperationClaims.Admin, GlobalOperationClaims.SuperAdmin];
 }
 
 public class RemoveModuleHandler(ITenantSubscriptionRepository tenantSubscriptionRepository, ISubscriptionGateway subscriptionGateway, IFeatureFlagWriter featureFlagWriter, ITenantProvider tenantProvider, ICurrentUserAccessor currentUserAccessor)

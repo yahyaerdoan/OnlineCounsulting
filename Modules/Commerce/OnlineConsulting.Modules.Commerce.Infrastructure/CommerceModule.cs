@@ -64,13 +64,14 @@ public static class CommerceModule
         _ = services.AddScoped<IOrderFulfillment, OrderFulfillment>();
         _ = services.AddScoped<IEmailTemplate<InvoiceEmailModel>, InvoiceEmailTemplate>();
         _ = services.AddScoped<IInvoiceRepository, InvoiceRepository>();
+        _ = services.AddScoped<IInvoiceSettingsRepository, InvoiceSettingsRepository>();
+        _ = services.AddScoped<IInvoiceBusinessInfoReader, InvoiceBusinessInfoReader>();
+        _ = services.AddScoped<IInvoiceLogoLoader, HttpInvoiceLogoLoader>();
+        _ = services.AddHttpClient(HttpInvoiceLogoLoader.HttpClientName, client => client.Timeout = TimeSpan.FromSeconds(10));
         _ = services.AddScoped<InvoiceService>();
         _ = services.AddScoped<IInvoiceService>(sp => sp.GetRequiredService<InvoiceService>());
         _ = services.AddScoped<IServiceInvoiceIssuer>(sp => sp.GetRequiredService<InvoiceService>());
         _ = services.AddSingleton<IInvoicePdfRenderer, MigraDocInvoicePdfRenderer>();
-        var business = configuration.GetSection(InvoiceBusinessInfo.SectionName).Get<InvoiceBusinessInfo>() ?? new InvoiceBusinessInfo();
-        business.ClientOrigin = string.IsNullOrWhiteSpace(business.ClientOrigin) ? configuration["Auth:ClientOrigin"] : business.ClientOrigin;
-        _ = services.AddSingleton(business);
 
         _ = services.Configure<PendingOrderCleanupOptions>(configuration.GetSection("Commerce:PendingOrderCleanup"));
         _ = services.AddHostedService<PendingOrderCleanupService>();

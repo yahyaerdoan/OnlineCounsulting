@@ -16,5 +16,6 @@ public interface IInvoiceService
     /// <summary>Voids an open invoice and tells the customer nothing is owed for it; load it with <see cref="IInvoiceRepository.GetWithLinesAsync"/>.</summary>
     Task VoidAsync(Invoice invoice, string? reason, CancellationToken cancellationToken = default);
 
-    string? ViewUrl(Guid invoiceId);
+    /// <summary>The invoice's page on its tenant's own site.</summary>
+    Task<string> ViewUrlAsync(Guid invoiceId, Guid tenantId, CancellationToken cancellationToken = default);
 }

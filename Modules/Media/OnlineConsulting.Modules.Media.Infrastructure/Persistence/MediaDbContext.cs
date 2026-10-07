@@ -4,8 +4,10 @@ using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Media.Infrastructure.Persistence;
 
-public class MediaDbContext(DbContextOptions<MediaDbContext> options, ITenantProvider tenantProvider) : DbContext(options)
+public class MediaDbContext(DbContextOptions<MediaDbContext> options, ITenantProvider tenantProvider) : DbContext(options), ITenantScopedDbContext
 {
+    public Guid CurrentTenantId => tenantProvider.TenantId;
+
     public DbSet<MediaAsset> MediaAssets => Set<MediaAsset>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -19,7 +21,7 @@ public class MediaDbContext(DbContextOptions<MediaDbContext> options, ITenantPro
             _ = builder.Property(x => x.ContentType).HasMaxLength(100).IsRequired();
             _ = builder.Property(x => x.StorageProvider).HasMaxLength(50).IsRequired();
             _ = builder.Property(x => x.RowVersion).IsRowVersion();
-            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.ApplyTenantAndSoftDeleteFilter(this);
         });
 
         base.OnModelCreating(modelBuilder);

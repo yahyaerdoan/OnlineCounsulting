@@ -1,4 +1,5 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+using Core.SecurityLayer.Constants;
 using MediatR;
 using OnlineConsulting.Modules.Tenancy.Application.Features.ModuleOfferings.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.Abstractions;
@@ -6,6 +7,7 @@ using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionIt
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.Rules;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Domain;
+using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.CurrentUser;
 using OnlineConsulting.SharedKernel.FeatureFlags;
 using OnlineConsulting.SharedKernel.Payments;
@@ -15,10 +17,11 @@ using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.AddModule;
 
-/// <summary>Adds one à la carte module to a subscribed tenant, billed immediately/prorated. Roles => [] deliberately - authorization is an ownership check (see TenantOwnershipGuard), not a role.</summary>
+/// <summary>Adds one à la carte module to a subscribed tenant, billed immediately/prorated. Changes the tenant's bill, so only its admins (or a SuperAdmin) may,
+/// and TenantOwnershipGuard keeps a tenant admin to their own tenant.</summary>
 public record AddModuleCommand(Guid TenantId, string ModuleKey) : IRequest<OperationResult>, ISecureAddRequest
 {
-    public string[] Roles => [];
+    public string[] Roles => [GeneralOperationClaims.Admin, GlobalOperationClaims.SuperAdmin];
 }
 
 public class AddModuleHandler(ITenantRepository tenantRepository, ITenantSubscriptionRepository tenantSubscriptionRepository, IModuleOfferingRepository moduleOfferingRepository, ISubscriptionGateway subscriptionGateway, IFeatureFlagWriter featureFlagWriter, ITenantProvider tenantProvider, ICurrentUserAccessor currentUserAccessor)

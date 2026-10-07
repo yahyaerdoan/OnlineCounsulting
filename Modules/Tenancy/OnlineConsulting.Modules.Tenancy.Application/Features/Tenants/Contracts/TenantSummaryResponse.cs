@@ -11,8 +11,9 @@ public record TenantSummaryResponse(
     List<string> ActiveModuleKeys,
     decimal TotalActivePrice,
     DateTimeOffset CreatedDate,
-    string TimeZoneId)
+    string TimeZoneId,
+    Guid? LogoMediaAssetId)
 {
     public static TenantSummaryResponse FromDomain(Tenant tenant, List<string> activeModuleKeys, decimal totalActivePrice) =>
-        new(tenant.Id, tenant.Name, tenant.Slug, tenant.Status, tenant.PrimaryContactEmail, activeModuleKeys, totalActivePrice, tenant.CreatedDate, tenant.TimeZoneId);
+        new(tenant.Id, tenant.Name, tenant.Slug, tenant.Status, tenant.PrimaryContactEmail, activeModuleKeys, totalActivePrice, tenant.CreatedDate, tenant.TimeZoneId, tenant.LogoMediaAssetId);
 }

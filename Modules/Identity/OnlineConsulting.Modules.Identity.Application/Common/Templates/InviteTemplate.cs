@@ -9,11 +9,11 @@ public record InviteEmailModel(string InviteUrl);
 /// setting a password is all the invited person needs to do - the tenant is resolved from the token itself.</summary>
 public class InviteTemplate : IEmailTemplate<InviteEmailModel>
 {
-    public string Subject(InviteEmailModel model) => "You've been invited to join OnlineConsulting";
+    public string Subject(InviteEmailModel model) => $"You've been invited to join {EmailLayout.BrandToken}";
 
     public string Build(InviteEmailModel model) => EmailLayout.Wrap($"""
         <p>Hi,</p>
-        <p>You've been invited to join a team on OnlineConsulting. Click the link below to set your password and get started.</p>
+        <p>You've been invited to join the team at {EmailLayout.BrandToken}. Click the link below to set your password and get started.</p>
         <p><a href="{WebUtility.HtmlEncode(model.InviteUrl)}" style="color: #4CAF50;">Accept invitation</a></p>
         <p>If you weren't expecting this invitation, you can ignore this email.</p>
         """);
