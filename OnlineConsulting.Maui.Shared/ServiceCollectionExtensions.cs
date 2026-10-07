@@ -37,6 +37,8 @@ public static class ServiceCollectionExtensions
         _ = services.AddScoped<NotificationState>();
         _ = services.AddScoped<CartState>();
         _ = services.AddScoped<BusinessTime>();
+        _ = services.AddScoped<SiteBrand>();
+        _ = services.AddScoped<LogoTrimmer>();
         services.TryAddScoped<OnlineConsulting.Maui.Shared.Infrastructure.Files.IFileSaver, OnlineConsulting.Maui.Shared.Infrastructure.Files.JsFileSaver>();
 
         _ = services.AddTransient(typeof(FormState<>));

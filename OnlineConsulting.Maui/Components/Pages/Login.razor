@@ -10,10 +10,11 @@
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
 @inject FormState<LoginModel> Form
+@inject OnlineConsulting.Maui.Shared.Infrastructure.SiteBrand Brand
 
 <PageTitle>Sign in</PageTitle>
 
-<AuthCard Subtitle="Sign in to book visits and manage your ComfortPro account.">
+<AuthCard Subtitle="@($"Sign in to book visits and manage your {Brand.Name} account.")">
     <EditForm EditContext="@Form.EditContext" OnValidSubmit="SubmitAsync" autocomplete="off">
         <MudTextField @bind-Value="_model.UserNameOrEmail" For="@(() => _model.UserNameOrEmail)" Label="Username or email" Variant="Variant.Outlined"
                       Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Outlined.Person" Class="mb-4" autocomplete="username" />
@@ -43,6 +44,7 @@
     protected override async Task OnInitializedAsync()
     {
         Form.Bind(_model);
+        await Brand.EnsureLoadedAsync();
 
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         if (authState.User.Identity?.IsAuthenticated is true)

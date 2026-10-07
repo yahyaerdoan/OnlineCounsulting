@@ -19,6 +19,7 @@ public static class ApiRoutes
         public const string Register = Base + "/register";
         public const string ConfirmEmail = Base + "/confirm-email";
         public const string ForgotPassword = Base + "/forgot-password";
+        public const string FindMyBusiness = Base + "/find-my-business";
         public const string ResetPassword = Base + "/reset-password";
     }
 
@@ -341,6 +342,9 @@ public static class ApiRoutes
         public const string Mine = Base + "/mine";
         public const string All = Base + "/admin/query";
 
+        /// <summary>Admin - the business's invoicing preferences (payment terms).</summary>
+        public const string Settings = Base + "/settings";
+
         public static string ById(Guid id) => $"{Base}/{id}";
 
         /// <summary>POST: settles the caller's open invoice at once if the provider already took the payment.</summary>
@@ -501,6 +505,9 @@ public static class ApiRoutes
 
         /// <summary>Public - the IANA time zone of the caller's business (the default tenant's when anonymous).</summary>
         public const string TimeZone = Base + "/time-zone";
+
+        /// <summary>Public - the name and logo of the business whose site this is.</summary>
+        public const string Branding = Base + "/branding";
     }
 
     public static class Platform

@@ -6,6 +6,7 @@ using OnlineConsulting.Maui.Shared.Infrastructure.Api;
 using OnlineConsulting.Maui.Shared.Infrastructure.Auth;
 using OnlineConsulting.Maui.Shared.Layout;
 using OnlineConsulting.Maui.Web.Components;
+using OnlineConsulting.Maui.Web.Infrastructure.Api;
 using OnlineConsulting.Maui.Web.Infrastructure.Auth;
 using OnlineConsulting.ServiceDefaults;
 
@@ -62,9 +63,12 @@ if (Uri.TryCreate(builder.Configuration["Api:PublicBaseUrl"], UriKind.Absolute, 
     builder.Services.AddSingleton(new PublicApiOrigin(publicApiUrl));
 }
 
-builder.Services.AddHttpClient(ApiHttpClientNames.Anonymous, client => client.BaseAddress = new Uri(apiBaseUrl));
+builder.Services.AddTransient<TenantHostHandler>();
+builder.Services.AddHttpClient(ApiHttpClientNames.Anonymous, client => client.BaseAddress = new Uri(apiBaseUrl))
+    .AddHttpMessageHandler<TenantHostHandler>();
 builder.Services.AddTransient<GuestIdHandler>();
 builder.Services.AddHttpClient<IApiClient, ApiClient>(client => client.BaseAddress = new Uri(apiBaseUrl))
+    .AddHttpMessageHandler<TenantHostHandler>()
     .AddHttpMessageHandler<GuestIdHandler>();
 
 var app = builder.Build();

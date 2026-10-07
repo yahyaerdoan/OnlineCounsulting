@@ -6,6 +6,9 @@
 @inject IApiClient ApiClient
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
+@inject SiteBrand Brand
+@inject LogoTrimmer LogoTrimmer
+@using OnlineConsulting.Maui.Shared.Pages.Admin.Catalog
 @using OnlineConsulting.Maui.Shared.Pages.Admin.Platform
 
 <PageTitle>My Subscription</PageTitle>
@@ -20,22 +23,26 @@
 }
 else if (_tenant is not null)
 {
-    <MudPaper Outlined="true" Class="pa-4 rounded-lg mb-4">
-        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-2">
+    <div class="settings-page">
+    <MudPaper Outlined="true" Class="pa-4 rounded-lg">
+        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap" Spacing="2" Class="mb-2">
             <MudText Typo="Typo.h6">@_tenant.Name</MudText>
             <MudChip T="string" Size="Size.Small" Color="@(_tenant.Status == "Active" ? Color.Success : Color.Default)">@_tenant.Status</MudChip>
         </MudStack>
         <MudText Typo="Typo.body2" Color="Color.Secondary">@_tenant.ActiveModuleKeys.Count active module(s) - @CurrencyFormat.Format(_tenant.TotalActivePrice) / period</MudText>
+        <AuthorizeView Roles="Admin,Super Admin">
+            <div class="settings-actions mt-3">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Extension" OnClick="ManageModulesAsync">Manage Modules</MudButton>
+            </div>
+        </AuthorizeView>
     </MudPaper>
-
-    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ManageModulesAsync">Manage Modules</MudButton>
 
     <AuthorizeView Roles="Admin,Super Admin">
         <MudPaper Outlined="true" Class="pa-4 rounded-lg mt-4">
             <MudText Typo="Typo.h6">Business Time Zone</MudText>
             <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">Booking hours, appointment times and every date customers and staff see use this time zone.</MudText>
-            <MudStack Row="true" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap" Spacing="2">
-                <MudSelect T="string" Label="Time Zone" Variant="Variant.Outlined" @bind-Value="_timeZoneId" Style="min-width: 280px;">
+            <div class="settings-row">
+                <MudSelect T="string" Label="Time Zone" Variant="Variant.Outlined" @bind-Value="_timeZoneId" Class="settings-field">
                     @foreach (var (id, name) in UsTimeZones.WithCurrent(_tenant.TimeZoneId))
                     {
                         <MudSelectItem Value="@id">@name</MudSelectItem>
@@ -44,15 +51,59 @@ else if (_tenant is not null)
                 <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(_savingTimeZone || _timeZoneId == _tenant.TimeZoneId || !_tenant.Can(LinkRels.ChangeTimeZone))" OnClick="SaveTimeZoneAsync">
                     @(_savingTimeZone ? "Saving..." : "Save")
                 </MudButton>
-            </MudStack>
+            </div>
         </MudPaper>
+
+        @if (_tenant.Can(LinkRels.UpdateBranding))
+        {
+            <MudPaper Outlined="true" Class="pa-4 rounded-lg mt-4">
+                <MudText Typo="Typo.h6">Branding</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">The business name and logo your customers see on your website, app and emails.</MudText>
+                <MudStack Spacing="3">
+                    <MudTextField @bind-Value="_brandName" Label="Business Name" Variant="Variant.Outlined" MaxLength="200" />
+                    <CoverImagePicker ImageUrl="@_logoUrl" Fit="ObjectFit.Contain" IsUploading="_uploadingLogo" OnFileSelected="OnLogoSelectedAsync"
+                                      OnAssetSelected="OnLogoAssetSelected" OnRemove="@(() => { _logoMediaAssetId = null; _logoUrl = null; })" />
+                    <div class="settings-actions">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(_savingBranding || _uploadingLogo || string.IsNullOrWhiteSpace(_brandName))" OnClick="SaveBrandingAsync">
+                            @(_savingBranding ? "Saving..." : "Save")
+                        </MudButton>
+                    </div>
+                </MudStack>
+            </MudPaper>
+        }
+
+        @if (_invoiceSettings is not null && _invoiceSettings.Can(LinkRels.Edit))
+        {
+            <MudPaper Outlined="true" Class="pa-4 rounded-lg mt-4">
+                <MudText Typo="Typo.h6">Invoicing</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">
+                    Invoices show your business name and the email, phone and address from your <MudLink Href="/admin/inquiries/contact">Contact information</MudLink>.
+                </MudText>
+                <div class="settings-row">
+                    <MudNumericField T="int" @bind-Value="_paymentTermsDays" Label="Payment Terms (Days)" HelperText="0 means due on receipt" Min="0" Max="365" Variant="Variant.Outlined" Class="settings-field" />
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(_savingInvoiceSettings || _paymentTermsDays == _invoiceSettings.PaymentTermsDays)" OnClick="SaveInvoiceSettingsAsync">
+                        @(_savingInvoiceSettings ? "Saving..." : "Save")
+                    </MudButton>
+                </div>
+            </MudPaper>
+        }
     </AuthorizeView>
+    </div>
 }
 
 @code {
     private TenantResponse? _tenant;
     private string? _timeZoneId;
     private bool _savingTimeZone;
+    private string? _brandName;
+    private Guid? _logoMediaAssetId;
+    private string? _logoUrl;
+    private bool _uploadingLogo;
+    private const long MaxLogoBytes = 10 * 1024 * 1024;
+    private bool _savingBranding;
+    private InvoiceSettingsResponse? _invoiceSettings;
+    private int _paymentTermsDays;
+    private bool _savingInvoiceSettings;
     private bool _loading = true;
     private string? _loadError;
 
@@ -71,6 +122,13 @@ else if (_tenant is not null)
         {
             _tenant = result.ResultData;
             _timeZoneId = _tenant.TimeZoneId;
+            _brandName = _tenant.Name;
+            _logoMediaAssetId = _tenant.LogoMediaAssetId;
+            _logoUrl = _logoMediaAssetId is Guid logoId ? await MediaUploadHelper.GetUrlAsync(ApiClient, logoId) : null;
+
+            var invoiceSettings = await ApiClient.GetAsync<InvoiceSettingsResponse>(ApiRoutes.Invoices.Settings);
+            _invoiceSettings = invoiceSettings.IsSuccessful ? invoiceSettings.ResultData : null;
+            _paymentTermsDays = _invoiceSettings?.PaymentTermsDays ?? 0;
         }
 
         _loading = false;
@@ -101,6 +159,83 @@ else if (_tenant is not null)
 
         Snackbar.ShowSuccess(result.DisplayMessage);
         await BusinessTime.LoadAsync();
+        await ReloadAsync();
+    }
+
+    private async Task OnLogoSelectedAsync(InputFileChangeEventArgs e)
+    {
+        _uploadingLogo = true;
+
+        using var original = new MemoryStream();
+        await using (var input = e.File.OpenReadStream(MaxLogoBytes))
+        {
+            await input.CopyToAsync(original);
+        }
+
+        var trimmed = await LogoTrimmer.TrimAsync(original.ToArray());
+        using var upload = trimmed is null ? new MemoryStream(original.ToArray()) : new MemoryStream(trimmed);
+        var result = trimmed is null
+            ? await MediaUploadHelper.UploadAsync(ApiClient, upload, e.File.Name, e.File.ContentType, MediaFolders.Branding)
+            : await MediaUploadHelper.UploadAsync(ApiClient, upload, Path.ChangeExtension(e.File.Name, ".png"), "image/png", MediaFolders.Branding);
+
+        _uploadingLogo = false;
+
+        if (!result.IsSuccessful || result.ResultData is null)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        _logoMediaAssetId = result.ResultData.Id;
+        _logoUrl = result.ResultData.Url;
+    }
+
+    private void OnLogoAssetSelected(MediaAssetResponse asset)
+    {
+        _logoMediaAssetId = asset.Id;
+        _logoUrl = asset.Url;
+    }
+
+    private async Task SaveBrandingAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_brandName) || _tenant?.Links.Find(LinkRels.UpdateBranding) is not { } updateBranding)
+        {
+            return;
+        }
+
+        _savingBranding = true;
+        var result = await ApiClient.FollowAsync(updateBranding, new UpdateTenantBrandingRequest(_brandName.Trim(), _logoMediaAssetId));
+        _savingBranding = false;
+
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await Brand.ReloadAsync();
+        await ReloadAsync();
+    }
+
+    private async Task SaveInvoiceSettingsAsync()
+    {
+        if (_invoiceSettings?.Links.Find(LinkRels.Edit) is not { } edit)
+        {
+            return;
+        }
+
+        _savingInvoiceSettings = true;
+        var result = await ApiClient.FollowAsync(edit, new UpdateInvoiceSettingsRequest(_paymentTermsDays));
+        _savingInvoiceSettings = false;
+
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
         await ReloadAsync();
     }
 }

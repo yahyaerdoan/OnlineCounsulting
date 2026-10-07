@@ -6,6 +6,8 @@
 @using OnlineConsulting.Maui.Shared.Infrastructure.Api
 @inject IApiClient ApiClient
 @inject IJSRuntime JsRuntime
+@inject NavigationManager Navigation
+@inject SiteBrand Brand
 
 <PageTitle>Pricing</PageTitle>
 
@@ -298,6 +300,13 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        await Brand.EnsureLoadedAsync();
+        if (!Brand.IsPlatform)
+        {
+            Navigation.NavigateTo(AppRoutes.NotFound, replace: true);
+            return;
+        }
+
         var offeringsResult = await ApiClient.GetAsync<List<PublicModuleOfferingResponse>>(ApiRoutes.Tenancy.ModuleOfferings);
         if (!offeringsResult.IsSuccessful)
         {

@@ -6,10 +6,11 @@
 @inject IHttpClientFactory HttpClientFactory
 @inject NavigationManager Navigation
 @inject FormState<AcceptInviteModel> Form
+@inject OnlineConsulting.Maui.Shared.Infrastructure.SiteBrand Brand
 
 <PageTitle>Accept invite</PageTitle>
 
-<AuthCard Subtitle="Set up your ComfortPro account">
+<AuthCard Subtitle="@($"Set up your {Brand.Name} account")">
     <ApiErrorAlert Message="@_errorMessage" Floating="true" />
 
     <EditForm EditContext="@Form.EditContext" method="post" OnValidSubmit="SubmitAsync" FormName="acceptInvite">
@@ -39,7 +40,11 @@
 
     private string? _errorMessage;
 
-    protected override void OnInitialized() => Form.Bind(_model);
+    protected override async Task OnInitializedAsync()
+    {
+        Form.Bind(_model);
+        await Brand.EnsureLoadedAsync();
+    }
 
     private Task SubmitAsync() => Form.SubmitAsync(async () =>
     {

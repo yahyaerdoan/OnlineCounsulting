@@ -10,11 +10,17 @@ public static class MediaUploadHelper
 
     public static async Task<ApiEnvelope<MediaAssetResponse>> UploadAsync(IApiClient apiClient, IBrowserFile file, string folder, CancellationToken cancellationToken = default)
     {
-        using var content = new MultipartFormDataContent();
         await using var stream = file.OpenReadStream(MaxFileSizeBytes, cancellationToken);
+        return await UploadAsync(apiClient, stream, file.Name, file.ContentType, folder, cancellationToken);
+    }
+
+    /// <summary>Uploads content prepared in memory, e.g. a logo after <see cref="LogoTrimmer"/> cropped it.</summary>
+    public static async Task<ApiEnvelope<MediaAssetResponse>> UploadAsync(IApiClient apiClient, Stream stream, string fileName, string contentType, string folder, CancellationToken cancellationToken = default)
+    {
+        using var content = new MultipartFormDataContent();
         using var streamContent = new StreamContent(stream);
-        streamContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
-        content.Add(streamContent, "file", file.Name);
+        streamContent.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+        content.Add(streamContent, "file", fileName);
         content.Add(new StringContent(folder), "folder");
 
         var uploadResult = await apiClient.PostFileAsync<Guid>(ApiRoutes.Media.Upload, content, cancellationToken);

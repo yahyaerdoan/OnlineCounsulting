@@ -1,7 +1,19 @@
-@* Marketing-only brand mark (admin's BrandMark.razor is separate). Colors via CSS's "on-dark" modifier, not params. *@
+@* Marketing-only brand mark (admin's BrandMark.razor is separate). Colors via CSS's "on-dark" modifier, not params.
+   A multi-word name mutes its last word, e.g. "Gunes" + "LLC". *@
+@implements IDisposable
+@inject SiteBrand Brand
+
 <a href="/" class="marketing-brand-mark @(OnDark ? "marketing-brand-mark-on-dark" : "") @Class">
-    <MudIcon Icon="@Icons.Material.Filled.Star" Size="Size.Small" Class="mr-2" />
-    <span class="marketing-brand-word">Comfort</span><span class="marketing-brand-word marketing-brand-word-muted">Pro</span>
+    @if (Brand.LogoUrl is { } logoUrl)
+    {
+        <img src="@logoUrl" alt="" class="brand-logo mr-2" />
+    }
+    else
+    {
+        <span class="brand-initial-badge mr-2">@Brand.Initial</span>
+    }
+    <span class="marketing-brand-word">@Lead</span>@if (Tail.Length > 0)
+    {<span class="marketing-brand-word marketing-brand-word-muted">@Tail</span>}
 </a>
 
 @code {
@@ -11,4 +23,20 @@
 
     [Parameter]
     public string? Class { get; set; }
+
+    private int LastSpace => Brand.Name.TrimEnd().LastIndexOf(' ');
+
+    private string Lead => LastSpace > 0 ? Brand.Name[..LastSpace] : Brand.Name;
+
+    private string Tail => LastSpace > 0 ? Brand.Name[LastSpace..].Trim() : string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Brand.Changed += OnBrandChanged;
+        await Brand.EnsureLoadedAsync();
+    }
+
+    private void OnBrandChanged() => _ = InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Brand.Changed -= OnBrandChanged;
 }

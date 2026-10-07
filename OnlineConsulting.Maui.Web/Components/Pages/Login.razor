@@ -12,10 +12,11 @@
 @inject IHttpContextAccessor HttpContextAccessor
 @inject NavigationManager Navigation
 @inject FormState<LoginModel> Form
+@inject OnlineConsulting.Maui.Shared.Infrastructure.SiteBrand Brand
 
 <PageTitle>Sign in</PageTitle>
 
-<AuthCard Subtitle="Sign in to your ComfortPro account">
+<AuthCard Subtitle="@($"Sign in to your {Brand.Name} account")">
     <LoginErrorSnackbar ErrorMessage="@_errorMessage" GoodbyeToken="@Goodbye" Notice="@Notice" />
 
     <EditForm EditContext="@Form.EditContext" method="post" OnValidSubmit="SubmitAsync" FormName="login" autocomplete="off">
@@ -45,6 +46,10 @@
     <MudText Typo="Typo.body2" Class="mt-2" Align="Align.Center">
         <MudLink Href="/forgot-password">Forgot your password?</MudLink>
     </MudText>
+
+    <MudText Typo="Typo.body2" Class="mt-2" Align="Align.Center">
+        <MudLink Href="/find-my-business">Not sure where to sign in?</MudLink>
+    </MudText>
 </AuthCard>
 
 @code {
@@ -72,7 +77,11 @@
 
     private string? _errorMessage;
 
-    protected override void OnInitialized() => Form.Bind(_model);
+    protected override async Task OnInitializedAsync()
+    {
+        Form.Bind(_model);
+        await Brand.EnsureLoadedAsync();
+    }
 
     private Task SubmitAsync() => Form.SubmitAsync(async () =>
     {

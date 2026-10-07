@@ -1,0 +1,19 @@
+@implements IDisposable
+@inject SiteBrand Brand
+
+<PageTitle>@(string.IsNullOrEmpty(Brand.Name) ? Title : $"{Title} - {Brand.Name}")</PageTitle>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Title { get; set; } = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Brand.Changed += OnBrandChanged;
+        await Brand.EnsureLoadedAsync();
+    }
+
+    private void OnBrandChanged() => _ = InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Brand.Changed -= OnBrandChanged;
+}

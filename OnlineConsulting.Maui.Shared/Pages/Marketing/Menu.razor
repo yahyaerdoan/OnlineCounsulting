@@ -10,6 +10,7 @@
 @inject ThemeModeState ThemeModeState
 @inject IApiClient ApiClient
 @inject IAuthSession AuthSession
+@inject SiteBrand Brand
 
 <PageTitle>Menu</PageTitle>
 
@@ -90,7 +91,7 @@
     <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-2">Seasonal maintenance tips and offers, straight to your inbox.</MudText>
     <NewsletterForm FormName="menu-newsletter" />
 
-    <a href="/pricing" class="business-promo">
+    <a href="@Brand.PlatformLink("/pricing")" class="business-promo">
         <span class="business-promo-icon"><MudIcon Icon="@Icons.Material.Filled.RocketLaunch" /></span>
         <span class="business-promo-text">
             <span class="business-promo-eyebrow">For Businesses</span>
@@ -107,7 +108,7 @@
     </AuthorizeView>
 
     <div class="menu-fineprint">
-        <span>&copy; @DateTime.UtcNow.Year ComfortPro</span>
+        <span>&copy; @DateTime.UtcNow.Year <BrandName /></span>
     </div>
 </MudContainer>
 
@@ -150,6 +151,7 @@
     protected override async Task OnInitializedAsync()
     {
         ThemeModeState.Changed += OnThemeChangedAsync;
+        await Brand.EnsureLoadedAsync();
 
         var socialLinksResult = await ApiClient.GetAsync<List<SocialLinkResponse>>(ApiRoutes.SiteContent.SocialLink.Base);
         _socialLinks = socialLinksResult.IsSuccessful ? socialLinksResult.ResultData : null;

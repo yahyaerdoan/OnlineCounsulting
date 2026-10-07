@@ -1,8 +1,18 @@
+@implements IDisposable
+@inject SiteBrand Brand
+
 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="@Class">
-    <MudAvatar Color="@AvatarColor" Variant="Variant.Filled" Size="Size.Small">
-        <MudIcon Icon="@Icons.Material.Outlined.Bolt" Size="Size.Small" Color="@IconColor" />
-    </MudAvatar>
-    <MudText Typo="Typo.h6" Color="@TextColor" Class="text-strong">ComfortPro</MudText>
+    @if (Brand.LogoUrl is { } logoUrl)
+    {
+        <img src="@logoUrl" alt="" class="brand-logo" />
+    }
+    else
+    {
+        <MudAvatar Color="@AvatarColor" Variant="Variant.Filled" Size="Size.Small">
+            <MudText Typo="Typo.subtitle2" Color="@IconColor" Class="text-strong">@Brand.Initial</MudText>
+        </MudAvatar>
+    }
+    <MudText Typo="Typo.h6" Color="@TextColor" Class="text-strong">@Brand.Name</MudText>
 </MudStack>
 
 @code {
@@ -17,4 +27,14 @@
 
     [Parameter]
     public string? Class { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Brand.Changed += OnBrandChanged;
+        await Brand.EnsureLoadedAsync();
+    }
+
+    private void OnBrandChanged() => _ = InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Brand.Changed -= OnBrandChanged;
 }

@@ -23,6 +23,7 @@ public static class LinkRels
     public const string SetActive = "oc:set-active";
     public const string Suspend = "oc:suspend";
     public const string ChangeTimeZone = "oc:change-time-zone";
+    public const string UpdateBranding = "oc:update-branding";
     public const string Delete = "oc:delete";
     public const string Roles = "oc:roles";
     public const string AssignRoles = "oc:assign-roles";

@@ -18,6 +18,7 @@
 @inject IBrowserViewportService ViewportService
 
 <AppThemeProvider Theme="AppTheme.Default" />
+<BrandFavicon />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
@@ -29,6 +30,9 @@
                 <MudIconButton Icon="@Icons.Material.Outlined.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
                 <BrandMark Class="ml-2" />
                 <MudSpacer />
+                <MudTooltip Text="View Website">
+                    <MudIconButton Icon="@Icons.Material.Outlined.Storefront" Color="Color.Inherit" Href="/" Target="_blank" aria-label="View Website" />
+                </MudTooltip>
                 <CommandPaletteButton User="context.User" />
                 <NotificationBell />
                 <ThemeModeMenu />
@@ -75,7 +79,7 @@
                                Class="mt-4">Back to website</MudButton>
                 </div>
 
-                <MudText Typo="Typo.caption" Class="auth-brand-footer">&copy; @DateTime.UtcNow.Year ComfortPro</MudText>
+                <MudText Typo="Typo.caption" Class="auth-brand-footer">&copy; @DateTime.UtcNow.Year <BrandName /></MudText>
             </div>
 
             <div class="auth-panel">
