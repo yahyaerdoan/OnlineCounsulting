@@ -1,3 +1,4 @@
+using Core.PersistenceLayer.MultiTenancy;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -24,7 +25,7 @@ public class FindMyBusinessHandler(UserManager<User> userManager, ITenantBrandRe
     public async Task<OperationResult> Handle(FindMyBusinessCommand request, CancellationToken cancellationToken)
     {
         var normalizedEmail = userManager.NormalizeEmail(request.Email);
-        var tenantIds = await userManager.Users
+        var tenantIds = await userManager.Users.IgnoreTenantFilter()
             .Where(u => u.NormalizedEmail == normalizedEmail && u.IsActive && u.DeletedDate == null)
             .Select(u => u.TenantId)
             .Distinct()

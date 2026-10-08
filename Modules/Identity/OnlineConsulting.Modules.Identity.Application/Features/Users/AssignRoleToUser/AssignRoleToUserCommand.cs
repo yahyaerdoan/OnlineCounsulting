@@ -1,9 +1,11 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using Core.ApplicationLayer.Pipelines.Loggings.Abstractions;
+using Core.PersistenceLayer.MultiTenancy;
 using Core.SecurityLayer.Constants;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using OnlineConsulting.Modules.Identity.Application.Common;
+using OnlineConsulting.Modules.Identity.Application.Features.Users.Abstractions;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Constants;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Contracts;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Rules;
@@ -28,12 +30,12 @@ public record AssignRoleToUserCommand(Guid UserId, List<RoleAssignmentRequest> R
 /// only an existing Super Admin can grant/revoke it, a user cannot revoke their own, and the platform always
 /// keeps at least one; similarly guards against leaving a tenant with no active Admin.
 /// </summary>
-public class AssignRoleToUserHandler(UserManager<User> userManager, ITenantOwnershipReader tenantOwnershipReader, ITenantProvider tenantProvider, ICurrentUserAccessor currentUserAccessor)
+public class AssignRoleToUserHandler(UserManager<User> userManager, ITenantOwnershipReader tenantOwnershipReader, ITenantProvider tenantProvider, ICurrentUserAccessor currentUserAccessor, IUserRoleReader userRoleReader)
     : IRequestHandler<AssignRoleToUserCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(AssignRoleToUserCommand request, CancellationToken cancellationToken)
     {
-        var user = await userManager.FindByIdAsync(request.UserId.ToString());
+        var user = await userManager.FindManageableUserAsync(request.UserId, currentUserAccessor, cancellationToken);
 
         if (user is null)
         {
@@ -67,9 +69,7 @@ public class AssignRoleToUserHandler(UserManager<User> userManager, ITenantOwner
 
             if (isRevoke)
             {
-                var superAdmins = await userManager.GetUsersInRoleAsync(GlobalOperationClaims.SuperAdmin);
-                var hasOtherSuperAdmin = superAdmins.Any(a => a.Id != user.Id && a.IsActive);
-                if (!hasOtherSuperAdmin)
+                if (!await userRoleReader.AnyOtherActiveUserInRoleAsync(GlobalOperationClaims.SuperAdmin, user.Id, tenantId: null, cancellationToken))
                 {
                     return Result.Forbidden("Cannot revoke the Super Admin role - the platform would be left with no Super Admin.");
                 }
@@ -80,13 +80,13 @@ public class AssignRoleToUserHandler(UserManager<User> userManager, ITenantOwner
 
         if (adminAssignment is { IsAssigned: false } && await userManager.IsInRoleAsync(user, GeneralOperationClaims.Admin))
         {
-            var tenantAdmins = await userManager.GetUsersInRoleAsync(GeneralOperationClaims.Admin);
-            var hasOtherActiveAdmin = tenantAdmins.Any(a => a.Id != user.Id && a.TenantId == user.TenantId && a.IsActive);
-            if (!hasOtherActiveAdmin)
+            if (!await userRoleReader.AnyOtherActiveUserInRoleAsync(GeneralOperationClaims.Admin, user.Id, user.TenantId, cancellationToken))
             {
                 return Result.Forbidden("Cannot remove the Admin role - this tenant would be left with no active admin.");
             }
         }
+
+        using var tenantScope = TenantScope.Begin(user.TenantId);
 
         foreach (var assignment in request.RoleAssignments)
         {

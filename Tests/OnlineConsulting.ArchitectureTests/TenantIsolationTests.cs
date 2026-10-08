@@ -11,8 +11,6 @@ namespace OnlineConsulting.ArchitectureTests;
 /// a filter that reads the querying context's tenant, and the filter is only ever lifted through IgnoreTenantFilter.</summary>
 public class TenantIsolationTests
 {
-    private static readonly HashSet<string> NotIsolatedYet = ["AppIdentityDbContext"];
-
     private static readonly string[] SourceRoots = ["Modules", "OnlineConsulting.Api", "OnlineConsulting.SharedKernel", "OnlineConsulting.Notifications", "OnlineConsulting.Payments", "OnlineConsulting.Storage"];
 
     public static TheoryData<string> Contexts() => [.. ContextTypes().Select(type => type.Name)];
@@ -24,7 +22,7 @@ public class TenantIsolationTests
         using var context = Create(contextName);
         var tenantEntities = TenantEntityTypes(context).Select(entityType => entityType.DisplayName()).ToList();
 
-        Assert.True(tenantEntities.Count == 0 || context.HasTenantIsolation() || NotIsolatedYet.Contains(contextName),
+        Assert.True(tenantEntities.Count == 0 || context.HasTenantIsolation(),
             $"{contextName} maps tenant entities ({string.Join(", ", tenantEntities)}) without tenant isolation: derive it from TenantDbContext, or implement ITenantScopedDbContext and call UseTenantIsolation.");
     }
 

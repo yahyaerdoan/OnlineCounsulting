@@ -1,3 +1,4 @@
+using Core.PersistenceLayer.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using OnlineConsulting.Modules.Identity.Infrastructure.Persistence;
 using OnlineConsulting.SharedKernel.Identity;
@@ -8,5 +9,5 @@ namespace OnlineConsulting.Modules.Identity.Infrastructure.Status;
 public class UserExistenceReader(AppIdentityDbContext context) : IUserExistenceReader
 {
     public Task<bool> AnyUserExistsForTenantAsync(Guid tenantId, CancellationToken cancellationToken = default) =>
-        context.Users.AnyAsync(u => u.TenantId == tenantId && u.DeletedDate == null, cancellationToken);
+        context.Users.IgnoreTenantFilter().AnyAsync(u => u.TenantId == tenantId && u.DeletedDate == null, cancellationToken);
 }

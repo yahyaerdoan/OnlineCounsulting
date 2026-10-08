@@ -1,8 +1,10 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+using Core.PersistenceLayer.MultiTenancy;
 using Core.SecurityLayer.Constants;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using OnlineConsulting.Modules.Identity.Application.Common;
+using OnlineConsulting.Modules.Identity.Application.Features.Users.Abstractions;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Constants;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
@@ -18,12 +20,12 @@ public record UpdateUserCommand(Guid Id, string FirstName, string LastName, bool
     public string[] Roles => [UsersOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, UsersOperationClaims.Update];
 }
 
-public class UpdateUserHandler(UserManager<User> userManager, ITenantOwnershipReader tenantOwnershipReader, ITenantProvider tenantProvider, ICurrentUserAccessor currentUserAccessor)
+public class UpdateUserHandler(UserManager<User> userManager, ITenantOwnershipReader tenantOwnershipReader, ITenantProvider tenantProvider, ICurrentUserAccessor currentUserAccessor, IUserRoleReader userRoleReader)
     : IRequestHandler<UpdateUserCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
     {
-        var user = await userManager.FindByIdAsync(request.Id.ToString());
+        var user = await userManager.FindManageableUserAsync(request.Id, currentUserAccessor, cancellationToken);
         if (user is null)
         {
             return Result.NotFound(UserMessages.UserNotFound);
@@ -42,13 +44,13 @@ public class UpdateUserHandler(UserManager<User> userManager, ITenantOwnershipRe
 
         if (!request.IsActive && user.IsActive && await userManager.IsInRoleAsync(user, GeneralOperationClaims.Admin))
         {
-            var tenantAdmins = await userManager.GetUsersInRoleAsync(GeneralOperationClaims.Admin);
-            var hasOtherActiveAdmin = tenantAdmins.Any(a => a.Id != user.Id && a.TenantId == user.TenantId && a.IsActive);
-            if (!hasOtherActiveAdmin)
+            if (!await userRoleReader.AnyOtherActiveUserInRoleAsync(GeneralOperationClaims.Admin, user.Id, user.TenantId, cancellationToken))
             {
                 return Result.Forbidden("Cannot deactivate this user - this tenant would be left with no active admin.");
             }
         }
+
+        using var tenantScope = TenantScope.Begin(user.TenantId);
 
         user.FirstName = request.FirstName;
         user.LastName = request.LastName;

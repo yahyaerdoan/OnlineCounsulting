@@ -1,4 +1,5 @@
 ﻿using Core.CrossCuttingConcernLayer.Slugs;
+using Core.PersistenceLayer.MultiTenancy;
 using Core.SecurityLayer.Constants;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
@@ -26,6 +27,8 @@ public class CreateTenantAdminHandler(UserManager<User> userManager, IEmailOutbo
 {
     public async Task<OperationDataResult<CreateTenantAdminResult>> Handle(CreateTenantAdminCommand request, CancellationToken cancellationToken)
     {
+        using var tenantScope = TenantScope.Begin(request.TenantId);
+
         var userName = await SlugGenerator.GenerateUniqueAsync($"{request.FirstName} {request.LastName}",
             async prefix => await userManager.Users.Where(u => u.UserName != null && u.UserName.StartsWith(prefix)).Select(u => u.UserName ?? string.Empty).ToListAsync(cancellationToken));
 

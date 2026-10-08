@@ -1,4 +1,5 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+using Core.PersistenceLayer.MultiTenancy;
 using Core.SecurityLayer.Authorization;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
@@ -32,7 +33,7 @@ public class SetUserPermissionOverridesHandler(UserManager<User> userManager, Ro
 {
     public async Task<OperationResult> Handle(SetUserPermissionOverridesCommand request, CancellationToken cancellationToken)
     {
-        var user = await userManager.FindByIdAsync(request.UserId.ToString());
+        var user = await userManager.FindManageableUserAsync(request.UserId, currentUserAccessor, cancellationToken);
 
         if (user is null)
         {
@@ -56,6 +57,8 @@ public class SetUserPermissionOverridesHandler(UserManager<User> userManager, Ro
         {
             return Result.UnprocessableContent($"Cannot deny permission(s) the user's role doesn't grant: {string.Join(", ", invalidPermissions)}.");
         }
+
+        using var tenantScope = TenantScope.Begin(user.TenantId);
 
         var existingDeniedClaims = (await userManager.GetClaimsAsync(user)).Where(c => c.Type == PermissionOverrideClaimTypes.Deny).ToList();
 
