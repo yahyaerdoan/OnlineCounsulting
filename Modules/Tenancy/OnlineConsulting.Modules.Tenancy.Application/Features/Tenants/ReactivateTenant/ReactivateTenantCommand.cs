@@ -6,18 +6,15 @@ using OnlineConsulting.Modules.Tenancy.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.ReactivateTenant;
 
 /// <summary>Platform-owner action: lifts a suspension back to Active; billing untouched, does not retry payment (see ActivateTenantSubscriptionCommand).</summary>
 public record ReactivateTenantCommand(Guid TenantId) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [GlobalOperationClaims.SuperAdmin];
 
     /// <summary>Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.</summary>
-    [JsonIgnore]
     public bool AllowTenantBypass => false;
 }
 
@@ -32,14 +29,14 @@ public class ReactivateTenantHandler(ITenantRepository tenantRepository) : IRequ
             return TenantBusinessRules.TenantNotFound();
         }
 
-        if (tenant.Status != TenantStatuses.Suspended)
+        if (!tenant.CanBeReactivated)
         {
             return TenantBusinessRules.NotReactivatable();
         }
 
-        tenant.Status = TenantStatuses.Active;
+        tenant.Reactivate();
 
-        _ = await tenantRepository.UpdateAsync(tenant);
+        _ = await tenantRepository.UpdateAsync(tenant, cancellationToken: cancellationToken);
 
         return Result.Success("Tenant reactivated.");
     }

@@ -1,28 +1,21 @@
 ﻿using MediatR;
-using OnlineConsulting.Modules.Commerce.Application.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Baskets.Abstractions;
-using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Baskets.GetBasketItemsCount;
 
+/// <summary>Number of lines in the caller's basket (the cart badge); 0 when there is no basket yet.</summary>
 public record GetBasketItemsCountQuery(Guid? UserId, Guid? GuestId) : IRequest<OperationDataResult<int>>;
 
-public class GetBasketItemsCountHandler(IBasketRepository basketRepository, IBasketItemRepository basketItemRepository)
-    : IRequestHandler<GetBasketItemsCountQuery, OperationDataResult<int>>
+public class GetBasketItemsCountHandler(IBasketRepository basketRepository) : IRequestHandler<GetBasketItemsCountQuery, OperationDataResult<int>>
 {
     public async Task<OperationDataResult<int>> Handle(GetBasketItemsCountQuery request, CancellationToken cancellationToken)
     {
-        var basket = await basketRepository.GetAsync(BasketOwnerLookup.Predicate(request.UserId, request.GuestId),
-            enableTracking: false, cancellationToken: cancellationToken);
-        if (basket is null)
-        {
-            return Result.Success(0, "No basket yet.");
-        }
+        var basket = await basketRepository.GetForOwnerAsync(request.UserId, request.GuestId, enableTracking: false, cancellationToken);
 
-        var items = await basketItemRepository.GetListAsync(i => i.BasketId == basket.Id, orderBy: q => q.OrderBy(i => i.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
-
-        return Result.Success(items.Count, "Basket item count retrieved successfully.");
+        return basket is null
+            ? Result.Success(0, "No basket yet.")
+            : Result.Success(basket.Items.Count, "Basket item count retrieved successfully.");
     }
 }

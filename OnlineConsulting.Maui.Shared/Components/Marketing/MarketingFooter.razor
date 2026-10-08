@@ -3,6 +3,7 @@
 @using OnlineConsulting.Maui.Shared.Infrastructure.Api
 @using OnlineConsulting.Maui.Shared.Layout
 @inject IApiClient ApiClient
+@inject SiteBrand Brand
 
 <footer class="marketing-footer">
     <MudContainer MaxWidth="MaxWidth.Large" Class="pt-8">
@@ -15,7 +16,7 @@
                     <span class="footer-audience-cta">Book now<MudIcon Icon="@Icons.Material.Filled.ArrowForward" Size="Size.Small" /></span>
                 </span>
             </a>
-            <a href="/pricing" class="footer-audience footer-audience-business">
+            <a href="@Brand.PlatformLink("/pricing")" class="footer-audience footer-audience-business">
                 <span class="footer-audience-icon"><MudIcon Icon="@Icons.Material.Outlined.RocketLaunch" /></span>
                 <span class="footer-audience-text">
                     <span class="footer-audience-eyebrow">For Businesses</span>
@@ -157,14 +158,17 @@
                 }
             </nav>
 
-            <nav class="footer-links" aria-label="For businesses">
-                <span class="marketing-footer-heading">Businesses</span>
-                <a href="/pricing">Plans &amp; pricing</a>
-                <a href="/pricing#build">Build your own plan</a>
-                <a href="/signup">Sign up your business</a>
-                <a href="/contact">Talk to us</a>
-                <a href="/about">About us</a>
-            </nav>
+            @if (Brand.IsPlatform)
+            {
+                <nav class="footer-links" aria-label="For businesses">
+                    <span class="marketing-footer-heading">Businesses</span>
+                    <a href="/pricing">Plans &amp; pricing</a>
+                    <a href="/pricing#build">Build your own plan</a>
+                    <a href="/signup">Sign up your business</a>
+                    <a href="/contact">Talk to us</a>
+                    <a href="/about">About us</a>
+                </nav>
+            }
 
             <nav class="footer-links" aria-label="For technicians and staff">
                 <span class="marketing-footer-heading">Team</span>
@@ -192,7 +196,7 @@
 
     <div class="footer-bottom">
         <MudContainer MaxWidth="MaxWidth.Large" Class="footer-bottom-inner">
-            <span>&copy; 2024&ndash;@DateTime.UtcNow.Year ComfortPro. All rights reserved.</span>
+            <span>&copy; 2024&ndash;@DateTime.UtcNow.Year <BrandName />. All rights reserved.</span>
             <span>Developed by <a href="/">Fluent IT Innovator Solutions</a></span>
         </MudContainer>
     </div>
@@ -212,6 +216,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await Brand.EnsureLoadedAsync();
         var footerInfoResult = await ApiClient.GetAsync<List<FooterInfoResponse>>(ApiRoutes.SiteContent.FooterInfo.Base);
         _footerInfos = footerInfoResult.IsSuccessful ? footerInfoResult.ResultData ?? [] : [];
 

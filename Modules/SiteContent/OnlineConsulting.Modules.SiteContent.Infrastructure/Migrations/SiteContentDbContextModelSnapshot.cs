@@ -452,10 +452,13 @@ namespace OnlineConsulting.Modules.SiteContent.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("GalleryItemId");
+
                     b.HasIndex("TenantId", "DeletedDate");
 
                     b.HasIndex("TenantId", "GalleryItemId", "GalleryCategoryId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[DeletedDate] IS NULL");
 
                     b.ToTable("GalleryItemCategories", "SiteContent");
                 });
@@ -856,10 +859,11 @@ namespace OnlineConsulting.Modules.SiteContent.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Slug")
-                        .IsUnique();
-
                     b.HasIndex("TenantId", "DeletedDate");
+
+                    b.HasIndex("TenantId", "Slug")
+                        .IsUnique()
+                        .HasFilter("[DeletedDate] IS NULL");
 
                     b.ToTable("ServiceAreas", "SiteContent");
                 });
@@ -1121,6 +1125,20 @@ namespace OnlineConsulting.Modules.SiteContent.Infrastructure.Migrations
                     b.HasIndex("TenantId", "DeletedDate");
 
                     b.ToTable("Testimonials", "SiteContent");
+                });
+
+            modelBuilder.Entity("OnlineConsulting.Modules.SiteContent.Domain.Gallery.GalleryItemCategory", b =>
+                {
+                    b.HasOne("OnlineConsulting.Modules.SiteContent.Domain.Gallery.GalleryItem", null)
+                        .WithMany("Categories")
+                        .HasForeignKey("GalleryItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("OnlineConsulting.Modules.SiteContent.Domain.Gallery.GalleryItem", b =>
+                {
+                    b.Navigation("Categories");
                 });
 #pragma warning restore 612, 618
         }

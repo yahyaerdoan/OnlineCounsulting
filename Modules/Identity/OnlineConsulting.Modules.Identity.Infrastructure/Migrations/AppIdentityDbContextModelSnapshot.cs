@@ -421,6 +421,11 @@ namespace OnlineConsulting.Modules.Identity.Infrastructure.Migrations
                         .HasDatabaseName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
+                    b.HasIndex("TenantId", "NormalizedEmail")
+                        .IsUnique()
+                        .HasDatabaseName("TenantEmailIndex")
+                        .HasFilter("[NormalizedEmail] IS NOT NULL");
+
                     b.ToTable("AspNetUsers", "Identity");
                 });
 

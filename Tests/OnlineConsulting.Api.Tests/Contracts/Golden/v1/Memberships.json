@@ -1,0 +1,57 @@
+{
+  "CustomerMembershipResponse": [
+    "id: Guid",
+    "userId: Guid",
+    "membershipPlanId: Guid",
+    "status: string",
+    "startDate: DateTimeOffset",
+    "renewalDate: DateTimeOffset?",
+    "cancelAtPeriodEnd: bool",
+    "trialEndDate: DateTimeOffset?",
+    "promoCodeId: Guid?",
+    "memberName: string?",
+    "memberEmail: string?",
+    "planName: string?",
+    "planPrice: decimal?",
+    "planBillingCycle: string?",
+    "planIsActive: bool?",
+    "_links: LinkCollection?"
+  ],
+  "MembershipPlanResponse": [
+    "id: Guid",
+    "name: string",
+    "billingCycle: string",
+    "price: decimal",
+    "includedVisitsPerYear: int",
+    "discountPercent: decimal",
+    "creditAmount: decimal",
+    "benefits: string?",
+    "isActive: bool",
+    "trialDays: int?",
+    "_links: LinkCollection?"
+  ],
+  "PromoCodeResponse": [
+    "id: Guid",
+    "code: string",
+    "discountType: string",
+    "discountValue: decimal",
+    "maxRedemptions: int?",
+    "redemptionCount: int",
+    "expiresAt: DateTimeOffset?",
+    "isActive: bool",
+    "membershipPlanId: Guid?",
+    "_links: LinkCollection?"
+  ],
+  "SubscribeToMembershipResult": [
+    "customerMembershipId: Guid",
+    "clientSecret: string?",
+    "appliedCreditAmount: decimal?",
+    "appliedPromoDiscountAmount: decimal?"
+  ],
+  "ValidatePromoCodeResult": [
+    "isValid: bool",
+    "error: string?",
+    "discountAmount: decimal",
+    "finalPrice: decimal"
+  ]
+}

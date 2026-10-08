@@ -5,13 +5,11 @@ using OnlineConsulting.Modules.SiteContent.Application.Features.ServiceOfferings
 using OnlineConsulting.Modules.SiteContent.Domain.Service;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.SiteContent.Application.Features.ServiceOfferings.CreateServiceOffering;
 
 public record CreateServiceOfferingCommand(string Title, string Description, string Icon, string? IconColor = null, int DisplayOrder = 0, Dictionary<string, object>? Metadata = null) : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Add];
 }
 
@@ -29,7 +27,7 @@ public class CreateServiceOfferingHandler(IServiceOfferingRepository repository)
             Metadata = MetadataSerializer.Serialize(request.Metadata),
         };
 
-        _ = await repository.AddAsync(entity);
+        _ = await repository.AddAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Created(entity.Id, "Service offering created successfully.");
     }

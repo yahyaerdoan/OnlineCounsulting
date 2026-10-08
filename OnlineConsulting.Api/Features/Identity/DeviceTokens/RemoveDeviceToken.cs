@@ -9,11 +9,12 @@ public class RemoveDeviceToken : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapDelete("/api/device-tokens/{token}", Handle)
+        _ = app.MapDelete("/device-tokens/{token}", Handle)
             .WithTags("Identity/DeviceTokens")
             .RequireAuthorization()
             .WithName("RemoveDeviceToken")
-            .WithDescription("Removes a device's push-notification token (call on logout / push opt-out).");
+            .WithDescription("Removes a device's push-notification token (call on logout / push opt-out).")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(string token, ISender sender, HttpContext httpContext)

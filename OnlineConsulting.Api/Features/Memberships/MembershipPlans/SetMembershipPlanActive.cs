@@ -9,11 +9,12 @@ public class SetMembershipPlanActive : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/membership-plans/{id:guid}/active", Handle)
+        _ = app.MapPut("/membership-plans/{id:guid}/active", Handle)
             .WithTags("Memberships/Plans")
             .RequireAuthorization()
             .WithName("SetMembershipPlanActive")
-            .WithDescription("Archives (IsActive=false) or restores (IsActive=true) a membership plan (admin). Archiving hides it from the public catalog and blocks new subscriptions without affecting existing subscribers.");
+            .WithDescription("Archives (IsActive=false) or restores (IsActive=true) a membership plan (admin). Archiving hides it from the public catalog and blocks new subscriptions without affecting existing subscribers.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, bool isActive, ISender sender, HttpContext httpContext)

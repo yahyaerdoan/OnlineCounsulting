@@ -1,5 +1,6 @@
 using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.Contracts;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.GetMyTenant;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -9,11 +10,12 @@ public class GetMyTenant : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/tenancy/my-tenant", Handle)
+        _ = app.MapGet("/tenancy/my-tenant", Handle)
             .WithTags("Tenancy")
             .RequireAuthorization()
             .WithName("GetMyTenant")
-            .WithDescription("Returns the caller's own tenant: name, status, and active modules - self-service counterpart to the SuperAdmin-only GetTenantById.");
+            .WithDescription("Returns the caller's own tenant: name, status, and active modules - self-service counterpart to the SuperAdmin-only GetTenantById.")
+            .ProducesEnveloped<TenantSummaryResponse>();
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext)

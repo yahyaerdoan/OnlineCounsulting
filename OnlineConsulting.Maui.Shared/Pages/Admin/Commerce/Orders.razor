@@ -1,4 +1,4 @@
-@page "/admin/commerce/orders"
+﻿@page "/admin/commerce/orders"
 @attribute [Authorize(Roles = "Admin,Super Admin,Member")]
 @inject IApiClient ApiClient
 @inject IDialogService DialogService
@@ -11,7 +11,7 @@
 <ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
 
 <ServerDataTable TItem="AdminOrderResponse" @ref="_table" ApiBasePath="@ApiRoutes.Commerce.Orders.All"
-                 SearchPlaceholder="Search order number, email or name" OnLoadError="@(message => _loadError = message)">
+                 SearchPlaceholder="Search order number" OnLoadError="@(message => _loadError = message)">
     <HeaderContent>
         <MudTh><MudTableSortLabel SortLabel="@nameof(AdminOrderResponse.CreatedDate)" T="AdminOrderResponse">Date</MudTableSortLabel></MudTh>
         <MudTh>Order #</MudTh>
@@ -22,7 +22,7 @@
         <MudTh>Actions</MudTh>
     </HeaderContent>
     <RowTemplate Context="order">
-        <MudTd DataLabel="Date">@DateTimeFormat.FormatDateTime(order.CreatedDate)</MudTd>
+        <MudTd DataLabel="Date">@BusinessTime.FormatDateTime(order.CreatedDate)</MudTd>
         <MudTd DataLabel="Order #" Class="cell-primary">@order.OrderNumber</MudTd>
         <MudTd DataLabel="Customer">@(order.UserName ?? order.UserEmail ?? "-")</MudTd>
         <MudTd DataLabel="Status">@order.OrderStatus</MudTd>
@@ -33,7 +33,7 @@
         <MudTd DataLabel="Actions">
             <MudTooltip Text="Refund">
                 <MudIconButton aria-label="Refund" Icon="@Icons.Material.Outlined.Undo" Color="Color.Error" Size="Size.Small"
-                               Disabled="@(order.PaymentStatus != "Paid")" OnClick="@(() => RefundAsync(order))" />
+                               Disabled="@(!order.Can(LinkRels.Refund))" OnClick="@(() => RefundAsync(order))" />
             </MudTooltip>
         </MudTd>
     </RowTemplate>
@@ -45,6 +45,11 @@
 
     private async Task RefundAsync(AdminOrderResponse order)
     {
+        if (order.Links.Find(LinkRels.Refund) is not { } refund)
+        {
+            return;
+        }
+
         var confirmed = await DialogService.ConfirmAsync(
             "Refund Order",
             $"Refund order {order.OrderNumber} for {CurrencyFormat.Format(order.TotalPrice)}? This issues a real refund through the live payment gateway and cannot be undone.");
@@ -54,7 +59,7 @@
             return;
         }
 
-        var result = await ApiClient.PostAsync(ApiRoutes.Commerce.Orders.Refund(order.Id), new { });
+        var result = await ApiClient.FollowAsync(refund, new { });
         if (!result.IsSuccessful)
         {
             Snackbar.ShowError(result.DisplayMessage);

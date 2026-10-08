@@ -1,19 +1,45 @@
-using OnlineConsulting.SharedKernel.Tenancy;
+﻿using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Scheduling.Domain;
 
-/// <summary>1-1 with Appointment - plain id, no navigation, same cross-module/intra-module convention as Appointment.ServiceId. Recording a WorkOrder is what actually completes the Appointment (see CreateWorkOrderHandler).</summary>
+/// <summary>What a technician did on a visit. Recorded once per appointment through <see cref="RecordFor"/>, which also completes the visit.</summary>
 public class WorkOrder : SequentialGuidTenantEntity
 {
-    public required Guid AppointmentId { get; set; }
+    private WorkOrder()
+    {
+    }
 
-    /// <summary>Plain id, no navigation - User lives in the Identity module's own DbContext.</summary>
-    public required Guid TechnicianUserId { get; set; }
+    public Guid AppointmentId { get; private set; }
 
-    public string? PartsUsed { get; set; }
-    public string? TechnicianNotes { get; set; }
-    public DateTimeOffset? CompletedAt { get; set; }
+    /// <summary>Identity module user id, no navigation.</summary>
+    public Guid TechnicianUserId { get; private set; }
 
-    /// <summary>Plain id, no navigation - EquipmentItem lives in the Equipment module's own DbContext. Null when the job wasn't tied to a specific piece of the customer's equipment.</summary>
-    public Guid? EquipmentId { get; set; }
+    public string? PartsUsed { get; private set; }
+    public string? TechnicianNotes { get; private set; }
+    public DateTimeOffset? CompletedAt { get; private set; }
+
+    /// <summary>Equipment module id, no navigation.</summary>
+    public Guid? EquipmentId { get; private set; }
+
+    /// <summary>Records the visit's work and completes the appointment. Requires a technician and an appointment that isn't closed.</summary>
+    public static WorkOrder RecordFor(Appointment appointment, Guid technicianUserId, string? partsUsed, string? technicianNotes, DateTimeOffset completedAt,
+        Guid? equipmentId)
+    {
+        if (technicianUserId == Guid.Empty)
+        {
+            throw new ArgumentException("A work order needs the technician who did the work.", nameof(technicianUserId));
+        }
+
+        appointment.Complete();
+
+        return new WorkOrder
+        {
+            AppointmentId = appointment.Id,
+            TechnicianUserId = technicianUserId,
+            PartsUsed = string.IsNullOrWhiteSpace(partsUsed) ? null : partsUsed.Trim(),
+            TechnicianNotes = string.IsNullOrWhiteSpace(technicianNotes) ? null : technicianNotes.Trim(),
+            CompletedAt = completedAt,
+            EquipmentId = equipmentId,
+        };
+    }
 }

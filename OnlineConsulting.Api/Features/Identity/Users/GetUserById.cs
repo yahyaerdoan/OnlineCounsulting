@@ -1,5 +1,6 @@
 using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Identity.Application.Features.Users.Contracts;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.GetUserById;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -9,11 +10,12 @@ public class GetUserById : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/users/{id:guid}", Handle)
+        _ = app.MapGet("/users/{id:guid}", Handle)
             .WithTags("Identity/Users")
             .RequireAuthorization()
             .WithName("GetUserById")
-            .WithDescription("Returns a single user by id.");
+            .WithDescription("Returns a single user by id.")
+            .ProducesEnveloped<UserResponse>();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

@@ -1,7 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Modules.SiteContent.Application.Features.FooterInfos.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Application.Features.FooterInfos.Contracts;
-using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
@@ -13,8 +12,8 @@ public class GetAllFooterInfosHandler(IFooterInfoRepository repository) : IReque
 {
     public async Task<OperationDataResult<List<FooterInfoResponse>>> Handle(GetAllFooterInfosQuery request, CancellationToken cancellationToken)
     {
-        var entities = await repository.GetListAsync(orderBy: q => q.OrderBy(x => x.DisplayOrder), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
-        var response = entities.Items.Select(FooterInfoResponse.FromDomain).ToList();
+        var entities = await repository.GetAllAsync(orderBy: q => q.OrderBy(x => x.DisplayOrder), cancellationToken: cancellationToken);
+        var response = entities.Select(FooterInfoResponse.FromDomain).ToList();
 
         return Result.Success(response, "Footer info retrieved successfully.");
     }

@@ -12,7 +12,7 @@
 <ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
 
 <ServerDataTable TItem="ReferralResponse" @ref="_table" ApiBasePath="@ApiRoutes.Growth.Referrals.All"
-                 SearchPlaceholder="Search code, status or email" OnLoadError="@(message => _loadError = message)">
+                 SearchPlaceholder="Search code or status" OnLoadError="@(message => _loadError = message)">
     <HeaderContent>
         <MudTh>Code</MudTh>
         <MudTh>Referrer</MudTh>

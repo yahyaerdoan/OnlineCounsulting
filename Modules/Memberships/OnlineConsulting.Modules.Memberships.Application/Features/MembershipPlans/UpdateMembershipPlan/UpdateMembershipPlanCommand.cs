@@ -5,7 +5,6 @@ using OnlineConsulting.Modules.Memberships.Application.Features.MembershipPlans.
 using OnlineConsulting.Modules.Memberships.Application.Features.MembershipPlans.Constants;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Memberships.Application.Features.MembershipPlans.UpdateMembershipPlan;
 
@@ -13,7 +12,6 @@ namespace OnlineConsulting.Modules.Memberships.Application.Features.MembershipPl
 public record UpdateMembershipPlanCommand(Guid Id, string Name, int IncludedVisitsPerYear, decimal DiscountPercent, decimal CreditAmount, string? Benefits)
     : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [MembershipsOperationClaims.Admin, MembershipsOperationClaims.Write, MembershipsOperationClaims.Update];
 }
 
@@ -27,13 +25,9 @@ public class UpdateMembershipPlanHandler(IMembershipPlanRepository repository) :
             return Result.NotFound(string.Format(MembershipPlanMessages.MembershipPlanNotFoundFormat, request.Id));
         }
 
-        plan.Name = request.Name;
-        plan.IncludedVisitsPerYear = request.IncludedVisitsPerYear;
-        plan.DiscountPercent = request.DiscountPercent;
-        plan.CreditAmount = request.CreditAmount;
-        plan.Benefits = request.Benefits;
+        plan.UpdateDetails(request.Name, request.IncludedVisitsPerYear, request.DiscountPercent, request.CreditAmount, request.Benefits);
 
-        _ = await repository.UpdateAsync(plan);
+        _ = await repository.UpdateAsync(plan, cancellationToken: cancellationToken);
 
         return Result.Success("Membership plan updated successfully.");
     }

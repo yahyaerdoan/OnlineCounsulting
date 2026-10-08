@@ -1,0 +1,8 @@
+{
+  "FeatureFlagResponse": [
+    "key: string",
+    "isEnabled: bool",
+    "price: decimal?",
+    "isPurchased: bool"
+  ]
+}

@@ -1,24 +1,22 @@
 using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using OnlineConsulting.Modules.Identity.Application.Features.Invites.Abstractions;
 using OnlineConsulting.Modules.Identity.Application.Features.Invites.Constants;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Identity.Application.Features.Invites.CancelInvite;
 
 public record CancelInviteCommand(Guid Id) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [InvitesOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, InvitesOperationClaims.Delete];
 }
 
-public class CancelInviteHandler(IInviteRepository inviteRepository, ITenantProvider tenantProvider, IHttpContextAccessor httpContextAccessor)
+public class CancelInviteHandler(IInviteRepository inviteRepository, ITenantProvider tenantProvider, ICurrentUserAccessor currentUserAccessor)
     : IRequestHandler<CancelInviteCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(CancelInviteCommand request, CancellationToken cancellationToken)
@@ -29,18 +27,18 @@ public class CancelInviteHandler(IInviteRepository inviteRepository, ITenantProv
             return Result.NotFound(InviteMessages.InviteNotFound);
         }
 
-        if (!TenantOwnershipGuard.CallerMayManage(invite.TenantId, tenantProvider.TenantId, httpContextAccessor))
+        if (!TenantOwnershipGuard.CallerMayManage(invite.TenantId, tenantProvider.TenantId, currentUserAccessor))
         {
             return Result.Forbidden(InviteMessages.NotAuthorizedForOtherTenant);
         }
 
-        if (invite.Status != InviteStatuses.Pending)
+        if (!invite.IsPending)
         {
             return Result.Conflict(InviteMessages.InviteNotCancellable);
         }
 
-        invite.Status = InviteStatuses.Revoked;
-        _ = await inviteRepository.UpdateAsync(invite);
+        invite.Revoke();
+        _ = await inviteRepository.UpdateAsync(invite, cancellationToken: cancellationToken);
 
         return Result.Success(InviteMessages.InviteCancelled);
     }

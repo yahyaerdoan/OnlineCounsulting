@@ -1,10 +1,7 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using Core.ApplicationLayer.Pipelines.Loggings.Abstractions;
-using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
 using Core.SecurityLayer.Constants;
-using Core.SecurityLayer.Extensions;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using OnlineConsulting.Modules.Identity.Application.Common;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Constants;
@@ -14,15 +11,14 @@ using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.CurrentUser;
 using OnlineConsulting.SharedKernel.Tenancy;
+using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Identity.Application.Features.Users.AssignRoleToUser;
 
-public record AssignRoleToUserCommand(Guid UserId, List<RoleAssignmentRequest> RoleAssignments) : IRequest<OperationResult>, ISecureAddRequest, ITransactionAddRequest, ILogResultRequest
+public record AssignRoleToUserCommand(Guid UserId, List<RoleAssignmentRequest> RoleAssignments) : IRequest<OperationResult>, ISecureAddRequest, IIdentityTransactionRequest, ILogResultRequest
 {
-    [JsonIgnore]
     public string[] Roles => [UsersOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, UsersOperationClaims.Write];
 }
 
@@ -32,7 +28,7 @@ public record AssignRoleToUserCommand(Guid UserId, List<RoleAssignmentRequest> R
 /// only an existing Super Admin can grant/revoke it, a user cannot revoke their own, and the platform always
 /// keeps at least one; similarly guards against leaving a tenant with no active Admin.
 /// </summary>
-public class AssignRoleToUserHandler(UserManager<User> userManager, ITenantOwnershipReader tenantOwnershipReader, ITenantProvider tenantProvider, IHttpContextAccessor httpContextAccessor, ICurrentUserAccessor currentUserAccessor)
+public class AssignRoleToUserHandler(UserManager<User> userManager, ITenantOwnershipReader tenantOwnershipReader, ITenantProvider tenantProvider, ICurrentUserAccessor currentUserAccessor)
     : IRequestHandler<AssignRoleToUserCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(AssignRoleToUserCommand request, CancellationToken cancellationToken)
@@ -44,14 +40,14 @@ public class AssignRoleToUserHandler(UserManager<User> userManager, ITenantOwner
             return UserBusinessRules.UserNotFoundOrInvalidData();
         }
 
-        var ownerGuardResult = await TenantOwnerProtection.EnsureCallerMayModifyAsync(userManager, tenantOwnershipReader, tenantProvider, httpContextAccessor, user, cancellationToken);
+        var ownerGuardResult = await TenantOwnerProtection.EnsureCallerMayModifyAsync(userManager, tenantOwnershipReader, tenantProvider, currentUserAccessor, user, cancellationToken);
 
         if (ownerGuardResult is not null)
         {
             return ownerGuardResult;
         }
 
-        var callerRoles = httpContextAccessor.HttpContext?.User.ClaimRoles() ?? [];
+        var callerRoles = currentUserAccessor.Roles;
         var superAdminAssignment = request.RoleAssignments.FirstOrDefault(a => a.RoleName == GlobalOperationClaims.SuperAdmin);
 
         if (superAdminAssignment is not null)

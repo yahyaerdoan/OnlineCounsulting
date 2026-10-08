@@ -6,13 +6,11 @@ using OnlineConsulting.Modules.SiteContent.Domain;
 using OnlineConsulting.SharedKernel.Media;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.SiteContent.Application.Features.FooterInfos.CreateFooterInfo;
 
 public record CreateFooterInfoCommand(string ImageUrl, string Description, int DisplayOrder = 0, Dictionary<string, object>? Metadata = null) : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Add];
 }
 
@@ -22,7 +20,7 @@ public class CreateFooterInfoHandler(IFooterInfoRepository repository, IStorageS
     {
         var entity = new FooterInfo { ImageUrl = storageService.ToStoredUrl(request.ImageUrl), Description = request.Description, DisplayOrder = request.DisplayOrder, Metadata = MetadataSerializer.Serialize(request.Metadata) };
 
-        _ = await repository.AddAsync(entity);
+        _ = await repository.AddAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Created(entity.Id, "Footer info created successfully.");
     }

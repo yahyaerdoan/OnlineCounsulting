@@ -5,7 +5,6 @@ using OnlineConsulting.Modules.Equipment.Application.Features.EquipmentItems.Abs
 using OnlineConsulting.Modules.Equipment.Domain;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Equipment.Application.Features.EquipmentItems.CreateEquipmentItem;
 
@@ -13,7 +12,6 @@ namespace OnlineConsulting.Modules.Equipment.Application.Features.EquipmentItems
 public record CreateEquipmentItemCommand(Guid UserId, string Type, string? Brand, string? Model, string? SerialNumber, DateTimeOffset? InstallDate, DateTimeOffset? WarrantyExpiresAt, string? Notes)
     : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [EquipmentOperationClaims.Admin, EquipmentOperationClaims.Write];
 }
 
@@ -33,7 +31,7 @@ public class CreateEquipmentItemHandler(IEquipmentItemRepository repository) : I
             Notes = request.Notes,
         };
 
-        _ = await repository.AddAsync(entity);
+        _ = await repository.AddAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Created(entity.Id, "Equipment item created successfully.");
     }

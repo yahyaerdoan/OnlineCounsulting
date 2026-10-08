@@ -10,16 +10,22 @@ public class UpdatePageBanner : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/site-content/page-banners/{id:guid}", Handle)
+        _ = app.MapPut("/site-content/page-banners/{id:guid}", Handle)
             .WithTags("SiteContent/PageBanners")
             .RequireAuthorization()
             .WithName("UpdatePageBanner")
-            .WithDescription("Updates a page header banner.");
+            .WithDescription("Updates a page header banner.")
+            .ProducesEnveloped();
     }
 
-    private static async Task<IResult> Handle(Guid id, [FromBody] UpdatePageBannerCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle(Guid id, [FromBody] UpdatePageBannerRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command with { Id = id });
+        var result = await sender.Send(request.ToCommand(id));
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record UpdatePageBannerRequest(string Title, string Description, string ImageUrl, int DisplayOrder = 0, Dictionary<string, object>? Metadata = null)
+{
+    public UpdatePageBannerCommand ToCommand(Guid id) => new(id, Title, Description, ImageUrl, DisplayOrder, Metadata);
 }

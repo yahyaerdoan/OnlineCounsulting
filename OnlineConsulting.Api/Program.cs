@@ -1,15 +1,17 @@
-﻿using Core.ApplicationLayer.Pipelines.Authorizations.Concretions;
+﻿using Core.ApplicationLayer.Auditing;
+using Core.ApplicationLayer.Pipelines.Authorizations.Concretions;
 using Core.ApplicationLayer.Pipelines.Cachings.Concretions.CacheBehaviors;
-using Core.ApplicationLayer.Pipelines.Cachings.Concretions.CacheSettings;
+using Core.ApplicationLayer.Pipelines.Cachings.Extensions;
 using Core.ApplicationLayer.Pipelines.Loggings.Concretions;
 using Core.ApplicationLayer.Pipelines.Validations.Concretions;
+using Core.ApplicationLayer.Requests.Lists;
+using Core.ApplicationLayer.Validations;
 using Core.CrossCuttingConcernLayer.ExceptionHandlings.Extensions;
 using Core.SecurityLayer.Authorization;
-using Hateoas.AspNetCore;
+using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.HttpOverrides;
 using OnlineConsulting.Api.Common;
-using OnlineConsulting.Api.Common.Hateoas;
 using OnlineConsulting.Api.Configurations.Extensions;
 using OnlineConsulting.Api.LiveUpdates;
 using OnlineConsulting.Modules.Categories.Application.Common;
@@ -29,7 +31,7 @@ using OnlineConsulting.Modules.Identity.Application.Features.Roles.Constants;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Constants;
 using OnlineConsulting.Modules.Identity.Infrastructure;
 using OnlineConsulting.Modules.Identity.Infrastructure.Persistence;
-using OnlineConsulting.Modules.Identity.Infrastructure.Seeding;
+using OnlineConsulting.Modules.Identity.Infrastructure.Bootstrapping;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Contact.Constants;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Messages.Constants;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.Constants;
@@ -62,7 +64,6 @@ using OnlineConsulting.Payments;
 using OnlineConsulting.ServiceDefaults;
 using OnlineConsulting.SharedKernel.LiveUpdates;
 using OnlineConsulting.SharedKernel.Tenancy;
-using OnlineConsulting.SharedKernel.Validation;
 using OnlineConsulting.Storage;
 using Scalar.AspNetCore;
 
@@ -80,10 +81,12 @@ builder.UseEmulatorCertificateWhenPresent();
 builder.AddServiceDefaults();
 
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddAuditing();
 builder.Services.AddScoped<ITenantProvider, TenantProvider>();
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(AuthorizationAddingBehavior<,>));
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TenantStatusCheckBehavior<,>));
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationAddingBehavior<,>));
+builder.Services.AddTransient(typeof(IValidator<>), typeof(DynamicListRequestValidator<>));
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LogResultAddingBehavior<,>));
 
 var redisConnection = builder.Configuration.GetConnectionString("Redis");
@@ -92,7 +95,7 @@ _ = string.IsNullOrWhiteSpace(redisConnection)
     ? builder.Services.AddDistributedMemoryCache()
     : builder.Services.AddStackExchangeRedisCache(options => options.Configuration = redisConnection);
 
-builder.Services.Configure<CacheSetting>(builder.Configuration.GetSection("CacheSettings"));
+builder.Services.AddCacheSettings(builder.Configuration);
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CacheAddingBehavior<,>));
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CacheRemovingBehavior<,>));
 
@@ -160,7 +163,7 @@ builder.Services.AddHealthChecks()
     .AddDbContextCheck<NotificationsDbContext>();
 
 builder.Services.AddApiServiceRegistration(builder.Environment);
-builder.Services.AddHateoas(options => options.CurieName = Rels.CurieName).AddLinkProvidersFromAssembly(typeof(Program).Assembly);
+builder.Services.AddApiJson();
 
 // KnownNetworks/KnownProxies cleared - proxy IP isn't known ahead of deployment; without this
 // RemoteIpAddress (used for rate-limit partitioning) always resolves to the proxy, not the client.
@@ -173,9 +176,8 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 
 var app = builder.Build();
 
-await RoleSeeder.SeedAsync(app.Services);
-//await HvacCatalogSeeder.SeedAsync(app.Services);
-await SuperAdminSeeder.SeedAsync(app.Services);
+await RoleBootstrapper.EnsureAsync(app.Services);
+await SuperAdminBootstrapper.EnsureAsync(app.Services);
 
 app.MapDefaultEndpoints();
 
@@ -195,6 +197,7 @@ app.UseWhen(
 app.UseStaticFiles();
 app.UseCors();
 app.UseAuthentication();
+app.UseMiddleware<TenantHostMiddleware>();
 app.UseAuthorization();
 app.UseRateLimiter();
 

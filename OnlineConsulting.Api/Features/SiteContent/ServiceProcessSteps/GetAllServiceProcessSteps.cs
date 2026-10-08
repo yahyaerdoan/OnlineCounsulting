@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.SiteContent.Application.Features.ServiceProcessSteps.Contracts;
 using OnlineConsulting.Modules.SiteContent.Application.Features.ServiceProcessSteps.GetAllServiceProcessSteps;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -9,10 +10,11 @@ public class GetAllServiceProcessSteps : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/site-content/service-process-steps", Handle)
+        _ = app.MapGet("/site-content/service-process-steps", Handle)
             .WithTags("SiteContent/ServiceProcessSteps")
             .WithName("GetAllServiceProcessSteps")
-            .WithDescription("Returns the \"how you get our service\" steps. Public - no login required.");
+            .WithDescription("Returns the \"how you get our service\" steps. Public - no login required.")
+            .ProducesEnveloped<List<ServiceProcessStepResponse>>();
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext)

@@ -1,7 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Modules.SiteContent.Application.Features.FeatureHighlights.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Application.Features.FeatureHighlights.Contracts;
-using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
@@ -13,8 +12,8 @@ public class GetAllFeatureHighlightsHandler(IFeatureHighlightRepository reposito
 {
     public async Task<OperationDataResult<List<FeatureHighlightResponse>>> Handle(GetAllFeatureHighlightsQuery request, CancellationToken cancellationToken)
     {
-        var entities = await repository.GetListAsync(orderBy: q => q.OrderBy(x => x.DisplayOrder), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
-        var response = entities.Items.Select(FeatureHighlightResponse.FromDomain).ToList();
+        var entities = await repository.GetAllAsync(orderBy: q => q.OrderBy(x => x.DisplayOrder), cancellationToken: cancellationToken);
+        var response = entities.Select(FeatureHighlightResponse.FromDomain).ToList();
 
         return Result.Success(response, "Feature highlights retrieved successfully.");
     }

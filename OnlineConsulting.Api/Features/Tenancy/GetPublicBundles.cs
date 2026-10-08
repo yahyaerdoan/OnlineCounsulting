@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Tenancy.Application.Features.Bundles.Contracts;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Bundles.GetPublicBundles;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -9,10 +10,11 @@ public class GetPublicBundles : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/tenancy/bundles", Handle)
+        _ = app.MapGet("/tenancy/bundles", Handle)
             .WithTags("Tenancy")
             .WithName("GetPublicBundles")
-            .WithDescription("Returns every publicly visible bundle - pricing-page shortcut data source for the signup form.");
+            .WithDescription("Returns every publicly visible bundle - pricing-page shortcut data source for the signup form.")
+            .ProducesEnveloped<List<BundleResponse>>();
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext)

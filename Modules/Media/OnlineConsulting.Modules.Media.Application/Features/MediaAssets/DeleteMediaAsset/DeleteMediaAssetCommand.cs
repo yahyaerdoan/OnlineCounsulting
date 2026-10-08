@@ -7,13 +7,11 @@ using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.Media;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Media.Application.Features.MediaAssets.DeleteMediaAsset;
 
 public record DeleteMediaAssetCommand(Guid Id) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [MediaOperationClaims.Admin, MediaOperationClaims.Write, MediaOperationClaims.Delete, GlobalOperationClaims.SuperAdmin];
 }
 
@@ -33,7 +31,7 @@ public class DeleteMediaAssetHandler(IMediaAssetRepository repository, IStorageS
             await storageService.DeleteAsync(entity.Url, cancellationToken);
         }
 
-        _ = await repository.DeleteAsync(entity);
+        _ = await repository.DeleteAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Success("Media asset deleted successfully.");
     }

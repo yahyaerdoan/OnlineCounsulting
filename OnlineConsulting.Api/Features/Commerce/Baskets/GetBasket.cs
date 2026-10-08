@@ -1,6 +1,8 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Commerce.Application.Features.Baskets.Contracts;
 using OnlineConsulting.Modules.Commerce.Application.Features.Baskets.GetBasket;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using OnlineConsulting.SharedKernel.GuestIdentity;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -10,19 +12,16 @@ public class GetBasket : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/basket", Handle)
+        _ = app.MapGet("/basket", Handle)
             .WithTags("Commerce/Baskets")
             .WithName("GetBasket")
-            .WithDescription("Returns the current user's (or guest's) basket, with its items.");
+            .WithDescription("Returns the current user's (or guest's) basket, with its items.")
+            .ProducesEnveloped<BasketResponse>();
     }
 
-    private static async Task<IResult> Handle(ISender sender, HttpContext httpContext, IGuestIdAccessor guestIdAccessor)
+    private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, ISender sender, HttpContext httpContext, IGuestIdAccessor guestIdAccessor)
     {
-        var (userId, guestId, error) = await BasketOwnerResolver.ResolveAsync(sender, httpContext, guestIdAccessor);
-        if (error is not null)
-        {
-            return error;
-        }
+        var (userId, guestId) = BasketOwnerResolver.Resolve(currentUser, guestIdAccessor);
 
         var result = await sender.Send(new GetBasketQuery(userId, guestId));
         return result.ToEnvelopedResult(httpContext);

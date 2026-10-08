@@ -1,10 +1,8 @@
-﻿using Hateoas;
-using OnlineConsulting.Modules.Categories.Domain;
+﻿using OnlineConsulting.Modules.Categories.Domain;
 
 namespace OnlineConsulting.Modules.Categories.Application.Features.Categories.Contracts;
 
-/// <summary>Category response as a class with required init properties, since records can't inherit the plain LinkedResponse class.</summary>
-public class CategoryResponse : LinkedResponse
+public class CategoryResponse
 {
     public required Guid Id { get; init; }
     public required string Title { get; init; }

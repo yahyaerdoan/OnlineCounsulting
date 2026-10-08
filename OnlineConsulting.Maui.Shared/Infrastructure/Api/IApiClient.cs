@@ -1,4 +1,6 @@
-﻿namespace OnlineConsulting.Maui.Shared.Infrastructure.Api;
+﻿using OnlineConsulting.Maui.Shared.Infrastructure.Hateoas;
+
+namespace OnlineConsulting.Maui.Shared.Infrastructure.Api;
 
 /// <summary>Thin typed HttpClient wrapper for calling the Api, shared by every module.</summary>
 public interface IApiClient
@@ -20,4 +22,10 @@ public interface IApiClient
 
     /// <summary>For multipart/file-upload endpoints.</summary>
     Task<ApiEnvelope<T>> PostFileAsync<T>(string path, MultipartFormDataContent content, CancellationToken cancellationToken = default);
+
+    /// <summary>Calls an action the Api offered in "_links", with the link's own method; body is ignored for GET and DELETE.</summary>
+    Task<ApiEnvelope<T>> FollowAsync<T>(HalLink link, object? body = null, CancellationToken cancellationToken = default);
+
+    /// <inheritdoc cref="FollowAsync{T}(HalLink, object?, CancellationToken)"/>
+    Task<ApiEnvelope> FollowAsync(HalLink link, object? body = null, CancellationToken cancellationToken = default);
 }

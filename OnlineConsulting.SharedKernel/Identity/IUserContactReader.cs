@@ -1,10 +1,5 @@
 namespace OnlineConsulting.SharedKernel.Identity;
 
-public sealed record UserContact(Guid Id, string? Email, string FirstName, string LastName)
-{
-    public string FullName => $"{FirstName} {LastName}".Trim();
-}
-
 /// <summary>Cross-module read access to a user's email, without referencing Identity's Domain/Application types (see IUserExistenceReader).</summary>
 public interface IUserContactReader
 {

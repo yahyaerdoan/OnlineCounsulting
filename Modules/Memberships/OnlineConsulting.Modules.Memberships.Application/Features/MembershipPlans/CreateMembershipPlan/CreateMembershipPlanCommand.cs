@@ -6,7 +6,6 @@ using OnlineConsulting.Modules.Memberships.Domain;
 using OnlineConsulting.SharedKernel.Payments;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Memberships.Application.Features.MembershipPlans.CreateMembershipPlan;
 
@@ -14,7 +13,6 @@ namespace OnlineConsulting.Modules.Memberships.Application.Features.MembershipPl
 public record CreateMembershipPlanCommand(string Name, string BillingCycle, decimal Price, int IncludedVisitsPerYear, decimal DiscountPercent, decimal CreditAmount, string? Benefits, int? TrialDays = null)
     : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [MembershipsOperationClaims.Admin, MembershipsOperationClaims.Write, MembershipsOperationClaims.Add];
 }
 
@@ -22,24 +20,14 @@ public class CreateMembershipPlanHandler(IMembershipPlanRepository repository, I
 {
     public async Task<OperationDataResult<Guid>> Handle(CreateMembershipPlanCommand request, CancellationToken cancellationToken)
     {
-        var plan = new MembershipPlan
-        {
-            Name = request.Name,
-            BillingCycle = request.BillingCycle,
-            Price = request.Price,
-            IncludedVisitsPerYear = request.IncludedVisitsPerYear,
-            DiscountPercent = request.DiscountPercent,
-            CreditAmount = request.CreditAmount,
-            Benefits = request.Benefits,
-            TrialDays = request.TrialDays,
-        };
+        var plan = MembershipPlan.Create(request.Name, request.BillingCycle, request.Price, request.IncludedVisitsPerYear, request.DiscountPercent,
+            request.CreditAmount, request.Benefits, request.TrialDays);
 
         var priceResult = await subscriptionGateway.EnsurePriceAsync(new EnsurePriceRequest(plan.Id.ToString(), plan.Name, plan.Price, "usd", plan.BillingCycle), cancellationToken);
 
-        plan.ProviderProductId = priceResult.ProviderProductId;
-        plan.ProviderPriceId = priceResult.ProviderPriceId;
+        plan.AttachProviderPrice(priceResult.ProviderProductId, priceResult.ProviderPriceId);
 
-        _ = await repository.AddAsync(plan);
+        _ = await repository.AddAsync(plan, cancellationToken: cancellationToken);
 
         return Result.Created(plan.Id, "Membership plan created successfully.");
     }

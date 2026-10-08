@@ -1,7 +1,8 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.Contracts;
 using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.GetMyInvoices;
-using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
 using ResultHandler.Functional;
 
@@ -11,15 +12,15 @@ public class GetMyInvoices : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/invoices/mine", Handle)
+        _ = app.MapGet("/invoices/mine", Handle)
             .WithTags("Commerce/Invoices")
             .RequireAuthorization()
             .WithName("GetMyInvoices")
-            .WithDescription("The current user's invoices and receipts, newest first.");
+            .WithDescription("The current user's invoices and receipts, newest first.")
+            .ProducesEnveloped<List<InvoiceResponse>>();
     }
 
-    private static async Task<IResult> Handle(ISender sender, HttpContext httpContext)
-        => (await sender.Send(new GetCurrentUserQuery())
-                .BindAsync(user => sender.Send(new GetMyInvoicesQuery(user.Id))))
+    private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, ISender sender, HttpContext httpContext)
+        => (await sender.Send(new GetMyInvoicesQuery(currentUser.RequiredId())))
             .ToEnvelopedResult(httpContext);
 }

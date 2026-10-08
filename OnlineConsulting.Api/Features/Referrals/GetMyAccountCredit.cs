@@ -1,7 +1,8 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
-using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
+using OnlineConsulting.Modules.Referrals.Application.Features.AccountCredits.Contracts;
 using OnlineConsulting.Modules.Referrals.Application.Features.AccountCredits.GetMyAccountCredit;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
 using ResultHandler.Functional;
 
@@ -11,15 +12,15 @@ public class GetMyAccountCredit : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/referrals/my-credit", Handle)
+        _ = app.MapGet("/referrals/my-credit", Handle)
             .WithTags("Referrals")
             .RequireAuthorization()
             .WithName("GetMyAccountCredit")
-            .WithDescription("Returns the current user's referral-reward account credit balance and ledger.");
+            .WithDescription("Returns the current user's referral-reward account credit balance and ledger.")
+            .ProducesEnveloped<AccountCreditSummaryResponse>();
     }
 
-    private static async Task<IResult> Handle(ISender sender, HttpContext httpContext)
-        => (await sender.Send(new GetCurrentUserQuery())
-                .BindAsync(user => sender.Send(new GetMyAccountCreditQuery(user.Id))))
+    private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, ISender sender, HttpContext httpContext)
+        => (await sender.Send(new GetMyAccountCreditQuery(currentUser.RequiredId())))
             .ToEnvelopedResult(httpContext);
 }

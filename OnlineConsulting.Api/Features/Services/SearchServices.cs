@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Services.Application.Features.Services.Contracts;
 using OnlineConsulting.Modules.Services.Application.Features.Services.SearchServices;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -9,10 +10,11 @@ public class SearchServices : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/services/search", Handle)
+        _ = app.MapGet("/services/search", Handle)
             .WithTags("Services")
             .WithName("SearchServices")
-            .WithDescription("Searches services by title/description. Public - no login required.");
+            .WithDescription("Searches services by title/description. Public - no login required.")
+            .ProducesEnveloped<List<ServiceResponse>>();
     }
 
     private static async Task<IResult> Handle(string query, ISender sender, HttpContext httpContext)

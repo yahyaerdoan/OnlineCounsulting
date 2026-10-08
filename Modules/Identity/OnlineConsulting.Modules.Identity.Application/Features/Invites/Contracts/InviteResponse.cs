@@ -1,8 +1,6 @@
-using Hateoas;
-
 namespace OnlineConsulting.Modules.Identity.Application.Features.Invites.Contracts;
 
-public class InviteResponse : LinkedResponse
+public class InviteResponse
 {
     public required Guid Id { get; init; }
     public required string Email { get; init; }

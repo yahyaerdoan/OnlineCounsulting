@@ -9,11 +9,12 @@ public class DeletePageBanner : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapDelete("/api/site-content/page-banners/{id:guid}", Handle)
+        _ = app.MapDelete("/site-content/page-banners/{id:guid}", Handle)
             .WithTags("SiteContent/PageBanners")
             .RequireAuthorization()
             .WithName("DeletePageBanner")
-            .WithDescription("Deletes a page header banner.");
+            .WithDescription("Deletes a page header banner.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

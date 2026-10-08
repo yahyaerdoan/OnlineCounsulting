@@ -1,11 +1,9 @@
-using Hateoas;
 using OnlineConsulting.Modules.Memberships.Domain;
 using OnlineConsulting.SharedKernel.Identity;
 
 namespace OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Contracts;
 
-/// <summary>A class with required init properties instead of a positional record, since records can't inherit LinkedResponse.</summary>
-public class CustomerMembershipResponse : LinkedResponse
+public class CustomerMembershipResponse
 {
     public required Guid Id { get; init; }
     public required Guid UserId { get; init; }

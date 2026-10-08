@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Identity.Application.Features.Roles.Contracts;
 using OnlineConsulting.Modules.Identity.Application.Features.Roles.GetRoleById;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -9,11 +10,12 @@ public class GetRoleById : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/roles/{id:guid}", Handle)
+        _ = app.MapGet("/roles/{id:guid}", Handle)
             .WithTags("Identity/Roles")
             .RequireAuthorization()
             .WithName("GetRoleById")
-            .WithDescription("Returns a single role by id.");
+            .WithDescription("Returns a single role by id.")
+            .ProducesEnveloped<RoleResponse>();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Scheduling.Application.Features.WorkOrders.Contracts;
 using OnlineConsulting.Modules.Scheduling.Application.Features.WorkOrders.GetWorkOrdersByEquipmentId;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -9,11 +10,12 @@ public class GetWorkOrdersByEquipmentId : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/equipment/{equipmentId:guid}/work-orders", Handle)
+        _ = app.MapGet("/equipment/{equipmentId:guid}/work-orders", Handle)
             .WithTags("Scheduling/WorkOrders")
             .RequireAuthorization()
             .WithName("GetWorkOrdersByEquipmentId")
-            .WithDescription("Returns the service history (work orders) recorded against a piece of equipment - the equipment health panel's timeline.");
+            .WithDescription("Returns the service history (work orders) recorded against a piece of equipment - the equipment health panel's timeline.")
+            .ProducesEnveloped<List<WorkOrderResponse>>();
     }
 
     private static async Task<IResult> Handle(Guid equipmentId, ISender sender, HttpContext httpContext)

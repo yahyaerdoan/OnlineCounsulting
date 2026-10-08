@@ -1,0 +1,28 @@
+{
+  "ServiceMediaItemResponse": [
+    "id: Guid",
+    "mediaAssetId: Guid",
+    "displayOrder: int"
+  ],
+  "ServiceResponse": [
+    "id: Guid",
+    "categoryId: Guid",
+    "title: string",
+    "slug: string",
+    "description: string",
+    "detailedDescription: string",
+    "price: decimal",
+    "priceType: string",
+    "kind: string",
+    "priceMax: decimal?",
+    "featuredArea: bool",
+    "discountRate: int",
+    "taxRate: int",
+    "discountedPrice: decimal",
+    "requiresPrepayment: bool",
+    "isEmergencyAvailable: bool",
+    "coverMediaAssetId: Guid?",
+    "mediaItems: List<ServiceMediaItemResponse>",
+    "_links: LinkCollection?"
+  ]
+}

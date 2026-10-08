@@ -4,6 +4,7 @@ using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.Constants;
 using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.Contracts;
 using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.GetInvoiceById;
 using OnlineConsulting.Modules.Commerce.Application.Features.Invoices;
+using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
@@ -12,7 +13,8 @@ namespace OnlineConsulting.Modules.Commerce.Application.Features.Invoices.GetInv
 /// <summary>Same ownership rule as GetInvoiceByIdQuery. Returned base64 inside the usual envelope so web and the app download it the same way.</summary>
 public record GetInvoicePdfQuery(Guid Id, Guid? OwnerUserId) : IRequest<OperationDataResult<InvoicePdfResponse>>;
 
-public class GetInvoicePdfHandler(ISender sender, IInvoicePdfRenderer renderer, InvoiceBusinessInfo business)
+public class GetInvoicePdfHandler(ISender sender, IInvoicePdfRenderer renderer, IInvoiceBusinessInfoReader businessInfoReader, IInvoiceLogoLoader logoLoader, ITenantProvider tenantProvider,
+    ITenantTimeZoneReader timeZoneReader)
     : IRequestHandler<GetInvoicePdfQuery, OperationDataResult<InvoicePdfResponse>>
 {
     public async Task<OperationDataResult<InvoicePdfResponse>> Handle(GetInvoicePdfQuery request, CancellationToken cancellationToken)
@@ -23,7 +25,10 @@ public class GetInvoicePdfHandler(ISender sender, IInvoicePdfRenderer renderer, 
             return Result.NotFound<InvoicePdfResponse>(InvoiceMessages.NotFound);
         }
 
-        var bytes = renderer.Render(invoice, business);
+        var tenantId = tenantProvider.TenantId;
+        var business = await businessInfoReader.GetAsync(tenantId, cancellationToken);
+        var logo = business.LogoUrl is { } logoUrl ? await logoLoader.LoadAsync(logoUrl, cancellationToken) : null;
+        var bytes = renderer.Render(invoice, business, await timeZoneReader.GetAsync(tenantId, cancellationToken), logo);
         return Result.Success(new InvoicePdfResponse($"{invoice.InvoiceNumber}.pdf", Convert.ToBase64String(bytes)), "Invoice PDF ready.");
     }
 }

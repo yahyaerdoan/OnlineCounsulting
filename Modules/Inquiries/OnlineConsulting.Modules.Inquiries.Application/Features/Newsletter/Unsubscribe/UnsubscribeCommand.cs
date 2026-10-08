@@ -5,13 +5,11 @@ using OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.Constan
 using OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.Rules;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.Unsubscribe;
 
 public record UnsubscribeCommand(Guid Id) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [NewsletterOperationClaims.Admin, NewsletterOperationClaims.Delete];
 }
 
@@ -25,7 +23,7 @@ public class UnsubscribeHandler(INewsletterSubscriberRepository repository) : IR
             return NewsletterBusinessRules.SubscriberNotFound(request.Id);
         }
 
-        _ = await repository.DeleteAsync(subscriber);
+        _ = await repository.DeleteAsync(subscriber, cancellationToken: cancellationToken);
 
         return Result.Success("Unsubscribed successfully.");
     }

@@ -1,17 +1,15 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
-using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Commerce.Application.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.Abstractions;
+using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Addresses.SetShippingAddress;
 
-public record SetShippingAddressCommand(Guid UserId, Guid AddressId) : IRequest<OperationResult>, ITransactionAddRequest, ISecureAddRequest
+public record SetShippingAddressCommand(Guid UserId, Guid AddressId) : IRequest<OperationResult>, ICommerceTransactionRequest, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [];
 }
 
@@ -28,7 +26,7 @@ public class SetShippingAddressHandler(IUserAddressRepository repository) : IReq
         await UserAddressDefaultFlag.ClearPreviousShippingHolderAsync(repository, request.UserId, newAddress.Id, cancellationToken);
 
         newAddress.IsShippingAddress = true;
-        _ = await repository.UpdateAsync(newAddress);
+        _ = await repository.UpdateAsync(newAddress, cancellationToken: cancellationToken);
 
         return Result.Success("Shipping address set successfully.");
     }

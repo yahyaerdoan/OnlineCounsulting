@@ -10,16 +10,22 @@ public class UpdatePartnershipSocialLink : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/site-content/partnership-social-links/{id:guid}", Handle)
+        _ = app.MapPut("/site-content/partnership-social-links/{id:guid}", Handle)
             .WithTags("SiteContent/PartnershipSocialLinks")
             .RequireAuthorization()
             .WithName("UpdatePartnershipSocialLink")
-            .WithDescription("Updates a partnership showcase entry's social link.");
+            .WithDescription("Updates a partnership showcase entry's social link.")
+            .ProducesEnveloped();
     }
 
-    private static async Task<IResult> Handle(Guid id, [FromBody] UpdatePartnershipSocialLinkCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle(Guid id, [FromBody] UpdatePartnershipSocialLinkRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command with { Id = id });
+        var result = await sender.Send(request.ToCommand(id));
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record UpdatePartnershipSocialLinkRequest(string Name, string Url, string Icon, string? IconColor = null)
+{
+    public UpdatePartnershipSocialLinkCommand ToCommand(Guid id) => new(id, Name, Url, Icon, IconColor);
 }

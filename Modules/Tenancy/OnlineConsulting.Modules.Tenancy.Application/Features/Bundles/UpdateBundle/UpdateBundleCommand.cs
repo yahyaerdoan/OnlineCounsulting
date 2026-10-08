@@ -4,21 +4,17 @@ using OnlineConsulting.Modules.Tenancy.Application.Features.Bundles.Abstractions
 using OnlineConsulting.Modules.Tenancy.Application.Features.Bundles.Constants;
 using OnlineConsulting.Modules.Tenancy.Application.Features.ModuleOfferings.Abstractions;
 using OnlineConsulting.SharedKernel.Authorization;
-using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.Bundles.UpdateBundle;
 
 /// <summary>Unlike ModuleOffering/MembershipPlan, Bundle has no provider-side price of its own (see Bundle doc comment) - every field is freely editable.</summary>
 public record UpdateBundleCommand(Guid Id, string Name, List<string> ModuleKeys, bool IsPubliclyVisible) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [GlobalOperationClaims.SuperAdmin];
 
     /// <summary>Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.</summary>
-    [JsonIgnore]
     public bool AllowTenantBypass => false;
 }
 
@@ -36,8 +32,8 @@ public class UpdateBundleHandler(IBundleRepository repository, IModuleOfferingRe
         var moduleKeys = request.ModuleKeys.Distinct().ToList();
 
         var existingKeys = (await moduleOfferingRepository
-            .GetListAsync(m => moduleKeys.Contains(m.Key), orderBy: q => q.OrderBy(m => m.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken))
-            .Items.Select(m => m.Key).ToHashSet();
+            .GetAllAsync(m => moduleKeys.Contains(m.Key), cancellationToken: cancellationToken))
+            .Select(m => m.Key).ToHashSet();
 
         var unknownKeys = moduleKeys.Where(k => !existingKeys.Contains(k)).ToList();
 
@@ -50,7 +46,7 @@ public class UpdateBundleHandler(IBundleRepository repository, IModuleOfferingRe
         bundle.ModuleKeys = moduleKeys;
         bundle.IsPubliclyVisible = request.IsPubliclyVisible;
 
-        _ = await repository.UpdateAsync(bundle);
+        _ = await repository.UpdateAsync(bundle, cancellationToken: cancellationToken);
 
         return Result.Success("Bundle updated successfully.");
     }

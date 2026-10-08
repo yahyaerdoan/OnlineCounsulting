@@ -10,16 +10,22 @@ public class CreateInvite : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/auth/invites", Handle)
+        _ = app.MapPost("/auth/invites", Handle)
             .WithTags("Identity/Auth")
             .RequireAuthorization()
             .WithName("CreateInvite")
-            .WithDescription("Invites a new teammate into the caller's own tenant by email.");
+            .WithDescription("Invites a new teammate into the caller's own tenant by email.")
+            .ProducesEnveloped(StatusCodes.Status201Created);
     }
 
-    private static async Task<IResult> Handle([FromBody] CreateInviteCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] CreateInviteRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command);
+        var result = await sender.Send(request.ToCommand());
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record CreateInviteRequest(string Email, string? RoleName = null)
+{
+    public CreateInviteCommand ToCommand() => new(Email, RoleName);
 }

@@ -11,16 +11,22 @@ public class AcceptInvite : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/auth/invites/accept", Handle)
+        _ = app.MapPost("/auth/invites/accept", Handle)
             .WithTags("Identity/Auth")
             .RequireRateLimiting(ServiceRegistration.AuthRateLimiterPolicy)
             .WithName("AcceptInvite")
-            .WithDescription("Accepts a teammate invite and creates the invited person's account.");
+            .WithDescription("Accepts a teammate invite and creates the invited person's account.")
+            .ProducesEnveloped(StatusCodes.Status201Created);
     }
 
-    private static async Task<IResult> Handle([FromBody] AcceptInviteCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] AcceptInviteRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command);
+        var result = await sender.Send(request.ToCommand());
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record AcceptInviteRequest(string Token, string FirstName, string LastName, string Password, string? PhoneNumber = null)
+{
+    public AcceptInviteCommand ToCommand() => new(Token, FirstName, LastName, Password, PhoneNumber);
 }

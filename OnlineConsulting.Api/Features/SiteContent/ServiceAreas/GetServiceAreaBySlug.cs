@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.SiteContent.Application.Features.ServiceAreas.Contracts;
 using OnlineConsulting.Modules.SiteContent.Application.Features.ServiceAreas.GetServiceAreaBySlug;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -9,10 +10,11 @@ public class GetServiceAreaBySlug : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/site-content/service-areas/{slug}", Handle)
+        _ = app.MapGet("/site-content/service-areas/by-slug/{slug}", Handle)
             .WithTags("SiteContent/ServiceAreas")
             .WithName("GetServiceAreaBySlug")
-            .WithDescription("Returns a single service-area landing page by slug. Public - no login required.");
+            .WithDescription("Returns a single service-area landing page by slug. Public - no login required.")
+            .ProducesEnveloped<ServiceAreaResponse>();
     }
 
     private static async Task<IResult> Handle(string slug, ISender sender, HttpContext httpContext)

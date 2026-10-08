@@ -7,14 +7,12 @@ using OnlineConsulting.Modules.Scheduling.Domain;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using ResultHandler.Functional;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Scheduling.Application.Features.AppointmentMediaItems.AddAppointmentMediaItem;
 
 /// <summary>UserId comes from the authenticated caller, never the client; filtering by it makes a stranger's appointment id look like a nonexistent one.</summary>
 public record AddAppointmentMediaItemCommand(Guid UserId, Guid AppointmentId, Guid MediaAssetId, int DisplayOrder = 0) : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [];
 }
 
@@ -36,7 +34,7 @@ public class AddAppointmentMediaItemHandler(IAppointmentMediaItemRepository medi
             DisplayOrder = request.DisplayOrder,
         };
 
-        _ = await mediaItemRepository.AddAsync(entity);
+        _ = await mediaItemRepository.AddAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Created(entity.Id, "Appointment media item added successfully.");
     }

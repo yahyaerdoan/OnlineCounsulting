@@ -11,11 +11,12 @@ public class MarkInvoicePaid : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/invoices/admin/{id:guid}/mark-paid", Handle)
+        _ = app.MapPost("/invoices/admin/{id:guid}/mark-paid", Handle)
             .WithTags("Commerce/Invoices")
             .RequireAuthorization()
             .WithName("MarkInvoicePaid")
-            .WithDescription("Records an offline payment (Cash, Check or Card taken on site) and emails the customer a receipt (staff).");
+            .WithDescription("Records an offline payment (Cash, Check or Card taken on site) and emails the customer a receipt (staff).")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, MarkInvoicePaidRequest? body, ISender sender, HttpContext httpContext)

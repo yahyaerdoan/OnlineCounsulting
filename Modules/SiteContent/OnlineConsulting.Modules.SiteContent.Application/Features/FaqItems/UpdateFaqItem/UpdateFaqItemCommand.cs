@@ -4,14 +4,12 @@ using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.FaqItems.Abstractions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.SiteContent.Application.Features.FaqItems.UpdateFaqItem;
 
 public record UpdateFaqItemCommand(Guid Id, Guid ServiceId, string Question, string Answer, int DisplayOrder = 0)
     : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Update];
 }
 
@@ -30,7 +28,7 @@ public class UpdateFaqItemHandler(IFaqItemRepository repository) : IRequestHandl
         entity.Answer = request.Answer;
         entity.DisplayOrder = request.DisplayOrder;
 
-        _ = await repository.UpdateAsync(entity);
+        _ = await repository.UpdateAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Success("FAQ item updated successfully.");
     }

@@ -1,14 +1,13 @@
-﻿using Core.SecurityLayer.Extensions;
-using MediatR;
-using Microsoft.AspNetCore.Http;
+﻿using MediatR;
 using OnlineConsulting.SharedKernel.Authorization;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.Core.Abstractions;
 using ResultHandler.Functional;
 
 namespace OnlineConsulting.SharedKernel.Tenancy;
 
 /// <summary>Global pipeline gate on whether the caller's tenant is allowed to use the app; IBypassesTenantStatusCheck opts specific commands out.</summary>
-public class TenantStatusCheckBehavior<TRequest, TResponse>(ITenantProvider tenantProvider, ITenantStatusReader tenantStatusReader, IHttpContextAccessor httpContextAccessor) : IPipelineBehavior<TRequest, TResponse>
+public class TenantStatusCheckBehavior<TRequest, TResponse>(ITenantProvider tenantProvider, ITenantStatusReader tenantStatusReader, ICurrentUserAccessor currentUserAccessor) : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>
     where TResponse : IOperationResult, IResultFailureFactory<TResponse>
 {
@@ -26,9 +25,7 @@ public class TenantStatusCheckBehavior<TRequest, TResponse>(ITenantProvider tena
             return await next(cancellationToken);
         }
 
-        var roles = httpContextAccessor.HttpContext?.User.ClaimRoles() ?? [];
-
-        if (roles.Contains(GlobalOperationClaims.SuperAdmin))
+        if (currentUserAccessor.IsInRole(GlobalOperationClaims.SuperAdmin))
         {
             return await next(cancellationToken);
         }

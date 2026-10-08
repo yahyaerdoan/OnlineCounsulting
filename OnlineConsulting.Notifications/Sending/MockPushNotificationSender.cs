@@ -23,5 +23,3 @@ public class MockPushNotificationSender(ILogger<MockPushNotificationSender> logg
         return Task.CompletedTask;
     }
 }
-
-public record SentPushNotification(Guid UserId, string Title, string Body, IDictionary<string, string>? Data, DateTimeOffset SentAt);

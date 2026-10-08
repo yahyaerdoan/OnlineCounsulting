@@ -1,6 +1,9 @@
-﻿using Core.CrossCuttingConcernLayer.Loggings.Serilogs.Loggers;
+﻿using Asp.Versioning;
+using Core.CrossCuttingConcernLayer.Loggings.Serilogs.Loggers;
 using Core.CrossCuttingConcernLayer.Loggings.Serilogs.Services;
+using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
+using OnlineConsulting.Api.Common;
 using OnlineConsulting.SharedKernel.DependencyInjection;
 using System.Threading.RateLimiting;
 
@@ -75,6 +78,17 @@ public static class ServiceRegistration
 
     private static void AddApiOpenApi(this IServiceCollection services)
     {
+        _ = services.AddApiVersioning(options =>
+        {
+            options.DefaultApiVersion = ApiVersions.V1;
+            options.ReportApiVersions = true;
+            options.ApiVersionReader = new UrlSegmentApiVersionReader();
+        }).AddApiExplorer(options =>
+        {
+            options.GroupNameFormat = "'v'V";
+            options.SubstituteApiVersionInUrl = true;
+        });
+
         _ = services.AddOpenApi("v1", options =>
         {
             _ = options.AddDocumentTransformer((document, _, _) =>
@@ -105,6 +119,8 @@ public static class ServiceRegistration
             });
 
             _ = options.AddOperationTransformer<AuthorizeOperationTransformer>();
+            _ = options.AddSchemaTransformer<WireSchemaTransformer>();
+            options.CreateSchemaReferenceId = type => OpenApiOptions.CreateDefaultSchemaReferenceId(type)?.Replace("[]", "Array", StringComparison.Ordinal);
         });
     }
 }

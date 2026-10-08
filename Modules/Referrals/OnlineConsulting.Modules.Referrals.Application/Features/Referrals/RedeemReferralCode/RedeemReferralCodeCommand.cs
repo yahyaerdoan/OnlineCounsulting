@@ -3,18 +3,15 @@ using MediatR;
 using OnlineConsulting.Modules.Referrals.Application.Common;
 using OnlineConsulting.Modules.Referrals.Application.Features.ReferralCodes.Abstractions;
 using OnlineConsulting.Modules.Referrals.Application.Features.Referrals.Abstractions;
-using OnlineConsulting.Modules.Referrals.Application.Features.Referrals.Constants;
 using OnlineConsulting.Modules.Referrals.Domain;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Referrals.Application.Features.Referrals.RedeemReferralCode;
 
 /// <summary>A user can redeem at most one referral code, ever - enforced here (not just at signup) regardless of when they first hear about the program.</summary>
 public record RedeemReferralCodeCommand(Guid ReferredUserId, string Code) : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [];
 }
 
@@ -41,15 +38,9 @@ public class RedeemReferralCodeHandler(IReferralRepository referralRepository, I
             return Result.Conflict<Guid>(ReferralsMessages.AlreadyReferred);
         }
 
-        var referral = new Referral
-        {
-            ReferrerUserId = referralCode.UserId,
-            ReferredUserId = request.ReferredUserId,
-            Code = request.Code,
-            Status = ReferralStatuses.Pending,
-        };
+        var referral = Referral.Create(referralCode.UserId, request.ReferredUserId, request.Code);
 
-        _ = await referralRepository.AddAsync(referral);
+        _ = await referralRepository.AddAsync(referral, cancellationToken: cancellationToken);
 
         return Result.Created(referral.Id, "Referral code redeemed successfully.");
     }

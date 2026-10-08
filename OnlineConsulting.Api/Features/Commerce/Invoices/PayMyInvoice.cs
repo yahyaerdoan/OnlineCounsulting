@@ -1,7 +1,8 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.Contracts;
 using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.PayInvoice;
-using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
 using ResultHandler.Functional;
 
@@ -11,15 +12,15 @@ public class PayMyInvoice : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/invoices/{id:guid}/pay", Handle)
+        _ = app.MapPost("/invoices/{id:guid}/pay", Handle)
             .WithTags("Commerce/Invoices")
             .RequireAuthorization()
             .WithName("PayMyInvoice")
-            .WithDescription("Starts the card payment for one of the current user's open invoices; returns a client secret to confirm, or Paid when it settled at once.");
+            .WithDescription("Starts the card payment for one of the current user's open invoices; returns a client secret to confirm, or Paid when it settled at once.")
+            .ProducesEnveloped<PayInvoiceResult>();
     }
 
-    private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)
-        => (await sender.Send(new GetCurrentUserQuery())
-                .BindAsync(user => sender.Send(new PayInvoiceCommand(id, user.Id))))
+    private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, Guid id, ISender sender, HttpContext httpContext)
+        => (await sender.Send(new PayInvoiceCommand(id, currentUser.RequiredId())))
             .ToEnvelopedResult(httpContext);
 }

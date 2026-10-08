@@ -1,0 +1,14 @@
+{
+  "EquipmentItemResponse": [
+    "id: Guid",
+    "userId: Guid",
+    "type: string",
+    "brand: string?",
+    "model: string?",
+    "serialNumber: string?",
+    "installDate: DateTimeOffset?",
+    "warrantyExpiresAt: DateTimeOffset?",
+    "notes: string?",
+    "_links: LinkCollection?"
+  ]
+}

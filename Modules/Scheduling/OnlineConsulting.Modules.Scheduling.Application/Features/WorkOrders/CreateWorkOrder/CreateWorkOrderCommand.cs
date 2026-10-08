@@ -1,34 +1,40 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
-using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Scheduling.Application.Common;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Abstractions;
-using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Constants;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Rules;
 using OnlineConsulting.Modules.Scheduling.Application.Features.WorkOrders.Abstractions;
 using OnlineConsulting.Modules.Scheduling.Application.Features.WorkOrders.Rules;
 using OnlineConsulting.Modules.Scheduling.Domain;
 using OnlineConsulting.SharedKernel.Billing;
 using OnlineConsulting.SharedKernel.Catalog;
+using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using ResultHandler.Functional;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Scheduling.Application.Features.WorkOrders.CreateWorkOrder;
 
-/// <summary>Recording a WorkOrder is what completes the Appointment - no separate CompleteAppointment command, so the two stay in sync; hence ITransactionAddRequest.
+/// <summary>Recording a WorkOrder is what completes the Appointment - no separate CompleteAppointment command, so the two stay in sync; hence ISchedulingTransactionRequest, ICommerceTransactionRequest.
 /// Charges become the customer's invoice; none means the visit isn't billed (e.g. warranty work).</summary>
-public record CreateWorkOrderCommand(Guid AppointmentId, Guid TechnicianUserId, string? PartsUsed, string? TechnicianNotes, DateTimeOffset? CompletedAt, Guid? EquipmentId = null,
-    IReadOnlyList<WorkOrderChargeInput>? Charges = null)
-    : IRequest<OperationDataResult<Guid>>, ISecureAddRequest, ITransactionAddRequest
+public record CreateWorkOrderCommand(Guid AppointmentId,
+                                     Guid TechnicianUserId,
+                                     string? PartsUsed,
+                                     string? TechnicianNotes,
+                                     DateTimeOffset? CompletedAt,
+                                     Guid? EquipmentId = null,
+                                     IReadOnlyList<WorkOrderChargeInput>? Charges = null)
+    : IRequest<OperationDataResult<Guid>>, ISecureAddRequest, ISchedulingTransactionRequest
 {
-    [JsonIgnore]
     public string[] Roles => [SchedulingOperationClaims.Admin, SchedulingOperationClaims.Write, SchedulingOperationClaims.Add];
 }
 
-public class CreateWorkOrderHandler(IWorkOrderRepository workOrderRepository, IAppointmentRepository appointmentRepository, IAppointmentNotifier notifier,
-    IServiceInvoiceIssuer invoiceIssuer, IServiceCatalogReader catalogReader) : IRequestHandler<CreateWorkOrderCommand, OperationDataResult<Guid>>
+public class CreateWorkOrderHandler(IWorkOrderRepository workOrderRepository,
+                                    IAppointmentRepository appointmentRepository,
+                                    IAppointmentNotifier notifier,
+                                    IServiceInvoiceIssuer invoiceIssuer,
+                                    IServiceCatalogReader catalogReader)
+    : IRequestHandler<CreateWorkOrderCommand, OperationDataResult<Guid>>
 {
     public async Task<OperationDataResult<Guid>> Handle(CreateWorkOrderCommand request, CancellationToken cancellationToken)
     {
@@ -51,21 +57,17 @@ public class CreateWorkOrderHandler(IWorkOrderRepository workOrderRepository, IA
             return WorkOrderBusinessRules.WorkOrderAlreadyExistsForAppointment().ToErrorDataResult<Guid>();
         }
 
-        var workOrder = new WorkOrder
+        if (appointment.IsClosed)
         {
-            AppointmentId = request.AppointmentId,
-            TechnicianUserId = request.TechnicianUserId,
-            PartsUsed = request.PartsUsed,
-            TechnicianNotes = request.TechnicianNotes,
-            CompletedAt = request.CompletedAt ?? DateTimeOffset.UtcNow,
-            EquipmentId = request.EquipmentId,
-        };
+            return Result.Conflict<Guid>(SchedulingMessages.AppointmentAlreadyClosed);
+        }
 
-        _ = await workOrderRepository.AddAsync(workOrder);
+        var workOrder = WorkOrder.RecordFor(appointment, request.TechnicianUserId, request.PartsUsed, request.TechnicianNotes,
+            request.CompletedAt ?? DateTimeOffset.UtcNow, request.EquipmentId);
 
-        appointment.Status = AppointmentStatuses.Completed;
+        _ = await workOrderRepository.AddAsync(workOrder, cancellationToken: cancellationToken);
 
-        _ = await appointmentRepository.UpdateAsync(appointment);
+        _ = await appointmentRepository.UpdateAsync(appointment, cancellationToken: cancellationToken);
 
         await notifier.CompletedAsync(appointment, cancellationToken);
 

@@ -7,19 +7,15 @@ using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.Payments;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
-using OrderPaymentStatuses = OnlineConsulting.Modules.Commerce.Application.Features.Orders.Constants.PaymentStatuses;
 
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Orders.RefundOrder;
 
-/// <summary>Amount null means a full refund; gateway is resolved by Order.PaymentProvider, not the app's currently-active provider, since they may differ.</summary>
+/// <summary>Refunds a paid order through the gateway that took the payment; a null <c>Amount</c> refunds in full.</summary>
 public record RefundOrderCommand(Guid OrderId, decimal? Amount = null) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [CommerceOperationClaims.Admin, CommerceOperationClaims.Write, GlobalOperationClaims.SuperAdmin];
 }
 
-/// <summary>Also emails and notifies the customer that the refund is on its way.</summary>
 public class RefundOrderHandler(IOrderRepository orderRepository, IServiceProvider serviceProvider, IOrderNotifier notifier) : IRequestHandler<RefundOrderCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(RefundOrderCommand request, CancellationToken cancellationToken)
@@ -31,7 +27,7 @@ public class RefundOrderHandler(IOrderRepository orderRepository, IServiceProvid
             return Result.NotFound($"Order {request.OrderId} was not found.");
         }
 
-        if (order.PaymentStatus != OrderPaymentStatuses.Paid)
+        if (!order.CanBeRefunded)
         {
             return Result.Conflict($"Order {request.OrderId} cannot be refunded from payment status '{order.PaymentStatus}' - only a paid order can be refunded.");
         }
@@ -56,9 +52,9 @@ public class RefundOrderHandler(IOrderRepository orderRepository, IServiceProvid
             return failure;
         }
 
-        order.PaymentStatus = OrderPaymentStatuses.Refunded;
+        order.Refund();
 
-        _ = await orderRepository.UpdateAsync(order);
+        _ = await orderRepository.UpdateAsync(order, cancellationToken: cancellationToken);
 
         await notifier.RefundedAsync(order, request.Amount, cancellationToken);
 

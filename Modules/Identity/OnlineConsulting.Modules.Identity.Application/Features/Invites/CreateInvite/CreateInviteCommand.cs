@@ -1,12 +1,9 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
-using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
 using Core.SecurityLayer.Encryptions;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using OnlineConsulting.Modules.Identity.Application.Common.Templates;
-using OnlineConsulting.Modules.Identity.Application.Features.Auth;
 using OnlineConsulting.Modules.Identity.Application.Features.Invites.Abstractions;
 using OnlineConsulting.Modules.Identity.Application.Features.Invites.Constants;
 using OnlineConsulting.Modules.Identity.Domain;
@@ -15,20 +12,19 @@ using OnlineConsulting.SharedKernel.CurrentUser;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
 using OnlineConsulting.SharedKernel.Tenancy;
+using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Identity.Application.Features.Invites.CreateInvite;
 
 /// <summary>Invites a teammate into the caller's own tenant. TenantId comes from the JWT, never the client. RoleName defaults to Member; SuperAdmin is rejected.</summary>
-public record CreateInviteCommand(string Email, string? RoleName = null) : IRequest<OperationResult>, ISecureAddRequest, ITransactionAddRequest
+public record CreateInviteCommand(string Email, string? RoleName = null) : IRequest<OperationResult>, ISecureAddRequest, IIdentityTransactionRequest
 {
-    [JsonIgnore]
     public string[] Roles => [InvitesOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, InvitesOperationClaims.Add];
 }
 
-public class CreateInviteHandler(IInviteRepository inviteRepository, RoleManager<Role> roleManager, UserManager<User> userManager, ITenantProvider tenantProvider, ICurrentUserAccessor currentUserAccessor, IEmailOutboxWriter<IIdentityOutboxModule> outboxWriter, IEmailTemplate<InviteEmailModel> inviteTemplate, IOptions<AuthEmailOptions> emailOptions)
+public class CreateInviteHandler(IInviteRepository inviteRepository, RoleManager<Role> roleManager, UserManager<User> userManager, ITenantProvider tenantProvider, ICurrentUserAccessor currentUserAccessor, IEmailOutboxWriter<IIdentityOutboxModule> outboxWriter, IEmailTemplate<InviteEmailModel> inviteTemplate, ITenantOriginReader originReader)
     : IRequestHandler<CreateInviteCommand, OperationResult>
 {
     private const int _inviteValidityDays = 7;
@@ -66,22 +62,16 @@ public class CreateInviteHandler(IInviteRepository inviteRepository, RoleManager
             ? parsedUserId
             : throw new InvalidOperationException("Authenticated request is missing a valid user id claim.");
 
-        var invite = new Invite
-        {
-            TenantId = tenantId,
-            Email = request.Email,
-            Token = SecureTokenGenerator.GenerateUrlSafeToken(),
-            RoleName = role.Name ?? requestedRoleName,
-            ExpiresAt = DateTime.UtcNow.AddDays(_inviteValidityDays),
-            InvitedByUserId = invitedByUserId,
-        };
+        var invite = Invite.Create(tenantId, request.Email, SecureTokenGenerator.GenerateUrlSafeToken(), role.Name ?? requestedRoleName,
+            DateTime.UtcNow.AddDays(_inviteValidityDays), invitedByUserId);
 
-        var inviteUrl = $"{emailOptions.Value.ClientOrigin}/accept-invite?token={Uri.EscapeDataString(invite.Token)}";
+        var origin = await originReader.GetOriginAsync(tenantId, cancellationToken);
+        var inviteUrl = $"{origin}/accept-invite?token={Uri.EscapeDataString(invite.Token)}";
         var inviteModel = new InviteEmailModel(inviteUrl);
 
         await outboxWriter.EnqueueAsync(invite.Email, inviteTemplate.Subject(inviteModel), inviteTemplate.Build(inviteModel), sourceReference: $"Invite:{invite.Id}", cancellationToken: cancellationToken);
 
-        _ = await inviteRepository.AddAsync(invite);
+        _ = await inviteRepository.AddAsync(invite, cancellationToken: cancellationToken);
 
         return Result.Created("The invite has been sent.");
     }

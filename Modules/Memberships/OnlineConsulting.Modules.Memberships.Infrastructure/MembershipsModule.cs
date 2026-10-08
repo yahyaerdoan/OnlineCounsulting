@@ -1,4 +1,6 @@
-﻿using FluentValidation;
+﻿using Core.ApplicationLayer.Pipelines.Transactions.Extensions;
+using Core.PersistenceLayer.Repositories.Auditing;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,13 +16,13 @@ using OnlineConsulting.Modules.Memberships.Infrastructure.Cleanup;
 using OnlineConsulting.Modules.Memberships.Infrastructure.Notifications;
 using OnlineConsulting.Modules.Memberships.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Memberships.Infrastructure.Repositories;
-using OnlineConsulting.SharedKernel.Auditing;
 using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.LiveUpdates;
 using OnlineConsulting.SharedKernel.Memberships;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Tenancy;
+using OnlineConsulting.SharedKernel.Transactions;
 
 namespace OnlineConsulting.Modules.Memberships.Infrastructure;
 
@@ -31,12 +33,13 @@ public static class MembershipsModule
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
         _ = services.AddScoped<TenantSaveChangesInterceptor>();
-        _ = services.AddScoped<AuditSaveChangesInterceptor>();
 
         _ = services.AddUserDataChangeRules(MembershipsUserDataChangeRules.Configure);
         _ = services.AddDbContext<MembershipsDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
             .AddInterceptors(serviceProvider.GetRequiredService<TenantSaveChangesInterceptor>(), serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>())
             .AddUserDataChangeInterceptors(serviceProvider));
+
+        _ = services.AddTransactionalDbContext<IMembershipsTransactionRequest, MembershipsDbContext>();
 
         _ = services.AddScoped<IMembershipPlanRepository, MembershipPlanRepository>();
         _ = services.AddScoped<ICustomerMembershipRepository, CustomerMembershipRepository>();

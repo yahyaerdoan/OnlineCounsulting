@@ -10,16 +10,22 @@ public class UpdateServiceArea : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/site-content/service-areas/{id:guid}", Handle)
+        _ = app.MapPut("/site-content/service-areas/{id:guid}", Handle)
             .WithTags("SiteContent/ServiceAreas")
             .RequireAuthorization()
             .WithName("UpdateServiceArea")
-            .WithDescription("Updates a service-area SEO landing page.");
+            .WithDescription("Updates a service-area SEO landing page.")
+            .ProducesEnveloped();
     }
 
-    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateServiceAreaCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateServiceAreaRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command with { Id = id });
+        var result = await sender.Send(request.ToCommand(id));
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record UpdateServiceAreaRequest(string Name, string State, string? IntroText, int DisplayOrder = 0)
+{
+    public UpdateServiceAreaCommand ToCommand(Guid id) => new(id, Name, State, IntroText, DisplayOrder);
 }

@@ -5,14 +5,12 @@ using OnlineConsulting.Modules.Referrals.Domain;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Security.Cryptography;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Referrals.Application.Features.ReferralCodes.GetOrCreateReferralCode;
 
 /// <summary>UserId is always resolved server-side from the authenticated caller, never trusted from the client.</summary>
 public record GetOrCreateReferralCodeCommand(Guid UserId) : IRequest<OperationDataResult<string>>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [];
 }
 
@@ -38,7 +36,7 @@ public class GetOrCreateReferralCodeHandler(IReferralCodeRepository repository) 
             return Result.InternalServerError<string>("Could not generate a unique referral code. Please try again.");
         }
 
-        _ = await repository.AddAsync(new ReferralCode { UserId = request.UserId, Code = code });
+        _ = await repository.AddAsync(new ReferralCode { UserId = request.UserId, Code = code }, cancellationToken: cancellationToken);
 
         return Result.Created(code, "Referral code created successfully.");
     }
@@ -58,11 +56,5 @@ public class GetOrCreateReferralCodeHandler(IReferralCodeRepository repository) 
         return null;
     }
 
-    private static string GenerateCode() => string.Create(_codeLength, 0, (span, _) =>
-    {
-        foreach (ref var c in span)
-        {
-            c = _alphabet[RandomNumberGenerator.GetInt32(_alphabet.Length)];
-        }
-    });
+    private static string GenerateCode() => RandomNumberGenerator.GetString(_alphabet, _codeLength);
 }

@@ -4,7 +4,6 @@ using OnlineConsulting.Modules.Scheduling.Application.Features.AppointmentMediaI
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Abstractions;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Contracts;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Rules;
-using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using ResultHandler.Functional;
@@ -27,8 +26,8 @@ public class GetAppointmentByIdHandler(IAppointmentRepository appointmentReposit
             return AppointmentBusinessRules.AppointmentNotFound(request.Id).ToErrorDataResult<AppointmentResponse>();
         }
 
-        var mediaItems = await mediaItemRepository.GetListAsync(m => m.AppointmentId == appointment.Id, orderBy: q => q.OrderBy(m => m.DisplayOrder), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+        var mediaItems = await mediaItemRepository.GetAllAsync(m => m.AppointmentId == appointment.Id, orderBy: q => q.OrderBy(m => m.DisplayOrder), cancellationToken: cancellationToken);
 
-        return Result.Success(AppointmentResponse.FromDomain(appointment, [.. mediaItems.Items.Select(AppointmentMediaItemResponse.FromDomain)]), "Appointment retrieved successfully.");
+        return Result.Success(AppointmentResponse.FromDomain(appointment, [.. mediaItems.Select(AppointmentMediaItemResponse.FromDomain)]), "Appointment retrieved successfully.");
     }
 }

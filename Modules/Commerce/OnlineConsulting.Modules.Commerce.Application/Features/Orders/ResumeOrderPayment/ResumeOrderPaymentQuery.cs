@@ -1,20 +1,15 @@
 ﻿using MediatR;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Abstractions;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Contracts;
+using OnlineConsulting.Modules.Commerce.Domain;
 using OnlineConsulting.SharedKernel.Payments;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using OrderPaymentStatuses = OnlineConsulting.Modules.Commerce.Application.Features.Orders.Constants.PaymentStatuses;
 using SharedPaymentStatuses = OnlineConsulting.SharedKernel.Payments.PaymentStatuses;
 
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Orders.ResumeOrderPayment;
 
-/// <summary>
-/// Re-fetches a PaymentClientSecret for an unpaid order, e.g. after a page reload - never creates a new charge.
-/// A null <c>PaymentClientSecret</c> in the result signals "already paid" (or still processing); a cancelled order fails outright
-/// since checkout never reserved a basket for it to resume. When the provider already reports the charge as succeeded but the
-/// webhook hasn't landed yet, the order is settled here, so the customer is never offered a second payment for it.
-/// </summary>
+/// <summary>Returns the existing payment's client secret for an unpaid order; null when it is already paid or still processing.</summary>
 public record ResumeOrderPaymentQuery(Guid OrderId, Guid UserId) : IRequest<OperationDataResult<CreateOrderResult>>;
 
 public class ResumeOrderPaymentHandler(IOrderRepository orderRepository, IPaymentGateway paymentGateway, IPublisher publisher) : IRequestHandler<ResumeOrderPaymentQuery, OperationDataResult<CreateOrderResult>>

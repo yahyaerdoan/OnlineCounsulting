@@ -1,7 +1,9 @@
+using Core.PersistenceLayer.Pagings.Paging;
 using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Identity.Application.Features.Notifications.Contracts;
 using OnlineConsulting.Modules.Identity.Application.Features.Notifications.GetMyNotifications;
-using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
 using ResultHandler.Functional;
 
@@ -11,15 +13,15 @@ public class GetMyNotifications : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/notifications", Handle)
+        _ = app.MapGet("/notifications", Handle)
             .WithTags("Identity/Notifications")
             .RequireAuthorization()
             .WithName("GetMyNotifications")
-            .WithDescription("Returns the current user's in-app notifications, newest first, paginated.");
+            .WithDescription("Returns the current user's in-app notifications, newest first, paginated.")
+            .ProducesEnveloped<Paginate<UserNotificationResponse>>();
     }
 
-    private static async Task<IResult> Handle(ISender sender, HttpContext httpContext, int? index = null, int? size = null)
-        => (await sender.Send(new GetCurrentUserQuery())
-                .BindAsync(user => sender.Send(new GetMyNotificationsQuery(user.Id, PageRequestFactory.Create(index, size)))))
+    private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, ISender sender, HttpContext httpContext, int? index = null, int? size = null)
+        => (await sender.Send(new GetMyNotificationsQuery(currentUser.RequiredId(), PageRequestFactory.Create(index, size))))
             .ToEnvelopedResult(httpContext);
 }

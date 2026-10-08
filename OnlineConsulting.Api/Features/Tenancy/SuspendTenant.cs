@@ -9,11 +9,12 @@ public class SuspendTenant : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/tenancy/admin/tenants/{tenantId:guid}/suspend", Handle)
+        _ = app.MapPost("/tenancy/admin/tenants/{tenantId:guid}/suspend", Handle)
             .WithTags("Tenancy")
             .RequireAuthorization()
             .WithName("SuspendTenant")
-            .WithDescription("Suspends a tenant, blocking its users from every protected endpoint (SuperAdmin).");
+            .WithDescription("Suspends a tenant, blocking its users from every protected endpoint (SuperAdmin).")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid tenantId, ISender sender, HttpContext httpContext)

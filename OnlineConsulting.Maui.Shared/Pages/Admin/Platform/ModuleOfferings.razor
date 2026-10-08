@@ -32,7 +32,7 @@ else
             <MudTd DataLabel="Price" Class="mud-table-cell-align-right">@CurrencyFormat.Format(offering.Price)</MudTd>
             <MudTd DataLabel="Actions">
                 <MudTooltip Text="Edit">
-                    <MudIconButton aria-label="Edit" Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" Size="Size.Small"
+                    <MudIconButton aria-label="Edit" Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" Size="Size.Small" Disabled="@(!offering.Can(LinkRels.Edit))"
                                    OnClick="@(() => Navigation.NavigateTo($"{AppRoutes.AdminHome}/platform/module-offerings/{offering.Id}/edit"))" />
                 </MudTooltip>
             </MudTd>

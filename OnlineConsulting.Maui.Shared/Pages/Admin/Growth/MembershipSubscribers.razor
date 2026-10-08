@@ -44,19 +44,19 @@
             </span>
         </MudTd>
         <MudTd DataLabel="Status"><StatusBadge Label="@StatusLabel(membership)" Kind="@StatusKind(membership)" /></MudTd>
-        <MudTd DataLabel="Member Since">@DateTimeFormat.FormatDate(membership.StartDate)</MudTd>
+        <MudTd DataLabel="Member Since">@BusinessTime.FormatDate(membership.StartDate)</MudTd>
         <MudTd DataLabel="@(membership.IsEnding || membership.Status == "Cancelled" ? "Ends" : "Renews")">
-            @(membership.RenewalDate is { } renewal ? DateTimeFormat.FormatDate(renewal) : "-")
+            @(membership.RenewalDate is { } renewal ? BusinessTime.FormatDate(renewal) : "-")
         </MudTd>
         <MudTd DataLabel="Actions" Class="cell-actions">
-            @if (membership.IsEnding)
+            @if (membership.Can(LinkRels.Reactivate))
             {
                 <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Success" StartIcon="@Icons.Material.Outlined.Replay"
                            OnClick="@(() => ReactivateAsync(membership))">Keep active</MudButton>
             }
             <MudTooltip Text="Cancel now">
                 <MudIconButton Icon="@Icons.Material.Outlined.Cancel" Color="Color.Error" Size="Size.Small" aria-label="Cancel now"
-                               Disabled="@(membership.Status == "Cancelled")" OnClick="@(() => CancelAsync(membership))" />
+                               Disabled="@(!membership.Can(LinkRels.Cancel))" OnClick="@(() => CancelAsync(membership))" />
             </MudTooltip>
         </MudTd>
     </RowTemplate>
@@ -127,7 +127,7 @@
             return;
         }
 
-        await RunAsync(ApiRoutes.Growth.CustomerMemberships.AdminReactivate(membership.Id));
+        await RunAsync(membership.Links.Find(LinkRels.Reactivate));
     }
 
     private async Task CancelAsync(CustomerMembershipResponse membership)
@@ -138,12 +138,17 @@
             return;
         }
 
-        await RunAsync(ApiRoutes.Growth.CustomerMemberships.AdminCancel(membership.Id));
+        await RunAsync(membership.Links.Find(LinkRels.Cancel));
     }
 
-    private async Task RunAsync(string route)
+    private async Task RunAsync(HalLink? link)
     {
-        var result = await ApiClient.PostAsync(route, new { });
+        if (link is null)
+        {
+            return;
+        }
+
+        var result = await ApiClient.FollowAsync(link, new { });
         if (!result.IsSuccessful)
         {
             Snackbar.ShowError(result.DisplayMessage);

@@ -1,0 +1,6 @@
+{
+  "LinkRelationResponse": [
+    "rel: string",
+    "description: string"
+  ]
+}

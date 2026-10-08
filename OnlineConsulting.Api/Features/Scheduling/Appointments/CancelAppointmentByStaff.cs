@@ -9,11 +9,12 @@ public class CancelAppointmentByStaff : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/appointments/admin/{id:guid}/cancel", Handle)
+        _ = app.MapPost("/appointments/admin/{id:guid}/cancel", Handle)
             .WithTags("Scheduling/Appointments")
             .RequireAuthorization()
             .WithName("CancelAppointmentByStaff")
-            .WithDescription("Cancels any pending or confirmed appointment (admin) and notifies the customer and the assigned technician.");
+            .WithDescription("Cancels any pending or confirmed appointment (admin) and notifies the customer and the assigned technician.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, CancelAppointmentByStaffRequest? body, ISender sender, HttpContext httpContext)

@@ -10,16 +10,22 @@ public class UpdateFaqItem : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/site-content/faq-items/{id:guid}", Handle)
+        _ = app.MapPut("/site-content/faq-items/{id:guid}", Handle)
             .WithTags("SiteContent/FaqItems")
             .RequireAuthorization()
             .WithName("UpdateFaqItem")
-            .WithDescription("Updates a service-specific FAQ item.");
+            .WithDescription("Updates a service-specific FAQ item.")
+            .ProducesEnveloped();
     }
 
-    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateFaqItemCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateFaqItemRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command with { Id = id });
+        var result = await sender.Send(request.ToCommand(id));
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record UpdateFaqItemRequest(Guid ServiceId, string Question, string Answer, int DisplayOrder = 0)
+{
+    public UpdateFaqItemCommand ToCommand(Guid id) => new(id, ServiceId, Question, Answer, DisplayOrder);
 }

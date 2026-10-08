@@ -9,11 +9,12 @@ public class DeleteFooterInfo : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapDelete("/api/site-content/footer-info/{id:guid}", Handle)
+        _ = app.MapDelete("/site-content/footer-info/{id:guid}", Handle)
             .WithTags("SiteContent/FooterInfo")
             .RequireAuthorization()
             .WithName("DeleteFooterInfo")
-            .WithDescription("Deletes a footer content block.");
+            .WithDescription("Deletes a footer content block.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

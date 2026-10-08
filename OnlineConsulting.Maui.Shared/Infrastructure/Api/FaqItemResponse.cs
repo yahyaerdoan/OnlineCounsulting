@@ -1,7 +1,9 @@
+using OnlineConsulting.Maui.Shared.Infrastructure.Hateoas;
+
 namespace OnlineConsulting.Maui.Shared.Infrastructure.Api;
 
-/// <summary>Mirrors POST /api/site-content/faq-items/query's response shape.</summary>
-public record FaqItemResponse(Guid Id, Guid ServiceId, string Question, string Answer, int DisplayOrder) : IQueryableFields
+/// <summary>Mirrors POST /api/v1/site-content/faq-items/query's response shape.</summary>
+public record FaqItemResponse(Guid Id, Guid ServiceId, string Question, string Answer, int DisplayOrder) : HalResource, IQueryableFields
 {
     public static string[] SearchFields => [nameof(Question), nameof(Answer)];
 }

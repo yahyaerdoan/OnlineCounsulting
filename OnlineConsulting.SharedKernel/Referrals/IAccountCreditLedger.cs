@@ -3,6 +3,7 @@ namespace OnlineConsulting.SharedKernel.Referrals;
 /// <summary>Cross-module access to a user's account-credit ledger, so a purchase can reserve credit before charging and reverse it if the charge fails, without referencing Referrals' types.</summary>
 public interface IAccountCreditLedger
 {
+    /// <summary>The credit the user can spend: every credit minus every debit.</summary>
     Task<decimal> GetBalanceAsync(Guid userId, CancellationToken cancellationToken = default);
 
     /// <summary>Net amount currently debited for <paramref name="sourceId"/>; zero when nothing is, or after a reversal.</summary>

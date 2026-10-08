@@ -44,17 +44,17 @@ else
             </MudTd>
             <MudTd DataLabel="Actions">
                 <MudTooltip Text="Edit">
-                    <MudIconButton aria-label="Edit" Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" Size="Size.Small"
+                    <MudIconButton aria-label="Edit" Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" Size="Size.Small" Disabled="@(!plan.Can(LinkRels.Edit))"
                                    OnClick="@(() => Navigation.NavigateTo($"{AppRoutes.AdminHome}/growth/memberships/{plan.Id}/edit"))" />
                 </MudTooltip>
-                @if (plan.IsActive)
+                @if (plan.Can(LinkRels.SetActive) && plan.IsActive)
                 {
                     <MudTooltip Text="Archive">
                         <MudIconButton aria-label="Archive" Icon="@Icons.Material.Outlined.Archive" Color="Color.Default" Size="Size.Small"
                                        OnClick="@(() => SetActiveAsync(plan, false))" />
                     </MudTooltip>
                 }
-                else
+                else if (plan.Can(LinkRels.SetActive))
                 {
                     <MudTooltip Text="Restore">
                         <MudIconButton aria-label="Restore" Icon="@Icons.Material.Outlined.Unarchive" Color="Color.Default" Size="Size.Small"
@@ -99,7 +99,12 @@ else
             return;
         }
 
-        var result = await ApiClient.PutAsync(ApiRoutes.Growth.MembershipPlans.SetActive(plan.Id, isActive), null);
+        if (plan.Links.Find(LinkRels.SetActive) is not { } setActive)
+        {
+            return;
+        }
+
+        var result = await ApiClient.FollowAsync(setActive.WithQuery("isActive", isActive ? "true" : "false"));
         if (!result.IsSuccessful)
         {
             Snackbar.ShowError(result.DisplayMessage);

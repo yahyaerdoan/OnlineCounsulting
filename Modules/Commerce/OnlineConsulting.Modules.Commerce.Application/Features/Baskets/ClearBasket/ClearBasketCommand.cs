@@ -1,35 +1,27 @@
-﻿using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
-using MediatR;
-using OnlineConsulting.Modules.Commerce.Application.Common;
+﻿using MediatR;
 using OnlineConsulting.Modules.Commerce.Application.Features.Baskets.Abstractions;
 using OnlineConsulting.Modules.Commerce.Application.Features.Baskets.Rules;
-using OnlineConsulting.SharedKernel.Persistence;
+using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Baskets.ClearBasket;
 
-/// <summary>Used both as a direct "empty my cart" endpoint and internally by checkout once a basket has been converted into an order.</summary>
-public record ClearBasketCommand(Guid? UserId, Guid? GuestId) : IRequest<OperationResult>, ITransactionAddRequest;
+/// <summary>Empties the caller's basket.</summary>
+public record ClearBasketCommand(Guid? UserId, Guid? GuestId) : IRequest<OperationResult>, ICommerceTransactionRequest;
 
-public class ClearBasketHandler(IBasketRepository basketRepository, IBasketItemRepository basketItemRepository)
-    : IRequestHandler<ClearBasketCommand, OperationResult>
+public class ClearBasketHandler(IBasketRepository basketRepository) : IRequestHandler<ClearBasketCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(ClearBasketCommand request, CancellationToken cancellationToken)
     {
-        var basket = await basketRepository.GetAsync(BasketOwnerLookup.Predicate(request.UserId, request.GuestId), cancellationToken: cancellationToken);
+        var basket = await basketRepository.GetForOwnerAsync(request.UserId, request.GuestId, cancellationToken: cancellationToken);
         if (basket is null)
         {
             return BasketBusinessRules.BasketNotFound();
         }
 
-        var items = await basketItemRepository.GetListAsync(i => i.BasketId == basket.Id, orderBy: q => q.OrderBy(i => i.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
-        foreach (var item in items.Items)
-        {
-            _ = await basketItemRepository.DeleteAsync(item);
-        }
-
-        await BasketTotalsCalculator.RecalculateAndSaveAsync(basket, basketItemRepository, basketRepository, cancellationToken);
+        basket.Clear();
+        _ = await basketRepository.UpdateAsync(basket, cancellationToken: cancellationToken);
 
         return Result.Success("Basket cleared successfully.");
     }

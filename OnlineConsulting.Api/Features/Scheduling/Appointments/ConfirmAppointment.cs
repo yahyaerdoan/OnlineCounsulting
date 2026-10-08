@@ -9,11 +9,12 @@ public class ConfirmAppointment : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/appointments/{id:guid}/confirm", Handle)
+        _ = app.MapPost("/appointments/{id:guid}/confirm", Handle)
             .WithTags("Scheduling/Appointments")
             .RequireAuthorization()
             .WithName("ConfirmAppointment")
-            .WithDescription("Tenant/admin approval of a pending appointment.");
+            .WithDescription("Tenant/admin approval of a pending appointment.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

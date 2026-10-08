@@ -10,16 +10,22 @@ public class UpdateBundle : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/tenancy/admin/bundles/{id:guid}", Handle)
+        _ = app.MapPut("/tenancy/admin/bundles/{id:guid}", Handle)
             .WithTags("Tenancy")
             .RequireAuthorization()
             .WithName("UpdateBundle")
-            .WithDescription("Updates a bundle's name, module keys and visibility (SuperAdmin).");
+            .WithDescription("Updates a bundle's name, module keys and visibility (SuperAdmin).")
+            .ProducesEnveloped();
     }
 
-    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateBundleCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateBundleRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command with { Id = id });
+        var result = await sender.Send(request.ToCommand(id));
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record UpdateBundleRequest(string Name, List<string> ModuleKeys, bool IsPubliclyVisible)
+{
+    public UpdateBundleCommand ToCommand(Guid id) => new(id, Name, ModuleKeys, IsPubliclyVisible);
 }

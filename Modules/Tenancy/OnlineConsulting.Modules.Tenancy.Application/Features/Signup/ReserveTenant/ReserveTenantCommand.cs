@@ -1,24 +1,22 @@
-﻿using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
+﻿using Core.CrossCuttingConcernLayer.Slugs;
 using MediatR;
 using OnlineConsulting.Modules.Tenancy.Application.Features.ModuleOfferings.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Signup.Constants;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Signup.Contracts;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.Abstractions;
-using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Domain;
 using OnlineConsulting.SharedKernel.Payments;
-using OnlineConsulting.SharedKernel.Persistence;
-using OnlineConsulting.SharedKernel.Slugs;
+using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.Signup.ReserveTenant;
 
 /// <summary>First half of self-service signup, public/no-auth - creates/reuses the Tenant + PendingPayment items so the free email-uniqueness check runs before the irreversible Stripe charge.</summary>
-public record ReserveTenantCommand(string CompanyName, List<string> ModuleKeys, string AdminEmail) : IRequest<OperationDataResult<ReserveTenantResult>>, ITransactionAddRequest;
+public record ReserveTenantCommand(string CompanyName, List<string> ModuleKeys, string AdminEmail) : IRequest<OperationDataResult<ReserveTenantResult>>, ITenancyTransactionRequest;
 
-public class ReserveTenantHandler(ITenantRepository tenantRepository, ITenantSubscriptionRepository tenantSubscriptionRepository, ITenantSubscriptionItemRepository tenantSubscriptionItemRepository, IModuleOfferingRepository moduleOfferingRepository, ISubscriptionGateway subscriptionGateway)
+public class ReserveTenantHandler(ITenantRepository tenantRepository, ITenantSubscriptionRepository tenantSubscriptionRepository, IModuleOfferingRepository moduleOfferingRepository, ISubscriptionGateway subscriptionGateway)
     : IRequestHandler<ReserveTenantCommand, OperationDataResult<ReserveTenantResult>>
 {
     public async Task<OperationDataResult<ReserveTenantResult>> Handle(ReserveTenantCommand request, CancellationToken cancellationToken)
@@ -30,9 +28,9 @@ public class ReserveTenantHandler(ITenantRepository tenantRepository, ITenantSub
             return Result.UnprocessableContent<ReserveTenantResult>(SignupMessages.MultipleModulesNotSupportedByProvider);
         }
 
-        var offerings = await moduleOfferingRepository.GetListAsync(predicate: m => requestedKeys.Contains(m.Key) && m.IsPubliclyVisible, orderBy: q => q.OrderBy(m => m.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+        var offerings = await moduleOfferingRepository.GetAllAsync(predicate: m => requestedKeys.Contains(m.Key) && m.IsPubliclyVisible, cancellationToken: cancellationToken);
 
-        var offeringsByKey = offerings.Items.ToDictionary(m => m.Key);
+        var offeringsByKey = offerings.ToDictionary(m => m.Key);
 
         var missingKeys = requestedKeys.Where(k => !offeringsByKey.ContainsKey(k)).ToList();
 
@@ -42,6 +40,7 @@ public class ReserveTenantHandler(ITenantRepository tenantRepository, ITenantSub
         }
 
         var selectedOfferings = requestedKeys.Select(k => offeringsByKey[k]).ToList();
+        var pricesByModuleKey = selectedOfferings.ToDictionary(o => o.Key, o => o.Price);
         var invalidOffering = selectedOfferings.FirstOrDefault(o => o.ProviderPriceId is null);
 
         if (invalidOffering is not null)
@@ -53,7 +52,6 @@ public class ReserveTenantHandler(ITenantRepository tenantRepository, ITenantSub
             .GetAsync(t => t.PrimaryContactEmail == request.AdminEmail && (t.Status == TenantStatuses.PendingPayment || t.Status == TenantStatuses.Failed), cancellationToken: cancellationToken);
 
         TenantSubscription tenantSubscription;
-        List<TenantSubscriptionItem> existingItems;
 
         if (tenant is null)
         {
@@ -70,65 +68,27 @@ public class ReserveTenantHandler(ITenantRepository tenantRepository, ITenantSub
                 return Result.Conflict<ReserveTenantResult>(SignupMessages.SlugAlreadyTaken);
             }
 
-            tenant = new Tenant
-            {
-                Name = request.CompanyName,
-                Slug = slug,
-                Status = TenantStatuses.PendingPayment,
-                PrimaryContactEmail = request.AdminEmail,
-            };
+            tenant = Tenant.Reserve(request.CompanyName, slug, request.AdminEmail);
+            tenantSubscription = TenantSubscription.Start(tenant.Id, DateTime.UtcNow);
+            tenantSubscription.SelectSignupModules(pricesByModuleKey, DateTimeOffset.UtcNow);
 
-            tenantSubscription = new TenantSubscription
-            {
-                TenantId = tenant.Id,
-                Status = TenantSubscriptionStatuses.PendingPayment,
-                StartDate = DateTime.UtcNow,
-            };
+            _ = await tenantRepository.AddAsync(tenant, cancellationToken: cancellationToken);
 
-            _ = await tenantRepository.AddAsync(tenant);
-
-            _ = await tenantSubscriptionRepository.AddAsync(tenantSubscription);
-
-            existingItems = [];
+            _ = await tenantSubscriptionRepository.AddAsync(tenantSubscription, cancellationToken: cancellationToken);
         }
         else
         {
-            tenantSubscription = await tenantSubscriptionRepository.GetAsync(s => s.TenantId == tenant.Id, cancellationToken: cancellationToken)
+            tenantSubscription = await tenantSubscriptionRepository.GetWithItemsAsync(s => s.TenantId == tenant.Id, cancellationToken: cancellationToken)
                 ?? throw new InvalidOperationException($"Tenant {tenant.Id} is pending/failed but has no TenantSubscription row.");
-
-            var existingItemsPage = await tenantSubscriptionItemRepository
-                .GetListAsync(predicate: i => i.TenantSubscriptionId == tenantSubscription.Id, orderBy: q => q.OrderBy(i => i.Id), size: RepositoryQuerySize.Unbounded, enableTracking: true, cancellationToken: cancellationToken);
-
-            existingItems = [.. existingItemsPage.Items];
 
             if (tenantSubscription.ProviderSubscriptionId is null)
             {
-                foreach (var dropped in existingItems.Where(i => !requestedKeys.Contains(i.ModuleKey)).ToList())
-                {
-                    _ = await tenantSubscriptionItemRepository.DeleteAsync(dropped);
-                    _ = existingItems.Remove(dropped);
-                }
-
-                tenantSubscription.Status = TenantSubscriptionStatuses.PendingPayment;
-                _ = await tenantSubscriptionRepository.UpdateAsync(tenantSubscription);
+                tenantSubscription.RestartSignup();
             }
-        }
 
-        var alreadyRecordedKeys = existingItems.Select(i => i.ModuleKey).ToHashSet();
+            tenantSubscription.SelectSignupModules(pricesByModuleKey, DateTimeOffset.UtcNow);
 
-        foreach (var offering in selectedOfferings.Where(o => !alreadyRecordedKeys.Contains(o.Key)))
-        {
-            var item = new TenantSubscriptionItem
-            {
-                TenantSubscriptionId = tenantSubscription.Id,
-                ModuleKey = offering.Key,
-                Status = TenantSubscriptionItemStatuses.Pending,
-                ProviderSubscriptionItemId = null,
-                PriceAtAddition = offering.Price,
-                AddedAt = DateTime.UtcNow,
-            };
-
-            _ = await tenantSubscriptionItemRepository.AddAsync(item);
+            _ = await tenantSubscriptionRepository.UpdateAsync(tenantSubscription, cancellationToken: cancellationToken);
         }
 
         return Result.Created(new ReserveTenantResult(tenant.Id), "Tenant reserved successfully.");

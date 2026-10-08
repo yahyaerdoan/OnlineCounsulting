@@ -9,11 +9,12 @@ public class RemoveServiceMediaItem : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapDelete("/api/services/media-items/{id:guid}", Handle)
+        _ = app.MapDelete("/services/media-items/{id:guid}", Handle)
             .WithTags("Services")
             .RequireAuthorization()
             .WithName("RemoveServiceMediaItem")
-            .WithDescription("Removes a photo or video from a service's gallery.");
+            .WithDescription("Removes a photo or video from a service's gallery.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

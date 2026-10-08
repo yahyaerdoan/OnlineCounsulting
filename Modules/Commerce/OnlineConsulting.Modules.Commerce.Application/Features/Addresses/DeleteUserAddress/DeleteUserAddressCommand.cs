@@ -3,13 +3,11 @@ using MediatR;
 using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.Abstractions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Addresses.DeleteUserAddress;
 
 public record DeleteUserAddressCommand(Guid Id, Guid UserId) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [];
 }
 
@@ -23,7 +21,7 @@ public class DeleteUserAddressHandler(IUserAddressRepository repository) : IRequ
             return Result.NotFound($"Address {request.Id} was not found.");
         }
 
-        _ = await repository.DeleteAsync(address);
+        _ = await repository.DeleteAsync(address, cancellationToken: cancellationToken);
 
         return Result.Success("Address deleted successfully.");
     }

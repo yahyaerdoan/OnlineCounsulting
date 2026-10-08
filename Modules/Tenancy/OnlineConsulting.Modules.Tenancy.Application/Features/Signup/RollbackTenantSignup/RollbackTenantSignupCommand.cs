@@ -1,10 +1,8 @@
 using MediatR;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.Abstractions;
-using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Domain;
 using OnlineConsulting.SharedKernel.Payments;
-using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
@@ -16,7 +14,7 @@ namespace OnlineConsulting.Modules.Tenancy.Application.Features.Signup.RollbackT
 public record RollbackTenantSignupCommand(Guid TenantId) : IRequest<OperationResult>;
 
 public class RollbackTenantSignupHandler(ITenantRepository tenantRepository, ITenantSubscriptionRepository tenantSubscriptionRepository,
-    ITenantSubscriptionItemRepository tenantSubscriptionItemRepository, ISubscriptionGateway subscriptionGateway)
+    ISubscriptionGateway subscriptionGateway)
     : IRequestHandler<RollbackTenantSignupCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(RollbackTenantSignupCommand request, CancellationToken cancellationToken)
@@ -28,7 +26,7 @@ public class RollbackTenantSignupHandler(ITenantRepository tenantRepository, ITe
             return Result.Success("Nothing to roll back.");
         }
 
-        var tenantSubscription = await tenantSubscriptionRepository.GetAsync(s => s.TenantId == tenant.Id, cancellationToken: cancellationToken);
+        var tenantSubscription = await tenantSubscriptionRepository.GetWithItemsAsync(s => s.TenantId == tenant.Id, cancellationToken: cancellationToken);
 
         if (tenantSubscription is not null)
         {
@@ -37,23 +35,13 @@ public class RollbackTenantSignupHandler(ITenantRepository tenantRepository, ITe
                 await subscriptionGateway.CancelAndRefundAsync(providerCustomerId, providerSubscriptionId, cancellationToken);
             }
 
-            tenantSubscription.ProviderSubscriptionId = null;
-            tenantSubscription.Status = TenantSubscriptionStatuses.Cancelled;
-            _ = await tenantSubscriptionRepository.UpdateAsync(tenantSubscription);
-
-            var items = await tenantSubscriptionItemRepository.GetListAsync(i => i.TenantSubscriptionId == tenantSubscription.Id, orderBy: q => q.OrderBy(i => i.Id),
-                size: RepositoryQuerySize.Unbounded, enableTracking: true, cancellationToken: cancellationToken);
-            foreach (var item in items.Items)
-            {
-                item.ProviderSubscriptionItemId = null;
-                item.Status = TenantSubscriptionItemStatuses.Pending;
-                _ = await tenantSubscriptionItemRepository.UpdateAsync(item);
-            }
+            tenantSubscription.CancelSignup();
+            _ = await tenantSubscriptionRepository.UpdateAsync(tenantSubscription, cancellationToken: cancellationToken);
         }
 
-        tenant.Status = TenantStatuses.Failed;
+        tenant.FailSignup();
 
-        _ = await tenantRepository.UpdateAsync(tenant);
+        _ = await tenantRepository.UpdateAsync(tenant, cancellationToken: cancellationToken);
 
         return Result.Success("Tenant signup rolled back and the payment refunded.");
     }

@@ -1,7 +1,8 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Contracts;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.ResumeOrderPayment;
-using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
 using ResultHandler.Functional;
 
@@ -11,15 +12,15 @@ public class ResumeOrderPayment : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/orders/{id:guid}/resume-payment", Handle)
+        _ = app.MapGet("/orders/{id:guid}/resume-payment", Handle)
             .WithTags("Commerce/Orders")
             .RequireAuthorization()
             .WithName("ResumeOrderPayment")
-            .WithDescription("Re-fetches a fresh PaymentClientSecret for the current user's own still-unpaid order.");
+            .WithDescription("Re-fetches a fresh PaymentClientSecret for the current user's own still-unpaid order.")
+            .ProducesEnveloped<CreateOrderResult>();
     }
 
-    private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)
-        => (await sender.Send(new GetCurrentUserQuery())
-                .BindAsync(user => sender.Send(new ResumeOrderPaymentQuery(id, user.Id))))
+    private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, Guid id, ISender sender, HttpContext httpContext)
+        => (await sender.Send(new ResumeOrderPaymentQuery(id, currentUser.RequiredId())))
             .ToEnvelopedResult(httpContext);
 }

@@ -5,13 +5,11 @@ using OnlineConsulting.Modules.SiteContent.Application.Features.FooterInfos.Abst
 using OnlineConsulting.SharedKernel.Media;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.SiteContent.Application.Features.FooterInfos.UpdateFooterInfo;
 
 public record UpdateFooterInfoCommand(Guid Id, string ImageUrl, string Description, int DisplayOrder = 0, Dictionary<string, object>? Metadata = null) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Update];
 }
 
@@ -30,7 +28,7 @@ public class UpdateFooterInfoHandler(IFooterInfoRepository repository, IStorageS
         entity.DisplayOrder = request.DisplayOrder;
         entity.Metadata = MetadataSerializer.Serialize(request.Metadata);
 
-        _ = await repository.UpdateAsync(entity);
+        _ = await repository.UpdateAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Success("Footer info updated successfully.");
     }

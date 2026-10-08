@@ -9,11 +9,12 @@ public class DeleteMediaAsset : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapDelete("/api/media/{id:guid}", Handle)
+        _ = app.MapDelete("/media/{id:guid}", Handle)
             .WithTags("Media")
             .RequireAuthorization()
             .WithName("DeleteMediaAsset")
-            .WithDescription("Deletes a media asset and its underlying file.");
+            .WithDescription("Deletes a media asset and its underlying file.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

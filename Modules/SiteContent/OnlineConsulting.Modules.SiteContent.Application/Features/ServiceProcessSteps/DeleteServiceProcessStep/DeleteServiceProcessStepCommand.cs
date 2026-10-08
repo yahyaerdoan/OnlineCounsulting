@@ -4,13 +4,11 @@ using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.ServiceProcessSteps.Abstractions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.SiteContent.Application.Features.ServiceProcessSteps.DeleteServiceProcessStep;
 
 public record DeleteServiceProcessStepCommand(Guid Id) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Delete];
 }
 
@@ -24,7 +22,7 @@ public class DeleteServiceProcessStepHandler(IServiceProcessStepRepository repos
             return SiteContentBusinessRules.NotFound("Service process step", request.Id);
         }
 
-        _ = await repository.DeleteAsync(entity);
+        _ = await repository.DeleteAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Success("Service process step deleted successfully.");
     }

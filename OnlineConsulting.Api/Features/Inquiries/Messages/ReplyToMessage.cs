@@ -10,11 +10,12 @@ public class ReplyToMessage : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/inquiries/messages/{id:guid}/reply", Handle)
+        _ = app.MapPost("/inquiries/messages/{id:guid}/reply", Handle)
             .WithTags("Inquiries/Messages")
             .RequireAuthorization()
             .WithName("ReplyToMessage")
-            .WithDescription("Sends an admin reply to a submitted contact-form message. Admin only.");
+            .WithDescription("Sends an admin reply to a submitted contact-form message. Admin only.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, [FromBody] ReplyMessageBody body, ISender sender, HttpContext httpContext)

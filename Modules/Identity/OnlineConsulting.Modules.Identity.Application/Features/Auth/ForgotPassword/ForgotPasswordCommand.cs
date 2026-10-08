@@ -1,27 +1,28 @@
-﻿using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Options;
+using OnlineConsulting.Modules.Identity.Application.Common;
 using OnlineConsulting.Modules.Identity.Application.Common.Templates;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
+using OnlineConsulting.SharedKernel.Tenancy;
+using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Identity.Application.Features.Auth.ForgotPassword;
 
-public record ForgotPasswordCommand(string Email) : IRequest<OperationResult>, ITransactionAddRequest;
+public record ForgotPasswordCommand(string Email) : IRequest<OperationResult>, IIdentityTransactionRequest;
 
 /// <summary>Always returns the same success message whether or not the email exists, to prevent account enumeration.</summary>
-public class ForgotPasswordHandler(UserManager<User> userManager, IEmailOutboxWriter<IIdentityOutboxModule> outboxWriter, IEmailTemplate<ForgotPasswordEmailModel> template, IOptions<AuthEmailOptions> emailOptions)
+public class ForgotPasswordHandler(UserManager<User> userManager, IEmailOutboxWriter<IIdentityOutboxModule> outboxWriter, IEmailTemplate<ForgotPasswordEmailModel> template, ITenantProvider tenantProvider, ITenantOriginReader originReader)
     : IRequestHandler<ForgotPasswordCommand, OperationResult>
 {
     private const string _successMessage = "If an account exists for that email, a reset link has been sent.";
 
     public async Task<OperationResult> Handle(ForgotPasswordCommand request, CancellationToken cancellationToken)
     {
-        var user = await userManager.FindByEmailAsync(request.Email);
+        var user = await userManager.FindByEmailInTenantAsync(request.Email, tenantProvider.TenantId, cancellationToken);
 
         if (user is null)
         {
@@ -30,7 +31,8 @@ public class ForgotPasswordHandler(UserManager<User> userManager, IEmailOutboxWr
 
         var token = await userManager.GeneratePasswordResetTokenAsync(user);
 
-        var resetUrl = $"{emailOptions.Value.ClientOrigin}/reset-password?userId={user.Id}&token={Uri.EscapeDataString(token)}";
+        var origin = await originReader.GetOriginAsync(user.TenantId, cancellationToken);
+        var resetUrl = $"{origin}/reset-password?userId={user.Id}&token={Uri.EscapeDataString(token)}";
         var model = new ForgotPasswordEmailModel(user.FirstName, resetUrl);
 
         await outboxWriter.EnqueueAsync(user.Email ?? string.Empty, template.Subject(model), template.Build(model), sourceReference: $"User:{user.Id}", cancellationToken: cancellationToken);

@@ -5,13 +5,11 @@ using OnlineConsulting.Modules.SiteContent.Application.Features.Promotions.Abstr
 using OnlineConsulting.Modules.SiteContent.Domain;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.SiteContent.Application.Features.Promotions.CreatePromotion;
 
 public record CreatePromotionCommand(string Title, string Description, string? CtaText, string? CtaUrl, DateTimeOffset? ExpiresAt, int DisplayOrder = 0) : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Add];
 }
 
@@ -29,7 +27,7 @@ public class CreatePromotionHandler(IPromotionRepository repository) : IRequestH
             DisplayOrder = request.DisplayOrder,
         };
 
-        _ = await repository.AddAsync(entity);
+        _ = await repository.AddAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Created(entity.Id, "Promotion created successfully.");
     }

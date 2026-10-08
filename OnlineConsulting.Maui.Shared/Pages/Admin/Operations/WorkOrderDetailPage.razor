@@ -27,7 +27,7 @@ else if (_workOrder is not null)
             <tbody>
                 <tr><td>Technician</td><td>@_technicianLabel</td></tr>
                 <tr><td>Equipment</td><td>@_equipmentLabel</td></tr>
-                <tr><td>Completed At</td><td>@(_workOrder.CompletedAt is { } completedAt ? DateTimeFormat.FormatDateTime(completedAt) : "-")</td></tr>
+                <tr><td>Completed At</td><td>@(_workOrder.CompletedAt is { } completedAt ? BusinessTime.FormatDateTime(completedAt) : "-")</td></tr>
                 <tr><td>Parts Used</td><td>@(_workOrder.PartsUsed ?? "-")</td></tr>
                 <tr><td>Technician Notes</td><td>@(_workOrder.TechnicianNotes ?? "-")</td></tr>
             </tbody>
@@ -93,10 +93,8 @@ else if (_workOrder is not null)
 
         _workOrder = workOrderResult.ResultData;
 
-        var usersResult = await ApiClient.QueryAsync<PaginatedResponse<UserResponse>>(ApiRoutes.Paged(ApiRoutes.Users.All, 0, int.MaxValue), null);
-        var technician = usersResult.IsSuccessful && usersResult.ResultData is not null
-            ? usersResult.ResultData.Items.FirstOrDefault(u => u.Id == _workOrder.TechnicianUserId)
-            : null;
+        var technicianResult = await ApiClient.GetAsync<UserResponse>(ApiRoutes.Users.ById(_workOrder.TechnicianUserId));
+        var technician = technicianResult.IsSuccessful ? technicianResult.ResultData : null;
         _technicianLabel = technician is not null ? $"{technician.FirstName} {technician.LastName} ({technician.Email})" : _workOrder.TechnicianUserId.ToString();
 
         if (_workOrder.EquipmentId is { } equipmentId)

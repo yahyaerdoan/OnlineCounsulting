@@ -3,30 +3,36 @@ using System.Net.Http.Headers;
 
 namespace OnlineConsulting.Maui.Shared.Infrastructure.Api;
 
-/// <summary>Uploads a picked file via POST /api/media, then fetches its Url for immediate display - used by every dialog that lets an admin attach a cover/gallery image.</summary>
+/// <summary>Uploads a picked file via POST /api/v1/media, then fetches its Url for immediate display - used by every dialog that lets an admin attach a cover/gallery image.</summary>
 public static class MediaUploadHelper
 {
     private const long MaxFileSizeBytes = 10 * 1024 * 1024;
 
     public static async Task<ApiEnvelope<MediaAssetResponse>> UploadAsync(IApiClient apiClient, IBrowserFile file, string folder, CancellationToken cancellationToken = default)
     {
-        using var content = new MultipartFormDataContent();
         await using var stream = file.OpenReadStream(MaxFileSizeBytes, cancellationToken);
+        return await UploadAsync(apiClient, stream, file.Name, file.ContentType, folder, cancellationToken);
+    }
+
+    /// <summary>Uploads content prepared in memory, e.g. a logo after <see cref="LogoTrimmer"/> cropped it.</summary>
+    public static async Task<ApiEnvelope<MediaAssetResponse>> UploadAsync(IApiClient apiClient, Stream stream, string fileName, string contentType, string folder, CancellationToken cancellationToken = default)
+    {
+        using var content = new MultipartFormDataContent();
         using var streamContent = new StreamContent(stream);
-        streamContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
-        content.Add(streamContent, "file", file.Name);
+        streamContent.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+        content.Add(streamContent, "file", fileName);
         content.Add(new StringContent(folder), "folder");
 
         var uploadResult = await apiClient.PostFileAsync<Guid>(ApiRoutes.Media.Upload, content, cancellationToken);
         return !uploadResult.IsSuccessful
             ? new ApiEnvelope<MediaAssetResponse>(null, false, uploadResult.StatusCode, uploadResult.StatusMessage, uploadResult.Errors)
-            : await apiClient.GetAsync<MediaAssetResponse>($"/api/media/{uploadResult.ResultData}", cancellationToken);
+            : await apiClient.GetAsync<MediaAssetResponse>(ApiRoutes.Media.ById(uploadResult.ResultData), cancellationToken);
     }
 
     /// <summary>Resolves a MediaAsset id to its display Url - null if the asset is missing or the request fails.</summary>
     public static async Task<string?> GetUrlAsync(IApiClient apiClient, Guid mediaAssetId, CancellationToken cancellationToken = default)
     {
-        var result = await apiClient.GetAsync<MediaAssetResponse>($"/api/media/{mediaAssetId}", cancellationToken);
+        var result = await apiClient.GetAsync<MediaAssetResponse>(ApiRoutes.Media.ById(mediaAssetId), cancellationToken);
         return result.IsSuccessful ? MediaUrlResolver.Resolve(apiClient, result.ResultData?.Url) : null;
     }
 }

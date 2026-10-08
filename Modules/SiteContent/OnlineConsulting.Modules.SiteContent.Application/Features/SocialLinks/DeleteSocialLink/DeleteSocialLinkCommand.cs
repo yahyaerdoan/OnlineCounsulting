@@ -4,13 +4,11 @@ using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.SocialLinks.Abstractions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.SiteContent.Application.Features.SocialLinks.DeleteSocialLink;
 
 public record DeleteSocialLinkCommand(Guid Id) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Delete];
 }
 
@@ -24,7 +22,7 @@ public class DeleteSocialLinkHandler(ISocialLinkRepository repository) : IReques
             return SiteContentBusinessRules.NotFound("SocialLink", request.Id);
         }
 
-        _ = await repository.DeleteAsync(entity);
+        _ = await repository.DeleteAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Success("Social link deleted successfully.");
     }

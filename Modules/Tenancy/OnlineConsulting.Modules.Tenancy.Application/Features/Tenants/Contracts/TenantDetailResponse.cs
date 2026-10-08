@@ -1,4 +1,3 @@
-using Hateoas;
 using OnlineConsulting.Modules.Tenancy.Domain;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.Contracts;
@@ -13,10 +12,11 @@ public record TenantDetailResponse(
     string? SubscriptionStatus,
     DateTime? SubscriptionStartDate,
     DateTime? SubscriptionRenewalDate,
-    List<TenantSubscriptionItemSummary> Items) : LinkedRecord
+    List<TenantSubscriptionItemSummary> Items)
 {
-    public static TenantDetailResponse FromDomain(Tenant tenant, TenantSubscription? subscription, List<TenantSubscriptionItem> items) => new(
+    /// <summary>Lists the subscription's modules not removed yet; load it with its items.</summary>
+    public static TenantDetailResponse FromDomain(Tenant tenant, TenantSubscription? subscription) => new(
         tenant.Id, tenant.Name, tenant.Slug, tenant.Status, tenant.PrimaryContactEmail, tenant.OwnerUserId,
         subscription?.Status, subscription?.StartDate, subscription?.RenewalDate,
-        [.. items.Select(TenantSubscriptionItemSummary.FromDomain)]);
+        [.. (subscription?.Items ?? []).Select(TenantSubscriptionItemSummary.FromDomain)]);
 }

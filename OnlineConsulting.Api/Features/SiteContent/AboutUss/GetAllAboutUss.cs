@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.SiteContent.Application.Features.AboutUss.Contracts;
 using OnlineConsulting.Modules.SiteContent.Application.Features.AboutUss.GetAllAboutUss;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -9,10 +10,11 @@ public class GetAllAboutUss : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/site-content/about-us", Handle)
+        _ = app.MapGet("/site-content/about-us", Handle)
             .WithTags("SiteContent/AboutUs")
             .WithName("GetAllAboutUss")
-            .WithDescription("Returns the tenant's About Us content blocks. Public - no login required.");
+            .WithDescription("Returns the tenant's About Us content blocks. Public - no login required.")
+            .ProducesEnveloped<List<AboutUsResponse>>();
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext)

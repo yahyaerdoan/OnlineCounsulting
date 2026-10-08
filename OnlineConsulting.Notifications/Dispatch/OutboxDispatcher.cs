@@ -5,7 +5,11 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OnlineConsulting.Notifications.Persistence;
 using OnlineConsulting.Notifications.Sending;
+using OnlineConsulting.SharedKernel.Media;
 using OnlineConsulting.SharedKernel.Notifications;
+using OnlineConsulting.SharedKernel.Notifications.Templates;
+using OnlineConsulting.SharedKernel.Tenancy;
+using System.Net;
 using Polly;
 using Polly.Retry;
 
@@ -26,8 +30,9 @@ public class OutboxDispatcher(IServiceScopeFactory scopeFactory, IOptions<Outbox
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         var settings = options.Value;
+        using var timer = new PeriodicTimer(settings.PollInterval);
 
-        while (!stoppingToken.IsCancellationRequested)
+        do
         {
             try
             {
@@ -37,9 +42,8 @@ public class OutboxDispatcher(IServiceScopeFactory scopeFactory, IOptions<Outbox
             {
                 logger.LogError(ex, "Outbox dispatch cycle failed unexpectedly.");
             }
-
-            await Task.Delay(settings.PollInterval, stoppingToken);
         }
+        while (await timer.WaitForNextTickAsync(stoppingToken));
     }
 
     /// <summary>Sends run in parallel, but entity mutations are applied afterward on this thread since ChangeTracker isn't thread-safe.</summary>
@@ -57,11 +61,21 @@ public class OutboxDispatcher(IServiceScopeFactory scopeFactory, IOptions<Outbox
             return;
         }
 
+        var brandReader = scope.ServiceProvider.GetRequiredService<ITenantBrandReader>();
+        var mediaUrlReader = scope.ServiceProvider.GetRequiredService<IMediaAssetUrlReader>();
+        var brands = new Dictionary<Guid, (string Name, string Header)>();
+        foreach (var tenantId in due.Select(e => e.TenantId).Distinct())
+        {
+            var brand = await brandReader.GetAsync(tenantId, cancellationToken);
+            var logoUrl = brand.LogoMediaAssetId is Guid logoId ? await mediaUrlReader.GetPublicUrlAsync(logoId, cancellationToken) : null;
+            brands[tenantId] = (brand.Name, LogoHeader(logoUrl, brand.Name));
+        }
+
         var outcomes = new Exception?[due.Count];
 
         await Parallel.ForEachAsync(Enumerable.Range(0, due.Count),
             new ParallelOptions { MaxDegreeOfParallelism = settings.MaxConcurrentSends, CancellationToken = cancellationToken },
-            async (i, ct) => outcomes[i] = await SendAsync(due[i], emailSender, ct));
+            async (i, ct) => outcomes[i] = await SendAsync(due[i], brands[due[i].TenantId], emailSender, ct));
 
         for (var i = 0; i < due.Count; i++)
         {
@@ -71,11 +85,20 @@ public class OutboxDispatcher(IServiceScopeFactory scopeFactory, IOptions<Outbox
         _ = await context.SaveChangesAsync(cancellationToken);
     }
 
-    private async Task<Exception?> SendAsync(OutboxEmail email, IEmailSender emailSender, CancellationToken cancellationToken)
+    private static string LogoHeader(string? logoUrl, string brandName) => logoUrl is null
+        ? string.Empty
+        : $"""<p style="margin: 0 0 16px;"><img src="{WebUtility.HtmlEncode(logoUrl)}" alt="{WebUtility.HtmlEncode(brandName)}" style="max-height: 48px; max-width: 200px;" /></p>""";
+
+    private async Task<Exception?> SendAsync(OutboxEmail email, (string Name, string Header) brand, IEmailSender emailSender, CancellationToken cancellationToken)
     {
+        var subject = email.Subject.Replace(EmailLayout.BrandToken, brand.Name, StringComparison.Ordinal);
+        var htmlBody = email.HtmlBody
+            .Replace(EmailLayout.BrandHeaderToken, brand.Header, StringComparison.Ordinal)
+            .Replace(EmailLayout.BrandToken, WebUtility.HtmlEncode(brand.Name), StringComparison.Ordinal);
+
         try
         {
-            await _sendPipeline.ExecuteAsync(ct => new ValueTask(emailSender.SendAsync(email.To, email.Subject, email.HtmlBody, email.Cc, ct)), cancellationToken);
+            await _sendPipeline.ExecuteAsync(ct => new ValueTask(emailSender.SendAsync(email.To, subject, htmlBody, email.Cc, brand.Name, ct)), cancellationToken);
 
             return null;
         }

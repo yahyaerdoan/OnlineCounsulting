@@ -1,0 +1,64 @@
+{
+  "AuthTokensResponse": [
+    "userId: Guid",
+    "accessToken: string",
+    "refreshToken: string",
+    "accessTokenExpiresAt: DateTime"
+  ],
+  "CreateTenantAdminResult": [
+    "userId: Guid"
+  ],
+  "InviteResponse": [
+    "id: Guid",
+    "email: string",
+    "roleName: string",
+    "status: string",
+    "expiresAt: DateTime",
+    "createdDate: DateTimeOffset",
+    "_links: LinkCollection?"
+  ],
+  "RoleAssignmentResponse": [
+    "roleId: Guid",
+    "roleName: string",
+    "isAssigned: bool"
+  ],
+  "RolePermissionsResponse": [
+    "roleId: Guid",
+    "roleName: string",
+    "permissions: List<string>"
+  ],
+  "RoleResponse": [
+    "id: Guid",
+    "name: string",
+    "description: string?",
+    "_links: LinkCollection?"
+  ],
+  "UserNotificationResponse": [
+    "id: Guid",
+    "title: string",
+    "body: string",
+    "data: IReadOnlyDictionary<string, string>",
+    "createdAt: DateTimeOffset",
+    "isRead: bool",
+    "_links: LinkCollection?"
+  ],
+  "UserPermissionOverridesResponse": [
+    "rolePermissions: List<string>",
+    "deniedPermissions: List<string>"
+  ],
+  "UserResponse": [
+    "id: Guid",
+    "tenantId: Guid",
+    "userName: string",
+    "firstName: string",
+    "lastName: string",
+    "email: string",
+    "imageUrl: string?",
+    "isActive: bool",
+    "roles: IReadOnlyList<string>",
+    "permissions: IReadOnlyList<string>",
+    "createdDate: DateTimeOffset?",
+    "isSuperAdmin: bool",
+    "_links: LinkCollection?"
+  ]
+}

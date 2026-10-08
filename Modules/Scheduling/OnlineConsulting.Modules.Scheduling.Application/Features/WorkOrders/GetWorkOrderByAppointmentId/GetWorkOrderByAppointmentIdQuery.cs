@@ -16,13 +16,14 @@ public class GetWorkOrderByAppointmentIdHandler(IWorkOrderRepository workOrderRe
     public async Task<OperationDataResult<WorkOrderResponse>> Handle(GetWorkOrderByAppointmentIdQuery request, CancellationToken cancellationToken)
     {
         var workOrder = await workOrderRepository.GetAsync(w => w.AppointmentId == request.AppointmentId, cancellationToken: cancellationToken);
+
         if (workOrder is null)
         {
             return WorkOrderBusinessRules.WorkOrderNotFoundForAppointment(request.AppointmentId).ToErrorDataResult<WorkOrderResponse>();
         }
 
-        var mediaItems = await mediaItemRepository.GetListAsync(m => m.WorkOrderId == workOrder.Id, orderBy: q => q.OrderBy(m => m.Id), size: 100, cancellationToken: cancellationToken);
+        var mediaItems = await mediaItemRepository.GetAllAsync(m => m.WorkOrderId == workOrder.Id, cancellationToken: cancellationToken);
 
-        return Result.Success(WorkOrderResponse.FromDomain(workOrder, mediaItems.Items), "Work order retrieved successfully.");
+        return Result.Success(WorkOrderResponse.FromDomain(workOrder, mediaItems), "Work order retrieved successfully.");
     }
 }

@@ -1,7 +1,8 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
-using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
+using OnlineConsulting.Modules.Referrals.Application.Features.Referrals.Contracts;
 using OnlineConsulting.Modules.Referrals.Application.Features.Referrals.GetMyReferrals;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
 using ResultHandler.Functional;
 
@@ -11,15 +12,15 @@ public class GetMyReferrals : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/referrals/mine", Handle)
+        _ = app.MapGet("/referrals/mine", Handle)
             .WithTags("Referrals")
             .RequireAuthorization()
             .WithName("GetMyReferrals")
-            .WithDescription("Returns the referrals the current user has made as a referrer.");
+            .WithDescription("Returns the referrals the current user has made as a referrer.")
+            .ProducesEnveloped<List<ReferralResponse>>();
     }
 
-    private static async Task<IResult> Handle(ISender sender, HttpContext httpContext)
-        => (await sender.Send(new GetCurrentUserQuery())
-                .BindAsync(user => sender.Send(new GetMyReferralsQuery(user.Id))))
+    private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, ISender sender, HttpContext httpContext)
+        => (await sender.Send(new GetMyReferralsQuery(currentUser.RequiredId())))
             .ToEnvelopedResult(httpContext);
 }

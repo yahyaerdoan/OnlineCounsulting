@@ -4,13 +4,11 @@ using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.FaqItems.Abstractions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.SiteContent.Application.Features.FaqItems.DeleteFaqItem;
 
 public record DeleteFaqItemCommand(Guid Id) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Delete];
 }
 
@@ -24,7 +22,7 @@ public class DeleteFaqItemHandler(IFaqItemRepository repository) : IRequestHandl
             return SiteContentBusinessRules.NotFound("FaqItem", request.Id);
         }
 
-        _ = await repository.DeleteAsync(entity);
+        _ = await repository.DeleteAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Success("FAQ item deleted successfully.");
     }

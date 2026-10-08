@@ -10,11 +10,12 @@ public class RemoveModule : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapDelete("/api/tenancy/{tenantId:guid}/modules/{key}", Handle)
+        _ = app.MapDelete("/tenancy/{tenantId:guid}/modules/{key}", Handle)
             .WithTags("Tenancy")
             .RequireAuthorization()
             .WithName("RemoveModule")
-            .WithDescription("Removes a module from a tenant's subscription, prorated refund/credit for the remainder of the current period.");
+            .WithDescription("Removes a module from a tenant's subscription, prorated refund/credit for the remainder of the current period.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid tenantId, string key, ISender sender, HttpContext httpContext)

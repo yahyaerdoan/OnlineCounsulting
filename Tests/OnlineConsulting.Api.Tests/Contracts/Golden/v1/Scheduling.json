@@ -1,0 +1,55 @@
+{
+  "AppointmentMediaItemResponse": [
+    "id: Guid",
+    "mediaAssetId: Guid",
+    "displayOrder: int",
+    "_links: LinkCollection?"
+  ],
+  "AppointmentResponse": [
+    "id: Guid",
+    "userId: Guid",
+    "serviceId: Guid?",
+    "scheduledStart: DateTimeOffset",
+    "scheduledEnd: DateTimeOffset",
+    "status: string",
+    "customerNote: string?",
+    "requiresPrepayment: bool",
+    "assignedTechnicianUserId: Guid?",
+    "serviceAddress: string?",
+    "meetingType: string",
+    "topic: string?",
+    "navigationUrl: string?",
+    "mediaItems: List<AppointmentMediaItemResponse>",
+    "_links: LinkCollection?"
+  ],
+  "AvailabilityRuleResponse": [
+    "id: Guid",
+    "dayOfWeek: DayOfWeek",
+    "startTime: TimeSpan",
+    "endTime: TimeSpan",
+    "slotDurationMinutes: int",
+    "_links: LinkCollection?"
+  ],
+  "AvailableSlotResponse": [
+    "start: DateTimeOffset",
+    "end: DateTimeOffset"
+  ],
+  "WorkOrderMediaItemResponse": [
+    "id: Guid",
+    "mediaAssetId: Guid",
+    "isBeforePhoto: bool",
+    "displayOrder: int",
+    "_links: LinkCollection?"
+  ],
+  "WorkOrderResponse": [
+    "id: Guid",
+    "appointmentId: Guid",
+    "technicianUserId: Guid",
+    "partsUsed: string?",
+    "technicianNotes: string?",
+    "completedAt: DateTimeOffset?",
+    "equipmentId: Guid?",
+    "mediaItems: List<WorkOrderMediaItemResponse>",
+    "_links: LinkCollection?"
+  ]
+}

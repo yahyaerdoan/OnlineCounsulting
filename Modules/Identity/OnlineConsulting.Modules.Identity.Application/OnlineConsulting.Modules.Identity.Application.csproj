@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
   <ItemGroup>
@@ -15,7 +14,6 @@
     <PackageReference Include="Core.PersistenceLayer" />
     <PackageReference Include="Core.SecurityLayer" />
     <PackageReference Include="FluentValidation" />
-    <PackageReference Include="Hateoas" />
     <PackageReference Include="MediatR" />
     <PackageReference Include="ResponseResultHandler" />
   </ItemGroup>

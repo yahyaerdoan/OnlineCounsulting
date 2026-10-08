@@ -7,13 +7,11 @@ using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Identity.Application.Features.Roles.GetRolePermissions;
 
 public record GetRolePermissionsQuery(Guid RoleId) : IRequest<OperationDataResult<List<string>>>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [RolesOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, RolesOperationClaims.Read];
 }
 

@@ -6,14 +6,12 @@ using OnlineConsulting.Modules.Memberships.Application.Features.PromoCodes.Const
 using OnlineConsulting.Modules.Memberships.Domain;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Memberships.Application.Features.PromoCodes.CreatePromoCode;
 
 public record CreatePromoCodeCommand(string Code, string DiscountType, decimal DiscountValue, int? MaxRedemptions, DateTimeOffset? ExpiresAt, Guid? MembershipPlanId)
     : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [MembershipsOperationClaims.Admin, MembershipsOperationClaims.Write, MembershipsOperationClaims.Add];
 }
 
@@ -21,7 +19,7 @@ public class CreatePromoCodeHandler(IPromoCodeRepository repository) : IRequestH
 {
     public async Task<OperationDataResult<Guid>> Handle(CreatePromoCodeCommand request, CancellationToken cancellationToken)
     {
-        var normalizedCode = request.Code.Trim().ToUpperInvariant();
+        var normalizedCode = PromoCode.Normalize(request.Code);
 
         var exists = await repository.AnyAsync(p => p.Code == normalizedCode, cancellationToken: cancellationToken);
 
@@ -30,17 +28,9 @@ public class CreatePromoCodeHandler(IPromoCodeRepository repository) : IRequestH
             return Result.Conflict<Guid>(PromoCodeMessages.CodeAlreadyExists);
         }
 
-        var promoCode = new PromoCode
-        {
-            Code = normalizedCode,
-            DiscountType = request.DiscountType,
-            DiscountValue = request.DiscountValue,
-            MaxRedemptions = request.MaxRedemptions,
-            ExpiresAt = request.ExpiresAt,
-            MembershipPlanId = request.MembershipPlanId,
-        };
+        var promoCode = PromoCode.Create(request.Code, request.DiscountType, request.DiscountValue, request.MaxRedemptions, request.ExpiresAt, request.MembershipPlanId);
 
-        _ = await repository.AddAsync(promoCode);
+        _ = await repository.AddAsync(promoCode, cancellationToken: cancellationToken);
 
         return Result.Created(promoCode.Id, "Promo code created successfully.");
     }

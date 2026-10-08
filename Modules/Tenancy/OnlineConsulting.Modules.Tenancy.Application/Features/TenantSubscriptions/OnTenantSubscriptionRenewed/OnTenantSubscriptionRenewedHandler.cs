@@ -19,14 +19,13 @@ public class OnTenantSubscriptionRenewedHandler(ITenantSubscriptionRepository su
         }
 
         var tenantSubscription = await subscriptionRepository.GetAsync(s => s.Id == tenantSubscriptionId, cancellationToken: cancellationToken);
-        if (tenantSubscription is null)
+        if (tenantSubscription is null || tenantSubscription.IsCancelled)
         {
             return;
         }
 
-        tenantSubscription.RenewalDate = notification.CurrentPeriodEnd.UtcDateTime;
-        tenantSubscription.Status = TenantSubscriptionStatuses.Active;
-        _ = await subscriptionRepository.UpdateAsync(tenantSubscription);
+        tenantSubscription.Renew(notification.CurrentPeriodEnd.UtcDateTime);
+        _ = await subscriptionRepository.UpdateAsync(tenantSubscription, cancellationToken: cancellationToken);
 
         var tenant = await tenantRepository.GetAsync(t => t.Id == tenantSubscription.TenantId, cancellationToken: cancellationToken);
         if (tenant is not null && notification.Invoice is { IsPaid: true } invoice && invoice.BillingReason != SubscriptionInvoice.FirstInvoiceReason)
@@ -34,12 +33,12 @@ public class OnTenantSubscriptionRenewedHandler(ITenantSubscriptionRepository su
             await receiptSender.SendAsync(tenant, invoice, cancellationToken);
         }
 
-        if (tenant is null || tenant.Status is TenantStatuses.Suspended or TenantStatuses.Cancelled)
+        if (tenant is null || tenant.IsHeldByStaff)
         {
             return;
         }
 
-        tenant.Status = TenantStatuses.Active;
-        _ = await tenantRepository.UpdateAsync(tenant);
+        tenant.ApplyRenewal();
+        _ = await tenantRepository.UpdateAsync(tenant, cancellationToken: cancellationToken);
     }
 }

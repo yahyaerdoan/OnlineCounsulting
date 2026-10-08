@@ -6,20 +6,18 @@ using Microsoft.Extensions.Options;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Abstractions;
 using OnlineConsulting.Modules.Commerce.Domain;
 using OnlineConsulting.SharedKernel.Payments;
-using OnlineConsulting.SharedKernel.Persistence;
-using OrderPaymentStatuses = OnlineConsulting.Modules.Commerce.Application.Features.Orders.Constants.PaymentStatuses;
-using OrderStatuses = OnlineConsulting.Modules.Commerce.Application.Features.Orders.Constants.OrderStatuses;
 
 namespace OnlineConsulting.Modules.Commerce.Infrastructure.Cleanup;
 
-/// <summary>Reconciles Pending orders against the payment provider (catches lost webhooks) and cancels ones abandoned past ExpireAfter.</summary>
+/// <summary>Settles pending orders whose webhook was missed and abandons those older than ExpireAfter.</summary>
 public class PendingOrderCleanupService(IServiceScopeFactory scopeFactory, IOptions<PendingOrderCleanupOptions> options, ILogger<PendingOrderCleanupService> logger) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         var settings = options.Value;
+        using var timer = new PeriodicTimer(settings.PollInterval);
 
-        while (!stoppingToken.IsCancellationRequested)
+        do
         {
             try
             {
@@ -29,9 +27,8 @@ public class PendingOrderCleanupService(IServiceScopeFactory scopeFactory, IOpti
             {
                 logger.LogError(ex, "Pending order cleanup cycle failed unexpectedly.");
             }
-
-            await Task.Delay(settings.PollInterval, stoppingToken);
         }
+        while (await timer.WaitForNextTickAsync(stoppingToken));
     }
 
     private async Task CleanupOnceAsync(PendingOrderCleanupOptions settings, CancellationToken cancellationToken)
@@ -42,9 +39,9 @@ public class PendingOrderCleanupService(IServiceScopeFactory scopeFactory, IOpti
         var reconcileCutoff = DateTimeOffset.UtcNow - settings.ReconcileAfter;
 
         var candidates = await orderRepository
-            .GetListAsync(predicate: o => o.PaymentStatus == OrderPaymentStatuses.Pending && o.CreatedDate <= reconcileCutoff, orderBy: q => q.OrderBy(o => o.CreatedDate), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+            .GetAllAsync(predicate: o => o.PaymentStatus == OrderPaymentStatuses.Pending && o.OrderStatus != OrderStatuses.Cancelled && o.CreatedDate <= reconcileCutoff, orderBy: q => q.OrderBy(o => o.CreatedDate), cancellationToken: cancellationToken);
 
-        if (candidates.Items.Count == 0)
+        if (candidates.Count == 0)
         {
             return;
         }
@@ -53,7 +50,7 @@ public class PendingOrderCleanupService(IServiceScopeFactory scopeFactory, IOpti
         var reconciledCount = 0;
         var expiredCount = 0;
 
-        foreach (var order in candidates.Items)
+        foreach (var order in candidates)
         {
             if (await TryReconcileAsync(scope.ServiceProvider, order, cancellationToken))
             {
@@ -63,10 +60,9 @@ public class PendingOrderCleanupService(IServiceScopeFactory scopeFactory, IOpti
 
             if (order.CreatedDate <= expireCutoff)
             {
-                order.PaymentStatus = OrderPaymentStatuses.Cancelled;
-                order.OrderStatus = OrderStatuses.Cancelled;
+                order.Abandon();
 
-                _ = await orderRepository.UpdateAsync(order);
+                _ = await orderRepository.UpdateAsync(order, cancellationToken: cancellationToken);
 
                 expiredCount++;
 
@@ -81,15 +77,10 @@ public class PendingOrderCleanupService(IServiceScopeFactory scopeFactory, IOpti
 
         if ((reconciledCount > 0 || expiredCount > 0) && logger.IsEnabled(LogLevel.Information))
         {
-            logger.LogInformation("Pending order cleanup reconciled {ReconciledCount} and expired {ExpiredCount} of {CandidateCount} candidate order(s).", reconciledCount, expiredCount, candidates.Items.Count);
+            logger.LogInformation("Pending order cleanup reconciled {ReconciledCount} and expired {ExpiredCount} of {CandidateCount} candidate order(s).", reconciledCount, expiredCount, candidates.Count);
         }
     }
 
-    /// <summary>
-    /// Returns true if the provider already settled the payment (succeeded or failed), so the caller skips the expiry check. The outcome is
-    /// published exactly like the provider's webhook would, so OnPaymentStatusChangedHandler settles the order, issues the receipt and
-    /// notifies the customer the same way whichever path got there first.
-    /// </summary>
     private async Task<bool> TryReconcileAsync(IServiceProvider serviceProvider, Order order, CancellationToken cancellationToken)
     {
         if (order.PaymentProvider is null || order.ProviderPaymentId is null)

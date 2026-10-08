@@ -9,11 +9,12 @@ public class DeleteCategory : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapDelete("/api/categories/{id:guid}", Handle)
+        _ = app.MapDelete("/categories/{id:guid}", Handle)
             .WithTags("Categories")
             .RequireAuthorization()
             .WithName("DeleteCategory")
-            .WithDescription("Soft-deletes a category.");
+            .WithDescription("Soft-deletes a category.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

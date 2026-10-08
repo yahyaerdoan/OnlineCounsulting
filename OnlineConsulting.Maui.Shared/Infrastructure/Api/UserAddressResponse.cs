@@ -1,6 +1,8 @@
+using OnlineConsulting.Maui.Shared.Infrastructure.Hateoas;
+
 namespace OnlineConsulting.Maui.Shared.Infrastructure.Api;
 
-/// <summary>Mirrors GET /api/addresses's response shape - current-user-scoped saved addresses.</summary>
+/// <summary>Mirrors GET /api/v1/addresses's response shape - current-user-scoped saved addresses.</summary>
 public record UserAddressResponse(
     Guid Id,
     string AddressName,
@@ -12,4 +14,4 @@ public record UserAddressResponse(
     string Zipcode,
     string? Notes,
     bool IsShippingAddress,
-    bool IsBillingAddress);
+    bool IsBillingAddress) : HalResource;

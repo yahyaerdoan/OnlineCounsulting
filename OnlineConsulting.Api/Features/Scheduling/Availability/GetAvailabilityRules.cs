@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Scheduling.Application.Features.Availability.Contracts;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Availability.GetAvailabilityRules;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -9,11 +10,12 @@ public class GetAvailabilityRules : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/scheduling/availability-rules", Handle)
+        _ = app.MapGet("/scheduling/availability-rules", Handle)
             .WithTags("Scheduling/Availability")
             .RequireAuthorization()
             .WithName("GetAvailabilityRules")
-            .WithDescription("Tenant/admin: lists the tenant's own recurring working-hours windows.");
+            .WithDescription("Tenant/admin: lists the tenant's own recurring working-hours windows.")
+            .ProducesEnveloped<List<AvailabilityRuleResponse>>();
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext)

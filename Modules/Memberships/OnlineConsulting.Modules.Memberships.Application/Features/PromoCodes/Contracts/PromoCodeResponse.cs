@@ -1,10 +1,8 @@
-using Hateoas;
 using OnlineConsulting.Modules.Memberships.Domain;
 
 namespace OnlineConsulting.Modules.Memberships.Application.Features.PromoCodes.Contracts;
 
-/// <summary>A class with required init properties instead of a positional record, since records can't inherit LinkedResponse.</summary>
-public class PromoCodeResponse : LinkedResponse
+public class PromoCodeResponse
 {
     public required Guid Id { get; init; }
     public required string Code { get; init; }

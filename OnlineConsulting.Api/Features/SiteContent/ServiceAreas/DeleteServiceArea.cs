@@ -9,11 +9,12 @@ public class DeleteServiceArea : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapDelete("/api/site-content/service-areas/{id:guid}", Handle)
+        _ = app.MapDelete("/site-content/service-areas/{id:guid}", Handle)
             .WithTags("SiteContent/ServiceAreas")
             .RequireAuthorization()
             .WithName("DeleteServiceArea")
-            .WithDescription("Deletes a service-area SEO landing page.");
+            .WithDescription("Deletes a service-area SEO landing page.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

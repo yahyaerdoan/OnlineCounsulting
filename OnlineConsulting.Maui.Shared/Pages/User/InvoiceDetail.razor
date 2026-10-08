@@ -29,7 +29,7 @@ else if (_invoice is { } invoice)
             <div class="min-w-0">
                 <span class="invoice-doc-kind">@(invoice.IsPaid ? "Receipt" : "Invoice") @invoice.InvoiceNumber</span>
                 <span class="invoice-doc-title">@invoice.Title</span>
-                <span class="invoice-doc-date">Issued @DateTimeFormat.FormatDate(invoice.IssuedAt)</span>
+                <span class="invoice-doc-date">Issued @BusinessTime.FormatDate(invoice.IssuedAt)</span>
             </div>
             <div class="invoice-doc-amount">
                 <span class="invoice-doc-total">@CurrencyFormat.Format(invoice.Total)</span>
@@ -50,7 +50,7 @@ else if (_invoice is { } invoice)
             {
                 <div>
                     <span class="subscribe-summary-label">Paid</span>
-                    <span class="invoice-doc-party">@DateTimeFormat.FormatDate(paidAt)</span>
+                    <span class="invoice-doc-party">@BusinessTime.FormatDate(paidAt)</span>
                     <span class="invoice-doc-muted">@PaymentMethodLabel(invoice.PaymentMethod)</span>
                 </div>
             }
@@ -58,7 +58,7 @@ else if (_invoice is { } invoice)
             {
                 <div>
                     <span class="subscribe-summary-label">Due By</span>
-                    <span class="invoice-doc-party @(invoice.IsOverdue ? "invoice-overdue" : null)">@DateTimeFormat.FormatDate(dueAt)</span>
+                    <span class="invoice-doc-party @(invoice.IsOverdue ? "invoice-overdue" : null)">@BusinessTime.FormatDate(dueAt)</span>
                 </div>
             }
         </div>
@@ -101,7 +101,7 @@ else if (_invoice is { } invoice)
         }
     </div>
 
-    @if (invoice.IsOpen)
+    @if (invoice.Can(LinkRels.Pay))
     {
         <section class="subscribe-form invoice-pay">
             @if (_clientSecret is null)
@@ -213,10 +213,15 @@ else if (_invoice is { } invoice)
 
     private async Task StartPaymentAsync()
     {
+        if (_invoice?.Links.Find(LinkRels.Pay) is not { } pay)
+        {
+            return;
+        }
+
         _isBusy = true;
         _paymentError = null;
 
-        var result = await ApiClient.PostAsync<PayInvoiceResult>(ApiRoutes.Invoices.Pay(Id), new { });
+        var result = await ApiClient.FollowAsync<PayInvoiceResult>(pay, new { });
         _isBusy = false;
 
         if (!result.IsSuccessful || result.ResultData is null)
@@ -264,8 +269,13 @@ else if (_invoice is { } invoice)
 
     private async Task DownloadPdfAsync()
     {
+        if (_invoice?.Links.Find(LinkRels.Pdf) is not { } pdf)
+        {
+            return;
+        }
+
         _downloading = true;
-        var result = await ApiClient.GetAsync<InvoicePdfResponse>(ApiRoutes.Invoices.Pdf(Id));
+        var result = await ApiClient.FollowAsync<InvoicePdfResponse>(pdf);
         _downloading = false;
 
         if (!result.IsSuccessful || result.ResultData is null)

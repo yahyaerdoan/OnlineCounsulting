@@ -20,6 +20,7 @@ public static class Rels
     public const string AssignTechnician = "assign-technician";
     public const string WorkOrder = "work-order";
     public const string WorkOrders = "work-orders";
+    public const string RecordWorkOrder = "record-work-order";
     public const string Appointment = "appointment";
     public const string AddMedia = "add-media";
     public const string Media = "media";
@@ -33,6 +34,8 @@ public static class Rels
     public const string SetShipping = "set-shipping";
     public const string SetBilling = "set-billing";
     public const string ChangeAddresses = "change-addresses";
+    public const string ChangeTimeZone = "change-time-zone";
+    public const string UpdateBranding = "update-branding";
     public const string Checkout = "checkout";
     public const string Clear = "clear";
     public const string Remove = "remove";
@@ -63,6 +66,7 @@ public static class Rels
         [AssignTechnician] = "Assigns a technician to an open visit (staff).",
         [WorkOrder] = "The work order recorded for a visit.",
         [WorkOrders] = "The work orders recorded for a unit of equipment.",
+        [RecordWorkOrder] = "Records the work done on an open visit, which completes it (staff).",
         [Appointment] = "The visit this resource belongs to.",
         [AddMedia] = "Attaches a photo to the resource.",
         [Media] = "The media asset (photo) the item points at.",
@@ -76,6 +80,8 @@ public static class Rels
         [SetShipping] = "Makes the address the default shipping address.",
         [SetBilling] = "Makes the address the default billing address.",
         [ChangeAddresses] = "Points an unpaid order at the caller's current default addresses.",
+        [ChangeTimeZone] = "Sets the caller's own business time zone (tenant admins).",
+        [UpdateBranding] = "Sets the caller's own business name and logo (tenant admins).",
         [Checkout] = "Places an order from the basket.",
         [Clear] = "Removes every item from the basket.",
         [Remove] = "Removes the item from its parent resource.",

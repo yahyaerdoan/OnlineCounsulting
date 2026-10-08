@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using Core.PersistenceLayer.Repositories.Auditing;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,7 +9,6 @@ using OnlineConsulting.Modules.Equipment.Application.Features.EquipmentItems.Abs
 using OnlineConsulting.Modules.Equipment.Infrastructure.LiveUpdates;
 using OnlineConsulting.Modules.Equipment.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Equipment.Infrastructure.Repositories;
-using OnlineConsulting.SharedKernel.Auditing;
 using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.LiveUpdates;
 using OnlineConsulting.SharedKernel.Tenancy;
@@ -22,7 +22,6 @@ public static class EquipmentModule
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
         _ = services.AddScoped<TenantSaveChangesInterceptor>();
-        _ = services.AddScoped<AuditSaveChangesInterceptor>();
 
         _ = services.AddUserDataChangeRules(EquipmentUserDataChangeRules.Configure);
         _ = services.AddDbContext<EquipmentDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)

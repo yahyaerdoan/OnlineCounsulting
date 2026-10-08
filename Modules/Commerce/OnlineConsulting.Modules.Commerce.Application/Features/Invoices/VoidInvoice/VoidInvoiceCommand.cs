@@ -1,4 +1,4 @@
-using System.Text.Json.Serialization;
+﻿using OnlineConsulting.Modules.Commerce.Domain;
 using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Commerce.Application.Common;
@@ -11,7 +11,6 @@ namespace OnlineConsulting.Modules.Commerce.Application.Features.Invoices.VoidIn
 
 public record VoidInvoiceCommand(Guid Id, string? Reason) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [CommerceOperationClaims.Admin, CommerceOperationClaims.Write, CommerceOperationClaims.Update];
 }
 
@@ -19,18 +18,20 @@ public class VoidInvoiceHandler(IInvoiceRepository repository, IInvoiceService i
 {
     public async Task<OperationResult> Handle(VoidInvoiceCommand request, CancellationToken cancellationToken)
     {
-        var invoice = await repository.GetAsync(i => i.Id == request.Id, cancellationToken: cancellationToken);
+        var invoice = await repository.GetWithLinesAsync(i => i.Id == request.Id, cancellationToken: cancellationToken);
+
         if (invoice is null)
         {
             return Result.NotFound(InvoiceMessages.NotFound);
         }
 
-        if (invoice.Status != InvoiceStatuses.Open)
+        if (!invoice.IsOpen)
         {
             return Result.Conflict(InvoiceMessages.OnlyOpenCanBeVoided);
         }
 
         await invoiceService.VoidAsync(invoice, request.Reason, cancellationToken);
+
         return Result.Success($"{invoice.InvoiceNumber} voided.");
     }
 }

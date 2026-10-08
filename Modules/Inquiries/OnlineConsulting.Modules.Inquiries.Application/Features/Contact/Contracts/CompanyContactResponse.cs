@@ -1,10 +1,8 @@
-using Hateoas;
 using OnlineConsulting.Modules.Inquiries.Domain;
 
 namespace OnlineConsulting.Modules.Inquiries.Application.Features.Contact.Contracts;
 
-/// <summary>Contact response as a class with required init properties, since records can't inherit the plain LinkedResponse class.</summary>
-public class CompanyContactResponse : LinkedResponse
+public class CompanyContactResponse
 {
     public required Guid Id { get; init; }
     public required string Email { get; init; }

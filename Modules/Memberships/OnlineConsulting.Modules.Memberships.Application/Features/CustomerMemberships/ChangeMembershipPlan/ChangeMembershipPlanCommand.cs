@@ -3,17 +3,16 @@ using MediatR;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Abstractions;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Constants;
 using OnlineConsulting.Modules.Memberships.Application.Features.MembershipPlans.Abstractions;
+using OnlineConsulting.Modules.Memberships.Domain;
 using OnlineConsulting.SharedKernel.Payments;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.ChangeMembershipPlan;
 
 /// <summary>Upgrade/downgrade for an Active membership - swaps the provider subscription's price in place (prorated), unlike SubscribeToMembership which creates a new one.</summary>
 public record ChangeMembershipPlanCommand(Guid UserId, Guid NewMembershipPlanId) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [];
 }
 
@@ -34,6 +33,11 @@ public class ChangeMembershipPlanHandler(ICustomerMembershipRepository membershi
             return Result.Conflict(CustomerMembershipMessages.AlreadyOnThisPlan);
         }
 
+        if (!membership.CanChangePlan)
+        {
+            return Result.Conflict(CustomerMembershipMessages.ReactivateBeforePlanChange);
+        }
+
         var newPlan = await planRepository.GetAsync(p => p.Id == request.NewMembershipPlanId, cancellationToken: cancellationToken);
 
         if (newPlan is null || newPlan.ProviderPriceId is null || !newPlan.IsActive)
@@ -44,15 +48,16 @@ public class ChangeMembershipPlanHandler(ICustomerMembershipRepository membershi
         if (membership.ProviderSubscriptionId is { } subscriptionId)
         {
             var failure = await PaymentGatewayCall.RunAsync(() => subscriptionGateway.UpdateSubscriptionPriceAsync(subscriptionId, newPlan.ProviderPriceId, cancellationToken), CustomerMembershipMessages.PlanChangeFailed);
+
             if (failure is not null)
             {
                 return failure;
             }
         }
 
-        membership.MembershipPlanId = newPlan.Id;
+        membership.ChangePlan(newPlan.Id);
 
-        _ = await membershipRepository.UpdateAsync(membership);
+        _ = await membershipRepository.UpdateAsync(membership, cancellationToken: cancellationToken);
 
         return Result.Success($"Switched to the {newPlan.Name} plan successfully.");
     }

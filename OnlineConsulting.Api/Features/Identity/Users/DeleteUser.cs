@@ -9,11 +9,12 @@ public class DeleteUser : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapDelete("/api/users/{id:guid}", Handle)
+        _ = app.MapDelete("/users/{id:guid}", Handle)
             .WithTags("Identity/Users")
             .RequireAuthorization()
             .WithName("DeleteUser")
-            .WithDescription("Deletes a user.");
+            .WithDescription("Deletes a user.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

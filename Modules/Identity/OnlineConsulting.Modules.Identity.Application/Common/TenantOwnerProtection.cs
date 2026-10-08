@@ -1,9 +1,8 @@
-﻿using Core.SecurityLayer.Extensions;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Rules;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -18,14 +17,14 @@ public static class TenantOwnerProtection
     /// same tenant as a Super Admin (e.g. invited directly by one) and would pass every other check.
     /// </summary>
     /// <returns>Null if the caller may modify the target; otherwise the forbidding result to return.</returns>
-    public static async Task<OperationResult?> EnsureCallerMayModifyAsync(UserManager<User> userManager, ITenantOwnershipReader tenantOwnershipReader, ITenantProvider tenantProvider, IHttpContextAccessor httpContextAccessor, User target, CancellationToken cancellationToken = default)
+    public static async Task<OperationResult?> EnsureCallerMayModifyAsync(UserManager<User> userManager, ITenantOwnershipReader tenantOwnershipReader, ITenantProvider tenantProvider, ICurrentUserAccessor currentUserAccessor, User target, CancellationToken cancellationToken = default)
     {
-        if (!TenantOwnershipGuard.CallerMayManage(target.TenantId, tenantProvider.TenantId, httpContextAccessor))
+        if (!TenantOwnershipGuard.CallerMayManage(target.TenantId, tenantProvider.TenantId, currentUserAccessor))
         {
             return UserBusinessRules.NotAuthorizedForOtherTenant();
         }
 
-        var callerRoles = httpContextAccessor.HttpContext?.User.ClaimRoles() ?? [];
+        var callerRoles = currentUserAccessor.Roles;
 
         if (callerRoles.Contains(GlobalOperationClaims.SuperAdmin))
         {

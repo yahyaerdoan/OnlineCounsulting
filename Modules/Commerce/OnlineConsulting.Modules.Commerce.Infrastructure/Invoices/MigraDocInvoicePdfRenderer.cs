@@ -1,10 +1,11 @@
+using OnlineConsulting.Modules.Commerce.Domain;
+using OnlineConsulting.SharedKernel.Tenancy;
 using System.Globalization;
 using MigraDoc.DocumentObjectModel;
 using MigraDoc.DocumentObjectModel.Tables;
 using MigraDoc.Rendering;
 using OnlineConsulting.Modules.Commerce.Application.Features.Invoices;
 using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.Abstractions;
-using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.Constants;
 using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.Contracts;
 using PdfSharp.Fonts;
 
@@ -20,10 +21,22 @@ public sealed class MigraDocInvoicePdfRenderer : IInvoicePdfRenderer
     private static readonly Color Hairline = new(0xE0, 0xE0, 0xE0);
     private static readonly Lock FontGate = new();
 
-    public byte[] Render(InvoiceResponse invoice, InvoiceBusinessInfo business)
+    public byte[] Render(InvoiceResponse invoice, InvoiceBusinessInfo business, TimeZoneInfo timeZone, byte[]? logo)
     {
         EnsureFontResolver();
 
+        try
+        {
+            return RenderDocument(invoice, business, timeZone, logo);
+        }
+        catch (Exception) when (logo is not null)
+        {
+            return RenderDocument(invoice, business, timeZone, null);
+        }
+    }
+
+    private static byte[] RenderDocument(InvoiceResponse invoice, InvoiceBusinessInfo business, TimeZoneInfo timeZone, byte[]? logo)
+    {
         var document = new Document();
         document.Info.Title = invoice.InvoiceNumber;
         var normal = document.Styles[StyleNames.Normal] ?? throw new InvalidOperationException("MigraDoc has no Normal style.");
@@ -36,7 +49,7 @@ public sealed class MigraDocInvoicePdfRenderer : IInvoicePdfRenderer
         section.PageSetup.RightMargin = Unit.FromCentimeter(2);
         section.PageSetup.TopMargin = Unit.FromCentimeter(2);
 
-        AddHeader(section, invoice, business);
+        AddHeader(section, invoice, business, timeZone, logo);
         AddParties(section, invoice, business);
         AddLines(section, invoice);
         AddTotals(section, invoice);
@@ -49,12 +62,19 @@ public sealed class MigraDocInvoicePdfRenderer : IInvoicePdfRenderer
         return stream.ToArray();
     }
 
-    private static void AddHeader(Section section, InvoiceResponse invoice, InvoiceBusinessInfo business)
+    private static void AddHeader(Section section, InvoiceResponse invoice, InvoiceBusinessInfo business, TimeZoneInfo timeZone, byte[]? logo)
     {
         var table = section.AddTable();
         _ = table.AddColumn(Unit.FromCentimeter(10.5));
         _ = table.AddColumn(Unit.FromCentimeter(7));
         var row = table.AddRow();
+
+        if (logo is not null)
+        {
+            var image = row.Cells[0].AddImage($"base64:{Convert.ToBase64String(logo)}");
+            image.Height = Unit.FromCentimeter(1.4);
+            image.LockAspectRatio = true;
+        }
 
         var brand = row.Cells[0].AddParagraph(business.BusinessName);
         brand.Format.Font.Size = 18;
@@ -68,15 +88,15 @@ public sealed class MigraDocInvoicePdfRenderer : IInvoicePdfRenderer
 
         var status = row.Cells[1].AddParagraph(invoice.Status switch
         {
-            InvoiceStatuses.Paid => $"PAID {invoice.PaidAt?.ToString("MMM d, yyyy", Usd)}",
+            InvoiceStatuses.Paid => $"PAID {invoice.PaidAt?.InZone(timeZone).ToString("MMM d, yyyy", Usd)}",
             InvoiceStatuses.Void => "VOID",
-            _ => invoice.DueAt is { } due ? $"DUE {due.ToString("MMM d, yyyy", Usd)}" : "DUE",
+            _ => invoice.DueAt is { } due ? $"DUE {due.InZone(timeZone).ToString("MMM d, yyyy", Usd)}" : "DUE",
         });
         status.Format.Alignment = ParagraphAlignment.Right;
         status.Format.Font.Bold = true;
         status.Format.Font.Color = invoice.Status == InvoiceStatuses.Paid ? new Color(0x10, 0x7C, 0x10) : invoice.Status == InvoiceStatuses.Void ? Muted : new Color(0xC2, 0x5E, 0x00);
 
-        var meta = row.Cells[1].AddParagraph($"{invoice.InvoiceNumber}\nIssued {invoice.IssuedAt.ToString("MMM d, yyyy", Usd)}");
+        var meta = row.Cells[1].AddParagraph($"{invoice.InvoiceNumber}\nIssued {invoice.IssuedAt.InZone(timeZone).ToString("MMM d, yyyy", Usd)}");
         meta.Format.Alignment = ParagraphAlignment.Right;
         meta.Format.Font.Color = Muted;
         meta.Format.SpaceBefore = Unit.FromPoint(4);

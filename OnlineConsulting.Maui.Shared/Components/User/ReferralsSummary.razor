@@ -54,7 +54,7 @@ else
                     <span class="order-card-icon"><MudIcon Icon="@(rewarded ? Icons.Material.Outlined.Redeem : Icons.Material.Outlined.HourglassTop)" /></span>
                     <span class="order-card-main">
                         <span class="order-card-number">@(referral.ReferredName ?? referral.ReferredEmail ?? "A friend")</span>
-                        <span class="order-card-date">@(rewarded && referral.RewardedAt is { } at ? $"Rewarded {DateTimeFormat.FormatDate(at)}" : "Waiting for their first service")</span>
+                        <span class="order-card-date">@(rewarded && referral.RewardedAt is { } at ? $"Rewarded {BusinessTime.FormatDate(at)}" : "Waiting for their first service")</span>
                     </span>
                     <span class="order-card-badges">
                         <StatusBadge Label="@referral.Status" Kind="@(rewarded ? StatusKinds.Success : StatusKinds.Warning)" />

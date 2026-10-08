@@ -1,8 +1,8 @@
-﻿using Core.SecurityLayer.Identity;
+﻿using Core.PersistenceLayer.Converters;
+using Core.SecurityLayer.Identity;
 using Microsoft.EntityFrameworkCore;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Notifications;
-using OnlineConsulting.SharedKernel.Persistence;
 using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Identity.Infrastructure.Persistence;
@@ -57,6 +57,8 @@ public class AppIdentityDbContext(DbContextOptions<AppIdentityDbContext> options
         modelBuilder.ConfigureOutboxEmail(ownsMigration: false);
 
         base.OnModelCreating(modelBuilder);
+
+        _ = modelBuilder.Entity<User>().HasIndex(u => new { u.TenantId, u.NormalizedEmail }).IsUnique().HasDatabaseName("TenantEmailIndex");
     }
 
     /// <summary>Forces every newly-added user to start active - IsActive is a manage-time toggle, not a creation input, regardless of what the caller set.</summary>

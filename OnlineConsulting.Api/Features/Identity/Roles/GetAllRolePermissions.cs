@@ -1,5 +1,6 @@
 using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Identity.Application.Features.Roles.Contracts;
 using OnlineConsulting.Modules.Identity.Application.Features.Roles.GetAllRolePermissions;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -9,11 +10,12 @@ public class GetAllRolePermissions : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/roles/permissions", Handle)
+        _ = app.MapGet("/roles/permissions", Handle)
             .WithTags("Identity/Roles")
             .RequireAuthorization()
             .WithName("GetAllRolePermissions")
-            .WithDescription("Returns every role's assigned permissions, for the permission matrix.");
+            .WithDescription("Returns every role's assigned permissions, for the permission matrix.")
+            .ProducesEnveloped<List<RolePermissionsResponse>>();
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext)

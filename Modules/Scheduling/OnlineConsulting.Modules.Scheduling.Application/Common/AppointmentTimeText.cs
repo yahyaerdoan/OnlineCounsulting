@@ -2,7 +2,7 @@ using System.Globalization;
 
 namespace OnlineConsulting.Modules.Scheduling.Application.Common;
 
-/// <summary>One wording for a visit's time across emails and push notifications, independent of the server's culture.</summary>
+/// <summary>One wording for a visit's time across emails and push notifications; pass times already converted to the business's time zone.</summary>
 public static class AppointmentTimeText
 {
     private static readonly CultureInfo Culture = CultureInfo.GetCultureInfo("en-US");

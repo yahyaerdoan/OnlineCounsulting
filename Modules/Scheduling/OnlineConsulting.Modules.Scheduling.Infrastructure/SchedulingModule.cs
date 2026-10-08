@@ -1,4 +1,6 @@
-﻿using FluentValidation;
+﻿using Core.ApplicationLayer.Pipelines.Transactions.Extensions;
+using Core.PersistenceLayer.Repositories.Auditing;
+using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -15,14 +17,13 @@ using OnlineConsulting.Modules.Scheduling.Infrastructure.LiveUpdates;
 using OnlineConsulting.Modules.Scheduling.Infrastructure.Hubs;
 using OnlineConsulting.Modules.Scheduling.Infrastructure.Notifications;
 using OnlineConsulting.Modules.Scheduling.Infrastructure.Persistence;
-using OnlineConsulting.Modules.Scheduling.Infrastructure.Pipelines;
 using OnlineConsulting.Modules.Scheduling.Infrastructure.Repositories;
-using OnlineConsulting.SharedKernel.Auditing;
 using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.LiveUpdates;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
 using OnlineConsulting.SharedKernel.Tenancy;
+using OnlineConsulting.SharedKernel.Transactions;
 
 namespace OnlineConsulting.Modules.Scheduling.Infrastructure;
 
@@ -33,7 +34,6 @@ public static class SchedulingModule
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
         _ = services.AddScoped<TenantSaveChangesInterceptor>();
-        _ = services.AddScoped<AuditSaveChangesInterceptor>();
 
         _ = services.AddUserDataChangeRules(SchedulingUserDataChangeRules.Configure);
         _ = services.AddDbContext<SchedulingDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
@@ -59,7 +59,7 @@ public static class SchedulingModule
 
         _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
         _ = services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
-        _ = services.AddTransient(typeof(IPipelineBehavior<,>), typeof(SchedulingTransactionAddingBehavior<,>));
+        _ = services.AddTransactionalDbContext<ISchedulingTransactionRequest, SchedulingDbContext>();
 
         _ = services.AddSingleton<IDefaultAdminPermissions>(new DefaultAdminPermissions(SchedulingOperationClaims.All));
         return services;

@@ -1,11 +1,12 @@
-﻿using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
+﻿using Core.CrossCuttingConcernLayer.Slugs;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using OnlineConsulting.Modules.Identity.Application.Common;
 using OnlineConsulting.Modules.Identity.Application.Features.Invites.Abstractions;
 using OnlineConsulting.Modules.Identity.Application.Features.Invites.Constants;
 using OnlineConsulting.Modules.Identity.Domain;
-using OnlineConsulting.SharedKernel.Slugs;
+using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
@@ -13,7 +14,7 @@ namespace OnlineConsulting.Modules.Identity.Application.Features.Invites.AcceptI
 
 /// <summary>Accepts a teammate invite; not ISecureAddRequest since the invitee isn't logged in - the token itself is the proof of authorization.</summary>
 public record AcceptInviteCommand(string Token, string FirstName, string LastName, string Password, string? PhoneNumber = null)
-    : IRequest<OperationResult>, ITransactionAddRequest;
+    : IRequest<OperationResult>, IIdentityTransactionRequest;
 
 public class AcceptInviteHandler(IInviteRepository inviteRepository, UserManager<User> userManager)
     : IRequestHandler<AcceptInviteCommand, OperationResult>
@@ -27,27 +28,28 @@ public class AcceptInviteHandler(IInviteRepository inviteRepository, UserManager
             return Result.NotFound(InviteMessages.InviteNotFound);
         }
 
-        if (invite.Status != InviteStatuses.Pending)
+        if (!invite.IsPending)
         {
             return Result.Conflict(InviteMessages.InviteNotUsable);
         }
 
-        if (invite.ExpiresAt < DateTime.UtcNow)
+        var now = DateTime.UtcNow;
+        if (invite.IsExpiredAt(now))
         {
-            invite.Status = InviteStatuses.Expired;
+            invite.Expire();
 
-            _ = await inviteRepository.UpdateAsync(invite);
+            _ = await inviteRepository.UpdateAsync(invite, cancellationToken: cancellationToken);
 
             return Result.Gone(InviteMessages.InviteExpired);
         }
 
-        if (await userManager.FindByEmailAsync(invite.Email) is not null)
+        if (await userManager.FindByEmailInTenantAsync(invite.Email, invite.TenantId, cancellationToken) is not null)
         {
             return Result.Conflict(InviteMessages.EmailAlreadyRegistered);
         }
 
         var userName = await SlugGenerator.GenerateUniqueAsync($"{request.FirstName} {request.LastName}",
-            async candidate => await userManager.FindByNameAsync(candidate) is not null);
+            async prefix => await userManager.Users.Where(u => u.UserName != null && u.UserName.StartsWith(prefix)).Select(u => u.UserName ?? string.Empty).ToListAsync(cancellationToken));
 
         var user = new User
         {
@@ -73,10 +75,9 @@ public class AcceptInviteHandler(IInviteRepository inviteRepository, UserManager
             return Result.InternalServerError();
         }
 
-        invite.Status = InviteStatuses.Accepted;
-        invite.AcceptedAt = DateTime.UtcNow;
+        invite.Accept(now);
 
-        _ = await inviteRepository.UpdateAsync(invite);
+        _ = await inviteRepository.UpdateAsync(invite, cancellationToken: cancellationToken);
 
         return Result.Created($"Account created. Your username is \"{userName}\" - you can also sign in with your email.");
     }

@@ -10,16 +10,22 @@ public class UpdateMembershipPlan : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/membership-plans/{id:guid}", Handle)
+        _ = app.MapPut("/membership-plans/{id:guid}", Handle)
             .WithTags("Memberships/Plans")
             .RequireAuthorization()
             .WithName("UpdateMembershipPlan")
-            .WithDescription("Updates a membership plan's local fields (admin). Never changes the provider-side price.");
+            .WithDescription("Updates a membership plan's local fields (admin). Never changes the provider-side price.")
+            .ProducesEnveloped();
     }
 
-    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateMembershipPlanCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateMembershipPlanRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command with { Id = id });
+        var result = await sender.Send(request.ToCommand(id));
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record UpdateMembershipPlanRequest(string Name, int IncludedVisitsPerYear, decimal DiscountPercent, decimal CreditAmount, string? Benefits)
+{
+    public UpdateMembershipPlanCommand ToCommand(Guid id) => new(id, Name, IncludedVisitsPerYear, DiscountPercent, CreditAmount, Benefits);
 }

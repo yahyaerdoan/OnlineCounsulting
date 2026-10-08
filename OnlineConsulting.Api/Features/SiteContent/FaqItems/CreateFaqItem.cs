@@ -10,16 +10,22 @@ public class CreateFaqItem : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/site-content/faq-items", Handle)
+        _ = app.MapPost("/site-content/faq-items", Handle)
             .WithTags("SiteContent/FaqItems")
             .RequireAuthorization()
             .WithName("CreateFaqItem")
-            .WithDescription("Creates a service-specific FAQ item.");
+            .WithDescription("Creates a service-specific FAQ item.")
+            .ProducesEnveloped<Guid>(StatusCodes.Status201Created);
     }
 
-    private static async Task<IResult> Handle([FromBody] CreateFaqItemCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] CreateFaqItemRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command);
+        var result = await sender.Send(request.ToCommand());
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record CreateFaqItemRequest(Guid ServiceId, string Question, string Answer, int DisplayOrder = 0)
+{
+    public CreateFaqItemCommand ToCommand() => new(ServiceId, Question, Answer, DisplayOrder);
 }

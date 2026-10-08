@@ -5,7 +5,6 @@ using OnlineConsulting.Modules.SiteContent.Application.Features.Partnerships.Abs
 using OnlineConsulting.Modules.SiteContent.Domain.Partnerships;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.SiteContent.Application.Features.Partnerships.UpdatePartnership;
 
@@ -14,7 +13,6 @@ public record UpdatePartnershipCommand(
     Guid? PhotoMediaAssetId = null, int DisplayOrder = 0, Dictionary<string, object>? Metadata = null, string Kind = PartnershipKinds.Partner)
     : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Update];
 }
 
@@ -40,7 +38,7 @@ public class UpdatePartnershipHandler(IPartnershipRepository repository) : IRequ
         entity.DisplayOrder = request.DisplayOrder;
         entity.Metadata = MetadataSerializer.Serialize(request.Metadata);
 
-        _ = await repository.UpdateAsync(entity);
+        _ = await repository.UpdateAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Success("Partnership updated successfully.");
     }

@@ -9,11 +9,12 @@ public class DeleteEquipmentItem : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapDelete("/api/equipment/{id:guid}", Handle)
+        _ = app.MapDelete("/equipment/{id:guid}", Handle)
             .WithTags("Equipment")
             .RequireAuthorization()
             .WithName("DeleteEquipmentItem")
-            .WithDescription("Deletes a piece of a customer's installed equipment (admin/technician).");
+            .WithDescription("Deletes a piece of a customer's installed equipment (admin/technician).")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

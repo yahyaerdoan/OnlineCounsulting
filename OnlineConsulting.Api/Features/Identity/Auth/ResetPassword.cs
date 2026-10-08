@@ -11,16 +11,22 @@ public class ResetPassword : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/auth/reset-password", Handle)
+        _ = app.MapPost("/auth/reset-password", Handle)
             .WithTags("Identity/Auth")
             .RequireRateLimiting(ServiceRegistration.AuthRateLimiterPolicy)
             .WithName("ResetPassword")
-            .WithDescription("Sets a new password using the token emailed by ForgotPassword.");
+            .WithDescription("Sets a new password using the token emailed by ForgotPassword.")
+            .ProducesEnveloped();
     }
 
-    private static async Task<IResult> Handle([FromBody] ResetPasswordCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] ResetPasswordRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command);
+        var result = await sender.Send(request.ToCommand());
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record ResetPasswordRequest(Guid UserId, string Token, string NewPassword)
+{
+    public ResetPasswordCommand ToCommand() => new(UserId, Token, NewPassword);
 }

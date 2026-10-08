@@ -27,19 +27,7 @@
             @if (Id is null)
             {
                 <MudItem xs="12">
-                    @if (_loadingCustomers)
-                    {
-                        <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
-                    }
-                    else
-                    {
-                        <MudSelect T="Guid?" @bind-Value="_model.UserId" Label="Customer" Placeholder="Select a customer" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true">
-                            @foreach (var customer in _customers)
-                            {
-                                <MudSelectItem T="Guid?" Value="@customer.Id">@($"{customer.FirstName} {customer.LastName} ({customer.Email})")</MudSelectItem>
-                            }
-                        </MudSelect>
-                    }
+                    <UserPicker Label="Customer" Required="true" @bind-Value="_model.UserId" />
                 </MudItem>
             }
             <MudItem xs="12" sm="6">
@@ -82,8 +70,6 @@
     public Guid? Id { get; set; }
 
     private readonly EquipmentFormModel _model = new();
-    private List<UserResponse> _customers = [];
-    private bool _loadingCustomers;
     private string? _loadError;
 
     protected override async Task OnInitializedAsync()
@@ -108,15 +94,7 @@
             _model.InstallDate = item.InstallDate?.DateTime;
             _model.WarrantyExpiresAt = item.WarrantyExpiresAt?.DateTime;
             _model.Notes = item.Notes;
-            return;
         }
-
-        _loadingCustomers = true;
-
-        // Unbounded - a customer picker for a select, not a paged listing of its own.
-        var customersResult = await ApiClient.QueryAsync<PaginatedResponse<UserResponse>>(ApiRoutes.Paged(ApiRoutes.Users.All, 0, int.MaxValue), null);
-        _customers = customersResult.IsSuccessful && customersResult.ResultData is not null ? customersResult.ResultData.Items : [];
-        _loadingCustomers = false;
     }
 
     private Task SaveAsync() => Form.SubmitAsync(async () =>

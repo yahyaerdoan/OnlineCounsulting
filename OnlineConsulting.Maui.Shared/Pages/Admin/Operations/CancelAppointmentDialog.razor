@@ -23,15 +23,20 @@
     private IMudDialogInstance? MudDialog { get; set; }
 
     [Parameter, EditorRequired]
-    public Guid AppointmentId { get; set; }
+    public HalLink? CancelLink { get; set; }
 
     private string? _reason;
     private bool _isBusy;
 
     private async Task CancelAsync()
     {
+        if (CancelLink is null)
+        {
+            return;
+        }
+
         _isBusy = true;
-        var result = await ApiClient.PostAsync(ApiRoutes.Operations.Appointments.StaffCancel(AppointmentId), new { reason = _reason });
+        var result = await ApiClient.FollowAsync(CancelLink, new { reason = _reason });
         _isBusy = false;
 
         if (!result.IsSuccessful)

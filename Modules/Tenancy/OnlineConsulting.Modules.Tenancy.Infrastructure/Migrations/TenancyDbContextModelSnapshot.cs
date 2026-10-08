@@ -18,7 +18,7 @@ namespace OnlineConsulting.Modules.Tenancy.Infrastructure.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("Tenancy")
-                .HasAnnotation("ProductVersion", "10.0.10")
+                .HasAnnotation("ProductVersion", "10.0.12")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -153,6 +153,9 @@ namespace OnlineConsulting.Modules.Tenancy.Infrastructure.Migrations
                     b.Property<DateTimeOffset?>("DeletedDate")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<Guid?>("LogoMediaAssetId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -185,6 +188,13 @@ namespace OnlineConsulting.Modules.Tenancy.Infrastructure.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("nvarchar(30)");
 
+                    b.Property<string>("TimeZoneId")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)")
+                        .HasDefaultValue("America/Chicago");
+
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("nvarchar(max)");
 
@@ -194,7 +204,8 @@ namespace OnlineConsulting.Modules.Tenancy.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Slug")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[DeletedDate] IS NULL");
 
                     b.ToTable("Tenants", "Tenancy");
                 });
@@ -394,6 +405,20 @@ namespace OnlineConsulting.Modules.Tenancy.Infrastructure.Migrations
                         {
                             t.ExcludeFromMigrations();
                         });
+                });
+
+            modelBuilder.Entity("OnlineConsulting.Modules.Tenancy.Domain.TenantSubscriptionItem", b =>
+                {
+                    b.HasOne("OnlineConsulting.Modules.Tenancy.Domain.TenantSubscription", null)
+                        .WithMany("Items")
+                        .HasForeignKey("TenantSubscriptionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("OnlineConsulting.Modules.Tenancy.Domain.TenantSubscription", b =>
+                {
+                    b.Navigation("Items");
                 });
 #pragma warning restore 612, 618
         }

@@ -11,16 +11,22 @@ public class ForgotPassword : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/auth/forgot-password", Handle)
+        _ = app.MapPost("/auth/forgot-password", Handle)
             .WithTags("Identity/Auth")
             .RequireRateLimiting(ServiceRegistration.AuthRateLimiterPolicy)
             .WithName("ForgotPassword")
-            .WithDescription("Sends a password reset link if the email matches an account.");
+            .WithDescription("Sends a password reset link if the email matches an account.")
+            .ProducesEnveloped();
     }
 
-    private static async Task<IResult> Handle([FromBody] ForgotPasswordCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] ForgotPasswordRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command);
+        var result = await sender.Send(request.ToCommand());
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record ForgotPasswordRequest(string Email)
+{
+    public ForgotPasswordCommand ToCommand() => new(Email);
 }

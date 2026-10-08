@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Services.Application.Features.Services.Contracts;
 using OnlineConsulting.Modules.Services.Application.Features.Services.GetServiceBySlug;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -9,10 +10,11 @@ public class GetServiceBySlug : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/services/by-slug/{slug}", Handle)
+        _ = app.MapGet("/services/by-slug/{slug}", Handle)
             .WithTags("Services")
             .WithName("GetServiceBySlug")
-            .WithDescription("Returns a single service by its SEO slug. Public - no login required.");
+            .WithDescription("Returns a single service by its SEO slug. Public - no login required.")
+            .ProducesEnveloped<ServiceResponse>();
     }
 
     private static async Task<IResult> Handle(string slug, ISender sender, HttpContext httpContext)

@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Scheduling.Application.Features.Availability.Contracts;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Availability.GetAvailability;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -9,10 +10,11 @@ public class GetAvailability : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/scheduling/availability", Handle)
+        _ = app.MapGet("/scheduling/availability", Handle)
             .WithTags("Scheduling/Availability")
             .WithName("GetAvailability")
-            .WithDescription("Returns free time slots for the given date, computed from the tenant's availability rules minus existing appointments. Public - no login required to browse open slots.");
+            .WithDescription("Returns free time slots for the given date, computed from the tenant's availability rules minus existing appointments. Public - no login required to browse open slots.")
+            .ProducesEnveloped<List<AvailableSlotResponse>>();
     }
 
     private static async Task<IResult> Handle(DateOnly date, ISender sender, HttpContext httpContext)

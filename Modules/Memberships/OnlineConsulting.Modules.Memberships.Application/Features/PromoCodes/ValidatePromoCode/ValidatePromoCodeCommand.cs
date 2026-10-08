@@ -5,15 +5,14 @@ using OnlineConsulting.Modules.Memberships.Application.Features.MembershipPlans.
 using OnlineConsulting.Modules.Memberships.Application.Features.MembershipPlans.Constants;
 using OnlineConsulting.Modules.Memberships.Application.Features.PromoCodes.Abstractions;
 using OnlineConsulting.Modules.Memberships.Application.Features.PromoCodes.Contracts;
+using OnlineConsulting.Modules.Memberships.Domain;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Memberships.Application.Features.PromoCodes.ValidatePromoCode;
 
 public record ValidatePromoCodeCommand(Guid UserId, string Code, Guid MembershipPlanId) : IRequest<OperationDataResult<ValidatePromoCodeResult>>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [];
 }
 
@@ -30,13 +29,13 @@ public class ValidatePromoCodeHandler(IMembershipPlanRepository planRepository, 
             return Result.NotFound<ValidatePromoCodeResult>(string.Format(MembershipPlanMessages.MembershipPlanNotFoundFormat, request.MembershipPlanId));
         }
 
-        var normalizedCode = request.Code.Trim().ToUpperInvariant();
+        var normalizedCode = PromoCode.Normalize(request.Code);
 
         var promo = await promoCodeRepository.GetAsync(p => p.Code == normalizedCode, cancellationToken: cancellationToken);
 
         var alreadyRedeemed = promo is not null && await membershipRepository.AnyAsync(m => m.UserId == request.UserId && m.PromoCodeId == promo.Id, cancellationToken: cancellationToken);
 
-        var (isValid, error, discountAmount) = PromoCodeEvaluator.Evaluate(promo, plan, alreadyRedeemed);
+        var (isValid, error, discountAmount) = PromoCodeEvaluator.Evaluate(promo, plan, alreadyRedeemed, DateTimeOffset.UtcNow);
 
         var result = new ValidatePromoCodeResult(isValid, error, discountAmount, plan.Price - discountAmount);
 

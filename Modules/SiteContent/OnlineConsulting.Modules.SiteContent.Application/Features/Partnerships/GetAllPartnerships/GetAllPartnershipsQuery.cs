@@ -4,7 +4,6 @@ using OnlineConsulting.Modules.SiteContent.Application.Features.Partnerships.Con
 using OnlineConsulting.Modules.SiteContent.Application.Features.PartnershipSocialLinks.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Application.Features.PartnershipSocialLinks.Contracts;
 using OnlineConsulting.SharedKernel.FeatureFlags;
-using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
@@ -25,11 +24,11 @@ public class GetAllPartnershipsHandler(IPartnershipRepository partnershipReposit
             return Result.Success(new List<PartnershipResponse>(), "Partnerships is disabled for this tenant.");
         }
 
-        var partnerships = await partnershipRepository.GetListAsync(orderBy: q => q.OrderBy(x => x.DisplayOrder), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
-        var socialLinks = await socialLinkRepository.GetListAsync(orderBy: q => q.OrderBy(x => x.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
-        var socialLinksByPartnershipId = socialLinks.Items.ToLookup(x => x.PartnershipId);
+        var partnerships = await partnershipRepository.GetAllAsync(orderBy: q => q.OrderBy(x => x.DisplayOrder), cancellationToken: cancellationToken);
+        var socialLinks = await socialLinkRepository.GetAllAsync(cancellationToken: cancellationToken);
+        var socialLinksByPartnershipId = socialLinks.ToLookup(x => x.PartnershipId);
 
-        var response = partnerships.Items
+        var response = partnerships
             .Select(p => PartnershipResponse.FromDomain(p, [.. socialLinksByPartnershipId[p.Id].Select(PartnershipSocialLinkResponse.FromDomain)]))
             .ToList();
 

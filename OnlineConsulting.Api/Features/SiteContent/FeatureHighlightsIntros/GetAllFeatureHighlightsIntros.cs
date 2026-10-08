@@ -1,5 +1,6 @@
 using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.SiteContent.Application.Features.FeatureHighlightsIntros.Contracts;
 using OnlineConsulting.Modules.SiteContent.Application.Features.FeatureHighlightsIntros.GetAllFeatureHighlightsIntros;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -9,10 +10,11 @@ public class GetAllFeatureHighlightsIntros : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/site-content/feature-highlights-intro", Handle)
+        _ = app.MapGet("/site-content/feature-highlights-intro", Handle)
             .WithTags("SiteContent/FeatureHighlightsIntros")
             .WithName("GetAllFeatureHighlightsIntros")
-            .WithDescription("Returns the tenant's feature highlights section intro. Public - no login required.");
+            .WithDescription("Returns the tenant's feature highlights section intro. Public - no login required.")
+            .ProducesEnveloped<List<FeatureHighlightsIntroResponse>>();
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext)

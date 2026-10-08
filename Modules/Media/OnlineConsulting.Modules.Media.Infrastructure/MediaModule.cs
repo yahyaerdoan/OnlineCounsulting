@@ -1,4 +1,6 @@
-﻿using FluentValidation;
+﻿using Core.ApplicationLayer.Pipelines.Transactions.Extensions;
+using Core.PersistenceLayer.Repositories.Auditing;
+using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -7,11 +9,12 @@ using OnlineConsulting.Modules.Media.Application.Common;
 using OnlineConsulting.Modules.Media.Application.Features.MediaAssets.Abstractions;
 using OnlineConsulting.Modules.Media.Application;
 using OnlineConsulting.Modules.Media.Infrastructure.Persistence;
-using OnlineConsulting.Modules.Media.Infrastructure.Pipelines;
+using OnlineConsulting.Modules.Media.Infrastructure.PublicUrls;
 using OnlineConsulting.Modules.Media.Infrastructure.Repositories;
-using OnlineConsulting.SharedKernel.Auditing;
 using OnlineConsulting.SharedKernel.Authorization;
+using OnlineConsulting.SharedKernel.Media;
 using OnlineConsulting.SharedKernel.Tenancy;
+using OnlineConsulting.SharedKernel.Transactions;
 
 namespace OnlineConsulting.Modules.Media.Infrastructure;
 
@@ -22,16 +25,17 @@ public static class MediaModule
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
         _ = services.AddScoped<TenantSaveChangesInterceptor>();
-        _ = services.AddScoped<AuditSaveChangesInterceptor>();
 
         _ = services.AddDbContext<MediaDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
             .AddInterceptors(serviceProvider.GetRequiredService<TenantSaveChangesInterceptor>(), serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>()));
 
         _ = services.AddScoped<IMediaAssetRepository, MediaAssetRepository>();
+        _ = services.AddScoped<IMediaAssetUrlReader, MediaAssetUrlReader>();
+        _ = services.Configure<MediaPublicUrlOptions>(configuration.GetSection("Media"));
 
         _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
         _ = services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
-        _ = services.AddTransient(typeof(IPipelineBehavior<,>), typeof(MediaTransactionAddingBehavior<,>));
+        _ = services.AddTransactionalDbContext<IMediaTransactionRequest, MediaDbContext>();
 
         _ = services.AddSingleton<IDefaultAdminPermissions>(new DefaultAdminPermissions(MediaOperationClaims.All));
         return services;

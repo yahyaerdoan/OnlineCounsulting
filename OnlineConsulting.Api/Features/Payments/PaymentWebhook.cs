@@ -5,14 +5,15 @@ using OnlineConsulting.SharedKernel.Payments;
 namespace OnlineConsulting.Api.Features.Payments;
 
 /// <summary>Reads the raw request body (not model-bound JSON) so signature verification runs over the exact original bytes.</summary>
-public class PaymentWebhook : IEndpoint
+public class PaymentWebhook : IVersionNeutralEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         _ = app.MapPost("/api/payments/webhooks/{provider}", Handle)
             .WithTags("Payments")
             .WithName("PaymentWebhook")
-            .WithDescription("Receives async payment status callbacks from a provider (e.g. Stripe) and notifies the owning module (Commerce/Scheduling) once verified. Unrecognized/irrelevant event types are acknowledged with 200 OK so the provider stops retrying.");
+            .WithDescription("Receives async payment status callbacks from a provider (e.g. Stripe) and notifies the owning module (Commerce/Scheduling) once verified. Unrecognized/irrelevant event types are acknowledged with 200 OK so the provider stops retrying.")
+            .Produces(StatusCodes.Status200OK);
     }
 
     private static async Task<IResult> Handle(string provider, HttpContext httpContext, IServiceProvider serviceProvider, IPublisher publisher, CancellationToken cancellationToken)

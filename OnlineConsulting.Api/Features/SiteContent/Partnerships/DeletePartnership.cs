@@ -9,11 +9,12 @@ public class DeletePartnership : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapDelete("/api/site-content/partnerships/{id:guid}", Handle)
+        _ = app.MapDelete("/site-content/partnerships/{id:guid}", Handle)
             .WithTags("SiteContent/Partnerships")
             .RequireAuthorization()
             .WithName("DeletePartnership")
-            .WithDescription("Deletes a partnership showcase entry.");
+            .WithDescription("Deletes a partnership showcase entry.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

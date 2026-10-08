@@ -5,13 +5,11 @@ using OnlineConsulting.Modules.SiteContent.Application.Features.FaqItems.Abstrac
 using OnlineConsulting.Modules.SiteContent.Domain;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.SiteContent.Application.Features.FaqItems.CreateFaqItem;
 
 public record CreateFaqItemCommand(Guid ServiceId, string Question, string Answer, int DisplayOrder = 0) : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Add];
 }
 
@@ -27,7 +25,7 @@ public class CreateFaqItemHandler(IFaqItemRepository repository) : IRequestHandl
             DisplayOrder = request.DisplayOrder,
         };
 
-        _ = await repository.AddAsync(entity);
+        _ = await repository.AddAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Created(entity.Id, "FAQ item created successfully.");
     }

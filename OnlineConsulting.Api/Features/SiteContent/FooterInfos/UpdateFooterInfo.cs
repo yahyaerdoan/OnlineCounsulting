@@ -10,16 +10,22 @@ public class UpdateFooterInfo : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/site-content/footer-info/{id:guid}", Handle)
+        _ = app.MapPut("/site-content/footer-info/{id:guid}", Handle)
             .WithTags("SiteContent/FooterInfo")
             .RequireAuthorization()
             .WithName("UpdateFooterInfo")
-            .WithDescription("Updates a footer content block.");
+            .WithDescription("Updates a footer content block.")
+            .ProducesEnveloped();
     }
 
-    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateFooterInfoCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateFooterInfoRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command with { Id = id });
+        var result = await sender.Send(request.ToCommand(id));
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record UpdateFooterInfoRequest(string ImageUrl, string Description, int DisplayOrder = 0, Dictionary<string, object>? Metadata = null)
+{
+    public UpdateFooterInfoCommand ToCommand(Guid id) => new(id, ImageUrl, Description, DisplayOrder, Metadata);
 }

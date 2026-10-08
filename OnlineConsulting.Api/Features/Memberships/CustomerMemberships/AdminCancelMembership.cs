@@ -9,11 +9,12 @@ public class AdminCancelMembership : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/memberships/{id:guid}/cancel", Handle)
+        _ = app.MapPost("/memberships/{id:guid}/cancel", Handle)
             .WithTags("Memberships/CustomerMemberships")
             .RequireAuthorization()
             .WithName("AdminCancelMembership")
-            .WithDescription("Cancels a specific customer's membership immediately (admin).");
+            .WithDescription("Cancels a specific customer's membership immediately (admin).")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

@@ -46,27 +46,27 @@
         <MudTd DataLabel="Status">
             <StatusBadge Label="@(user.IsActive ? "Active" : "Inactive")" Kind="@(user.IsActive ? StatusKinds.Success : StatusKinds.Neutral)" />
         </MudTd>
-        <MudTd DataLabel="Joined">@(user.CreatedDate is { } joined ? DateTimeFormat.FormatDate(joined) : "-")</MudTd>
+        <MudTd DataLabel="Joined">@(user.CreatedDate is { } joined ? BusinessTime.FormatDate(joined) : "-")</MudTd>
         <MudTd DataLabel="Actions" Class="cell-actions">
             <MudTooltip Text="Edit">
-                <MudIconButton Icon="@Icons.Material.Outlined.EditNote" Size="Size.Small" aria-label="Edit"
+                <MudIconButton Icon="@Icons.Material.Outlined.EditNote" Size="Size.Small" aria-label="Edit" Disabled="@(!user.Can(LinkRels.Edit))"
                                OnClick="@(() => EditAsync(user))" />
             </MudTooltip>
             <MudTooltip Text="Manage roles">
-                <MudIconButton Icon="@Icons.Material.Outlined.ManageAccounts" Size="Size.Small" aria-label="Manage roles"
+                <MudIconButton Icon="@Icons.Material.Outlined.ManageAccounts" Size="Size.Small" aria-label="Manage roles" Disabled="@(!user.Can(LinkRels.AssignRoles))"
                                OnClick="@(() => ManageRolesAsync(user))" />
             </MudTooltip>
             <MudTooltip Text="Narrow permissions">
-                <MudIconButton Icon="@Icons.Material.Outlined.Tune" Size="Size.Small" aria-label="Narrow permissions"
+                <MudIconButton Icon="@Icons.Material.Outlined.Tune" Size="Size.Small" aria-label="Narrow permissions" Disabled="@(!user.Can(LinkRels.PermissionOverrides))"
                                OnClick="@(() => Navigation.NavigateTo($"{AppRoutes.AdminHome}/settings/users/{user.Id}/permissions"))" />
             </MudTooltip>
             <MudTooltip Text="@(user.IsActive ? "Deactivate" : "Activate")">
                 <MudIconButton Icon="@(user.IsActive ? Icons.Material.Outlined.PersonOff : Icons.Material.Outlined.PersonAddAlt1)" Size="Size.Small"
                                Color="@(user.IsActive ? Color.Warning : Color.Success)"
-                               aria-label="@(user.IsActive ? "Deactivate" : "Activate")" OnClick="@(() => ToggleActiveAsync(user))" />
+                               aria-label="@(user.IsActive ? "Deactivate" : "Activate")" Disabled="@(!user.Can(LinkRels.Edit))" OnClick="@(() => ToggleActiveAsync(user))" />
             </MudTooltip>
             <MudTooltip Text="Delete">
-                <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" Size="Size.Small" aria-label="Delete"
+                <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" Size="Size.Small" aria-label="Delete" Disabled="@(!user.Can(LinkRels.Delete))"
                                OnClick="@(() => DeleteAsync(user))" />
             </MudTooltip>
         </MudTd>
@@ -108,7 +108,12 @@
 
     private async Task ToggleActiveAsync(UserResponse user)
     {
-        var result = await ApiClient.PutAsync(ApiRoutes.Users.ById(user.Id),
+        if (user.Links.Find(LinkRels.Edit) is not { } edit)
+        {
+            return;
+        }
+
+        var result = await ApiClient.FollowAsync(edit,
             new { firstName = user.FirstName, lastName = user.LastName, isActive = !user.IsActive });
 
         if (!result.IsSuccessful)
@@ -128,7 +133,12 @@
             return;
         }
 
-        var result = await ApiClient.DeleteAsync(ApiRoutes.Users.ById(user.Id));
+        if (user.Links.Find(LinkRels.Delete) is not { } delete)
+        {
+            return;
+        }
+
+        var result = await ApiClient.FollowAsync(delete);
         if (!result.IsSuccessful)
         {
             Snackbar.ShowError(result.DisplayMessage);

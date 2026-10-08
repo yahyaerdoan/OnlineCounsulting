@@ -3,11 +3,9 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.Abstractions;
-using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Domain;
 using OnlineConsulting.SharedKernel.Identity;
-using OnlineConsulting.SharedKernel.Persistence;
 
 namespace OnlineConsulting.Modules.Tenancy.Infrastructure.Cleanup;
 
@@ -18,8 +16,9 @@ public class OrphanedTenantCleanupService(IServiceScopeFactory scopeFactory, IOp
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         var settings = options.Value;
+        using var timer = new PeriodicTimer(settings.PollInterval);
 
-        while (!stoppingToken.IsCancellationRequested)
+        do
         {
             try
             {
@@ -29,9 +28,8 @@ public class OrphanedTenantCleanupService(IServiceScopeFactory scopeFactory, IOp
             {
                 logger.LogError(ex, "Orphaned tenant cleanup cycle failed unexpectedly.");
             }
-
-            await Task.Delay(settings.PollInterval, stoppingToken);
         }
+        while (await timer.WaitForNextTickAsync(stoppingToken));
     }
 
     private async Task CleanupOnceAsync(TenancyCleanupOptions settings, CancellationToken cancellationToken)
@@ -39,25 +37,22 @@ public class OrphanedTenantCleanupService(IServiceScopeFactory scopeFactory, IOp
         using var scope = scopeFactory.CreateScope();
         var tenantRepository = scope.ServiceProvider.GetRequiredService<ITenantRepository>();
         var tenantSubscriptionRepository = scope.ServiceProvider.GetRequiredService<ITenantSubscriptionRepository>();
-        var tenantSubscriptionItemRepository = scope.ServiceProvider.GetRequiredService<ITenantSubscriptionItemRepository>();
         var userExistenceReader = scope.ServiceProvider.GetRequiredService<IUserExistenceReader>();
 
         var cutoff = DateTimeOffset.UtcNow - settings.GracePeriod;
 
-        var candidates = await tenantRepository.GetListAsync(
-            predicate: t => (t.Status == TenantStatuses.PendingPayment || t.Status == TenantStatuses.Failed) && t.CreatedDate <= cutoff,
+        var candidates = await tenantRepository.GetAllAsync(predicate: t => (t.Status == TenantStatuses.PendingPayment || t.Status == TenantStatuses.Failed) && t.CreatedDate <= cutoff,
             orderBy: q => q.OrderBy(t => t.CreatedDate),
-            size: RepositoryQuerySize.Unbounded,
             cancellationToken: cancellationToken);
 
-        if (candidates.Items.Count == 0)
+        if (candidates.Count == 0)
         {
             return;
         }
 
         var reapedCount = 0;
 
-        foreach (var tenant in candidates.Items)
+        foreach (var tenant in candidates)
         {
             if (tenant.OwnerUserId is not null)
             {
@@ -70,26 +65,15 @@ public class OrphanedTenantCleanupService(IServiceScopeFactory scopeFactory, IOp
                 continue;
             }
 
-            var subscription = await tenantSubscriptionRepository.GetAsync(
+            var subscription = await tenantSubscriptionRepository.GetWithItemsAsync(
                 s => s.TenantId == tenant.Id, cancellationToken: cancellationToken);
 
             if (subscription is not null)
             {
-                var items = await tenantSubscriptionItemRepository.GetListAsync(
-                    predicate: i => i.TenantSubscriptionId == subscription.Id,
-                    orderBy: q => q.OrderBy(i => i.Id),
-                    size: RepositoryQuerySize.Unbounded,
-                    cancellationToken: cancellationToken);
-
-                foreach (var item in items.Items)
-                {
-                    _ = await tenantSubscriptionItemRepository.DeleteAsync(item);
-                }
-
-                _ = await tenantSubscriptionRepository.DeleteAsync(subscription);
+                _ = await tenantSubscriptionRepository.DeleteAsync(subscription, cancellationToken: cancellationToken);
             }
 
-            _ = await tenantRepository.DeleteAsync(tenant);
+            _ = await tenantRepository.DeleteAsync(tenant, cancellationToken: cancellationToken);
             reapedCount++;
 
             logger.LogInformation(
@@ -99,7 +83,7 @@ public class OrphanedTenantCleanupService(IServiceScopeFactory scopeFactory, IOp
 
         if (reapedCount > 0)
         {
-            logger.LogInformation("Orphaned tenant cleanup reaped {ReapedCount} of {CandidateCount} candidate tenant(s).", reapedCount, candidates.Items.Count);
+            logger.LogInformation("Orphaned tenant cleanup reaped {ReapedCount} of {CandidateCount} candidate tenant(s).", reapedCount, candidates.Count);
         }
     }
 }

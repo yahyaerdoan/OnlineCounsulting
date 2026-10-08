@@ -6,7 +6,6 @@ using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMembersh
 using OnlineConsulting.SharedKernel.Payments;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.AdminCancelMembership;
 
@@ -14,7 +13,6 @@ namespace OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemb
 /// Subscribers admin list) instead of resolving the caller's own membership by UserId.</summary>
 public record AdminCancelMembershipCommand(Guid MembershipId) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [MembershipsOperationClaims.Admin, MembershipsOperationClaims.Write, MembershipsOperationClaims.Update];
 }
 
@@ -29,7 +27,7 @@ public class AdminCancelMembershipHandler(ICustomerMembershipRepository reposito
             return Result.NotFound(string.Format(CustomerMembershipMessages.CustomerMembershipNotFoundFormat, request.MembershipId));
         }
 
-        if (membership.Status == CustomerMembershipStatuses.Cancelled)
+        if (membership.IsCancelled)
         {
             return Result.Conflict(CustomerMembershipMessages.AlreadyCancelled);
         }
@@ -39,9 +37,10 @@ public class AdminCancelMembershipHandler(ICustomerMembershipRepository reposito
             _ = await subscriptionGateway.CancelSubscriptionAsync(membership.ProviderSubscriptionId, cancellationToken: cancellationToken);
         }
 
-        membership.Status = CustomerMembershipStatuses.Cancelled;
+        membership.Cancel();
 
-        _ = await repository.UpdateAsync(membership);
+        _ = await repository.UpdateAsync(membership, cancellationToken: cancellationToken);
+
         await notifier.CancelledByStaffAsync(membership, cancellationToken);
 
         return Result.Success("Membership cancelled successfully.");

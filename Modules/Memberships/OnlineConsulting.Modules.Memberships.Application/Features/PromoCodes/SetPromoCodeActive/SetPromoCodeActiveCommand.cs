@@ -5,13 +5,11 @@ using OnlineConsulting.Modules.Memberships.Application.Features.PromoCodes.Abstr
 using OnlineConsulting.Modules.Memberships.Application.Features.PromoCodes.Constants;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Memberships.Application.Features.PromoCodes.SetPromoCodeActive;
 
 public record SetPromoCodeActiveCommand(Guid Id, bool IsActive) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [MembershipsOperationClaims.Admin, MembershipsOperationClaims.Write, MembershipsOperationClaims.Update];
 }
 
@@ -26,9 +24,9 @@ public class SetPromoCodeActiveHandler(IPromoCodeRepository repository) : IReque
             return Result.NotFound(string.Format(PromoCodeMessages.PromoCodeNotFoundFormat, request.Id));
         }
 
-        promoCode.IsActive = request.IsActive;
+        promoCode.SetActive(request.IsActive);
 
-        _ = await repository.UpdateAsync(promoCode);
+        _ = await repository.UpdateAsync(promoCode, cancellationToken: cancellationToken);
 
         return Result.Success(request.IsActive ? "Promo code activated successfully." : "Promo code deactivated successfully.");
     }

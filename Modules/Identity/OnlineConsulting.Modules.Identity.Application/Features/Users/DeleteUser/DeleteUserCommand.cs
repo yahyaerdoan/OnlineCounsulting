@@ -1,7 +1,6 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using Core.SecurityLayer.Constants;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using OnlineConsulting.Modules.Identity.Application.Common;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Constants;
@@ -12,17 +11,15 @@ using OnlineConsulting.SharedKernel.CurrentUser;
 using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Identity.Application.Features.Users.DeleteUser;
 
 public record DeleteUserCommand(Guid UserId) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [UsersOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, UsersOperationClaims.Delete];
 }
 
-public class DeleteUserHandler(UserManager<User> userManager, ITenantOwnershipReader tenantOwnershipReader, ITenantProvider tenantProvider, IHttpContextAccessor httpContextAccessor, ICurrentUserAccessor currentUserAccessor)
+public class DeleteUserHandler(UserManager<User> userManager, ITenantOwnershipReader tenantOwnershipReader, ITenantProvider tenantProvider, ICurrentUserAccessor currentUserAccessor)
     : IRequestHandler<DeleteUserCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
@@ -38,7 +35,7 @@ public class DeleteUserHandler(UserManager<User> userManager, ITenantOwnershipRe
             return Result.Forbidden("You cannot delete your own account.");
         }
 
-        var ownerGuardResult = await TenantOwnerProtection.EnsureCallerMayModifyAsync(userManager, tenantOwnershipReader, tenantProvider, httpContextAccessor, user, cancellationToken);
+        var ownerGuardResult = await TenantOwnerProtection.EnsureCallerMayModifyAsync(userManager, tenantOwnershipReader, tenantProvider, currentUserAccessor, user, cancellationToken);
         if (ownerGuardResult is not null)
         {
             return ownerGuardResult;

@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.SiteContent.Application.Features.FaqItems.Contracts;
 using OnlineConsulting.Modules.SiteContent.Application.Features.FaqItems.GetAllFaqItems;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -9,10 +10,11 @@ public class GetAllFaqItems : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/site-content/faq-items", Handle)
+        _ = app.MapGet("/site-content/faq-items", Handle)
             .WithTags("SiteContent/FaqItems")
             .WithName("GetAllFaqItems")
-            .WithDescription("Returns FAQ items, optionally filtered to a single service. Public - no login required.");
+            .WithDescription("Returns FAQ items, optionally filtered to a single service. Public - no login required.")
+            .ProducesEnveloped<List<FaqItemResponse>>();
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext, Guid? serviceId = null)

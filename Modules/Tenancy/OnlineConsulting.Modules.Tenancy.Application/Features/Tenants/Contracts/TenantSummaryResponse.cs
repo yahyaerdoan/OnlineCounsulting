@@ -1,5 +1,4 @@
-﻿using Hateoas;
-using OnlineConsulting.Modules.Tenancy.Domain;
+﻿using OnlineConsulting.Modules.Tenancy.Domain;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.Contracts;
 
@@ -11,8 +10,10 @@ public record TenantSummaryResponse(
     string PrimaryContactEmail,
     List<string> ActiveModuleKeys,
     decimal TotalActivePrice,
-    DateTimeOffset CreatedDate) : LinkedRecord
+    DateTimeOffset CreatedDate,
+    string TimeZoneId,
+    Guid? LogoMediaAssetId)
 {
     public static TenantSummaryResponse FromDomain(Tenant tenant, List<string> activeModuleKeys, decimal totalActivePrice) =>
-        new(tenant.Id, tenant.Name, tenant.Slug, tenant.Status, tenant.PrimaryContactEmail, activeModuleKeys, totalActivePrice, tenant.CreatedDate);
+        new(tenant.Id, tenant.Name, tenant.Slug, tenant.Status, tenant.PrimaryContactEmail, activeModuleKeys, totalActivePrice, tenant.CreatedDate, tenant.TimeZoneId, tenant.LogoMediaAssetId);
 }

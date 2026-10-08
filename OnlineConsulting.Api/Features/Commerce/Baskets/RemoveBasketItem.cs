@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Baskets.RemoveBasketItem;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using OnlineConsulting.SharedKernel.GuestIdentity;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -10,19 +11,16 @@ public class RemoveBasketItem : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapDelete("/api/basket/items/{id:guid}", Handle)
+        _ = app.MapDelete("/basket/items/{id:guid}", Handle)
             .WithTags("Commerce/Baskets")
             .WithName("RemoveBasketItem")
-            .WithDescription("Removes an item from the current user's (or guest's) basket.");
+            .WithDescription("Removes an item from the current user's (or guest's) basket.")
+            .ProducesEnveloped();
     }
 
-    private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext, IGuestIdAccessor guestIdAccessor)
+    private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, Guid id, ISender sender, HttpContext httpContext, IGuestIdAccessor guestIdAccessor)
     {
-        var (userId, guestId, error) = await BasketOwnerResolver.ResolveAsync(sender, httpContext, guestIdAccessor);
-        if (error is not null)
-        {
-            return error;
-        }
+        var (userId, guestId) = BasketOwnerResolver.Resolve(currentUser, guestIdAccessor);
 
         var result = await sender.Send(new RemoveBasketItemCommand(userId, guestId, id));
         return result.ToEnvelopedResult(httpContext);

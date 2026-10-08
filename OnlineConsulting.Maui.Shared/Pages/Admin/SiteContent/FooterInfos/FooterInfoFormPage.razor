@@ -53,7 +53,7 @@
             return;
         }
 
-        var result = await ApiClient.QueryAsync<PaginatedResponse<FooterInfoResponse>>(ApiRoutes.Paged(ApiRoutes.SiteContent.FooterInfo.All, 0, int.MaxValue), null);
+        var result = await ApiClient.QueryAsync<PaginatedResponse<FooterInfoResponse>>(ApiRoutes.Paged(ApiRoutes.SiteContent.FooterInfo.All, 0, 1), DynamicQuery.ById(entryId));
         if (!result.IsSuccessful || result.ResultData is null)
         {
             _loadError = result.DisplayMessage;

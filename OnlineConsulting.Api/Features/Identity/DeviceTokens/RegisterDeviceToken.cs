@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Identity.Application.Features.DeviceTokens.RegisterDeviceToken;
-using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
 using ResultHandler.Functional;
 
@@ -12,15 +12,20 @@ public class RegisterDeviceToken : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/device-tokens", Handle)
+        _ = app.MapPost("/device-tokens", Handle)
             .WithTags("Identity/DeviceTokens")
             .RequireAuthorization()
             .WithName("RegisterDeviceToken")
-            .WithDescription("Registers (or re-registers) the current user's mobile device push-notification token.");
+            .WithDescription("Registers (or re-registers) the current user's mobile device push-notification token.")
+            .ProducesEnveloped();
     }
 
-    private static async Task<IResult> Handle([FromBody] RegisterDeviceTokenCommand command, ISender sender, HttpContext httpContext)
-        => (await sender.Send(new GetCurrentUserQuery())
-                .BindAsync(user => sender.Send(command with { UserId = user.Id })))
+    private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, [FromBody] RegisterDeviceTokenRequest request, ISender sender, HttpContext httpContext)
+        => (await sender.Send(request.ToCommand(currentUser.RequiredId())))
             .ToEnvelopedResult(httpContext);
+}
+
+public record RegisterDeviceTokenRequest(string Token, string Platform)
+{
+    public RegisterDeviceTokenCommand ToCommand(Guid userId) => new(userId, Token, Platform);
 }

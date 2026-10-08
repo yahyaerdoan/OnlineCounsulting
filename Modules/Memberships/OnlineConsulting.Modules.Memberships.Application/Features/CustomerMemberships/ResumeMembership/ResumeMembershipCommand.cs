@@ -2,17 +2,16 @@
 using MediatR;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Abstractions;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Constants;
+using OnlineConsulting.Modules.Memberships.Domain;
 using OnlineConsulting.SharedKernel.Payments;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.ResumeMembership;
 
 /// <summary>Reverses PauseMembershipCommand; RenewalDate self-corrects on the next real provider renewal webhook rather than being guessed here.</summary>
 public record ResumeMembershipCommand(Guid UserId) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [];
 }
 
@@ -27,7 +26,7 @@ public class ResumeMembershipHandler(ICustomerMembershipRepository repository, I
             return Result.NotFound(CustomerMembershipMessages.NoActiveMembership);
         }
 
-        if (membership.Status != CustomerMembershipStatuses.Paused)
+        if (!membership.CanBeResumed)
         {
             return Result.Conflict(CustomerMembershipMessages.NotResumable);
         }
@@ -42,9 +41,9 @@ public class ResumeMembershipHandler(ICustomerMembershipRepository repository, I
             }
         }
 
-        membership.Status = CustomerMembershipStatuses.Active;
+        membership.Resume();
 
-        _ = await repository.UpdateAsync(membership);
+        _ = await repository.UpdateAsync(membership, cancellationToken: cancellationToken);
 
         return Result.Success("Membership resumed successfully.");
     }

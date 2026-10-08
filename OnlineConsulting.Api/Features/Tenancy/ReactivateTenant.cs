@@ -9,11 +9,12 @@ public class ReactivateTenant : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/tenancy/admin/tenants/{tenantId:guid}/reactivate", Handle)
+        _ = app.MapPost("/tenancy/admin/tenants/{tenantId:guid}/reactivate", Handle)
             .WithTags("Tenancy")
             .RequireAuthorization()
             .WithName("ReactivateTenant")
-            .WithDescription("Lifts a suspension, restoring the tenant to Active (SuperAdmin).");
+            .WithDescription("Lifts a suspension, restoring the tenant to Active (SuperAdmin).")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid tenantId, ISender sender, HttpContext httpContext)

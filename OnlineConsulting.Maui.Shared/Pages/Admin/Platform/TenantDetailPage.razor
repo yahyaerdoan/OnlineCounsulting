@@ -29,8 +29,8 @@ else if (_tenant is not null)
             <tbody>
                 <tr><td>Tenant Status</td><td>@_tenant.Status</td></tr>
                 <tr><td>Subscription Status</td><td>@(_tenant.SubscriptionStatus ?? "-")</td></tr>
-                <tr><td>Started</td><td>@(_tenant.SubscriptionStartDate is { } start ? DateTimeFormat.FormatDateTime(start) : "-")</td></tr>
-                <tr><td>Renews</td><td>@(_tenant.SubscriptionRenewalDate is { } renewal ? DateTimeFormat.FormatDateTime(renewal) : "-")</td></tr>
+                <tr><td>Started</td><td>@(_tenant.SubscriptionStartDate is { } start ? BusinessTime.FormatDateTime(start) : "-")</td></tr>
+                <tr><td>Renews</td><td>@(_tenant.SubscriptionRenewalDate is { } renewal ? BusinessTime.FormatDateTime(renewal) : "-")</td></tr>
             </tbody>
         </MudSimpleTable>
 
@@ -54,7 +54,7 @@ else if (_tenant is not null)
                             <td>@item.ModuleKey</td>
                             <td>@item.Status</td>
                             <td class="mud-table-cell-align-right">@CurrencyFormat.Format(item.PriceAtAddition)</td>
-                            <td>@DateTimeFormat.FormatDateTime(item.AddedAt)</td>
+                            <td>@BusinessTime.FormatDateTime(item.AddedAt)</td>
                         </tr>
                     }
                 </tbody>

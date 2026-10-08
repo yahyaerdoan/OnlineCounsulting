@@ -10,16 +10,22 @@ public class CreateHeroSlide : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/site-content/hero-slides", Handle)
+        _ = app.MapPost("/site-content/hero-slides", Handle)
             .WithTags("SiteContent/HeroSlides")
             .RequireAuthorization()
             .WithName("CreateHeroSlide")
-            .WithDescription("Creates a homepage hero slide.");
+            .WithDescription("Creates a homepage hero slide.")
+            .ProducesEnveloped<Guid>(StatusCodes.Status201Created);
     }
 
-    private static async Task<IResult> Handle([FromBody] CreateHeroSlideCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] CreateHeroSlideRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command);
+        var result = await sender.Send(request.ToCommand());
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record CreateHeroSlideRequest(string Title, string Description, string ImageUrl, int DisplayOrder = 0, Dictionary<string, object>? Metadata = null)
+{
+    public CreateHeroSlideCommand ToCommand() => new(Title, Description, ImageUrl, DisplayOrder, Metadata);
 }

@@ -8,13 +8,11 @@ using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Inquiries.Application.Features.Messages.ReplyToMessage;
 
 public record ReplyToMessageCommand(Guid MessageId, string ReplyBody) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [MessagesOperationClaims.Admin, MessagesOperationClaims.Update];
 }
 
@@ -30,7 +28,7 @@ public class ReplyToMessageHandler(IMessageRepository repository, IEmailOutboxWr
         }
 
         message.RepliedAt = DateTimeOffset.UtcNow;
-        _ = await repository.UpdateAsync(message);
+        _ = await repository.UpdateAsync(message, cancellationToken: cancellationToken);
 
         var model = new MessageReplyEmailModel(message.FirstName, message.Subject, request.ReplyBody);
         var sourceReference = $"Message:{message.Id}";

@@ -4,13 +4,11 @@ using OnlineConsulting.Modules.Scheduling.Application.Common;
 using OnlineConsulting.Modules.Scheduling.Application.Features.Availability.Abstractions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Scheduling.Application.Features.Availability.DeleteAvailabilityRule;
 
 public record DeleteAvailabilityRuleCommand(Guid Id) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [SchedulingOperationClaims.Admin, SchedulingOperationClaims.Write, SchedulingOperationClaims.Delete];
 }
 
@@ -24,7 +22,7 @@ public class DeleteAvailabilityRuleHandler(IAvailabilityRuleRepository repositor
             return Result.NotFound(string.Format(SchedulingMessages.AvailabilityRuleNotFoundFormat, request.Id));
         }
 
-        _ = await repository.DeleteAsync(rule);
+        _ = await repository.DeleteAsync(rule, cancellationToken: cancellationToken);
 
         return Result.Success("Availability rule deleted successfully.");
     }

@@ -6,6 +6,7 @@ using OnlineConsulting.Modules.Memberships.Domain;
 using OnlineConsulting.SharedKernel.Identity;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
+using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Memberships.Infrastructure.Notifications;
 
@@ -17,6 +18,7 @@ public class MembershipNotifier(
     IPushNotificationSender pushSender,
     IUserContactReader contactReader,
     IMembershipPlanRepository planRepository,
+    ITenantTimeZoneReader timeZoneReader,
     ILogger<MembershipNotifier> logger) : IMembershipNotifier
 {
     public async Task StartedAsync(CustomerMembership membership, CancellationToken cancellationToken = default)
@@ -81,7 +83,8 @@ public class MembershipNotifier(
                 return;
             }
 
-            var model = new MembershipUpdateEmailModel(kind, contact.FirstName, await PlanNameAsync(membership, cancellationToken), membership.RenewalDate);
+            var zone = await timeZoneReader.GetAsync(membership.TenantId, cancellationToken);
+            var model = new MembershipUpdateEmailModel(kind, contact.FirstName, await PlanNameAsync(membership, cancellationToken), membership.RenewalDate?.InZone(zone));
             await outboxWriter.EnqueueAsync(email, emailTemplate.Subject(model), emailTemplate.Build(model), sourceReference: $"Membership:{membership.Id}:{kind}",
                 cancellationToken: cancellationToken);
         }

@@ -5,14 +5,15 @@ using OnlineConsulting.SharedKernel.Payments;
 namespace OnlineConsulting.Api.Features.Payments;
 
 /// <summary>Separate from PaymentWebhook because subscription and one-time-payment events use different gateway interfaces/vocabularies, even though both are served by Stripe today.</summary>
-public class SubscriptionWebhook : IEndpoint
+public class SubscriptionWebhook : IVersionNeutralEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         _ = app.MapPost("/api/payments/webhooks/{provider}/subscriptions", Handle)
             .WithTags("Payments")
             .WithName("SubscriptionWebhook")
-            .WithDescription("Receives async subscription-lifecycle callbacks (renewed/cancelled/payment failed) from a provider and notifies the owning module (Memberships) once verified. Unrecognized/irrelevant event types are acknowledged with 200 OK so the provider stops retrying.");
+            .WithDescription("Receives async subscription-lifecycle callbacks (renewed/cancelled/payment failed) from a provider and notifies the owning module (Memberships) once verified. Unrecognized/irrelevant event types are acknowledged with 200 OK so the provider stops retrying.")
+            .Produces(StatusCodes.Status200OK);
     }
 
     private static async Task<IResult> Handle(string provider, HttpContext httpContext, IServiceProvider serviceProvider, IPublisher publisher, CancellationToken cancellationToken)

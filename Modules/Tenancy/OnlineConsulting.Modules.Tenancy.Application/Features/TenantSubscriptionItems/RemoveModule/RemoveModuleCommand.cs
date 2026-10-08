@@ -1,55 +1,51 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
+using Core.SecurityLayer.Constants;
 using MediatR;
-using Microsoft.AspNetCore.Http;
-using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.Constants;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.Rules;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Domain;
+using OnlineConsulting.SharedKernel.Authorization;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using OnlineConsulting.SharedKernel.FeatureFlags;
 using OnlineConsulting.SharedKernel.Payments;
 using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.RemoveModule;
 
-/// <summary>Mirror of AddModuleCommand - removes one à la carte module, prorated refund/credit. Same Roles => [] + TenantOwnershipGuard authorization shape.</summary>
+/// <summary>Mirror of AddModuleCommand - removes one à la carte module, prorated refund/credit. Same authorization: tenant admins (own tenant, via TenantOwnershipGuard) or a SuperAdmin.</summary>
 public record RemoveModuleCommand(Guid TenantId, string ModuleKey) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
-    public string[] Roles => [];
+    public string[] Roles => [GeneralOperationClaims.Admin, GlobalOperationClaims.SuperAdmin];
 }
 
-public class RemoveModuleHandler(ITenantSubscriptionRepository tenantSubscriptionRepository, ITenantSubscriptionItemRepository tenantSubscriptionItemRepository, ISubscriptionGateway subscriptionGateway, IFeatureFlagWriter featureFlagWriter, ITenantProvider tenantProvider, IHttpContextAccessor httpContextAccessor)
+public class RemoveModuleHandler(ITenantSubscriptionRepository tenantSubscriptionRepository, ISubscriptionGateway subscriptionGateway, IFeatureFlagWriter featureFlagWriter, ITenantProvider tenantProvider, ICurrentUserAccessor currentUserAccessor)
     : IRequestHandler<RemoveModuleCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(RemoveModuleCommand request, CancellationToken cancellationToken)
     {
-        if (!TenantOwnershipGuard.CallerMayManage(request.TenantId, tenantProvider.TenantId, httpContextAccessor))
+        if (!TenantOwnershipGuard.CallerMayManage(request.TenantId, tenantProvider.TenantId, currentUserAccessor))
         {
             return TenantSubscriptionItemBusinessRules.NotAuthorizedForTenant();
         }
 
-        var tenantSubscription = await tenantSubscriptionRepository.GetAsync(s => s.TenantId == request.TenantId && s.Status != TenantSubscriptionStatuses.Cancelled, cancellationToken: cancellationToken);
+        var tenantSubscription = await tenantSubscriptionRepository.GetWithItemsAsync(s => s.TenantId == request.TenantId && s.Status != TenantSubscriptionStatuses.Cancelled, cancellationToken: cancellationToken);
 
         if (tenantSubscription is null)
         {
             return TenantSubscriptionItemBusinessRules.NoActiveSubscription();
         }
 
-        var item = await tenantSubscriptionItemRepository
-            .GetAsync(i => i.TenantSubscriptionId == tenantSubscription.Id && i.ModuleKey == request.ModuleKey && i.Status == TenantSubscriptionItemStatuses.Active, cancellationToken: cancellationToken);
+        var item = tenantSubscription.ActiveItems.FirstOrDefault(i => i.ModuleKey == request.ModuleKey);
 
         if (item is null)
         {
             return TenantSubscriptionItemBusinessRules.ModuleNotActive();
         }
 
-        var hasAnotherActiveItem = await tenantSubscriptionItemRepository.AnyAsync(i => i.TenantSubscriptionId == tenantSubscription.Id && i.Status == TenantSubscriptionItemStatuses.Active && i.Id != item.Id, cancellationToken: cancellationToken);
-
-        if (!hasAnotherActiveItem)
+        if (!tenantSubscription.CanRemoveModule(request.ModuleKey))
         {
             return TenantSubscriptionItemBusinessRules.CannotRemoveLastModule();
         }
@@ -64,7 +60,9 @@ public class RemoveModuleHandler(ITenantSubscriptionRepository tenantSubscriptio
             return failure;
         }
 
-        _ = await tenantSubscriptionItemRepository.DeleteAsync(item);
+        tenantSubscription.RemoveModule(request.ModuleKey, DateTimeOffset.UtcNow);
+
+        _ = await tenantSubscriptionRepository.UpdateAsync(tenantSubscription, cancellationToken: cancellationToken);
 
         await featureFlagWriter.SetAsync(request.TenantId, request.ModuleKey, false, cancellationToken);
 

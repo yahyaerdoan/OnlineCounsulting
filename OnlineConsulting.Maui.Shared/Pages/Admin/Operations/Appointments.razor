@@ -21,7 +21,7 @@
         <MudTh>Actions</MudTh>
     </HeaderContent>
     <RowTemplate Context="appointment">
-        <MudTd DataLabel="Scheduled" Class="cell-primary">@DateTimeFormat.FormatDateTime(appointment.ScheduledStart)</MudTd>
+        <MudTd DataLabel="Scheduled" Class="cell-primary">@BusinessTime.FormatDateTime(appointment.ScheduledStart)</MudTd>
         <MudTd DataLabel="Where">
             <span class="appointment-where">
                 <MudIcon Icon="@(appointment.IsOnline ? Icons.Material.Outlined.VideoCall : Icons.Material.Outlined.LocationOn)" Size="Size.Small" />
@@ -34,21 +34,21 @@
             <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
                 <MudTooltip Text="Confirm">
                     <MudIconButton aria-label="Confirm" Icon="@Icons.Material.Outlined.Check" Color="Color.Success" Size="Size.Small"
-                                   Disabled="@(appointment.Status != "Pending")" OnClick="@(() => ConfirmAsync(appointment))" />
+                                   Disabled="@(!appointment.Can(LinkRels.Confirm))" OnClick="@(() => ConfirmAsync(appointment))" />
                 </MudTooltip>
                 <MudTooltip Text="Cancel">
                     <MudIconButton aria-label="Cancel" Icon="@Icons.Material.Outlined.Close" Color="Color.Error" Size="Size.Small"
-                                   Disabled="@(!IsOpen(appointment))" OnClick="@(() => CancelAsync(appointment))" />
+                                   Disabled="@(!appointment.Can(LinkRels.Cancel))" OnClick="@(() => CancelAsync(appointment))" />
                 </MudTooltip>
                 <MudTooltip Text="Assign technician">
                     <MudIconButton aria-label="Assign technician" Icon="@Icons.Material.Outlined.PersonAdd" Color="Color.Default" Size="Size.Small"
-                                   Disabled="@(!IsOpen(appointment))" OnClick="@(() => AssignTechnicianAsync(appointment))" />
+                                   Disabled="@(!appointment.Can(LinkRels.AssignTechnician))" OnClick="@(() => AssignTechnicianAsync(appointment))" />
                 </MudTooltip>
                 <MudTooltip Text="Record work order">
                     <MudIconButton aria-label="Record work order" Icon="@Icons.Material.Outlined.Build" Color="Color.Default" Size="Size.Small"
-                                   Disabled="@(appointment.AssignedTechnicianUserId is null || !IsOpen(appointment))" OnClick="@(() => RecordWorkOrderAsync(appointment))" />
+                                   Disabled="@(appointment.AssignedTechnicianUserId is null || !appointment.Can(LinkRels.RecordWorkOrder))" OnClick="@(() => RecordWorkOrderAsync(appointment))" />
                 </MudTooltip>
-                @if (appointment.Status == "Completed")
+                @if (appointment.Can(LinkRels.WorkOrder))
                 {
                     <MudTooltip Text="View work order">
                         <MudIconButton aria-label="View work order" Icon="@Icons.Material.Outlined.Description" Color="Color.Default" Size="Size.Small"
@@ -66,7 +66,12 @@
 
     private async Task ConfirmAsync(AppointmentResponse appointment)
     {
-        var result = await ApiClient.PostAsync(ApiRoutes.Operations.Appointments.Confirm(appointment.Id), new { });
+        if (appointment.Links.Find(LinkRels.Confirm) is not { } confirm)
+        {
+            return;
+        }
+
+        var result = await ApiClient.FollowAsync(confirm, new { });
         if (!result.IsSuccessful)
         {
             Snackbar.ShowError(result.DisplayMessage);
@@ -77,13 +82,11 @@
         await _table.ReloadAsync();
     }
 
-    private static bool IsOpen(AppointmentResponse appointment) => appointment.Status is "Pending" or "Confirmed";
-
     private Task CancelAsync(AppointmentResponse appointment) =>
-        DialogService.ShowAndReloadAsync("Cancel Appointment", new DialogParameters<CancelAppointmentDialog> { { x => x.AppointmentId, appointment.Id } }, _table.ReloadAsync);
+        DialogService.ShowAndReloadAsync("Cancel Appointment", new DialogParameters<CancelAppointmentDialog> { { x => x.CancelLink, appointment.Links.Find(LinkRels.Cancel) } }, _table.ReloadAsync);
 
     private Task AssignTechnicianAsync(AppointmentResponse appointment) =>
-        DialogService.ShowAndReloadAsync("Assign Technician", new DialogParameters<AssignTechnicianDialog> { { x => x.Appointment, appointment } }, _table.ReloadAsync);
+        DialogService.ShowAndReloadAsync("Assign Technician", new DialogParameters<AssignTechnicianDialog> { { x => x.AssignLink, appointment.Links.Find(LinkRels.AssignTechnician) } }, _table.ReloadAsync);
 
     private void RecordWorkOrderAsync(AppointmentResponse appointment) =>
         Navigation.NavigateTo($"{AppRoutes.AdminHome}/operations/appointments/{appointment.Id}/record-work-order");

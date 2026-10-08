@@ -9,11 +9,12 @@ public class GetAllPermissions : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/permissions", Handle)
+        _ = app.MapGet("/permissions", Handle)
             .WithTags("Identity/Permissions")
             .RequireAuthorization()
             .WithName("GetAllPermissions")
-            .WithDescription("Returns every permission defined in the system, grouped by module.");
+            .WithDescription("Returns every permission defined in the system, grouped by module.")
+            .ProducesEnveloped<Dictionary<string, string[]>>();
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext)

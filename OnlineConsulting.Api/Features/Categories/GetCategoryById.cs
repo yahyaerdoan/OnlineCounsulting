@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Categories.Application.Features.Categories.Contracts;
 using OnlineConsulting.Modules.Categories.Application.Features.Categories.GetCategoryById;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -9,10 +10,11 @@ public class GetCategoryById : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/categories/{id:guid}", Handle)
+        _ = app.MapGet("/categories/{id:guid}", Handle)
             .WithTags("Categories")
             .WithName("GetCategoryById")
-            .WithDescription("Returns a single category by id.");
+            .WithDescription("Returns a single category by id.")
+            .ProducesEnveloped<CategoryResponse>();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

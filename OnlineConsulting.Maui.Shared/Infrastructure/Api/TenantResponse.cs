@@ -1,3 +1,5 @@
+using OnlineConsulting.Maui.Shared.Infrastructure.Hateoas;
+
 namespace OnlineConsulting.Maui.Shared.Infrastructure.Api;
 
 /// <summary>Mirrors Tenancy's TenantSummaryResponse - backs the paginated Tenants admin table.</summary>
@@ -9,7 +11,9 @@ public record TenantResponse(
     string PrimaryContactEmail,
     List<string> ActiveModuleKeys,
     decimal TotalActivePrice,
-    DateTimeOffset? CreatedDate = null) : IQueryableFields
+    DateTimeOffset? CreatedDate = null,
+    string? TimeZoneId = null,
+    Guid? LogoMediaAssetId = null) : HalResource, IQueryableFields
 {
     public static string[] SearchFields => [nameof(Name), nameof(Slug), nameof(PrimaryContactEmail)];
 }

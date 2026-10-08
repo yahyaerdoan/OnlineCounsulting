@@ -1,0 +1,63 @@
+@* Server-searched user select: fetches at most PageSize matches per keystroke instead of loading every tenant user. *@
+@namespace OnlineConsulting.Maui.Shared.Components.Common
+@inject IApiClient ApiClient
+
+<MudAutocomplete T="UserResponse" Value="_selected" ValueChanged="OnSelectedAsync" Label="@Label" Placeholder="Type a name or email"
+                 Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true" SearchFunc="SearchAsync" ToStringFunc="Display"
+                 DebounceInterval="300" MaxItems="PageSize" ResetValueOnEmptyText="true" CoerceText="false" Required="Required" Disabled="Disabled" />
+
+@code {
+    private const int PageSize = 20;
+
+    [Parameter]
+    public Guid? Value { get; set; }
+
+    [Parameter]
+    public EventCallback<Guid?> ValueChanged { get; set; }
+
+    [Parameter]
+    public string Label { get; set; } = "User";
+
+    [Parameter]
+    public bool Required { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    private UserResponse? _selected;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Value is not { } id || id == Guid.Empty)
+        {
+            _selected = null;
+            return;
+        }
+
+        if (_selected?.Id != id)
+        {
+            var result = await ApiClient.GetAsync<UserResponse>(ApiRoutes.Users.ById(id));
+            _selected = result.IsSuccessful ? result.ResultData : null;
+        }
+    }
+
+    private async Task<IEnumerable<UserResponse>> SearchAsync(string? term, CancellationToken cancellationToken)
+    {
+        var filter = string.IsNullOrWhiteSpace(term)
+            ? null
+            : new DynamicFilter(nameof(UserResponse.FirstName), "contains", term.Trim(), "or",
+                [new DynamicFilter(nameof(UserResponse.LastName), "contains", term.Trim()), new DynamicFilter(nameof(UserResponse.Email), "contains", term.Trim())]);
+        var query = new DynamicQuery([new DynamicSort(nameof(UserResponse.FirstName), "asc")], filter);
+
+        var result = await ApiClient.QueryAsync<PaginatedResponse<UserResponse>>(ApiRoutes.Paged(ApiRoutes.Users.All, 0, PageSize), query, cancellationToken);
+        return result.IsSuccessful && result.ResultData is not null ? result.ResultData.Items : [];
+    }
+
+    private async Task OnSelectedAsync(UserResponse? user)
+    {
+        _selected = user;
+        await ValueChanged.InvokeAsync(user?.Id);
+    }
+
+    private static string Display(UserResponse? user) => user is null ? string.Empty : $"{user.FirstName} {user.LastName} ({user.Email})";
+}

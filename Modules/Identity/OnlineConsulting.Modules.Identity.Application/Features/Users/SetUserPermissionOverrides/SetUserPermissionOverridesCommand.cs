@@ -1,26 +1,24 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
-using Core.ApplicationLayer.Pipelines.Transactions.Abstractions;
 using Core.SecurityLayer.Authorization;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using OnlineConsulting.Modules.Identity.Application.Common;
 using OnlineConsulting.Modules.Identity.Application.Features.Auth;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Constants;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using OnlineConsulting.SharedKernel.Tenancy;
+using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Security.Claims;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Identity.Application.Features.Users.SetUserPermissionOverrides;
 
 /// <summary>DeniedPermissions replaces the user's full denied set (same resend-the-whole-list convention as AssignPermissionsToRoleCommand).</summary>
-public record SetUserPermissionOverridesCommand(Guid UserId, List<string> DeniedPermissions) : IRequest<OperationResult>, ISecureAddRequest, ITransactionAddRequest
+public record SetUserPermissionOverridesCommand(Guid UserId, List<string> DeniedPermissions) : IRequest<OperationResult>, ISecureAddRequest, IIdentityTransactionRequest
 {
-    [JsonIgnore]
     public string[] Roles => [UsersOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, UsersOperationClaims.Write];
 }
 
@@ -29,7 +27,7 @@ public record SetUserPermissionOverridesCommand(Guid UserId, List<string> Denied
 /// denied - a bypass claim (FullAccess/TenantFullAccess/SuperAdmin) or a permission the role never had
 /// isn't a valid target.
 /// </summary>
-public class SetUserPermissionOverridesHandler(UserManager<User> userManager, RoleManager<Role> roleManager, IPermissionCatalog permissionCatalog, ITenantOwnershipReader tenantOwnershipReader, ITenantProvider tenantProvider, IHttpContextAccessor httpContextAccessor)
+public class SetUserPermissionOverridesHandler(UserManager<User> userManager, RoleManager<Role> roleManager, IPermissionCatalog permissionCatalog, ITenantOwnershipReader tenantOwnershipReader, ITenantProvider tenantProvider, ICurrentUserAccessor currentUserAccessor)
     : IRequestHandler<SetUserPermissionOverridesCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(SetUserPermissionOverridesCommand request, CancellationToken cancellationToken)
@@ -41,7 +39,7 @@ public class SetUserPermissionOverridesHandler(UserManager<User> userManager, Ro
             return Result.NotFound(UserMessages.UserNotFound);
         }
 
-        var ownerGuardResult = await TenantOwnerProtection.EnsureCallerMayModifyAsync(userManager, tenantOwnershipReader, tenantProvider, httpContextAccessor, user, cancellationToken);
+        var ownerGuardResult = await TenantOwnerProtection.EnsureCallerMayModifyAsync(userManager, tenantOwnershipReader, tenantProvider, currentUserAccessor, user, cancellationToken);
 
         if (ownerGuardResult is not null)
         {

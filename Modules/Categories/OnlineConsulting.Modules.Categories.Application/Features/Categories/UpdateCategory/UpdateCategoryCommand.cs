@@ -6,13 +6,11 @@ using OnlineConsulting.Modules.Categories.Application.Features.Categories.Rules;
 using OnlineConsulting.SharedKernel.Authorization;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Categories.Application.Features.Categories.UpdateCategory;
 
 public record UpdateCategoryCommand(Guid Id, string Title, string Description, string Icon, string? IconColor = null) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [CategoriesOperationClaims.Admin, CategoriesOperationClaims.Write, CategoriesOperationClaims.Update, GlobalOperationClaims.SuperAdmin];
 }
 
@@ -32,7 +30,7 @@ public class UpdateCategoryHandler(ICategoryRepository repository) : IRequestHan
         category.Icon = request.Icon;
         category.IconColor = request.IconColor;
 
-        _ = await repository.UpdateAsync(category);
+        _ = await repository.UpdateAsync(category, cancellationToken: cancellationToken);
 
         return Result.Success("Category updated successfully.");
     }

@@ -10,17 +10,22 @@ public class UpdateCategory : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/categories/{id:guid}", Handle)
+        _ = app.MapPut("/categories/{id:guid}", Handle)
             .WithTags("Categories")
             .RequireAuthorization()
             .WithName("UpdateCategory")
-            .WithDescription("Updates an existing category.");
+            .WithDescription("Updates an existing category.")
+            .ProducesEnveloped();
     }
 
-    private static async Task<IResult> Handle(
-        Guid id, [FromBody] UpdateCategoryCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateCategoryRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command with { Id = id });
+        var result = await sender.Send(request.ToCommand(id));
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record UpdateCategoryRequest(string Title, string Description, string Icon, string? IconColor = null)
+{
+    public UpdateCategoryCommand ToCommand(Guid id) => new(id, Title, Description, Icon, IconColor);
 }

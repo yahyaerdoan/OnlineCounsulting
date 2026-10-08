@@ -10,16 +10,22 @@ public class CreateFeatureHighlightsIntro : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/site-content/feature-highlights-intro", Handle)
+        _ = app.MapPost("/site-content/feature-highlights-intro", Handle)
             .WithTags("SiteContent/FeatureHighlightsIntros")
             .RequireAuthorization()
             .WithName("CreateFeatureHighlightsIntro")
-            .WithDescription("Creates the feature highlights section intro (description + cover image).");
+            .WithDescription("Creates the feature highlights section intro (description + cover image).")
+            .ProducesEnveloped<Guid>(StatusCodes.Status201Created);
     }
 
-    private static async Task<IResult> Handle([FromBody] CreateFeatureHighlightsIntroCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] CreateFeatureHighlightsIntroRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command);
+        var result = await sender.Send(request.ToCommand());
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record CreateFeatureHighlightsIntroRequest(string Description, Guid? CoverMediaAssetId = null, int DisplayOrder = 0, Dictionary<string, object>? Metadata = null)
+{
+    public CreateFeatureHighlightsIntroCommand ToCommand() => new(Description, CoverMediaAssetId, DisplayOrder, Metadata);
 }

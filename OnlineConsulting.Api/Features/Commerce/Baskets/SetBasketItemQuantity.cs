@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Baskets.SetBasketItemQuantity;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using OnlineConsulting.SharedKernel.GuestIdentity;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -11,20 +12,16 @@ public class SetBasketItemQuantity : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/basket/items/{id:guid}", Handle)
+        _ = app.MapPut("/basket/items/{id:guid}", Handle)
             .WithTags("Commerce/Baskets")
             .WithName("SetBasketItemQuantity")
-            .WithDescription("Sets a basket line's quantity to an absolute value - the cart page's +/- stepper.");
+            .WithDescription("Sets a basket line's quantity to an absolute value - the cart page's +/- stepper.")
+            .ProducesEnveloped();
     }
 
-    private static async Task<IResult> Handle(Guid id, [FromBody] SetBasketItemQuantityRequest request, ISender sender, HttpContext httpContext, IGuestIdAccessor guestIdAccessor)
+    private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, Guid id, [FromBody] SetBasketItemQuantityRequest request, ISender sender, HttpContext httpContext, IGuestIdAccessor guestIdAccessor)
     {
-        var (userId, guestId, error) = await BasketOwnerResolver.ResolveAsync(sender, httpContext, guestIdAccessor);
-
-        if (error is not null)
-        {
-            return error;
-        }
+        var (userId, guestId) = BasketOwnerResolver.Resolve(currentUser, guestIdAccessor);
 
         var result = await sender.Send(new SetBasketItemQuantityCommand(userId, guestId, id, request.Quantity));
         return result.ToEnvelopedResult(httpContext);

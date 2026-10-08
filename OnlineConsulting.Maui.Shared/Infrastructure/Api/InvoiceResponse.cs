@@ -1,3 +1,5 @@
+using OnlineConsulting.Maui.Shared.Infrastructure.Hateoas;
+
 namespace OnlineConsulting.Maui.Shared.Infrastructure.Api;
 
 public record InvoiceLineResponse(string Description, decimal Quantity, decimal UnitPrice, int TaxRate, decimal Subtotal, decimal DiscountAmount, decimal TaxAmount, decimal Total);
@@ -8,7 +10,7 @@ public record InvoiceResponse(
     string BillToName, string? BillToEmail, string? BillToAddress,
     decimal Subtotal, decimal DiscountAmount, string? DiscountLabel, decimal TaxAmount, decimal Total,
     DateTimeOffset IssuedAt, DateTimeOffset? DueAt, DateTimeOffset? PaidAt, string? PaymentMethod, string? VoidReason,
-    List<InvoiceLineResponse> Lines) : IQueryableFields
+    List<InvoiceLineResponse> Lines) : HalResource, IQueryableFields
 {
     public static string[] SearchFields => [nameof(InvoiceNumber), nameof(BillToName), nameof(Status)];
 

@@ -28,12 +28,12 @@
         <MudTd DataLabel="Actions">
             <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
                 <MudTooltip Text="Edit">
-                    <MudIconButton aria-label="Edit" Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default"
+                    <MudIconButton Disabled="@(!category.Can(LinkRels.Edit))" aria-label="Edit" Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default"
                                    OnClick="@(() => EditAsync(category))" />
                 </MudTooltip>
 
                 <MudTooltip Text="Delete">
-                    <MudIconButton aria-label="Delete" Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error"
+                    <MudIconButton Disabled="@(!category.Can(LinkRels.Delete))" aria-label="Delete" Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error"
                                    OnClick="@(() => DeleteAsync(category))" />
                 </MudTooltip>
             </MudButtonGroup>
@@ -58,7 +58,12 @@
             return;
         }
 
-        var result = await ApiClient.DeleteAsync(ApiRoutes.SiteContent.GalleryCategory.ById(category.Id));
+        if (category.Links.Find(LinkRels.Delete) is not { } delete)
+        {
+            return;
+        }
+
+        var result = await ApiClient.FollowAsync(delete);
         if (!result.IsSuccessful)
         {
             Snackbar.ShowError(result.DisplayMessage);

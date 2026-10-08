@@ -1,9 +1,8 @@
-using Hateoas;
 using OnlineConsulting.Modules.Commerce.Domain;
 
 namespace OnlineConsulting.Modules.Commerce.Application.Features.Addresses.Contracts;
 
-public class UserAddressResponse : LinkedResponse
+public class UserAddressResponse
 {
     public required Guid Id { get; init; }
     public required string AddressName { get; init; }

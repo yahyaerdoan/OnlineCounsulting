@@ -1,4 +1,6 @@
-﻿using FluentValidation;
+﻿using Core.ApplicationLayer.Pipelines.Transactions.Extensions;
+using Core.PersistenceLayer.Repositories.Auditing;
+using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -23,14 +25,13 @@ using OnlineConsulting.Modules.SiteContent.Application.Features.ServiceProcessSt
 using OnlineConsulting.Modules.SiteContent.Application.Features.SocialLinks.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Application.Features.Testimonials.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Infrastructure.Persistence;
-using OnlineConsulting.Modules.SiteContent.Infrastructure.Pipelines;
 using OnlineConsulting.Modules.SiteContent.Infrastructure.Repositories;
 using OnlineConsulting.Modules.SiteContent.Infrastructure.Repositories.Gallery;
 using OnlineConsulting.Modules.SiteContent.Infrastructure.Repositories.Partnerships;
 using OnlineConsulting.Modules.SiteContent.Infrastructure.Repositories.Service;
-using OnlineConsulting.SharedKernel.Auditing;
 using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.Tenancy;
+using OnlineConsulting.SharedKernel.Transactions;
 
 namespace OnlineConsulting.Modules.SiteContent.Infrastructure;
 
@@ -43,7 +44,6 @@ public static class SiteContentModule
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
         _ = services.AddScoped<TenantSaveChangesInterceptor>();
-        _ = services.AddScoped<AuditSaveChangesInterceptor>();
 
         _ = services.AddDbContext<SiteContentDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
             .AddInterceptors(serviceProvider.GetRequiredService<TenantSaveChangesInterceptor>(), serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>()));
@@ -59,12 +59,12 @@ public static class SiteContentModule
         _ = services.AddScoped<IPartnershipSocialLinkRepository, PartnershipSocialLinkRepository>();
         _ = services.AddScoped<IGalleryCategoryRepository, GalleryCategoryRepository>();
         _ = services.AddScoped<IGalleryItemRepository, GalleryItemRepository>();
-        _ = services.AddScoped<IGalleryItemCategoryRepository, GalleryItemCategoryRepository>();
         _ = services.AddScoped<IServiceProcessStepRepository, ServiceProcessStepRepository>();
         _ = services.AddScoped<IServiceOfferingRepository, ServiceOfferingRepository>();
         _ = services.AddScoped<ISocialLinkRepository, SocialLinkRepository>();
         _ = services.AddScoped<IServiceAreaRepository, ServiceAreaRepository>();
         _ = services.AddMemoryCache();
+        _ = services.Configure<Geocoding.GeoapifyOptions>(configuration.GetSection(Geocoding.GeoapifyOptions.SectionName));
         _ = services.AddHttpClient(Geocoding.CityGeocoder.GeoapifyClient, client =>
         {
             client.BaseAddress = new Uri("https://api.geoapify.com/");
@@ -83,7 +83,7 @@ public static class SiteContentModule
 
         _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
         _ = services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
-        _ = services.AddTransient(typeof(IPipelineBehavior<,>), typeof(SiteContentTransactionAddingBehavior<,>));
+        _ = services.AddTransactionalDbContext<ISiteContentTransactionRequest, SiteContentDbContext>();
 
         _ = services.AddSingleton<IDefaultAdminPermissions>(new DefaultAdminPermissions(SiteContentOperationClaims.All));
         return services;

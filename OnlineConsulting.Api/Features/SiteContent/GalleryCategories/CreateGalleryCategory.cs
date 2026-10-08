@@ -10,16 +10,22 @@ public class CreateGalleryCategory : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/site-content/gallery-categories", Handle)
+        _ = app.MapPost("/site-content/gallery-categories", Handle)
             .WithTags("SiteContent/GalleryCategories")
             .RequireAuthorization()
             .WithName("CreateGalleryCategory")
-            .WithDescription("Creates a gallery category tag.");
+            .WithDescription("Creates a gallery category tag.")
+            .ProducesEnveloped<Guid>(StatusCodes.Status201Created);
     }
 
-    private static async Task<IResult> Handle([FromBody] CreateGalleryCategoryCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] CreateGalleryCategoryRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command);
+        var result = await sender.Send(request.ToCommand());
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record CreateGalleryCategoryRequest(string Name, string? Description = null)
+{
+    public CreateGalleryCategoryCommand ToCommand() => new(Name, Description);
 }

@@ -1,5 +1,6 @@
 using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.Contracts;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.GetTenantById;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -9,11 +10,12 @@ public class GetTenantById : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/tenancy/admin/tenants/{tenantId:guid}", Handle)
+        _ = app.MapGet("/tenancy/admin/tenants/{tenantId:guid}", Handle)
             .WithTags("Tenancy")
             .RequireAuthorization()
             .WithName("GetTenantById")
-            .WithDescription("Returns a single tenant's detail: subscription and every subscription item ever billed on it (SuperAdmin).");
+            .WithDescription("Returns a single tenant's detail: subscription and every subscription item ever billed on it (SuperAdmin).")
+            .ProducesEnveloped<TenantDetailResponse>();
     }
 
     private static async Task<IResult> Handle(Guid tenantId, ISender sender, HttpContext httpContext)

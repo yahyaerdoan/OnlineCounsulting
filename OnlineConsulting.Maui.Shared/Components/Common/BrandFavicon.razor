@@ -1,0 +1,21 @@
+@implements IDisposable
+@inject SiteBrand Brand
+
+@if (Brand.FaviconUrl is { } faviconUrl)
+{
+    <HeadContent>
+        <link rel="icon" href="@faviconUrl" />
+    </HeadContent>
+}
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        Brand.Changed += OnBrandChanged;
+        await Brand.EnsureLoadedAsync();
+    }
+
+    private void OnBrandChanged() => _ = InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Brand.Changed -= OnBrandChanged;
+}

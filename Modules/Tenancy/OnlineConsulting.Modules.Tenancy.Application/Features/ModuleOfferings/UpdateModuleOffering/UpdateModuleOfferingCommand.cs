@@ -5,18 +5,15 @@ using OnlineConsulting.Modules.Tenancy.Application.Features.ModuleOfferings.Cons
 using OnlineConsulting.SharedKernel.Authorization;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.ModuleOfferings.UpdateModuleOffering;
 
 /// <summary>Only local fields - never touches Key/Price/BillingCycle/ProviderProductId/ProviderPriceId, since those are immutable/already referenced elsewhere; a real change needs a new offering.</summary>
 public record UpdateModuleOfferingCommand(Guid Id, string Name, bool IsPubliclyVisible) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [GlobalOperationClaims.SuperAdmin];
 
     /// <summary>Cross-tenant/platform-level - a tenant admin must never reach this, even with TenantFullAccess.</summary>
-    [JsonIgnore]
     public bool AllowTenantBypass => false;
 }
 
@@ -34,7 +31,7 @@ public class UpdateModuleOfferingHandler(IModuleOfferingRepository repository) :
         offering.Name = request.Name;
         offering.IsPubliclyVisible = request.IsPubliclyVisible;
 
-        _ = await repository.UpdateAsync(offering);
+        _ = await repository.UpdateAsync(offering, cancellationToken: cancellationToken);
 
         return Result.Success("Module offering updated successfully.");
     }

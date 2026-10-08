@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
-using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.UpdateUserImage;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
 using ResultHandler.Functional;
 
@@ -11,16 +11,20 @@ public class UpdateUserImage : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/users/me/image", Handle)
+        _ = app.MapPost("/users/me/image", Handle)
             .WithTags("Identity/Users")
             .RequireAuthorization()
             .WithName("UpdateUserImage")
             .WithDescription("Updates the current user's profile image.")
-            .DisableAntiforgery();
+            .DisableAntiforgery()
+            .ProducesEnveloped();
     }
 
-    private static async Task<IResult> Handle(IFormFile image, ISender sender, HttpContext httpContext)
-        => (await sender.Send(new GetCurrentUserQuery())
-                .BindAsync(user => sender.Send(new UpdateUserImageCommand(user.Id, image))))
+    private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, IFormFile image, ISender sender, HttpContext httpContext)
+    {
+        await using var content = image.OpenReadStream();
+
+        return (await sender.Send(new UpdateUserImageCommand(currentUser.RequiredId(), content, image.FileName, image.ContentType, image.Length)))
             .ToEnvelopedResult(httpContext);
+    }
 }

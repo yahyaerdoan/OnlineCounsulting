@@ -10,7 +10,6 @@ namespace OnlineConsulting.Maui.Shared.Infrastructure.LiveUpdates;
 /// If the Api is unreachable at start, it keeps retrying with backoff - resume/pull refresh still work meanwhile.</summary>
 public sealed class LiveUpdatesConnection(
     IApiClient apiClient,
-    IAccessTokenProvider tokenProvider,
     TokenRefresher tokenRefresher,
     DataChangeNotifier notifier,
     ILogger<LiveUpdatesConnection> logger,
@@ -19,7 +18,6 @@ public sealed class LiveUpdatesConnection(
     private const string HubPath = "hubs/user-updates";
     private const string DataChangedMethod = "DataChanged";
     private static readonly TimeSpan[] StartRetryDelays = [TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(15), TimeSpan.FromSeconds(30), TimeSpan.FromMinutes(1)];
-    private static readonly TimeSpan TokenRefreshBuffer = TimeSpan.FromSeconds(30);
 
     private readonly SemaphoreSlim _gate = new(1, 1);
     private HubConnection? _connection;
@@ -117,17 +115,7 @@ public sealed class LiveUpdatesConnection(
         }
     }
 
-    /// <summary>Same token rules as ApiClient: refresh when close to expiry, so a (re)connect never presents a stale token.</summary>
-    private async Task<string?> GetAccessTokenAsync()
-    {
-        var tokens = await tokenProvider.GetTokenSetAsync();
-        if (tokens is not null && tokens.IsNearExpiry(TokenRefreshBuffer))
-        {
-            tokens = await tokenRefresher.RefreshAsync(tokens, CancellationToken.None) ?? tokens;
-        }
-
-        return tokens?.AccessToken;
-    }
+    private Task<string?> GetAccessTokenAsync() => tokenRefresher.GetAccessTokenAsync(CancellationToken.None);
 
     public async ValueTask DisposeAsync()
     {

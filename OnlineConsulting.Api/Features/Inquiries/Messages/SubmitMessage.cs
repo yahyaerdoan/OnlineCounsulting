@@ -10,15 +10,21 @@ public class SubmitMessage : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/inquiries/messages", Handle)
+        _ = app.MapPost("/inquiries/messages", Handle)
             .WithTags("Inquiries/Messages")
             .WithName("SubmitMessage")
-            .WithDescription("Submits a contact-form message. Public - no login required.");
+            .WithDescription("Submits a contact-form message. Public - no login required.")
+            .ProducesEnveloped(StatusCodes.Status201Created);
     }
 
-    private static async Task<IResult> Handle([FromBody] SubmitMessageCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] SubmitMessageRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command);
+        var result = await sender.Send(request.ToCommand());
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record SubmitMessageRequest(string FirstName, string LastName, string Email, string Subject, string Description)
+{
+    public SubmitMessageCommand ToCommand() => new(FirstName, LastName, Email, Subject, Description);
 }

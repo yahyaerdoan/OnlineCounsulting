@@ -9,11 +9,12 @@ public class DeleteAvailabilityRule : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapDelete("/api/scheduling/availability-rules/{id:guid}", Handle)
+        _ = app.MapDelete("/scheduling/availability-rules/{id:guid}", Handle)
             .WithTags("Scheduling/Availability")
             .RequireAuthorization()
             .WithName("DeleteAvailabilityRule")
-            .WithDescription("Tenant/admin: removes a recurring working-hours window.");
+            .WithDescription("Tenant/admin: removes a recurring working-hours window.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

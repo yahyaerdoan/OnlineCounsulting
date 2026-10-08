@@ -4,8 +4,10 @@ using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Categories.Infrastructure.Persistence;
 
-public class CategoriesDbContext(DbContextOptions<CategoriesDbContext> options, ITenantProvider tenantProvider) : DbContext(options)
+public class CategoriesDbContext(DbContextOptions<CategoriesDbContext> options, ITenantProvider tenantProvider) : DbContext(options), ITenantScopedDbContext
 {
+    public Guid CurrentTenantId => tenantProvider.TenantId;
+
     public DbSet<Category> Categories => Set<Category>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -19,7 +21,7 @@ public class CategoriesDbContext(DbContextOptions<CategoriesDbContext> options, 
             _ = builder.Property(c => c.Icon).HasMaxLength(2000).IsRequired();
             _ = builder.Property(c => c.IconColor).HasMaxLength(7);
             _ = builder.Property(c => c.RowVersion).IsRowVersion();
-            _ = builder.ApplyTenantAndSoftDeleteFilter(tenantProvider);
+            _ = builder.ApplyTenantAndSoftDeleteFilter(this);
         });
 
         base.OnModelCreating(modelBuilder);

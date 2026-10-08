@@ -9,11 +9,12 @@ public class SetPromoCodeActive : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/promo-codes/{id:guid}/active", Handle)
+        _ = app.MapPut("/promo-codes/{id:guid}/active", Handle)
             .WithTags("Memberships/PromoCodes")
             .RequireAuthorization()
             .WithName("SetPromoCodeActive")
-            .WithDescription("Activates or deactivates a promo code (admin).");
+            .WithDescription("Activates or deactivates a promo code (admin).")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, bool isActive, ISender sender, HttpContext httpContext)

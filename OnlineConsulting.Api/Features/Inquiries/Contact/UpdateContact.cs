@@ -10,16 +10,23 @@ public class UpdateContact : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/contact", Handle)
+        _ = app.MapPut("/contact", Handle)
             .WithTags("Inquiries/Contact")
             .RequireAuthorization()
             .WithName("UpdateContact")
-            .WithDescription("Creates or updates the company's contact information. Admin only.");
+            .WithDescription("Creates or updates the company's contact information. Admin only.")
+            .ProducesEnveloped()
+            .ProducesEnveloped(StatusCodes.Status201Created);
     }
 
-    private static async Task<IResult> Handle([FromBody] UpdateContactCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] UpdateContactRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command);
+        var result = await sender.Send(request.ToCommand());
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record UpdateContactRequest(string Email, string Phone, string Address, string Description, string WorkingHours)
+{
+    public UpdateContactCommand ToCommand() => new(Email, Phone, Address, Description, WorkingHours);
 }

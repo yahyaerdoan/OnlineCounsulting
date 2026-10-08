@@ -10,16 +10,22 @@ public class CreateServiceOffering : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/site-content/service-offerings", Handle)
+        _ = app.MapPost("/site-content/service-offerings", Handle)
             .WithTags("SiteContent/ServiceOfferings")
             .RequireAuthorization()
             .WithName("CreateServiceOffering")
-            .WithDescription("Creates a card in the \"what we provide\" homepage section.");
+            .WithDescription("Creates a card in the \"what we provide\" homepage section.")
+            .ProducesEnveloped<Guid>(StatusCodes.Status201Created);
     }
 
-    private static async Task<IResult> Handle([FromBody] CreateServiceOfferingCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] CreateServiceOfferingRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command);
+        var result = await sender.Send(request.ToCommand());
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record CreateServiceOfferingRequest(string Title, string Description, string Icon, string? IconColor = null, int DisplayOrder = 0, Dictionary<string, object>? Metadata = null)
+{
+    public CreateServiceOfferingCommand ToCommand() => new(Title, Description, Icon, IconColor, DisplayOrder, Metadata);
 }

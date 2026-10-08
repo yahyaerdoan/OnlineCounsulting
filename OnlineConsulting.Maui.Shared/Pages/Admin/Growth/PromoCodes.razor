@@ -36,21 +36,21 @@ else
             <MudTd DataLabel="Code" Class="cell-primary">@promo.Code</MudTd>
             <MudTd DataLabel="Discount">@(promo.DiscountType == "Percent" ? $"{promo.DiscountValue}%" : CurrencyFormat.Format(promo.DiscountValue))</MudTd>
             <MudTd DataLabel="Redemptions" Class="mud-table-cell-align-right">@promo.RedemptionCount@(promo.MaxRedemptions is { } max ? $" / {max}" : "")</MudTd>
-            <MudTd DataLabel="Expires">@(promo.ExpiresAt is { } expires ? DateTimeFormat.FormatDateTime(expires) : "Never")</MudTd>
+            <MudTd DataLabel="Expires">@(promo.ExpiresAt is { } expires ? BusinessTime.FormatDateTime(expires) : "Never")</MudTd>
             <MudTd DataLabel="Status">
                 <MudChip T="string" Size="Size.Small" Color="@(promo.IsActive ? Color.Success : Color.Default)">
                     @(promo.IsActive ? "Active" : "Inactive")
                 </MudChip>
             </MudTd>
             <MudTd DataLabel="Actions">
-                @if (promo.IsActive)
+                @if (promo.Can(LinkRels.SetActive) && promo.IsActive)
                 {
                     <MudTooltip Text="Deactivate">
                         <MudIconButton aria-label="Deactivate" Icon="@Icons.Material.Outlined.Block" Color="Color.Default" Size="Size.Small"
                                        OnClick="@(() => SetActiveAsync(promo, false))" />
                     </MudTooltip>
                 }
-                else
+                else if (promo.Can(LinkRels.SetActive))
                 {
                     <MudTooltip Text="Activate">
                         <MudIconButton aria-label="Activate" Icon="@Icons.Material.Outlined.CheckCircleOutline" Color="Color.Default" Size="Size.Small"
@@ -94,7 +94,12 @@ else
             return;
         }
 
-        var result = await ApiClient.PutAsync(ApiRoutes.Growth.PromoCodes.SetActive(promo.Id, isActive), null);
+        if (promo.Links.Find(LinkRels.SetActive) is not { } setActive)
+        {
+            return;
+        }
+
+        var result = await ApiClient.FollowAsync(setActive.WithQuery("isActive", isActive ? "true" : "false"));
         if (!result.IsSuccessful)
         {
             Snackbar.ShowError(result.DisplayMessage);

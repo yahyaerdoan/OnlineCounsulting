@@ -1,4 +1,6 @@
-﻿using FluentValidation;
+﻿using Core.ApplicationLayer.Pipelines.Transactions.Extensions;
+using Core.PersistenceLayer.Repositories.Auditing;
+using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -9,12 +11,11 @@ using OnlineConsulting.Modules.Services.Application;
 using OnlineConsulting.Modules.Services.Application.Features.ServiceMediaItems.Abstractions;
 using OnlineConsulting.Modules.Services.Infrastructure.Catalog;
 using OnlineConsulting.Modules.Services.Infrastructure.Persistence;
-using OnlineConsulting.Modules.Services.Infrastructure.Pipelines;
 using OnlineConsulting.Modules.Services.Infrastructure.Repositories;
-using OnlineConsulting.SharedKernel.Auditing;
 using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.Catalog;
 using OnlineConsulting.SharedKernel.Tenancy;
+using OnlineConsulting.SharedKernel.Transactions;
 
 namespace OnlineConsulting.Modules.Services.Infrastructure;
 
@@ -25,7 +26,6 @@ public static class ServicesModule
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
         _ = services.AddScoped<TenantSaveChangesInterceptor>();
-        _ = services.AddScoped<AuditSaveChangesInterceptor>();
 
         _ = services.AddDbContext<ServicesDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
             .AddInterceptors(serviceProvider.GetRequiredService<TenantSaveChangesInterceptor>(), serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>()));
@@ -36,7 +36,7 @@ public static class ServicesModule
 
         _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
         _ = services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
-        _ = services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ServicesTransactionAddingBehavior<,>));
+        _ = services.AddTransactionalDbContext<IServicesTransactionRequest, ServicesDbContext>();
 
         _ = services.AddSingleton<IDefaultAdminPermissions>(new DefaultAdminPermissions(ServicesOperationClaims.All));
         return services;

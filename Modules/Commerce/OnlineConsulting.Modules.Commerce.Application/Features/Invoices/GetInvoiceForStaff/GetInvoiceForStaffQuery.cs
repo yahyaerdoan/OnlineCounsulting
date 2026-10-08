@@ -1,4 +1,3 @@
-using System.Text.Json.Serialization;
 using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using MediatR;
 using OnlineConsulting.Modules.Commerce.Application.Common;
@@ -10,7 +9,6 @@ namespace OnlineConsulting.Modules.Commerce.Application.Features.Invoices.GetInv
 
 public record GetInvoiceForStaffQuery(Guid Id) : IRequest<OperationDataResult<InvoiceResponse>>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [CommerceOperationClaims.Admin, CommerceOperationClaims.Read, CommerceOperationClaims.Write];
 }
 

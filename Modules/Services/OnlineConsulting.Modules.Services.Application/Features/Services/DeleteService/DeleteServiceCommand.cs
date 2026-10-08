@@ -6,13 +6,11 @@ using OnlineConsulting.Modules.Services.Application.Features.Services.Rules;
 using OnlineConsulting.SharedKernel.Authorization;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Services.Application.Features.Services.DeleteService;
 
 public record DeleteServiceCommand(Guid Id) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [ServicesOperationClaims.Admin, ServicesOperationClaims.Write, ServicesOperationClaims.Delete, GlobalOperationClaims.SuperAdmin];
 }
 
@@ -26,7 +24,7 @@ public class DeleteServiceHandler(IServiceRepository repository) : IRequestHandl
             return ServiceBusinessRules.ServiceNotFound(request.Id);
         }
 
-        _ = await repository.DeleteAsync(service);
+        _ = await repository.DeleteAsync(service, cancellationToken: cancellationToken);
 
         return Result.Success("Service deleted successfully.");
     }

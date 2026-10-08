@@ -2,7 +2,6 @@ using MediatR;
 using OnlineConsulting.Modules.SiteContent.Application.Features.FaqItems.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Application.Features.FaqItems.Contracts;
 using OnlineConsulting.Modules.SiteContent.Domain;
-using OnlineConsulting.SharedKernel.Persistence;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using System.Linq.Expressions;
@@ -20,8 +19,8 @@ public class GetAllFaqItemsHandler(IFaqItemRepository repository) : IRequestHand
             ? item => item.ServiceId == request.ServiceId.Value
             : null;
 
-        var entities = await repository.GetListAsync(predicate: predicate, orderBy: q => q.OrderBy(x => x.DisplayOrder), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
-        var response = entities.Items.Select(FaqItemResponse.FromDomain).ToList();
+        var entities = await repository.GetAllAsync(predicate: predicate, orderBy: q => q.OrderBy(x => x.DisplayOrder), cancellationToken: cancellationToken);
+        var response = entities.Select(FaqItemResponse.FromDomain).ToList();
 
         return Result.Success(response, "FAQ items retrieved successfully.");
     }

@@ -34,12 +34,12 @@ else
         </HeaderContent>
         <RowTemplate Context="rule">
             <MudTd DataLabel="Day" Class="cell-primary">@rule.DayOfWeek</MudTd>
-            <MudTd DataLabel="Start">@DateTimeFormat.FormatTime(rule.StartTime)</MudTd>
-            <MudTd DataLabel="End">@DateTimeFormat.FormatTime(rule.EndTime)</MudTd>
+            <MudTd DataLabel="Start">@BusinessTime.FormatTime(rule.StartTime)</MudTd>
+            <MudTd DataLabel="End">@BusinessTime.FormatTime(rule.EndTime)</MudTd>
             <MudTd DataLabel="Slot Length">@rule.SlotDurationMinutes min</MudTd>
             <MudTd DataLabel="Actions">
                 <MudTooltip Text="Delete">
-                    <MudIconButton aria-label="Delete" Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" Size="Size.Small"
+                    <MudIconButton Disabled="@(!rule.Can(LinkRels.Delete))" aria-label="Delete" Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" Size="Size.Small"
                                    OnClick="@(() => DeleteAsync(rule))" />
                 </MudTooltip>
             </MudTd>
@@ -76,12 +76,17 @@ else
 
     private async Task DeleteAsync(AvailabilityRuleResponse rule)
     {
-        if (!await DialogService.ConfirmDeleteAsync("availability window", $"{rule.DayOfWeek} {DateTimeFormat.FormatTime(rule.StartTime)}-{DateTimeFormat.FormatTime(rule.EndTime)}"))
+        if (!await DialogService.ConfirmDeleteAsync("availability window", $"{rule.DayOfWeek} {BusinessTime.FormatTime(rule.StartTime)}-{BusinessTime.FormatTime(rule.EndTime)}"))
         {
             return;
         }
 
-        var result = await ApiClient.DeleteAsync(ApiRoutes.Scheduling.AvailabilityRule.ById(rule.Id));
+        if (rule.Links.Find(LinkRels.Delete) is not { } delete)
+        {
+            return;
+        }
+
+        var result = await ApiClient.FollowAsync(delete);
         if (!result.IsSuccessful)
         {
             Snackbar.ShowError(result.DisplayMessage);

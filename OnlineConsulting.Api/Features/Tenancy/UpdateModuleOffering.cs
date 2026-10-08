@@ -10,16 +10,22 @@ public class UpdateModuleOffering : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/tenancy/admin/module-offerings/{id:guid}", Handle)
+        _ = app.MapPut("/tenancy/admin/module-offerings/{id:guid}", Handle)
             .WithTags("Tenancy")
             .RequireAuthorization()
             .WithName("UpdateModuleOffering")
-            .WithDescription("Updates a module offering's local fields (SuperAdmin). Never changes the provider-side price.");
+            .WithDescription("Updates a module offering's local fields (SuperAdmin). Never changes the provider-side price.")
+            .ProducesEnveloped();
     }
 
-    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateModuleOfferingCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateModuleOfferingRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command with { Id = id });
+        var result = await sender.Send(request.ToCommand(id));
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record UpdateModuleOfferingRequest(string Name, bool IsPubliclyVisible)
+{
+    public UpdateModuleOfferingCommand ToCommand(Guid id) => new(id, Name, IsPubliclyVisible);
 }

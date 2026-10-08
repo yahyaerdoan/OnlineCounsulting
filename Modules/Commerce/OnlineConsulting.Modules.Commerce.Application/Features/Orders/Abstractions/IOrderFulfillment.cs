@@ -8,5 +8,6 @@ namespace OnlineConsulting.Modules.Commerce.Application.Features.Orders.Abstract
 /// </summary>
 public interface IOrderFulfillment
 {
+    /// <summary>Clears the basket, issues the invoice and notifies the customer; the order must be loaded with its items.</summary>
     Task CompletePaidAsync(Order order, CancellationToken cancellationToken = default);
 }

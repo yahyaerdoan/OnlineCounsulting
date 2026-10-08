@@ -350,6 +350,50 @@ namespace OnlineConsulting.Modules.Commerce.Infrastructure.Migrations
                     b.ToTable("InvoiceLines", "Commerce");
                 });
 
+            modelBuilder.Entity("OnlineConsulting.Modules.Commerce.Domain.InvoiceSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("CreatedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("DeletedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("PaymentTermsDays")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("RowVersion")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("UpdatedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId")
+                        .IsUnique()
+                        .HasFilter("[DeletedDate] IS NULL");
+
+                    b.HasIndex("TenantId", "DeletedDate");
+
+                    b.ToTable("InvoiceSettings", "Commerce");
+                });
+
             modelBuilder.Entity("OnlineConsulting.Modules.Commerce.Domain.Order", b =>
                 {
                     b.Property<Guid>("Id")
@@ -653,6 +697,48 @@ namespace OnlineConsulting.Modules.Commerce.Infrastructure.Migrations
                     b.HasIndex("Status", "NextAttemptAt");
 
                     b.ToTable("OutboxEmails", "Notifications");
+                });
+
+            modelBuilder.Entity("OnlineConsulting.Modules.Commerce.Domain.BasketItem", b =>
+                {
+                    b.HasOne("OnlineConsulting.Modules.Commerce.Domain.Basket", null)
+                        .WithMany("Items")
+                        .HasForeignKey("BasketId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("OnlineConsulting.Modules.Commerce.Domain.InvoiceLine", b =>
+                {
+                    b.HasOne("OnlineConsulting.Modules.Commerce.Domain.Invoice", null)
+                        .WithMany("Lines")
+                        .HasForeignKey("InvoiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("OnlineConsulting.Modules.Commerce.Domain.OrderItem", b =>
+                {
+                    b.HasOne("OnlineConsulting.Modules.Commerce.Domain.Order", null)
+                        .WithMany("Items")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("OnlineConsulting.Modules.Commerce.Domain.Basket", b =>
+                {
+                    b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("OnlineConsulting.Modules.Commerce.Domain.Invoice", b =>
+                {
+                    b.Navigation("Lines");
+                });
+
+            modelBuilder.Entity("OnlineConsulting.Modules.Commerce.Domain.Order", b =>
+                {
+                    b.Navigation("Items");
                 });
 #pragma warning restore 612, 618
         }

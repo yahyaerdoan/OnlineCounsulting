@@ -22,13 +22,13 @@ public class FeatureFlagUpserter(IFeatureFlagRepository repository, IFeatureFlag
 
         if (existing is null)
         {
-            _ = await repository.AddAsync(new FeatureFlag { Key = key, IsEnabled = isEnabled });
+            _ = await repository.AddAsync(new FeatureFlag { Key = key, IsEnabled = isEnabled }, cancellationToken: cancellationToken);
         }
         else
         {
             existing.IsEnabled = isEnabled;
 
-            _ = await repository.UpdateAsync(existing);
+            _ = await repository.UpdateAsync(existing, cancellationToken: cancellationToken);
         }
 
         cacheInvalidator.Invalidate();

@@ -1,7 +1,8 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.Contracts;
 using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.GetShippingAddress;
-using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
 using ResultHandler.Functional;
 
@@ -11,15 +12,15 @@ public class GetShippingAddress : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/addresses/shipping", Handle)
+        _ = app.MapGet("/addresses/shipping", Handle)
             .WithTags("Commerce/Addresses")
             .RequireAuthorization()
             .WithName("GetShippingAddress")
-            .WithDescription("Returns the current user's shipping address.");
+            .WithDescription("Returns the current user's shipping address.")
+            .ProducesEnveloped<UserAddressResponse>();
     }
 
-    private static async Task<IResult> Handle(ISender sender, HttpContext httpContext)
-        => (await sender.Send(new GetCurrentUserQuery())
-                .BindAsync(user => sender.Send(new GetShippingAddressQuery(user.Id))))
+    private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, ISender sender, HttpContext httpContext)
+        => (await sender.Send(new GetShippingAddressQuery(currentUser.RequiredId())))
             .ToEnvelopedResult(httpContext);
 }

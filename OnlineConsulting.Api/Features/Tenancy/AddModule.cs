@@ -10,11 +10,12 @@ public class AddModule : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/tenancy/{tenantId:guid}/modules/{key}", Handle)
+        _ = app.MapPost("/tenancy/{tenantId:guid}/modules/{key}", Handle)
             .WithTags("Tenancy")
             .RequireAuthorization()
             .WithName("AddModule")
-            .WithDescription("Adds one more module to a tenant's subscription, billed immediately and prorated.");
+            .WithDescription("Adds one more module to a tenant's subscription, billed immediately and prorated.")
+            .ProducesEnveloped(StatusCodes.Status201Created);
     }
 
     private static async Task<IResult> Handle(Guid tenantId, string key, ISender sender, HttpContext httpContext)

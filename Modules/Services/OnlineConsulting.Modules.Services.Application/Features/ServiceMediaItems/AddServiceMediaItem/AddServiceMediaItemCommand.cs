@@ -9,14 +9,12 @@ using OnlineConsulting.SharedKernel.Authorization;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using ResultHandler.Functional;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Services.Application.Features.ServiceMediaItems.AddServiceMediaItem;
 
 /// <summary>Attaches an already-uploaded MediaAsset (photo or video, told apart by its ContentType) to a Service's gallery. Upload itself goes through the Media module's own UploadMediaAsset first - not duplicated here.</summary>
 public record AddServiceMediaItemCommand(Guid ServiceId, Guid MediaAssetId, int DisplayOrder = 0) : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [ServicesOperationClaims.Admin, ServicesOperationClaims.Write, ServicesOperationClaims.Update, GlobalOperationClaims.SuperAdmin];
 }
 
@@ -33,7 +31,7 @@ public class AddServiceMediaItemHandler(IServiceMediaItemRepository repository, 
 
         var entity = new ServiceMediaItem { ServiceId = request.ServiceId, MediaAssetId = request.MediaAssetId, DisplayOrder = request.DisplayOrder };
 
-        _ = await repository.AddAsync(entity);
+        _ = await repository.AddAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Created(entity.Id, "Service media item added successfully.");
     }

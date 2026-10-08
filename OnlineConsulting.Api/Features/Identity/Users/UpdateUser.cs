@@ -10,16 +10,22 @@ public class UpdateUser : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/users/{id:guid}", Handle)
+        _ = app.MapPut("/users/{id:guid}", Handle)
             .WithTags("Identity/Users")
             .RequireAuthorization()
             .WithName("UpdateUser")
-            .WithDescription("Updates an existing user's profile and active status.");
+            .WithDescription("Updates an existing user's profile and active status.")
+            .ProducesEnveloped();
     }
 
-    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateUserCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateUserRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command with { Id = id });
+        var result = await sender.Send(request.ToCommand(id));
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record UpdateUserRequest(string FirstName, string LastName, bool IsActive)
+{
+    public UpdateUserCommand ToCommand(Guid id) => new(id, FirstName, LastName, IsActive);
 }

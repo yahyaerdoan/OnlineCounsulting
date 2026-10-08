@@ -5,13 +5,11 @@ using OnlineConsulting.Modules.Inquiries.Application.Features.Messages.Constants
 using OnlineConsulting.Modules.Inquiries.Application.Features.Messages.Rules;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Inquiries.Application.Features.Messages.DeleteMessage;
 
 public record DeleteMessageCommand(Guid Id) : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [MessagesOperationClaims.Admin, MessagesOperationClaims.Delete];
 }
 
@@ -25,7 +23,7 @@ public class DeleteMessageHandler(IMessageRepository repository) : IRequestHandl
             return MessageBusinessRules.MessageNotFound(request.Id);
         }
 
-        _ = await repository.DeleteAsync(message);
+        _ = await repository.DeleteAsync(message, cancellationToken: cancellationToken);
 
         return Result.Success("Message deleted successfully.");
     }

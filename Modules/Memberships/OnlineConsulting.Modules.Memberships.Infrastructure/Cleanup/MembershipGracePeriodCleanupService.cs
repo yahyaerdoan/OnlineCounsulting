@@ -3,9 +3,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Abstractions;
-using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Constants;
+using OnlineConsulting.Modules.Memberships.Domain;
 using OnlineConsulting.SharedKernel.Payments;
-using OnlineConsulting.SharedKernel.Persistence;
 
 namespace OnlineConsulting.Modules.Memberships.Infrastructure.Cleanup;
 
@@ -17,8 +16,9 @@ public class MembershipGracePeriodCleanupService(IServiceScopeFactory scopeFacto
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         var settings = options.Value;
+        using var timer = new PeriodicTimer(settings.PollInterval);
 
-        while (!stoppingToken.IsCancellationRequested)
+        do
         {
             try
             {
@@ -28,22 +28,22 @@ public class MembershipGracePeriodCleanupService(IServiceScopeFactory scopeFacto
             {
                 logger.LogError(ex, "Membership grace-period cleanup cycle failed unexpectedly.");
             }
-
-            await Task.Delay(settings.PollInterval, stoppingToken);
         }
+        while (await timer.WaitForNextTickAsync(stoppingToken));
     }
 
     private async Task CleanupOnceAsync(MembershipGracePeriodOptions settings, CancellationToken cancellationToken)
     {
         using var scope = scopeFactory.CreateScope();
+
         var membershipRepository = scope.ServiceProvider.GetRequiredService<ICustomerMembershipRepository>();
 
         var cutoff = DateTimeOffset.UtcNow - settings.GraceAfter;
 
         var candidates = await membershipRepository
-            .GetListAsync(predicate: m => m.Status == CustomerMembershipStatuses.PastDue && m.PastDueSince != null && m.PastDueSince <= cutoff, orderBy: q => q.OrderBy(m => m.PastDueSince), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
+            .GetAllAsync(predicate: m => m.Status == CustomerMembershipStatuses.PastDue && m.PastDueSince != null && m.PastDueSince <= cutoff, orderBy: q => q.OrderBy(m => m.PastDueSince), cancellationToken: cancellationToken);
 
-        if (candidates.Items.Count == 0)
+        if (candidates.Count == 0)
         {
             return;
         }
@@ -51,17 +51,16 @@ public class MembershipGracePeriodCleanupService(IServiceScopeFactory scopeFacto
         var notifier = scope.ServiceProvider.GetRequiredService<IMembershipNotifier>();
         var cancelledCount = 0;
 
-        foreach (var membership in candidates.Items)
+        foreach (var membership in candidates)
         {
             if (membership.ProviderSubscriptionId is not null)
             {
                 _ = await subscriptionGateway.CancelSubscriptionAsync(membership.ProviderSubscriptionId, cancellationToken: cancellationToken);
             }
 
-            membership.Status = CustomerMembershipStatuses.Cancelled;
-            membership.PastDueSince = null;
+            membership.Cancel();
 
-            _ = await membershipRepository.UpdateAsync(membership);
+            _ = await membershipRepository.UpdateAsync(membership, cancellationToken: cancellationToken);
 
             cancelledCount++;
 
@@ -70,7 +69,7 @@ public class MembershipGracePeriodCleanupService(IServiceScopeFactory scopeFacto
 
         if (logger.IsEnabled(LogLevel.Information))
         {
-            logger.LogInformation("Membership grace-period cleanup cancelled {CancelledCount} of {CandidateCount} PastDue membership(s).", cancelledCount, candidates.Items.Count);
+            logger.LogInformation("Membership grace-period cleanup cancelled {CancelledCount} of {CandidateCount} PastDue membership(s).", cancelledCount, candidates.Count);
         }
     }
 }

@@ -5,13 +5,11 @@ using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryCategorie
 using OnlineConsulting.Modules.SiteContent.Domain.Gallery;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.SiteContent.Application.Features.GalleryCategories.CreateGalleryCategory;
 
 public record CreateGalleryCategoryCommand(string Name, string? Description = null) : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Add];
 }
 
@@ -21,7 +19,7 @@ public class CreateGalleryCategoryHandler(IGalleryCategoryRepository repository)
     {
         var entity = new GalleryCategory { Name = request.Name, Description = request.Description };
 
-        _ = await repository.AddAsync(entity);
+        _ = await repository.AddAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Created(entity.Id, "Gallery category created successfully.");
     }

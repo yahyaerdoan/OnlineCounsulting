@@ -1,3 +1,4 @@
+﻿using OnlineConsulting.SharedKernel.Tenancy;
 using System.Globalization;
 using System.Net;
 using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.Contracts;
@@ -12,7 +13,8 @@ public enum InvoiceEmailKind
     Voided,
 }
 
-public record InvoiceEmailModel(InvoiceEmailKind Kind, InvoiceResponse Invoice, string BusinessName, string? ViewUrl);
+/// <summary>TimeZone is the business's; the invoice's dates are shown in it.</summary>
+public record InvoiceEmailModel(InvoiceEmailKind Kind, InvoiceResponse Invoice, string BusinessName, string? ViewUrl, TimeZoneInfo TimeZone);
 
 /// <summary>An open invoice asks the customer to pay with a "View and pay" link; a receipt confirms the payment; a voided invoice tells them nothing is owed. All list every line and the totals.</summary>
 public class InvoiceEmailTemplate : IEmailTemplate<InvoiceEmailModel>
@@ -30,12 +32,13 @@ public class InvoiceEmailTemplate : IEmailTemplate<InvoiceEmailModel>
     {
         var invoice = model.Invoice;
         var firstName = invoice.BillToName.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "";
+
         var intro = model.Kind switch
         {
-            InvoiceEmailKind.Receipt => $"Thanks for your payment! Here's your receipt for {invoice.Title.ToLowerInvariant()}.",
-            InvoiceEmailKind.Voided => $"Your invoice for {invoice.Title.ToLowerInvariant()} was cancelled, so there's nothing to pay for it."
+            InvoiceEmailKind.Receipt => $"Thanks for your payment! Here's your receipt for {invoice.Title}.",
+            InvoiceEmailKind.Voided => $"Your invoice for {invoice.Title} was cancelled, so there's nothing to pay for it."
                 + (string.IsNullOrWhiteSpace(invoice.VoidReason) ? "" : $" Reason: {invoice.VoidReason}"),
-            _ => $"Here's your invoice for {invoice.Title.ToLowerInvariant()}.",
+            _ => $"Here's your invoice for {invoice.Title}.",
         };
 
         var lines = string.Concat(invoice.Lines.Select(line => $"""
@@ -48,16 +51,20 @@ public class InvoiceEmailTemplate : IEmailTemplate<InvoiceEmailModel>
         var discount = invoice.DiscountAmount > 0
             ? TotalRow(invoice.DiscountLabel ?? "Discount", $"-{Money(invoice.DiscountAmount)}", "#107C10")
             : "";
+
         var tax = invoice.TaxAmount > 0 ? TotalRow("Tax", Money(invoice.TaxAmount)) : "";
+
         var totalLabel = model.Kind switch
         {
             InvoiceEmailKind.Receipt => "Paid",
             InvoiceEmailKind.Voided => "Cancelled",
             _ => "Amount due",
         };
+
         var due = model.Kind == InvoiceEmailKind.Issued && invoice.DueAt is { } dueAt
-            ? $"<p style=\"color: #777777;\">Due by {dueAt.ToString("MMMM d, yyyy", Usd)}.</p>"
+            ? $"<p style=\"color: #777777;\">Due by {dueAt.InZone(model.TimeZone).ToString("MMMM d, yyyy", Usd)}.</p>"
             : "";
+
         var button = string.IsNullOrWhiteSpace(model.ViewUrl)
             ? ""
             : $"""
@@ -71,7 +78,7 @@ public class InvoiceEmailTemplate : IEmailTemplate<InvoiceEmailModel>
         return EmailLayout.Wrap($"""
             <p>{(string.IsNullOrWhiteSpace(firstName) ? "Hi," : $"Hi {Encode(firstName)},")}</p>
             <p>{Encode(intro)}</p>
-            <p style="color: #777777; margin-bottom: 4px;">{Encode(invoice.InvoiceNumber)} &bull; issued {invoice.IssuedAt.ToString("MMMM d, yyyy", Usd)}</p>
+            <p style="color: #777777; margin-bottom: 4px;">{Encode(invoice.InvoiceNumber)} &bull; issued {invoice.IssuedAt.InZone(model.TimeZone).ToString("MMMM d, yyyy", Usd)}</p>
             <table style="width: 100%; max-width: 520px; border-collapse: collapse; margin: 8px 0 16px;">
                 {lines}
                 {TotalRow("Subtotal", Money(invoice.Subtotal))}

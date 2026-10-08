@@ -4,7 +4,6 @@ using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Application.Features.ServiceAreas.Abstractions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.SiteContent.Application.Features.ServiceAreas.UpdateServiceArea;
 
@@ -12,7 +11,6 @@ namespace OnlineConsulting.Modules.SiteContent.Application.Features.ServiceAreas
 public record UpdateServiceAreaCommand(Guid Id, string Name, string State, string? IntroText, int DisplayOrder = 0)
     : IRequest<OperationResult>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Update];
 }
 
@@ -45,7 +43,7 @@ public class UpdateServiceAreaHandler(IServiceAreaRepository repository, ICityGe
         entity.IntroText = request.IntroText;
         entity.DisplayOrder = request.DisplayOrder;
 
-        _ = await repository.UpdateAsync(entity);
+        _ = await repository.UpdateAsync(entity, cancellationToken: cancellationToken);
 
         return Result.Success("Service area updated successfully.");
     }

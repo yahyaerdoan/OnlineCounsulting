@@ -9,11 +9,12 @@ public class DeletePartnershipSocialLink : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapDelete("/api/site-content/partnership-social-links/{id:guid}", Handle)
+        _ = app.MapDelete("/site-content/partnership-social-links/{id:guid}", Handle)
             .WithTags("SiteContent/PartnershipSocialLinks")
             .RequireAuthorization()
             .WithName("DeletePartnershipSocialLink")
-            .WithDescription("Deletes a partnership showcase entry's social link.");
+            .WithDescription("Deletes a partnership showcase entry's social link.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

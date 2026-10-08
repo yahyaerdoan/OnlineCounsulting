@@ -9,11 +9,12 @@ public class CancelInvite : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapDelete("/api/invites/{id:guid}", Handle)
+        _ = app.MapDelete("/invites/{id:guid}", Handle)
             .WithTags("Identity/Invites")
             .RequireAuthorization()
             .WithName("CancelInvite")
-            .WithDescription("Cancels a pending invite.");
+            .WithDescription("Cancels a pending invite.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

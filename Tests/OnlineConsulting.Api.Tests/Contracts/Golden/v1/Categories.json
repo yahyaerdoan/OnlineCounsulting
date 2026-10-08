@@ -1,0 +1,10 @@
+{
+  "CategoryResponse": [
+    "id: Guid",
+    "title: string",
+    "description: string",
+    "icon: string",
+    "iconColor: string?",
+    "_links: LinkCollection?"
+  ]
+}

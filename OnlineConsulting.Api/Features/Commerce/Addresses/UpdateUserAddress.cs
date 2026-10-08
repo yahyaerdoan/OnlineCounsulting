@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.UpdateUserAddress;
-using OnlineConsulting.Modules.Identity.Application.Features.Users.GetCurrentUser;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
 using ResultHandler.Functional;
 
@@ -12,15 +12,20 @@ public class UpdateUserAddress : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/addresses/{id:guid}", Handle)
+        _ = app.MapPut("/addresses/{id:guid}", Handle)
             .WithTags("Commerce/Addresses")
             .RequireAuthorization()
             .WithName("UpdateUserAddress")
-            .WithDescription("Updates one of the current user's addresses.");
+            .WithDescription("Updates one of the current user's addresses.")
+            .ProducesEnveloped();
     }
 
-    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateUserAddressCommand command, ISender sender, HttpContext httpContext)
-        => (await sender.Send(new GetCurrentUserQuery())
-                .BindAsync(user => sender.Send(command with { Id = id, UserId = user.Id })))
+    private static async Task<IResult> Handle(ICurrentUserAccessor currentUser, Guid id, [FromBody] UpdateUserAddressRequest request, ISender sender, HttpContext httpContext)
+        => (await sender.Send(request.ToCommand(id, currentUser.RequiredId())))
             .ToEnvelopedResult(httpContext);
+}
+
+public record UpdateUserAddressRequest(string AddressName, string? CompanyName, string Country, string AddressLine, string City, string State, string Zipcode, string? Notes, bool IsShippingAddress, bool IsBillingAddress)
+{
+    public UpdateUserAddressCommand ToCommand(Guid id, Guid userId) => new(id, userId, AddressName, CompanyName, Country, AddressLine, City, State, Zipcode, Notes, IsShippingAddress, IsBillingAddress);
 }

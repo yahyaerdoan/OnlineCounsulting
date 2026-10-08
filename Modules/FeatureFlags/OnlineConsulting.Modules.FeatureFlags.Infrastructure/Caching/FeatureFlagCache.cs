@@ -2,7 +2,6 @@
 using OnlineConsulting.Modules.FeatureFlags.Application.Features.FeatureFlags.Abstractions;
 using OnlineConsulting.Modules.FeatureFlags.Application.Features.FeatureFlags.Constants;
 using OnlineConsulting.SharedKernel.FeatureFlags;
-using OnlineConsulting.SharedKernel.Persistence;
 using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.FeatureFlags.Infrastructure.Caching;
@@ -17,8 +16,8 @@ public class FeatureFlagCache(IFeatureFlagRepository repository, ITenantProvider
         var flags = await cache.GetOrCreateAsync(CacheKey, async entry =>
         {
             entry.AbsoluteExpirationRelativeToNow = CacheDuration;
-            var overrides = await repository.GetListAsync(orderBy: q => q.OrderBy(f => f.Id), size: RepositoryQuerySize.Unbounded, cancellationToken: cancellationToken);
-            var overridesByKey = overrides.Items.ToDictionary(f => f.Key, f => f.IsEnabled);
+            var overrides = await repository.GetAllAsync(cancellationToken: cancellationToken);
+            var overridesByKey = overrides.ToDictionary(f => f.Key, f => f.IsEnabled);
 
             return FeatureFlagKeys.Defaults.ToDictionary(kvp => kvp.Key, kvp => overridesByKey.GetValueOrDefault(kvp.Key, kvp.Value));
         });

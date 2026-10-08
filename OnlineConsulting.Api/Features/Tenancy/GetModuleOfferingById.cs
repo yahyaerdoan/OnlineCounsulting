@@ -1,5 +1,6 @@
 using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Tenancy.Application.Features.ModuleOfferings.Contracts;
 using OnlineConsulting.Modules.Tenancy.Application.Features.ModuleOfferings.GetModuleOfferingById;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -9,11 +10,12 @@ public class GetModuleOfferingById : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/tenancy/admin/module-offerings/{id:guid}", Handle)
+        _ = app.MapGet("/tenancy/admin/module-offerings/{id:guid}", Handle)
             .WithTags("Tenancy")
             .RequireAuthorization()
             .WithName("GetModuleOfferingById")
-            .WithDescription("Returns a single module offering, including hidden ones (SuperAdmin).");
+            .WithDescription("Returns a single module offering, including hidden ones (SuperAdmin).")
+            .ProducesEnveloped<ModuleOfferingAdminResponse>();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

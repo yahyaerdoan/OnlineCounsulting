@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryItems.Contracts;
 using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryItems.GetAllGalleryItems;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -9,10 +10,11 @@ public class GetAllGalleryItems : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/site-content/gallery-items", Handle)
+        _ = app.MapGet("/site-content/gallery-items", Handle)
             .WithTags("SiteContent/GalleryItems")
             .WithName("GetAllGalleryItems")
-            .WithDescription("Returns the tenant's gallery items with their category tags. Public - no login required.");
+            .WithDescription("Returns the tenant's gallery items with their category tags. Public - no login required.")
+            .ProducesEnveloped<List<GalleryItemResponse>>();
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext)

@@ -1,11 +1,10 @@
-using Hateoas;
 using System.Text.Json;
 using OnlineConsulting.Modules.Identity.Domain;
 
 namespace OnlineConsulting.Modules.Identity.Application.Features.Notifications.Contracts;
 
 /// <summary>Data holds the push payload keys (appointmentId, orderId...) so the client can open the related screen.</summary>
-public record UserNotificationResponse(Guid Id, string Title, string Body, IReadOnlyDictionary<string, string> Data, DateTimeOffset CreatedAt, bool IsRead) : LinkedRecord
+public record UserNotificationResponse(Guid Id, string Title, string Body, IReadOnlyDictionary<string, string> Data, DateTimeOffset CreatedAt, bool IsRead)
 {
     public static UserNotificationResponse FromDomain(UserNotification notification) => new(
         notification.Id,

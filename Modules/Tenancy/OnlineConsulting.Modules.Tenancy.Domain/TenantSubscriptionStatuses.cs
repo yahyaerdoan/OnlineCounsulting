@@ -1,6 +1,6 @@
 namespace OnlineConsulting.Modules.Tenancy.Domain;
 
-/// <summary>TenantSubscription.Status vocabulary.</summary>
+/// <summary>Values of <see cref="TenantSubscription.Status"/>.</summary>
 public static class TenantSubscriptionStatuses
 {
     public const string PendingPayment = "PendingPayment";
@@ -8,6 +8,6 @@ public static class TenantSubscriptionStatuses
     public const string PastDue = "PastDue";
     public const string Cancelled = "Cancelled";
 
-    /// <summary>See TenantStatuses.Failed - same terminal-but-recorded meaning, for the subscription row.</summary>
+    /// <summary>Signup failed; kept so a retried signup can resume it.</summary>
     public const string Failed = "Failed";
 }

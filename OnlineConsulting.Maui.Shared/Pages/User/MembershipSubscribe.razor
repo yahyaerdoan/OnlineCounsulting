@@ -1,5 +1,5 @@
 @* Subscribe to a membership plan: tokenize the card via Stripe.js first (subscribeStripe.js), then
-   POST /api/memberships/subscribe with the resulting PaymentMethodId. ClientSecret only comes back
+   POST /api/v1/memberships/subscribe with the resulting PaymentMethodId. ClientSecret only comes back
    non-null for PayPal (an approval URL to redirect to) - Stripe/Mock settle synchronously. *@
 @* Anonymous can browse the plan; only promo/subscribe need a signed-in user, so only that part sits behind AuthorizeView (Appointment.razor pattern). *@
 @page "/user/membership/subscribe/{PlanId:guid}"
@@ -62,7 +62,7 @@
                 <div class="subscribe-plan-hero">
                     <span class="subscribe-plan-icon"><MudIcon Icon="@Icons.Material.Outlined.WorkspacePremium" /></span>
                     <div class="min-w-0">
-                        <span class="subscribe-plan-eyebrow">ComfortPro Membership</span>
+                        <span class="subscribe-plan-eyebrow"><BrandName /> Membership</span>
                         <span class="subscribe-plan-name">@_plan.Name</span>
                     </div>
                     <div class="subscribe-plan-price">
@@ -251,7 +251,7 @@
     private string DueTodayText => CurrencyFormat.Format(IsTrial ? 0 : RecurringPrice);
 
     private string ThenText => IsTrial
-        ? $"Then {CurrencyFormat.Format(RecurringPrice)} / {CycleWord} from {DateTime.Today.AddDays(_plan?.TrialDays ?? 0):MMM d, yyyy}"
+        ? $"Then {CurrencyFormat.Format(RecurringPrice)} / {CycleWord} from {BusinessTime.Today.AddDays(_plan?.TrialDays ?? 0):MMM d, yyyy}"
         : $"Renews at {CurrencyFormat.Format(RecurringPrice)} / {CycleWord}";
 
     private string PayButtonText => IsTrial ? "Start my free trial" : $"Pay {DueTodayText} and join";

@@ -8,13 +8,11 @@ using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Identity.Application.Features.Roles.GetAllRoles;
 
 public record GetAllRolesQuery : IRequest<OperationDataResult<List<RoleResponse>>>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [RolesOperationClaims.Admin, GlobalOperationClaims.SuperAdmin, RolesOperationClaims.Read];
 }
 

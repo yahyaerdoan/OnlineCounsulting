@@ -12,9 +12,9 @@ public class GetAddressesHandler(IUserAddressRepository repository) : IRequestHa
 {
     public async Task<OperationDataResult<List<UserAddressResponse>>> Handle(GetAddressesQuery request, CancellationToken cancellationToken)
     {
-        var addresses = await repository.GetListAsync(a => a.UserId == request.UserId, orderBy: q => q.OrderBy(a => a.Id), cancellationToken: cancellationToken);
+        var addresses = await repository.GetAllAsync(a => a.UserId == request.UserId, cancellationToken: cancellationToken);
 
-        List<UserAddressResponse> responses = [.. addresses.Items.Select(UserAddressResponse.FromDomain)];
+        List<UserAddressResponse> responses = [.. addresses.Select(UserAddressResponse.FromDomain)];
 
         return Result.Success(responses, "Addresses retrieved successfully.");
     }

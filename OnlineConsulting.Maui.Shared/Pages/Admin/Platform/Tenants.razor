@@ -49,7 +49,7 @@
         </MudTd>
         <MudTd DataLabel="Monthly" Class="mud-table-cell-align-right cell-strong">@CurrencyFormat.Format(tenant.TotalActivePrice)</MudTd>
         <MudTd DataLabel="Status"><StatusBadge Label="@StatusLabel(tenant.Status)" Kind="@StatusKind(tenant.Status)" /></MudTd>
-        <MudTd DataLabel="Since">@(tenant.CreatedDate is { } created ? DateTimeFormat.FormatDate(created) : "-")</MudTd>
+        <MudTd DataLabel="Since">@(tenant.CreatedDate is { } created ? BusinessTime.FormatDate(created) : "-")</MudTd>
         <MudTd DataLabel="Actions" Class="cell-actions">
             <MudTooltip Text="View subscription">
                 <MudIconButton Icon="@Icons.Material.Outlined.Receipt" Size="Size.Small" aria-label="View subscription"
@@ -59,21 +59,21 @@
                 <MudIconButton Icon="@Icons.Material.Outlined.Extension" Size="Size.Small" aria-label="Manage modules"
                                OnClick="@(() => ManageModulesAsync(tenant))" />
             </MudTooltip>
-            @if (tenant.Status == TenantStatusesSuspended)
+            @if (tenant.Can(LinkRels.Reactivate))
             {
                 <MudTooltip Text="Reactivate">
                     <MudIconButton Icon="@Icons.Material.Outlined.PlayArrow" Color="Color.Success" Size="Size.Small" aria-label="Reactivate"
                                    OnClick="@(() => ReactivateAsync(tenant))" />
                 </MudTooltip>
             }
-            else if (tenant.Status != TenantStatusesCancelled)
+            @if (tenant.Can(LinkRels.Suspend))
             {
                 <MudTooltip Text="Suspend">
                     <MudIconButton Icon="@Icons.Material.Outlined.Pause" Color="Color.Warning" Size="Size.Small" aria-label="Suspend"
                                    OnClick="@(() => SuspendAsync(tenant))" />
                 </MudTooltip>
             }
-            @if (tenant.Status != TenantStatusesCancelled)
+            @if (tenant.Can(LinkRels.Cancel))
             {
                 <MudTooltip Text="Cancel permanently">
                     <MudIconButton Icon="@Icons.Material.Outlined.Cancel" Color="Color.Error" Size="Size.Small" aria-label="Cancel permanently"
@@ -88,8 +88,6 @@
 </ServerDataTable>
 
 @code {
-    private const string TenantStatusesSuspended = "Suspended";
-    private const string TenantStatusesCancelled = "Cancelled";
 
     private static readonly List<ListFilterOption> StatusTabs =
     [
@@ -145,10 +143,10 @@
             return;
         }
 
-        await RunAsync(ApiRoutes.Platform.Tenants.Suspend(tenant.Id));
+        await RunAsync(tenant.Links.Find(LinkRels.Suspend));
     }
 
-    private Task ReactivateAsync(TenantResponse tenant) => RunAsync(ApiRoutes.Platform.Tenants.Reactivate(tenant.Id));
+    private Task ReactivateAsync(TenantResponse tenant) => RunAsync(tenant.Links.Find(LinkRels.Reactivate));
 
     private async Task CancelAsync(TenantResponse tenant)
     {
@@ -157,12 +155,17 @@
             return;
         }
 
-        await RunAsync(ApiRoutes.Platform.Tenants.Cancel(tenant.Id));
+        await RunAsync(tenant.Links.Find(LinkRels.Cancel));
     }
 
-    private async Task RunAsync(string route)
+    private async Task RunAsync(HalLink? link)
     {
-        var result = await ApiClient.PostAsync(route, new { });
+        if (link is null)
+        {
+            return;
+        }
+
+        var result = await ApiClient.FollowAsync(link, new { });
         if (!result.IsSuccessful)
         {
             Snackbar.ShowError(result.DisplayMessage);

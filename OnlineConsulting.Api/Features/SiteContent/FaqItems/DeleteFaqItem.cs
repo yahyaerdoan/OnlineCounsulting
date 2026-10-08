@@ -9,11 +9,12 @@ public class DeleteFaqItem : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapDelete("/api/site-content/faq-items/{id:guid}", Handle)
+        _ = app.MapDelete("/site-content/faq-items/{id:guid}", Handle)
             .WithTags("SiteContent/FaqItems")
             .RequireAuthorization()
             .WithName("DeleteFaqItem")
-            .WithDescription("Deletes a service-specific FAQ item.");
+            .WithDescription("Deletes a service-specific FAQ item.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

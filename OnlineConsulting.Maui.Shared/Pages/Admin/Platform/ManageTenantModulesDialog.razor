@@ -11,16 +11,26 @@
         {
             <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
         }
+        else if (_allOfferings.Count == 0)
+        {
+            <MudText Typo="Typo.body2" Color="Color.Secondary">No modules are available right now.</MudText>
+        }
         else
         {
-            <MudStack Spacing="2">
+            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">Changes are billed right away, prorated to your current period.</MudText>
+            <MudStack Spacing="0" Class="module-toggle-list">
                 @foreach (var offering in _allOfferings)
                 {
                     var isActive = _activeModuleKeys.Contains(offering.Key);
-                    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-                        <MudText>@offering.Name</MudText>
-                        <MudSwitch T="bool" Value="@isActive" ValueChanged="@(active => ToggleModuleAsync(offering.Key, active))" Color="Color.Primary" Disabled="@(_togglingKey == offering.Key)" />
-                    </MudStack>
+                    <div class="module-toggle-row">
+                        <MudIcon Icon="@ModuleOfferingDisplay.Icon(offering)" Color="Color.Primary" />
+                        <div class="module-toggle-text">
+                            <MudText Typo="Typo.body1" Class="text-strong">@offering.Name</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">@CurrencyFormat.Format(offering.Price) / @ModuleOfferingDisplay.CycleLabel(offering)</MudText>
+                        </div>
+                        <MudSwitch T="bool" Value="@isActive" ValueChanged="@(active => ToggleModuleAsync(offering.Key, active))" Color="Color.Primary"
+                                   Disabled="@(_togglingKey is not null)" aria-label="@offering.Name" />
+                    </div>
                 }
             </MudStack>
         }
@@ -38,7 +48,7 @@
     [Parameter, EditorRequired]
     public TenantResponse Tenant { get; set; } = default!;
 
-    private List<ModuleOfferingResponse> _allOfferings = [];
+    private List<PublicModuleOfferingResponse> _allOfferings = [];
     private HashSet<string> _activeModuleKeys = [];
     private bool _loading = true;
     private string? _togglingKey;
@@ -46,10 +56,16 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var offeringsResult = await ApiClient.GetAsync<PaginatedResponse<ModuleOfferingResponse>>(ApiRoutes.Paged(ApiRoutes.Platform.ModuleOfferings.All, 0, int.MaxValue));
-        _allOfferings = offeringsResult.IsSuccessful && offeringsResult.ResultData is not null ? offeringsResult.ResultData.Items : [];
+        var offeringsResult = await ApiClient.GetAsync<List<PublicModuleOfferingResponse>>(ApiRoutes.Tenancy.ModuleOfferings);
+        if (offeringsResult.IsSuccessful)
+        {
+            _allOfferings = offeringsResult.ResultData ?? [];
+        }
+        else
+        {
+            _error = offeringsResult.DisplayMessage;
+        }
 
-        // TenantResponse (mirrors TenantSummaryResponse) already carries the tenant's active module keys - no separate call needed.
         _activeModuleKeys = [.. Tenant.ActiveModuleKeys];
 
         _loading = false;

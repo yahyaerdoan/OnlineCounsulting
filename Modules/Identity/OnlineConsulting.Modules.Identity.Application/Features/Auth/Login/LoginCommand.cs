@@ -1,10 +1,11 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
+using OnlineConsulting.Modules.Identity.Application.Common;
 using OnlineConsulting.Modules.Identity.Application.Features.Auth.Abstractions;
 using OnlineConsulting.Modules.Identity.Application.Features.Auth.Constants;
 using OnlineConsulting.Modules.Identity.Application.Features.Auth.Contracts;
 using OnlineConsulting.Modules.Identity.Domain;
+using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
@@ -12,27 +13,29 @@ namespace OnlineConsulting.Modules.Identity.Application.Features.Auth.Login;
 
 public record LoginCommand(string UserNameOrEmail, string Password) : IRequest<OperationDataResult<AuthTokensResponse>>;
 
-public class LoginHandler(UserManager<User> userManager, RoleManager<Role> roleManager, SignInManager<User> signInManager, ITokenService tokenService, IRefreshTokenService refreshTokenService)
+public class LoginHandler(UserManager<User> userManager, RoleManager<Role> roleManager, IPasswordChecker passwordChecker, ITokenService tokenService, IRefreshTokenService refreshTokenService, ITenantProvider tenantProvider)
     : IRequestHandler<LoginCommand, OperationDataResult<AuthTokensResponse>>
 {
     public async Task<OperationDataResult<AuthTokensResponse>> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
-        var user = await userManager.FindByNameAsync(request.UserNameOrEmail)
-            ?? await userManager.Users.FirstOrDefaultAsync(u => u.Email == request.UserNameOrEmail, cancellationToken);
+        var tenantId = tenantProvider.TenantId;
+        var user = await userManager.FindByNameAsync(request.UserNameOrEmail) is { } byUserName && byUserName.TenantId == tenantId
+            ? byUserName
+            : await userManager.FindByEmailInTenantAsync(request.UserNameOrEmail, tenantId, cancellationToken);
 
         if (user is null)
         {
             return Result.BadRequest<AuthTokensResponse>(AuthMessages.InvalidCredentials);
         }
 
-        var signInResult = await signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: true);
+        var passwordCheck = await passwordChecker.CheckAsync(user, request.Password);
 
-        if (signInResult.IsLockedOut)
+        if (passwordCheck.IsLockedOut)
         {
             return Result.Forbidden<AuthTokensResponse>(AuthMessages.AccountLocked);
         }
 
-        if (!signInResult.Succeeded)
+        if (!passwordCheck.Succeeded)
         {
             return Result.BadRequest<AuthTokensResponse>(AuthMessages.InvalidCredentials);
         }

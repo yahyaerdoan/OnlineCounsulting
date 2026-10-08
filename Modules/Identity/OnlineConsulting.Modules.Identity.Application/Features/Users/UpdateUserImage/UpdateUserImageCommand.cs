@@ -1,5 +1,4 @@
 ﻿using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Abstractions;
 using OnlineConsulting.Modules.Identity.Domain;
@@ -8,7 +7,8 @@ using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Identity.Application.Features.Users.UpdateUserImage;
 
-public record UpdateUserImageCommand(Guid UserId, IFormFile Image) : IRequest<OperationResult>;
+/// <summary>The image as plain stream and metadata; the Api turns whatever transport it received into these, keeping the command transport-agnostic.</summary>
+public record UpdateUserImageCommand(Guid UserId, Stream Content, string FileName, string ContentType, long Length) : IRequest<OperationResult>;
 
 public class UpdateUserImageHandler(UserManager<User> userManager, IUserImageStorage imageStorage)
     : IRequestHandler<UpdateUserImageCommand, OperationResult>
@@ -24,12 +24,12 @@ public class UpdateUserImageHandler(UserManager<User> userManager, IUserImageSto
             return Result.NotFound("The requested 'user' information could not be found. Please try again.");
         }
 
-        if (request.Image is null || request.Image.Length == 0)
+        if (request.Length == 0)
         {
             return Result.UnprocessableContent("No image was provided. Please select a valid image file to update the photo.");
         }
 
-        if (!AllowedMimeTypes.Contains(request.Image.ContentType))
+        if (!AllowedMimeTypes.Contains(request.ContentType))
         {
             return Result.UnprocessableContent("Invalid image format. Please upload an image in JPEG, JPG, PNG, or GIF format.");
         }
@@ -39,7 +39,7 @@ public class UpdateUserImageHandler(UserManager<User> userManager, IUserImageSto
             await imageStorage.DeleteAsync(user.ImageUrl, cancellationToken);
         }
 
-        user.ImageUrl = await imageStorage.UploadAsync(request.Image, cancellationToken);
+        user.ImageUrl = await imageStorage.UploadAsync(request.Content, request.FileName, cancellationToken);
 
         var result = await userManager.UpdateAsync(user);
 

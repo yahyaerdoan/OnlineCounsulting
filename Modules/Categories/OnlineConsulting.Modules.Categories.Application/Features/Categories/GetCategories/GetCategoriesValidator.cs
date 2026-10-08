@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using OnlineConsulting.SharedKernel.Validation;
+using Core.ApplicationLayer.Requests.Page;
 
 namespace OnlineConsulting.Modules.Categories.Application.Features.Categories.GetCategories;
 

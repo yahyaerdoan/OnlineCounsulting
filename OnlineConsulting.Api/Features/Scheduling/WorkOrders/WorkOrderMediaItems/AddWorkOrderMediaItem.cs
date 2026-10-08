@@ -10,16 +10,22 @@ public class AddWorkOrderMediaItem : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/work-orders/{workOrderId:guid}/media-items", Handle)
+        _ = app.MapPost("/work-orders/{workOrderId:guid}/media-items", Handle)
             .WithTags("Scheduling/WorkOrders")
             .RequireAuthorization()
             .WithName("AddWorkOrderMediaItem")
-            .WithDescription("Attaches an already-uploaded photo/video to a work order's before/after gallery.");
+            .WithDescription("Attaches an already-uploaded photo/video to a work order's before/after gallery.")
+            .ProducesEnveloped<Guid>(StatusCodes.Status201Created);
     }
 
-    private static async Task<IResult> Handle(Guid workOrderId, [FromBody] AddWorkOrderMediaItemCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle(Guid workOrderId, [FromBody] AddWorkOrderMediaItemRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command with { WorkOrderId = workOrderId });
+        var result = await sender.Send(request.ToCommand(workOrderId));
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record AddWorkOrderMediaItemRequest(Guid MediaAssetId, bool IsBeforePhoto, int DisplayOrder = 0)
+{
+    public AddWorkOrderMediaItemCommand ToCommand(Guid workOrderId) => new(workOrderId, MediaAssetId, IsBeforePhoto, DisplayOrder);
 }

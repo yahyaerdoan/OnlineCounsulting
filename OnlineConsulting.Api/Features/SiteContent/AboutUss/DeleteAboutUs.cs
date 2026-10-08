@@ -9,11 +9,12 @@ public class DeleteAboutUs : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapDelete("/api/site-content/about-us/{id:guid}", Handle)
+        _ = app.MapDelete("/site-content/about-us/{id:guid}", Handle)
             .WithTags("SiteContent/AboutUs")
             .RequireAuthorization()
             .WithName("DeleteAboutUs")
-            .WithDescription("Deletes an About Us content block.");
+            .WithDescription("Deletes an About Us content block.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

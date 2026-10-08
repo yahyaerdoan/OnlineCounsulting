@@ -12,14 +12,14 @@ public class UserContactReader(AppIdentityDbContext context) : IUserContactReade
 
     public Task<UserContact?> GetContactAsync(Guid userId, CancellationToken cancellationToken = default) =>
         context.Users.Where(u => u.Id == userId && u.DeletedDate == null)
-            .Select(u => new UserContact(u.Id, u.Email, u.FirstName, u.LastName))
+            .Select(u => new UserContact(u.Id, u.Email, u.FirstName, u.LastName, u.UserName))
             .FirstOrDefaultAsync(cancellationToken);
 
     public async Task<IReadOnlyList<UserContact>> GetContactsAsync(IReadOnlyCollection<Guid> userIds, CancellationToken cancellationToken = default) =>
         userIds.Count == 0
             ? []
             : await context.Users.Where(u => userIds.Contains(u.Id) && u.DeletedDate == null)
-                .Select(u => new UserContact(u.Id, u.Email, u.FirstName, u.LastName))
+                .Select(u => new UserContact(u.Id, u.Email, u.FirstName, u.LastName, u.UserName))
                 .ToListAsync(cancellationToken);
 
     public async Task<IReadOnlyList<Guid>> FindUserIdsAsync(string term, int maxResults = 200, CancellationToken cancellationToken = default)

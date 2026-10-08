@@ -6,13 +6,11 @@ using OnlineConsulting.Modules.Categories.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
-using System.Text.Json.Serialization;
 
 namespace OnlineConsulting.Modules.Categories.Application.Features.Categories.CreateCategory;
 
 public record CreateCategoryCommand(string Title, string Description, string Icon, string? IconColor = null) : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
-    [JsonIgnore]
     public string[] Roles => [CategoriesOperationClaims.Admin, CategoriesOperationClaims.Write, CategoriesOperationClaims.Add, GlobalOperationClaims.SuperAdmin];
 }
 
@@ -28,7 +26,7 @@ public class CreateCategoryHandler(ICategoryRepository repository) : IRequestHan
             IconColor = request.IconColor,
         };
 
-        _ = await repository.AddAsync(category);
+        _ = await repository.AddAsync(category, cancellationToken: cancellationToken);
 
         return Result.Created(category.Id, "Category created successfully.");
     }

@@ -9,11 +9,12 @@ public class DeleteGalleryItem : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapDelete("/api/site-content/gallery-items/{id:guid}", Handle)
+        _ = app.MapDelete("/site-content/gallery-items/{id:guid}", Handle)
             .WithTags("SiteContent/GalleryItems")
             .RequireAuthorization()
             .WithName("DeleteGalleryItem")
-            .WithDescription("Deletes a gallery item and its category tags.");
+            .WithDescription("Deletes a gallery item and its category tags.")
+            .ProducesEnveloped();
     }
 
     private static async Task<IResult> Handle(Guid id, ISender sender, HttpContext httpContext)

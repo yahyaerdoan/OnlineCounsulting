@@ -1,0 +1,13 @@
+{
+  "MediaAssetResponse": [
+    "id: Guid",
+    "url: string",
+    "altText: string?",
+    "contentType: string",
+    "sizeBytes: long",
+    "width: int?",
+    "height: int?",
+    "metadata: Dictionary<string, object>?",
+    "_links: LinkCollection?"
+  ]
+}

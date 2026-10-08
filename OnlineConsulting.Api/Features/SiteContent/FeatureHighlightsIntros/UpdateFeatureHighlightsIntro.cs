@@ -10,16 +10,22 @@ public class UpdateFeatureHighlightsIntro : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/site-content/feature-highlights-intro/{id:guid}", Handle)
+        _ = app.MapPut("/site-content/feature-highlights-intro/{id:guid}", Handle)
             .WithTags("SiteContent/FeatureHighlightsIntros")
             .RequireAuthorization()
             .WithName("UpdateFeatureHighlightsIntro")
-            .WithDescription("Updates the feature highlights section intro.");
+            .WithDescription("Updates the feature highlights section intro.")
+            .ProducesEnveloped();
     }
 
-    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateFeatureHighlightsIntroCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateFeatureHighlightsIntroRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command with { Id = id });
+        var result = await sender.Send(request.ToCommand(id));
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record UpdateFeatureHighlightsIntroRequest(string Description, Guid? CoverMediaAssetId = null, int DisplayOrder = 0, Dictionary<string, object>? Metadata = null)
+{
+    public UpdateFeatureHighlightsIntroCommand ToCommand(Guid id) => new(id, Description, CoverMediaAssetId, DisplayOrder, Metadata);
 }

@@ -17,21 +17,21 @@ public class OnTenantSubscriptionCancelledHandler(ITenantSubscriptionRepository 
         }
 
         var tenantSubscription = await subscriptionRepository.GetAsync(s => s.Id == tenantSubscriptionId, cancellationToken: cancellationToken);
-        if (tenantSubscription is null || tenantSubscription.Status == TenantSubscriptionStatuses.Cancelled)
+        if (tenantSubscription is null || tenantSubscription.IsCancelled)
         {
             return;
         }
 
-        tenantSubscription.Status = TenantSubscriptionStatuses.Cancelled;
-        _ = await subscriptionRepository.UpdateAsync(tenantSubscription);
+        tenantSubscription.Cancel();
+        _ = await subscriptionRepository.UpdateAsync(tenantSubscription, cancellationToken: cancellationToken);
 
         var tenant = await tenantRepository.GetAsync(t => t.Id == tenantSubscription.TenantId, cancellationToken: cancellationToken);
-        if (tenant is null || tenant.Status == TenantStatuses.Suspended)
+        if (tenant is null || tenant.IsHeldByStaff)
         {
             return;
         }
 
-        tenant.Status = TenantStatuses.Suspended;
-        _ = await tenantRepository.UpdateAsync(tenant);
+        tenant.ApplySubscriptionEnded();
+        _ = await tenantRepository.UpdateAsync(tenant, cancellationToken: cancellationToken);
     }
 }

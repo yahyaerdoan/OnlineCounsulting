@@ -1,4 +1,7 @@
-﻿using Core.SecurityLayer.JsonWebTokens.Abstractions;
+﻿using Core.ApplicationLayer.Pipelines.Transactions.Extensions;
+using Core.PersistenceLayer.Repositories.Auditing;
+using Core.SecurityLayer.Extensions;
+using Core.SecurityLayer.JsonWebTokens.Abstractions;
 using Core.SecurityLayer.JsonWebTokens.Concretions;
 using FluentValidation;
 using MediatR;
@@ -9,6 +12,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using OnlineConsulting.Modules.Identity.Application;
+using OnlineConsulting.Modules.Identity.Application.Common;
 using OnlineConsulting.Modules.Identity.Application.Common.Templates;
 using OnlineConsulting.Modules.Identity.Application.Features.Auth;
 using OnlineConsulting.Modules.Identity.Application.Features.Auth.Abstractions;
@@ -21,19 +25,18 @@ using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.Modules.Identity.Infrastructure.LiveUpdates;
 using OnlineConsulting.Modules.Identity.Infrastructure.Notifications;
 using OnlineConsulting.Modules.Identity.Infrastructure.Persistence;
-using OnlineConsulting.Modules.Identity.Infrastructure.Pipelines;
 using OnlineConsulting.Modules.Identity.Infrastructure.Repositories;
 using OnlineConsulting.Modules.Identity.Infrastructure.Security;
-using OnlineConsulting.Modules.Identity.Infrastructure.Seeding;
+using OnlineConsulting.Modules.Identity.Infrastructure.Bootstrapping;
 using OnlineConsulting.Modules.Identity.Infrastructure.Status;
 using OnlineConsulting.Modules.Identity.Infrastructure.Storage;
-using OnlineConsulting.SharedKernel.Auditing;
 using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.LiveUpdates;
 using OnlineConsulting.SharedKernel.Identity;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
 using System.Text;
+using OnlineConsulting.SharedKernel.Transactions;
 
 namespace OnlineConsulting.Modules.Identity.Infrastructure;
 
@@ -50,7 +53,6 @@ public static class IdentityModule
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-        _ = services.AddScoped<AuditSaveChangesInterceptor>();
 
         _ = services.AddUserDataChangeRules(IdentityUserDataChangeRules.Configure);
         _ = services.AddDbContext<AppIdentityDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
@@ -59,12 +61,14 @@ public static class IdentityModule
 
         _ = services.AddIdentity<User, Role>(options => options.Password.RequiredLength = 6)
             .AddEntityFrameworkStores<AppIdentityDbContext>()
+            .AddUserValidator<TenantEmailUserValidator>()
             .AddDefaultTokenProviders();
 
-        _ = services.Configure<TokenOption>(configuration.GetSection("TokenOptions"));
-        _ = services.AddScoped<IJwtTokenHelper, JwtTokenHelper>();
+        _ = services.AddTokenOptions(configuration);
+        _ = services.AddSecurityServices();
 
         _ = services.AddScoped<ITokenService, TokenManager>();
+        _ = services.AddScoped<IPasswordChecker, SignInManagerPasswordChecker>();
         _ = services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         _ = services.AddScoped<IRefreshTokenService, RefreshTokenService>();
         _ = services.AddScoped<IUserImageStorage, UserImageStorage>();
@@ -83,12 +87,12 @@ public static class IdentityModule
         _ = services.AddScoped<IEmailTemplate<PolicyNoticeEmailModel>, PolicyNoticeTemplate>();
         _ = services.AddScoped<IEmailTemplate<InviteEmailModel>, InviteTemplate>();
         _ = services.AddScoped<IEmailTemplate<ForgotPasswordEmailModel>, ForgotPasswordTemplate>();
-        _ = services.Configure<AuthEmailOptions>(configuration.GetSection("Auth"));
-        _ = services.Configure<SuperAdminSeedOptions>(configuration.GetSection("Seed:SuperAdmin"));
+        _ = services.AddScoped<IEmailTemplate<FindMyBusinessEmailModel>, FindMyBusinessTemplate>();
+        _ = services.Configure<SuperAdminBootstrapOptions>(configuration.GetSection("Bootstrap:SuperAdmin"));
 
         _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
         _ = services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
-        _ = services.AddTransient(typeof(IPipelineBehavior<,>), typeof(IdentityTransactionAddingBehavior<,>));
+        _ = services.AddTransactionalDbContext<IIdentityTransactionRequest, AppIdentityDbContext>();
 
         _ = services.AddSingleton<IDefaultAdminPermissions>(new DefaultAdminPermissions(UsersOperationClaims.All));
         _ = services.AddSingleton<IDefaultAdminPermissions>(new DefaultAdminPermissions(InvitesOperationClaims.All));

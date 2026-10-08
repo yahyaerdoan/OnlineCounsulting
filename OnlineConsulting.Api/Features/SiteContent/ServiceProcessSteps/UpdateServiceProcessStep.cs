@@ -10,16 +10,22 @@ public class UpdateServiceProcessStep : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPut("/api/site-content/service-process-steps/{id:guid}", Handle)
+        _ = app.MapPut("/site-content/service-process-steps/{id:guid}", Handle)
             .WithTags("SiteContent/ServiceProcessSteps")
             .RequireAuthorization()
             .WithName("UpdateServiceProcessStep")
-            .WithDescription("Updates a service process step.");
+            .WithDescription("Updates a service process step.")
+            .ProducesEnveloped();
     }
 
-    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateServiceProcessStepCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle(Guid id, [FromBody] UpdateServiceProcessStepRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command with { Id = id });
+        var result = await sender.Send(request.ToCommand(id));
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record UpdateServiceProcessStepRequest(string Title, string Description, string Icon, string? IconColor = null, int DisplayOrder = 0, Dictionary<string, object>? Metadata = null)
+{
+    public UpdateServiceProcessStepCommand ToCommand(Guid id) => new(id, Title, Description, Icon, IconColor, DisplayOrder, Metadata);
 }

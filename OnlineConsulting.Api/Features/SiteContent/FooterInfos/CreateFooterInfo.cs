@@ -10,16 +10,22 @@ public class CreateFooterInfo : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapPost("/api/site-content/footer-info", Handle)
+        _ = app.MapPost("/site-content/footer-info", Handle)
             .WithTags("SiteContent/FooterInfo")
             .RequireAuthorization()
             .WithName("CreateFooterInfo")
-            .WithDescription("Creates a footer content block.");
+            .WithDescription("Creates a footer content block.")
+            .ProducesEnveloped<Guid>(StatusCodes.Status201Created);
     }
 
-    private static async Task<IResult> Handle([FromBody] CreateFooterInfoCommand command, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] CreateFooterInfoRequest request, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(command);
+        var result = await sender.Send(request.ToCommand());
         return result.ToEnvelopedResult(httpContext);
     }
+}
+
+public record CreateFooterInfoRequest(string ImageUrl, string Description, int DisplayOrder = 0, Dictionary<string, object>? Metadata = null)
+{
+    public CreateFooterInfoCommand ToCommand() => new(ImageUrl, Description, DisplayOrder, Metadata);
 }

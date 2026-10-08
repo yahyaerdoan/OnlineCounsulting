@@ -1,5 +1,7 @@
-﻿using MediatR;
+﻿using Core.PersistenceLayer.Pagings.Paging;
+using MediatR;
 using OnlineConsulting.Api.Common;
+using OnlineConsulting.Modules.Categories.Application.Features.Categories.Contracts;
 using OnlineConsulting.Modules.Categories.Application.Features.Categories.GetCategories;
 using ResultHandler.AspNetCore.Extensions;
 
@@ -9,10 +11,11 @@ public class GetCategories : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        _ = app.MapGet("/api/categories", Handle)
+        _ = app.MapGet("/categories", Handle)
             .WithTags("Categories")
             .WithName("GetCategories")
-            .WithDescription("Returns the current tenant's categories, paginated.");
+            .WithDescription("Returns the current tenant's categories, paginated.")
+            .ProducesEnveloped<Paginate<CategoryResponse>>();
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext, int? index = null, int? size = null)

@@ -1,4 +1,5 @@
 ﻿using OnlineConsulting.Maui.Shared.Infrastructure.Auth;
+using OnlineConsulting.Maui.Shared.Infrastructure.Hateoas;
 using Polly.CircuitBreaker;
 using System.Net;
 using System.Net.Http.Headers;
@@ -11,7 +12,6 @@ namespace OnlineConsulting.Maui.Shared.Infrastructure.Api;
 public class ApiClient(HttpClient httpClient, IAccessTokenProvider? tokenProvider = null, TokenRefresher? tokenRefresher = null, AuthenticationExpiredNotifier? expiredNotifier = null, PublicApiOrigin? publicOrigin = null) : IApiClient
 {
     private const string NetworkErrorMessage = "Could not reach the server. Check your connection and try again.";
-    private static readonly TimeSpan RefreshBuffer = TimeSpan.FromSeconds(30);
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
     public Uri? BaseAddress => httpClient.BaseAddress;
@@ -39,6 +39,15 @@ public class ApiClient(HttpClient httpClient, IAccessTokenProvider? tokenProvide
 
     public Task<ApiEnvelope<T>> PostFileAsync<T>(string path, MultipartFormDataContent content, CancellationToken cancellationToken = default) =>
         SendAsync<T>(HttpMethod.Post, path, content, cancellationToken);
+
+    public Task<ApiEnvelope<T>> FollowAsync<T>(HalLink link, object? body = null, CancellationToken cancellationToken = default) =>
+        SendAsync<T>(link.HttpMethod, link.RelativePath, ContentFor(link, body), cancellationToken);
+
+    public Task<ApiEnvelope> FollowAsync(HalLink link, object? body = null, CancellationToken cancellationToken = default) =>
+        SendAsync(link.HttpMethod, link.RelativePath, ContentFor(link, body), cancellationToken);
+
+    private static JsonContent? ContentFor(HalLink link, object? body) =>
+        link.HttpMethod == HttpMethod.Get || link.HttpMethod == HttpMethod.Delete ? null : JsonContent.Create(body, options: JsonOptions);
 
     private async Task<ApiEnvelope<T>> SendAsync<T>(HttpMethod method, string path, HttpContent? content, CancellationToken cancellationToken)
     {
@@ -84,15 +93,13 @@ public class ApiClient(HttpClient httpClient, IAccessTokenProvider? tokenProvide
 
         if (tokenProvider is not null)
         {
-            var tokens = await tokenProvider.GetTokenSetAsync();
-            if (tokens is not null && tokens.IsNearExpiry(RefreshBuffer) && tokenRefresher is not null)
-            {
-                tokens = await tokenRefresher.RefreshAsync(tokens, cancellationToken) ?? tokens;
-            }
+            var accessToken = tokenRefresher is not null
+                ? await tokenRefresher.GetAccessTokenAsync(cancellationToken)
+                : (await tokenProvider.GetTokenSetAsync())?.AccessToken;
 
-            if (tokens is not null)
+            if (accessToken is not null)
             {
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokens.AccessToken);
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
             }
         }
 
