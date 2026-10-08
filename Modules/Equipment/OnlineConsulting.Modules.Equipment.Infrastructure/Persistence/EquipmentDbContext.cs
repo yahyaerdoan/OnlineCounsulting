@@ -1,13 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Core.PersistenceLayer.MultiTenancy;
+using Microsoft.EntityFrameworkCore;
 using OnlineConsulting.Modules.Equipment.Domain;
-using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Equipment.Infrastructure.Persistence;
 
-public class EquipmentDbContext(DbContextOptions<EquipmentDbContext> options, ITenantProvider tenantProvider) : DbContext(options), ITenantScopedDbContext
+public class EquipmentDbContext(DbContextOptions<EquipmentDbContext> options, ITenantContext tenantContext) : TenantDbContext(options, tenantContext)
 {
-    public Guid CurrentTenantId => tenantProvider.TenantId;
-
     public DbSet<EquipmentItem> EquipmentItems => Set<EquipmentItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -23,7 +21,6 @@ public class EquipmentDbContext(DbContextOptions<EquipmentDbContext> options, IT
             _ = builder.Property(e => e.Notes).HasMaxLength(2000);
             _ = builder.Property(e => e.RowVersion).IsRowVersion();
             _ = builder.HasIndex(e => e.UserId);
-            _ = builder.ApplyTenantAndSoftDeleteFilter(this);
         });
 
         base.OnModelCreating(modelBuilder);

@@ -1,5 +1,5 @@
+using Core.PersistenceLayer.MultiTenancy;
 using OnlineConsulting.SharedKernel.Payments;
-using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Memberships.Domain;
 

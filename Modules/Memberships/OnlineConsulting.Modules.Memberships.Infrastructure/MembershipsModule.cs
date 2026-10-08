@@ -21,7 +21,6 @@ using OnlineConsulting.SharedKernel.LiveUpdates;
 using OnlineConsulting.SharedKernel.Memberships;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
 using OnlineConsulting.SharedKernel.Notifications;
-using OnlineConsulting.SharedKernel.Tenancy;
 using OnlineConsulting.SharedKernel.Transactions;
 
 namespace OnlineConsulting.Modules.Memberships.Infrastructure;
@@ -32,11 +31,10 @@ public static class MembershipsModule
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-        _ = services.AddScoped<TenantSaveChangesInterceptor>();
 
         _ = services.AddUserDataChangeRules(MembershipsUserDataChangeRules.Configure);
         _ = services.AddDbContext<MembershipsDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
-            .AddInterceptors(serviceProvider.GetRequiredService<TenantSaveChangesInterceptor>(), serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>())
+            .AddInterceptors(serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>())
             .AddUserDataChangeInterceptors(serviceProvider));
 
         _ = services.AddTransactionalDbContext<IMembershipsTransactionRequest, MembershipsDbContext>();

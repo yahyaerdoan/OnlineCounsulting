@@ -1,7 +1,7 @@
+using Core.PersistenceLayer.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using OnlineConsulting.Modules.Inquiries.Infrastructure.Persistence;
 using OnlineConsulting.SharedKernel.Inquiries;
-using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Inquiries.Infrastructure.Contacts;
 
@@ -10,7 +10,7 @@ public class BusinessContactReader(InquiriesDbContext context) : IBusinessContac
 {
     public async Task<BusinessContact?> GetAsync(Guid tenantId, CancellationToken cancellationToken = default) =>
         await context.CompanyContacts
-            .IgnoreQueryFilters([TenantEntityTypeBuilderExtensions.TenantFilterKey])
+            .IgnoreTenantFilter()
             .Where(c => c.TenantId == tenantId)
             .OrderBy(c => c.Id)
             .Select(c => new BusinessContact(c.Email, c.Phone, c.Address))

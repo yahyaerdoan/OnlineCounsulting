@@ -13,7 +13,6 @@ using OnlineConsulting.Modules.Media.Infrastructure.PublicUrls;
 using OnlineConsulting.Modules.Media.Infrastructure.Repositories;
 using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.Media;
-using OnlineConsulting.SharedKernel.Tenancy;
 using OnlineConsulting.SharedKernel.Transactions;
 
 namespace OnlineConsulting.Modules.Media.Infrastructure;
@@ -24,10 +23,9 @@ public static class MediaModule
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-        _ = services.AddScoped<TenantSaveChangesInterceptor>();
 
         _ = services.AddDbContext<MediaDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
-            .AddInterceptors(serviceProvider.GetRequiredService<TenantSaveChangesInterceptor>(), serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>()));
+            .AddInterceptors(serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>()));
 
         _ = services.AddScoped<IMediaAssetRepository, MediaAssetRepository>();
         _ = services.AddScoped<IMediaAssetUrlReader, MediaAssetUrlReader>();

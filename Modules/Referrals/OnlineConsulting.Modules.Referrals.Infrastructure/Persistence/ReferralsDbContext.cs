@@ -1,14 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Core.PersistenceLayer.MultiTenancy;
+using Microsoft.EntityFrameworkCore;
 using OnlineConsulting.Modules.Referrals.Domain;
 using OnlineConsulting.SharedKernel.Notifications;
-using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Referrals.Infrastructure.Persistence;
 
-public class ReferralsDbContext(DbContextOptions<ReferralsDbContext> options, ITenantProvider tenantProvider) : DbContext(options), ITenantScopedDbContext
+public class ReferralsDbContext(DbContextOptions<ReferralsDbContext> options, ITenantContext tenantContext) : TenantDbContext(options, tenantContext)
 {
-    public Guid CurrentTenantId => tenantProvider.TenantId;
-
     public DbSet<ReferralCode> ReferralCodes => Set<ReferralCode>();
     public DbSet<Referral> Referrals => Set<Referral>();
     public DbSet<AccountCredit> AccountCredits => Set<AccountCredit>();
@@ -24,7 +22,6 @@ public class ReferralsDbContext(DbContextOptions<ReferralsDbContext> options, IT
             _ = builder.Property(c => c.RowVersion).IsRowVersion();
             _ = builder.HasIndex(c => c.UserId).IsUnique();
             _ = builder.HasIndex(c => c.Code).IsUnique();
-            _ = builder.ApplyTenantAndSoftDeleteFilter(this);
         });
 
         _ = modelBuilder.Entity<Referral>(builder =>
@@ -35,7 +32,6 @@ public class ReferralsDbContext(DbContextOptions<ReferralsDbContext> options, IT
             _ = builder.Property(r => r.RowVersion).IsRowVersion();
             _ = builder.HasIndex(r => r.ReferrerUserId);
             _ = builder.HasIndex(r => r.ReferredUserId).IsUnique();
-            _ = builder.ApplyTenantAndSoftDeleteFilter(this);
         });
 
         _ = modelBuilder.Entity<AccountCredit>(builder =>
@@ -45,7 +41,6 @@ public class ReferralsDbContext(DbContextOptions<ReferralsDbContext> options, IT
             _ = builder.Property(c => c.SourceType).HasMaxLength(50).IsRequired();
             _ = builder.Property(c => c.RowVersion).IsRowVersion();
             _ = builder.HasIndex(c => c.UserId);
-            _ = builder.ApplyTenantAndSoftDeleteFilter(this);
         });
 
         modelBuilder.ConfigureOutboxEmail(ownsMigration: false);

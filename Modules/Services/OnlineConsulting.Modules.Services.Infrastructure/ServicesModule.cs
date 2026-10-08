@@ -14,7 +14,6 @@ using OnlineConsulting.Modules.Services.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Services.Infrastructure.Repositories;
 using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.Catalog;
-using OnlineConsulting.SharedKernel.Tenancy;
 using OnlineConsulting.SharedKernel.Transactions;
 
 namespace OnlineConsulting.Modules.Services.Infrastructure;
@@ -25,10 +24,9 @@ public static class ServicesModule
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-        _ = services.AddScoped<TenantSaveChangesInterceptor>();
 
         _ = services.AddDbContext<ServicesDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
-            .AddInterceptors(serviceProvider.GetRequiredService<TenantSaveChangesInterceptor>(), serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>()));
+            .AddInterceptors(serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>()));
 
         _ = services.AddScoped<IServiceRepository, ServiceRepository>();
         _ = services.AddScoped<IServiceCatalogReader, ServiceCatalogReader>();

@@ -1,8 +1,8 @@
+using Core.PersistenceLayer.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using OnlineConsulting.Modules.Media.Infrastructure.Persistence;
 using OnlineConsulting.SharedKernel.Media;
-using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Media.Infrastructure.PublicUrls;
 
@@ -12,7 +12,7 @@ public class MediaAssetUrlReader(MediaDbContext context, IOptions<MediaPublicUrl
     public async Task<string?> GetPublicUrlAsync(Guid mediaAssetId, CancellationToken cancellationToken = default)
     {
         var url = await context.MediaAssets
-            .IgnoreQueryFilters([TenantEntityTypeBuilderExtensions.TenantFilterKey])
+            .IgnoreTenantFilter()
             .Where(a => a.Id == mediaAssetId)
             .Select(a => a.Url)
             .FirstOrDefaultAsync(cancellationToken);

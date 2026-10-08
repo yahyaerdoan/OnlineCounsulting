@@ -1,5 +1,5 @@
-﻿using OnlineConsulting.SharedKernel.Catalog;
-using OnlineConsulting.SharedKernel.Tenancy;
+﻿using Core.PersistenceLayer.MultiTenancy;
+using OnlineConsulting.SharedKernel.Catalog;
 
 namespace OnlineConsulting.Modules.Services.Domain;
 

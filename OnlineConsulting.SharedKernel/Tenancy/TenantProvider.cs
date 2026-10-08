@@ -1,22 +1,25 @@
-﻿using Microsoft.AspNetCore.Http;
+using Core.PersistenceLayer.MultiTenancy;
+using Microsoft.AspNetCore.Http;
 
 namespace OnlineConsulting.SharedKernel.Tenancy;
 
-public class TenantProvider(IHttpContextAccessor httpContextAccessor) : ITenantProvider
+/// <summary>Serves both the app's ITenantProvider and the data layer's ITenantContext from one resolution, so business code and query filters
+/// always agree on the tenant.</summary>
+public class TenantProvider(IHttpContextAccessor httpContextAccessor) : ITenantProvider, ITenantContext
 {
     public const string TenantClaimType = "tenant_id";
 
     /// <summary>HttpContext.Items key holding the tenant resolved from the X-Tenant-Host header.</summary>
     public const string HostTenantItemKey = "TenantFromHost";
 
-    /// <summary>TenantContextOverride.BeginScope first, then the JWT claim, then the tenant resolved from the caller's host, then the default tenant.</summary>
+    /// <summary>An open TenantScope first, then the JWT claim, then the tenant resolved from the caller's host, then the default tenant.</summary>
     public Guid TenantId
     {
         get
         {
-            if (TenantContextOverride.TenantId is { } overriddenTenantId)
+            if (TenantScope.Current is { } scopedTenantId)
             {
-                return overriddenTenantId;
+                return scopedTenantId;
             }
 
             var httpContext = httpContextAccessor.HttpContext;
@@ -32,4 +35,6 @@ public class TenantProvider(IHttpContextAccessor httpContextAccessor) : ITenantP
                 : TenantDefaults.DefaultTenantId;
         }
     }
+
+    Guid? ITenantContext.TenantId => TenantId;
 }

@@ -7,7 +7,7 @@ using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.FeatureFlags.Application.Features.FeatureFlags;
 
-/// <summary>Shared upsert+invalidate logic for SetFeatureFlagCommand (current tenant) and IFeatureFlagWriter (explicit tenant via TenantContextOverride) - one write path for both.</summary>
+/// <summary>Shared upsert+invalidate logic for SetFeatureFlagCommand (current tenant) and IFeatureFlagWriter (explicit tenant via TenantScope) - one write path for both.</summary>
 public class FeatureFlagUpserter(IFeatureFlagRepository repository, IFeatureFlagCacheInvalidator cacheInvalidator)
 {
     /// <summary>Creates or updates the flag override for <paramref name="key"/>, then invalidates the cross-module IFeatureFlagReader cache (separate from GetFeatureFlagsQuery's own CacheGroupKey, cleared via ICacheRemoveRequest).</summary>

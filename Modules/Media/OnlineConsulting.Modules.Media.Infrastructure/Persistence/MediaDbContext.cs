@@ -1,13 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Core.PersistenceLayer.MultiTenancy;
+using Microsoft.EntityFrameworkCore;
 using OnlineConsulting.Modules.Media.Domain;
-using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Media.Infrastructure.Persistence;
 
-public class MediaDbContext(DbContextOptions<MediaDbContext> options, ITenantProvider tenantProvider) : DbContext(options), ITenantScopedDbContext
+public class MediaDbContext(DbContextOptions<MediaDbContext> options, ITenantContext tenantContext) : TenantDbContext(options, tenantContext)
 {
-    public Guid CurrentTenantId => tenantProvider.TenantId;
-
     public DbSet<MediaAsset> MediaAssets => Set<MediaAsset>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -21,7 +19,6 @@ public class MediaDbContext(DbContextOptions<MediaDbContext> options, ITenantPro
             _ = builder.Property(x => x.ContentType).HasMaxLength(100).IsRequired();
             _ = builder.Property(x => x.StorageProvider).HasMaxLength(50).IsRequired();
             _ = builder.Property(x => x.RowVersion).IsRowVersion();
-            _ = builder.ApplyTenantAndSoftDeleteFilter(this);
         });
 
         base.OnModelCreating(modelBuilder);

@@ -26,7 +26,6 @@ using OnlineConsulting.SharedKernel.Billing;
 using OnlineConsulting.SharedKernel.LiveUpdates;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
-using OnlineConsulting.SharedKernel.Tenancy;
 using OnlineConsulting.SharedKernel.Transactions;
 
 namespace OnlineConsulting.Modules.Commerce.Infrastructure;
@@ -37,11 +36,10 @@ public static class CommerceModule
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-        _ = services.AddScoped<TenantSaveChangesInterceptor>();
 
         _ = services.AddUserDataChangeRules(CommerceUserDataChangeRules.Configure);
         _ = services.AddDbContext<CommerceDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
-            .AddInterceptors(serviceProvider.GetRequiredService<TenantSaveChangesInterceptor>(), serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>())
+            .AddInterceptors(serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>())
             .AddUserDataChangeInterceptors(serviceProvider));
 
         _ = services.AddScoped<IUserAddressRepository, UserAddressRepository>();

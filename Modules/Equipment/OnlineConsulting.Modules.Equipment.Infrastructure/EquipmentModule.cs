@@ -11,7 +11,6 @@ using OnlineConsulting.Modules.Equipment.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Equipment.Infrastructure.Repositories;
 using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.LiveUpdates;
-using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Equipment.Infrastructure;
 
@@ -21,11 +20,10 @@ public static class EquipmentModule
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-        _ = services.AddScoped<TenantSaveChangesInterceptor>();
 
         _ = services.AddUserDataChangeRules(EquipmentUserDataChangeRules.Configure);
         _ = services.AddDbContext<EquipmentDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
-            .AddInterceptors(serviceProvider.GetRequiredService<TenantSaveChangesInterceptor>(), serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>())
+            .AddInterceptors(serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>())
             .AddUserDataChangeInterceptors(serviceProvider));
 
         _ = services.AddScoped<IEquipmentItemRepository, EquipmentItemRepository>();
