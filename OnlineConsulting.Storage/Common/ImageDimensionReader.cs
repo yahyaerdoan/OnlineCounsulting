@@ -17,7 +17,10 @@ public static class ImageDimensionReader
 
         try
         {
-            var info = SKBitmap.DecodeBounds(seekableStream);
+            // disposeManagedStream: false - caller still uploads this stream.
+            using var managedStream = new SKManagedStream(seekableStream, disposeManagedStream: false);
+            using var codec = SKCodec.Create(managedStream);
+            var info = codec?.Info ?? SKImageInfo.Empty;
 
             return Task.FromResult<(int?, int?)>(info.Width > 0 && info.Height > 0 ? (info.Width, info.Height) : (null, null));
         }
