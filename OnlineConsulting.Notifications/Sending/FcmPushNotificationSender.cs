@@ -19,7 +19,7 @@ public class FcmPushNotificationSender(IDeviceTokenRepository deviceTokenReposit
         {
             var message = new Message
             {
-                Token = token,
+                Fid = token,
                 Notification = new Notification { Title = title, Body = body },
                 Data = data is null ? null : new Dictionary<string, string>(data),
             };

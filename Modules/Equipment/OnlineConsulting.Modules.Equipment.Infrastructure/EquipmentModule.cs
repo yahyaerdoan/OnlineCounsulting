@@ -20,7 +20,6 @@ public static class EquipmentModule
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-
         _ = services.AddUserDataChangeRules(EquipmentUserDataChangeRules.Configure);
         _ = services.AddDbContext<EquipmentDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
             .AddInterceptors(serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>())

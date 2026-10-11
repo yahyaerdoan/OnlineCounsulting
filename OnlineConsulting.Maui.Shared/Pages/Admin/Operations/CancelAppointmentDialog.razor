@@ -11,7 +11,7 @@
             The customer gets an email and a notification. If a technician is assigned, they're notified too.
         </MudText>
         <MudTextField T="string" @bind-Value="_reason" Label="Reason for the customer (optional)" Variant="Variant.Outlined"
-                      Lines="3" AutoGrow="true" MaxLength="500" Counter="500" />
+                      Lines="3" MaxLength="500" Counter="500" />
     </DialogContent>
     <DialogActions>
         <DialogActionButtons OnOk="CancelAsync" OkText="Cancel appointment" CancelText="Keep" IsBusy="@_isBusy" />

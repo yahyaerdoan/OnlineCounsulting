@@ -1,7 +1,6 @@
 ﻿using Core.ApplicationLayer.Pipelines.Transactions.Extensions;
 using Core.PersistenceLayer.Repositories.Auditing;
 using FluentValidation;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -41,7 +40,6 @@ public static class SiteContentModule
     public static IServiceCollection AddSiteContentModule(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
-
 
         _ = services.AddDbContext<SiteContentDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
             .AddInterceptors(serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>()));
