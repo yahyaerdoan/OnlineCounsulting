@@ -71,6 +71,7 @@
     <PackageVersion Include="SharpCompress" Version="0.50.4" />
     <PackageVersion Include="SixLabors.ImageSharp" Version="4.1.3" />
     <PackageVersion Include="SkiaSharp" Version="4.153.1" />
+    <PackageVersion Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.153.1" />
     <PackageVersion Include="Stripe.net" Version="52.4.2" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.22.0" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="4.0.0" />
