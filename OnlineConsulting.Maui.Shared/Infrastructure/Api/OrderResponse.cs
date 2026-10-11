@@ -10,5 +10,6 @@ public record OrderDetailResponse(OrderResponse Order, IReadOnlyList<OrderItemRe
 
 public record OrderItemResponse(Guid Id, Guid ServiceId, int Quantity, decimal UnitPrice, int TaxRate, decimal TaxAmount, decimal SubTotalPrice, decimal TotalPrice);
 
-/// <summary>Mirrors POST /api/v1/orders/checkout's response shape. PaymentClientSecret is null once the order is already Paid.</summary>
-public record CreateOrderResult(Guid OrderId, string? PaymentClientSecret, string OrderNumber);
+/// <summary>Mirrors POST /api/v1/orders/checkout's response shape. PaymentClientSecret is null once the order is already Paid.
+/// PaymentConnectedAccountId must be passed to Stripe.js's init (stripeAccount option) when set - the client secret belongs to the tenant's Connect account, not the platform's.</summary>
+public record CreateOrderResult(Guid OrderId, string? PaymentClientSecret, string OrderNumber, string? PaymentConnectedAccountId = null);

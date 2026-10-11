@@ -32,7 +32,7 @@ public class RollbackTenantSignupHandler(ITenantRepository tenantRepository, ITe
         {
             if (tenantSubscription.ProviderSubscriptionId is { } providerSubscriptionId && tenant.ProviderCustomerId is { } providerCustomerId)
             {
-                await subscriptionGateway.CancelAndRefundAsync(providerCustomerId, providerSubscriptionId, cancellationToken);
+                await subscriptionGateway.CancelAndRefundAsync(providerCustomerId, providerSubscriptionId, cancellationToken: cancellationToken);
             }
 
             tenantSubscription.CancelSignup();

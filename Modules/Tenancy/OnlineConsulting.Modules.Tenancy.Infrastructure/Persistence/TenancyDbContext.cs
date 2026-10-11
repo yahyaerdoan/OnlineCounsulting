@@ -28,6 +28,8 @@ public class TenancyDbContext(DbContextOptions<TenancyDbContext> options) : DbCo
             _ = builder.Property(t => t.Status).HasMaxLength(30).IsRequired();
             _ = builder.Property(t => t.PrimaryContactEmail).HasMaxLength(256).IsRequired();
             _ = builder.Property(t => t.ProviderCustomerId).HasMaxLength(100);
+            _ = builder.Property(t => t.StripeConnectedAccountId).HasMaxLength(100);
+            _ = builder.HasIndex(t => t.StripeConnectedAccountId).IsUnique().HasFilter("[StripeConnectedAccountId] IS NOT NULL");
             _ = builder.Property(t => t.TimeZoneId).HasMaxLength(64).IsRequired().HasDefaultValue(BusinessTimeZones.Default);
             _ = builder.Property(t => t.RowVersion).IsRowVersion();
             _ = builder.HasIndex(t => t.Slug).IsUnique().HasFilter("[DeletedDate] IS NULL");

@@ -17,7 +17,8 @@ public record CancelMembershipCommand(Guid UserId) : IRequest<OperationResult>, 
     public string[] Roles => [];
 }
 
-public class CancelMembershipHandler(ICustomerMembershipRepository repository, ISubscriptionGateway subscriptionGateway, ITenantTimeZoneReader timeZoneReader)
+public class CancelMembershipHandler(ICustomerMembershipRepository repository, ISubscriptionGateway subscriptionGateway, ITenantTimeZoneReader timeZoneReader,
+    ITenantPaymentAccountReader paymentAccountReader)
     : IRequestHandler<CancelMembershipCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(CancelMembershipCommand request, CancellationToken cancellationToken)
@@ -36,7 +37,8 @@ public class CancelMembershipHandler(ICustomerMembershipRepository repository, I
 
         if (membership.ProviderSubscriptionId is not null)
         {
-            _ = await subscriptionGateway.CancelSubscriptionAsync(membership.ProviderSubscriptionId, atPeriodEnd: true, cancellationToken: cancellationToken);
+            var paymentAccount = await paymentAccountReader.GetAsync(membership.TenantId, cancellationToken);
+            _ = await subscriptionGateway.CancelSubscriptionAsync(membership.ProviderSubscriptionId, atPeriodEnd: true, connectedAccountId: paymentAccount.ConnectedAccountId, cancellationToken: cancellationToken);
         }
 
         membership.CancelAtEndOfPeriod();

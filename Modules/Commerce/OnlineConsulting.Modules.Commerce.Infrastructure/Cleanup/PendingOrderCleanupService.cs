@@ -100,7 +100,7 @@ public class PendingOrderCleanupService(IServiceScopeFactory scopeFactory, IOpti
             return false;
         }
 
-        var status = await gateway.GetStatusAsync(order.ProviderPaymentId, cancellationToken);
+        var status = await gateway.GetStatusAsync(order.ProviderPaymentId, cancellationToken: cancellationToken);
         var publisher = serviceProvider.GetRequiredService<IPublisher>();
 
         if (status.Status == PaymentStatuses.Succeeded)

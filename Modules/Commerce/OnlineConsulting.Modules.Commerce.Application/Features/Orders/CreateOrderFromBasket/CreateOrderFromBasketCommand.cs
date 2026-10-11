@@ -1,6 +1,7 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using Core.PersistenceLayer.MultiTenancy;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using OnlineConsulting.Modules.Commerce.Application.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.Abstractions;
 using OnlineConsulting.Modules.Commerce.Application.Features.Addresses.Constants;
@@ -10,6 +11,7 @@ using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Abstractions
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Contracts;
 using OnlineConsulting.Modules.Commerce.Domain;
 using OnlineConsulting.SharedKernel.Payments;
+using OnlineConsulting.SharedKernel.Tenancy;
 using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -29,7 +31,10 @@ public class CreateOrderFromBasketHandler(IBasketRepository basketRepository,
                                           IOrderRepository orderRepository,
                                           IPaymentGateway paymentGateway,
                                           IServiceCatalogReader catalogReader,
-                                          IOrderFulfillment fulfillment)
+                                          IOrderFulfillment fulfillment,
+                                          ITenantProvider tenantProvider,
+                                          ITenantPaymentAccountReader paymentAccountReader,
+                                          ILogger<CreateOrderFromBasketHandler> logger)
     : IRequestHandler<CreateOrderFromBasketCommand, OperationDataResult<CreateOrderResult>>
 {
     public async Task<OperationDataResult<CreateOrderResult>> Handle(CreateOrderFromBasketCommand request, CancellationToken cancellationToken)
@@ -44,6 +49,13 @@ public class CreateOrderFromBasketHandler(IBasketRepository basketRepository,
         if (basket.IsEmpty)
         {
             return Result.Conflict<CreateOrderResult>(BasketMessages.BasketNotFoundOrEmpty);
+        }
+
+        var paymentAccount = await paymentAccountReader.GetAsync(tenantProvider.TenantId, cancellationToken);
+
+        if (!paymentAccount.IsReadyForCharges)
+        {
+            return Result.UnprocessableContent<CreateOrderResult>("This business isn't set up to accept payments yet. Please try again later.");
         }
 
         var catalog = await catalogReader.GetManyAsync(basket.Items.Select(i => i.ServiceId), cancellationToken);
@@ -76,7 +88,7 @@ public class CreateOrderFromBasketHandler(IBasketRepository basketRepository,
         var total = basket.TotalPrice;
 
         var (failure, paymentIntent) = await PaymentGatewayCall.RunWithResultAsync(() =>
-        paymentGateway.CreatePaymentIntentAsync(new CreatePaymentIntentRequest(total, "usd", orderId.ToString(), request.Email, IdempotencyKey: orderId.ToString()), cancellationToken), "Could not start payment for your order. Please try again.");
+        paymentGateway.CreatePaymentIntentAsync(new CreatePaymentIntentRequest(total, "usd", orderId.ToString(), request.Email, IdempotencyKey: orderId.ToString(), ConnectedAccountId: paymentAccount.ConnectedAccountId), cancellationToken), "Could not start payment for your order. Please try again.", logger);
 
         if (failure is not null || paymentIntent is null)
         {
@@ -95,6 +107,6 @@ public class CreateOrderFromBasketHandler(IBasketRepository basketRepository,
 
         var clientSecretForClient = paymentIntent.Status == SharedPaymentStatuses.Succeeded ? null : paymentIntent.ClientSecret;
 
-        return Result.Created(new CreateOrderResult(order.Id, clientSecretForClient, order.OrderNumber), $"Order created: {order.OrderNumber}");
+        return Result.Created(new CreateOrderResult(order.Id, clientSecretForClient, order.OrderNumber, paymentAccount.ConnectedAccountId), $"Order created: {order.OrderNumber}");
     }
 }

@@ -38,6 +38,14 @@
   "ReserveTenantResult": [
     "tenantId: Guid"
   ],
+  "StripeConnectOnboardingLinkResponse": [
+    "url: string"
+  ],
+  "StripeConnectStatusResponse": [
+    "isConnected: bool",
+    "chargesEnabled: bool",
+    "payoutsEnabled: bool"
+  ],
   "TenantBrandingResponse": [
     "name: string",
     "logoMediaAssetId: Guid?",
@@ -79,6 +87,8 @@
     "createdDate: DateTimeOffset",
     "timeZoneId: string",
     "logoMediaAssetId: Guid?",
+    "isStripeConnected: bool",
+    "stripeChargesEnabled: bool",
     "_links: LinkCollection?"
   ]
 }

@@ -16,7 +16,8 @@ public record AdminReactivateMembershipCommand(Guid MembershipId) : IRequest<Ope
     public string[] Roles => [MembershipsOperationClaims.Admin, MembershipsOperationClaims.Write, MembershipsOperationClaims.Update];
 }
 
-public class AdminReactivateMembershipHandler(ICustomerMembershipRepository repository, ISubscriptionGateway subscriptionGateway, IMembershipNotifier notifier, ITenantTimeZoneReader timeZoneReader) : IRequestHandler<AdminReactivateMembershipCommand, OperationResult>
+public class AdminReactivateMembershipHandler(ICustomerMembershipRepository repository, ISubscriptionGateway subscriptionGateway, IMembershipNotifier notifier, ITenantTimeZoneReader timeZoneReader,
+    ITenantPaymentAccountReader paymentAccountReader) : IRequestHandler<AdminReactivateMembershipCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(AdminReactivateMembershipCommand request, CancellationToken cancellationToken)
     {
@@ -27,7 +28,7 @@ public class AdminReactivateMembershipHandler(ICustomerMembershipRepository repo
             return Result.NotFound(string.Format(CustomerMembershipMessages.CustomerMembershipNotFoundFormat, request.MembershipId));
         }
 
-        var result = await MembershipReactivation.RunAsync(membership, repository, subscriptionGateway, timeZoneReader, cancellationToken);
+        var result = await MembershipReactivation.RunAsync(membership, repository, subscriptionGateway, timeZoneReader, paymentAccountReader, cancellationToken);
         if (result.IsSuccessful)
         {
             await notifier.ReactivatedByStaffAsync(membership, cancellationToken);

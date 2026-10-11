@@ -4,6 +4,7 @@ using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMembersh
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Constants;
 using OnlineConsulting.Modules.Memberships.Domain;
 using OnlineConsulting.SharedKernel.Payments;
+using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
@@ -15,7 +16,8 @@ public record ResumeMembershipCommand(Guid UserId) : IRequest<OperationResult>, 
     public string[] Roles => [];
 }
 
-public class ResumeMembershipHandler(ICustomerMembershipRepository repository, ISubscriptionGateway subscriptionGateway) : IRequestHandler<ResumeMembershipCommand, OperationResult>
+public class ResumeMembershipHandler(ICustomerMembershipRepository repository, ISubscriptionGateway subscriptionGateway, ITenantPaymentAccountReader paymentAccountReader)
+    : IRequestHandler<ResumeMembershipCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(ResumeMembershipCommand request, CancellationToken cancellationToken)
     {
@@ -33,7 +35,8 @@ public class ResumeMembershipHandler(ICustomerMembershipRepository repository, I
 
         if (membership.ProviderSubscriptionId is { } subscriptionId)
         {
-            var failure = await PaymentGatewayCall.RunAsync(() => subscriptionGateway.ResumeSubscriptionAsync(subscriptionId, cancellationToken), CustomerMembershipMessages.ResumeFailed);
+            var paymentAccount = await paymentAccountReader.GetAsync(membership.TenantId, cancellationToken);
+            var failure = await PaymentGatewayCall.RunAsync(() => subscriptionGateway.ResumeSubscriptionAsync(subscriptionId, paymentAccount.ConnectedAccountId, cancellationToken), CustomerMembershipMessages.ResumeFailed);
 
             if (failure is not null)
             {

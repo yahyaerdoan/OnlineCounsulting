@@ -169,6 +169,7 @@ else if (_invoice is { } invoice)
     private bool _processing;
     private bool _elementMounted;
     private string? _clientSecret;
+    private string? _connectedAccountId;
     private string? _loadError;
     private string? _paymentError;
     private IDisposable? _liveUpdates;
@@ -203,7 +204,7 @@ else if (_invoice is { } invoice)
         if (_clientSecret is not null && !_elementMounted)
         {
             _elementMounted = true;
-            _paymentError = await JsRuntime.InvokeAsync<string?>("checkoutStripe.init", Configuration["Stripe:PublishableKey"], _clientSecret);
+            _paymentError = await JsRuntime.InvokeAsync<string?>("checkoutStripe.init", Configuration["Stripe:PublishableKey"], _clientSecret, _connectedAccountId);
             if (_paymentError is not null)
             {
                 StateHasChanged();
@@ -238,6 +239,7 @@ else if (_invoice is { } invoice)
         }
 
         _clientSecret = result.ResultData.ClientSecret;
+        _connectedAccountId = result.ResultData.ConnectedAccountId;
         _elementMounted = false;
     }
 

@@ -53,7 +53,7 @@ public class RemoveModuleHandler(ITenantSubscriptionRepository tenantSubscriptio
         var providerSubscriptionItemId = item.ProviderSubscriptionItemId
             ?? throw new InvalidOperationException($"TenantSubscriptionItem {item.Id} has no ProviderSubscriptionItemId.");
 
-        var failure = await PaymentGatewayCall.RunAsync(() => subscriptionGateway.RemoveSubscriptionItemAsync(providerSubscriptionItemId, cancellationToken), TenantSubscriptionItemMessages.ModuleRemovalFailed);
+        var failure = await PaymentGatewayCall.RunAsync(() => subscriptionGateway.RemoveSubscriptionItemAsync(providerSubscriptionItemId, cancellationToken: cancellationToken), TenantSubscriptionItemMessages.ModuleRemovalFailed);
 
         if (failure is not null)
         {

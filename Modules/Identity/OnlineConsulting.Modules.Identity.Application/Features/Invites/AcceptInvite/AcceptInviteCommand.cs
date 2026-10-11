@@ -6,6 +6,7 @@ using OnlineConsulting.Modules.Identity.Application.Common;
 using OnlineConsulting.Modules.Identity.Application.Features.Invites.Abstractions;
 using OnlineConsulting.Modules.Identity.Application.Features.Invites.Constants;
 using OnlineConsulting.Modules.Identity.Domain;
+using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -69,7 +70,9 @@ public class AcceptInviteHandler(IInviteRepository inviteRepository, UserManager
             return OperationResult.Failure(createResult.ToFieldErrors(passwordField: nameof(request.Password)));
         }
 
-        var roleResult = await userManager.AddToRoleAsync(user, invite.RoleName);
+        // Also User - every teammate can shop their own tenant's storefront (checkout, membership subscribe) without a second account.
+        string[] roles = invite.RoleName == GlobalOperationClaims.User ? [invite.RoleName] : [invite.RoleName, GlobalOperationClaims.User];
+        var roleResult = await userManager.AddToRolesAsync(user, roles);
         if (!roleResult.Succeeded)
         {
             return Result.InternalServerError();

@@ -41,6 +41,12 @@ public static class PaymentsServiceCollectionExtensions
 
         _ = services.AddSingleton(serviceProvider => serviceProvider.GetRequiredKeyedService<ISubscriptionGateway>(activeProvider));
 
+        _ = services.AddKeyedSingleton<IConnectAccountGateway, MockConnectAccountGateway>(PaymentProviderNames.Mock);
+        _ = services.AddKeyedSingleton<IConnectAccountGateway, StripeConnectAccountGateway>(PaymentProviderNames.Stripe);
+        _ = services.AddKeyedSingleton<IConnectAccountGateway, PayPalConnectAccountGateway>(PaymentProviderNames.PayPal);
+
+        _ = services.AddSingleton(serviceProvider => serviceProvider.GetRequiredKeyedService<IConnectAccountGateway>(activeProvider));
+
         return services;
     }
 }

@@ -9,6 +9,7 @@ using OnlineConsulting.Modules.Memberships.Application.Features.PromoCodes;
 using OnlineConsulting.Modules.Memberships.Domain;
 using OnlineConsulting.SharedKernel.Payments;
 using OnlineConsulting.SharedKernel.Referrals;
+using OnlineConsulting.SharedKernel.Tenancy;
 using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -34,7 +35,9 @@ public class SubscribeToMembershipHandler(ICustomerMembershipRepository membersh
                                           ISubscriptionGateway subscriptionGateway,
                                           IAccountCreditLedger creditLedger,
                                           MembershipReceiptSender receiptSender,
-                                          IMembershipNotifier notifier)
+                                          IMembershipNotifier notifier,
+                                          ITenantProvider tenantProvider,
+                                          ITenantPaymentAccountReader paymentAccountReader)
     : IRequestHandler<SubscribeToMembershipCommand, OperationDataResult<SubscribeToMembershipResult>>
 {
     /// <summary>Creates or resumes a pending subscription attempt; a Failed status is only stale here since ProviderSubscriptionId is set only after CreateSubscriptionAsync genuinely succeeds.</summary>
@@ -45,6 +48,13 @@ public class SubscribeToMembershipHandler(ICustomerMembershipRepository membersh
         if (plan is null || plan.ProviderPriceId is null || !plan.IsActive)
         {
             return Result.NotFound<SubscribeToMembershipResult>(string.Format(CustomerMembershipMessages.MembershipPlanNotFoundFormat, request.MembershipPlanId));
+        }
+
+        var paymentAccount = await paymentAccountReader.GetAsync(tenantProvider.TenantId, cancellationToken);
+
+        if (!paymentAccount.IsReadyForCharges)
+        {
+            return Result.UnprocessableContent<SubscribeToMembershipResult>(CustomerMembershipMessages.PaymentSetupFailed);
         }
 
         var now = DateTimeOffset.UtcNow;
@@ -125,7 +135,7 @@ public class SubscribeToMembershipHandler(ICustomerMembershipRepository membersh
             else
             {
                 var customer = await subscriptionGateway
-                    .EnsureCustomerAsync(new EnsureCustomerRequest(request.UserId.ToString(), request.Email), idempotencyKey: $"membership-signup-customer:{membership.Id}", cancellationToken: cancellationToken);
+                    .EnsureCustomerAsync(new EnsureCustomerRequest(request.UserId.ToString(), request.Email, paymentAccount.ConnectedAccountId), idempotencyKey: $"membership-signup-customer:{membership.Id}", cancellationToken: cancellationToken);
 
                 providerCustomerId = customer.ProviderCustomerId;
                 membership.LinkProviderCustomer(providerCustomerId);
@@ -146,7 +156,7 @@ public class SubscribeToMembershipHandler(ICustomerMembershipRepository membersh
 
                 var subscription = await subscriptionGateway
                     .CreateSubscriptionAsync(new CreateSubscriptionRequest(providerCustomerId, plan.ProviderPriceId, request.PaymentMethodId, membership.Id.ToString(),
-                    totalDiscountAmount is > 0 ? totalDiscountAmount : null, plan.TrialDays), idempotencyKey: $"membership-signup-subscription:{membership.Id}:{request.PaymentMethodId}", cancellationToken: cancellationToken);
+                    totalDiscountAmount is > 0 ? totalDiscountAmount : null, plan.TrialDays, paymentAccount.ConnectedAccountId), idempotencyKey: $"membership-signup-subscription:{membership.Id}:{request.PaymentMethodId}", cancellationToken: cancellationToken);
 
                 creditReserved = false;
                 subscriptionCreated = true;

@@ -5,6 +5,7 @@ using OnlineConsulting.Modules.Commerce.Application.Common;
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Abstractions;
 using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.Payments;
+using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
@@ -16,7 +17,8 @@ public record RefundOrderCommand(Guid OrderId, decimal? Amount = null) : IReques
     public string[] Roles => [CommerceOperationClaims.Admin, CommerceOperationClaims.Write, GlobalOperationClaims.SuperAdmin];
 }
 
-public class RefundOrderHandler(IOrderRepository orderRepository, IServiceProvider serviceProvider, IOrderNotifier notifier) : IRequestHandler<RefundOrderCommand, OperationResult>
+public class RefundOrderHandler(IOrderRepository orderRepository, IServiceProvider serviceProvider, IOrderNotifier notifier, ITenantPaymentAccountReader paymentAccountReader)
+    : IRequestHandler<RefundOrderCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(RefundOrderCommand request, CancellationToken cancellationToken)
     {
@@ -44,8 +46,10 @@ public class RefundOrderHandler(IOrderRepository orderRepository, IServiceProvid
             return Result.InternalServerError($"Unknown payment provider '{order.PaymentProvider}' - cannot route the refund.");
         }
 
+        var paymentAccount = await paymentAccountReader.GetAsync(order.TenantId, cancellationToken);
+
         var failure = await PaymentGatewayCall.RunAsync(() =>
-        gateway.RefundAsync(order.ProviderPaymentId, request.Amount, cancellationToken), $"Refund failed for order {request.OrderId}. Please try again or contact support.");
+        gateway.RefundAsync(order.ProviderPaymentId, request.Amount, paymentAccount.ConnectedAccountId, cancellationToken), $"Refund failed for order {request.OrderId}. Please try again or contact support.");
 
         if (failure is not null)
         {

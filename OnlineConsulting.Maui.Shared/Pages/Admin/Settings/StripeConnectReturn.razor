@@ -1,0 +1,25 @@
+@* Stripe redirects here after onboarding (both its refresh_url and return_url point here) - this page just
+   pulls the live Connect status once and sends the admin back to My Subscription to see it. *@
+@page "/admin/settings/stripe-connect/return"
+@attribute [Authorize(Roles = "Admin,Super Admin")]
+@inject IApiClient ApiClient
+@inject NavigationManager Navigation
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="pa-8 d-flex flex-column align-center">
+    <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+    <MudText Typo="Typo.body1" Class="mt-4">Finishing Stripe setup...</MudText>
+</MudContainer>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        var tenant = await ApiClient.GetAsync<TenantResponse>(ApiRoutes.Tenancy.MyTenant);
+
+        if (tenant.IsSuccessful && tenant.ResultData?.Links.Find(LinkRels.RefreshStripeStatus) is { } refresh)
+        {
+            _ = await ApiClient.FollowAsync<StripeConnectStatusResponse>(refresh);
+        }
+
+        Navigation.NavigateTo("/admin/settings/my-subscription", forceLoad: true);
+    }
+}

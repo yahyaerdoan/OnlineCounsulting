@@ -17,7 +17,8 @@ public record ReactivateMembershipCommand(Guid UserId) : IRequest<OperationResul
     public string[] Roles => [];
 }
 
-public class ReactivateMembershipHandler(ICustomerMembershipRepository repository, ISubscriptionGateway subscriptionGateway, ITenantTimeZoneReader timeZoneReader) : IRequestHandler<ReactivateMembershipCommand, OperationResult>
+public class ReactivateMembershipHandler(ICustomerMembershipRepository repository, ISubscriptionGateway subscriptionGateway, ITenantTimeZoneReader timeZoneReader,
+    ITenantPaymentAccountReader paymentAccountReader) : IRequestHandler<ReactivateMembershipCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(ReactivateMembershipCommand request, CancellationToken cancellationToken)
     {
@@ -25,6 +26,6 @@ public class ReactivateMembershipHandler(ICustomerMembershipRepository repositor
 
         return membership is null
             ? Result.NotFound(CustomerMembershipMessages.NoActiveMembership)
-            : await MembershipReactivation.RunAsync(membership, repository, subscriptionGateway, timeZoneReader, cancellationToken);
+            : await MembershipReactivation.RunAsync(membership, repository, subscriptionGateway, timeZoneReader, paymentAccountReader, cancellationToken);
     }
 }

@@ -18,33 +18,33 @@ public class MockSubscriptionGateway : ISubscriptionGateway
     public Task<SubscriptionResult> CreateSubscriptionAsync(CreateSubscriptionRequest request, string? idempotencyKey = null, CancellationToken cancellationToken = default) =>
         Task.FromResult(new SubscriptionResult($"mock_sub_{request.ReferenceId}", PaymentStatuses.Succeeded, DateTimeOffset.UtcNow.AddMonths(1), FirstItemProviderId: $"mock_si_{request.ReferenceId}_{request.ProviderPriceId}"));
 
-    public Task<SubscriptionResult> CancelSubscriptionAsync(string providerSubscriptionId, bool atPeriodEnd = false, CancellationToken cancellationToken = default) =>
+    public Task<SubscriptionResult> CancelSubscriptionAsync(string providerSubscriptionId, bool atPeriodEnd = false, string? connectedAccountId = null, CancellationToken cancellationToken = default) =>
         Task.FromResult(atPeriodEnd
             ? new SubscriptionResult(providerSubscriptionId, PaymentStatuses.Succeeded, DateTimeOffset.UtcNow.AddMonths(1))
             : new SubscriptionResult(providerSubscriptionId, PaymentStatuses.Refunded, DateTimeOffset.UtcNow));
 
-    public Task<SubscriptionInvoice?> GetLatestInvoiceAsync(string providerSubscriptionId, CancellationToken cancellationToken = default) =>
+    public Task<SubscriptionInvoice?> GetLatestInvoiceAsync(string providerSubscriptionId, string? connectedAccountId = null, CancellationToken cancellationToken = default) =>
         Task.FromResult<SubscriptionInvoice?>(null);
 
-    public Task CancelAndRefundAsync(string providerCustomerId, string providerSubscriptionId, CancellationToken cancellationToken = default) =>
+    public Task CancelAndRefundAsync(string providerCustomerId, string providerSubscriptionId, string? connectedAccountId = null, CancellationToken cancellationToken = default) =>
         Task.CompletedTask;
 
-    public Task<SubscriptionResult> UpdateSubscriptionPriceAsync(string providerSubscriptionId, string newProviderPriceId, CancellationToken cancellationToken = default) =>
+    public Task<SubscriptionResult> UpdateSubscriptionPriceAsync(string providerSubscriptionId, string newProviderPriceId, string? connectedAccountId = null, CancellationToken cancellationToken = default) =>
         Task.FromResult(new SubscriptionResult(providerSubscriptionId, PaymentStatuses.Succeeded, DateTimeOffset.UtcNow.AddMonths(1)));
 
-    public Task<SubscriptionResult> PauseSubscriptionAsync(string providerSubscriptionId, CancellationToken cancellationToken = default) =>
+    public Task<SubscriptionResult> PauseSubscriptionAsync(string providerSubscriptionId, string? connectedAccountId = null, CancellationToken cancellationToken = default) =>
         Task.FromResult(new SubscriptionResult(providerSubscriptionId, PaymentStatuses.Succeeded, DateTimeOffset.UtcNow.AddMonths(1)));
 
-    public Task<SubscriptionResult> ReactivateSubscriptionAsync(string providerSubscriptionId, CancellationToken cancellationToken = default) =>
+    public Task<SubscriptionResult> ReactivateSubscriptionAsync(string providerSubscriptionId, string? connectedAccountId = null, CancellationToken cancellationToken = default) =>
         Task.FromResult(new SubscriptionResult(providerSubscriptionId, PaymentStatuses.Succeeded, DateTimeOffset.UtcNow.AddMonths(1)));
 
-    public Task<SubscriptionResult> ResumeSubscriptionAsync(string providerSubscriptionId, CancellationToken cancellationToken = default) =>
+    public Task<SubscriptionResult> ResumeSubscriptionAsync(string providerSubscriptionId, string? connectedAccountId = null, CancellationToken cancellationToken = default) =>
         Task.FromResult(new SubscriptionResult(providerSubscriptionId, PaymentStatuses.Succeeded, DateTimeOffset.UtcNow.AddMonths(1)));
 
-    public Task<string> AddSubscriptionItemAsync(string providerSubscriptionId, string providerPriceId, string? idempotencyKey = null, CancellationToken cancellationToken = default) =>
+    public Task<string> AddSubscriptionItemAsync(string providerSubscriptionId, string providerPriceId, string? idempotencyKey = null, string? connectedAccountId = null, CancellationToken cancellationToken = default) =>
         Task.FromResult($"mock_si_{providerSubscriptionId}_{providerPriceId}");
 
-    public Task RemoveSubscriptionItemAsync(string providerSubscriptionItemId, CancellationToken cancellationToken = default) =>
+    public Task RemoveSubscriptionItemAsync(string providerSubscriptionItemId, string? connectedAccountId = null, CancellationToken cancellationToken = default) =>
         Task.CompletedTask;
 
     public Task<SubscriptionWebhookEvent?> VerifyAndParseWebhookAsync(string rawBody, string? signatureHeader, CancellationToken cancellationToken = default) =>

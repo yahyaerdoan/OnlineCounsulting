@@ -9,6 +9,7 @@ using OnlineConsulting.Modules.Identity.Application.Common.Templates;
 using OnlineConsulting.Modules.Identity.Application.Features.Auth.Abstractions;
 using OnlineConsulting.Modules.Identity.Application.Features.Auth.Contracts;
 using OnlineConsulting.Modules.Identity.Domain;
+using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
 using OnlineConsulting.SharedKernel.Tenancy;
@@ -58,7 +59,8 @@ public class CreateTenantAdminHandler(UserManager<User> userManager, IEmailOutbo
 
         await outboxWriter.EnqueueAsync(user.Email ?? string.Empty, confirmEmailTemplate.Subject(confirmModel), confirmEmailTemplate.Build(confirmModel), sourceReference: $"User:{user.Id}", cancellationToken: cancellationToken);
 
-        var roleResult = await userManager.AddToRoleAsync(user, GeneralOperationClaims.Admin);
+        // Also User - the tenant's admin can shop their own storefront (checkout, membership subscribe) without a second account.
+        var roleResult = await userManager.AddToRolesAsync(user, [GeneralOperationClaims.Admin, GlobalOperationClaims.User]);
 
         return !roleResult.Succeeded
             ? Result.InternalServerError<CreateTenantAdminResult>()

@@ -20,10 +20,10 @@ public class MockPaymentGateway : IPaymentGateway
         return Task.FromResult(new PaymentIntentResult(providerPaymentId, status, ClientSecret: $"mock_secret_{providerPaymentId}"));
     }
 
-    public Task<PaymentStatusResult> GetStatusAsync(string providerPaymentId, CancellationToken cancellationToken = default) =>
+    public Task<PaymentStatusResult> GetStatusAsync(string providerPaymentId, string? connectedAccountId = null, CancellationToken cancellationToken = default) =>
         Task.FromResult(_payments.GetValueOrDefault(providerPaymentId, new PaymentStatusResult(providerPaymentId, PaymentStatuses.Failed)));
 
-    public Task<PaymentStatusResult> RefundAsync(string providerPaymentId, decimal? amount = null, CancellationToken cancellationToken = default)
+    public Task<PaymentStatusResult> RefundAsync(string providerPaymentId, decimal? amount = null, string? connectedAccountId = null, CancellationToken cancellationToken = default)
     {
         var result = new PaymentStatusResult(providerPaymentId, PaymentStatuses.Refunded);
         _payments[providerPaymentId] = result;

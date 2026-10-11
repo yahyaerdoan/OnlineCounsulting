@@ -8,4 +8,5 @@ public static class TenantMessages
     public const string NotReactivatable = "Only Suspended tenants can be reactivated.";
     public const string NotCancellable = "This tenant is already cancelled.";
     public const string CancellationFailed = "We couldn't cancel this tenant's subscription with the payment provider. Please try again in a few minutes.";
+    public const string StripeConnectSetupFailed = "We couldn't set up Stripe for your business right now. Please try again in a few minutes.";
 }
