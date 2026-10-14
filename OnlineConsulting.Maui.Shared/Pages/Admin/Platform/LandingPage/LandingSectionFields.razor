@@ -1,0 +1,33 @@
+@* Eyebrow, title and lead of one landing section heading. *@
+@namespace OnlineConsulting.Maui.Shared.Pages.Admin.Platform
+@using System.Linq.Expressions
+
+<MudText Typo="Typo.subtitle1" Class="text-strong">@Heading</MudText>
+<MudGrid Spacing="2">
+    <MudItem xs="12" md="4">
+        <MudTextField T="string" Value="@Eyebrow" ValueChanged="@EyebrowChanged" For="@EyebrowFor" Label="Eyebrow" Variant="Variant.Outlined" Margin="Margin.Dense" />
+    </MudItem>
+    <MudItem xs="12" md="8">
+        <MudTextField T="string" Value="@Title" ValueChanged="@TitleChanged" For="@TitleFor" Label="Title" Variant="Variant.Outlined" Margin="Margin.Dense" />
+    </MudItem>
+    <MudItem xs="12">
+        <MudTextField T="string" Value="@Lead" ValueChanged="@LeadChanged" For="@LeadFor" Label="Lead (optional)" Variant="Variant.Outlined" Margin="Margin.Dense"
+                      Lines="1" MaxLines="3" Sizing="InputSizing.Auto" />
+    </MudItem>
+</MudGrid>
+
+@code {
+    [Parameter, EditorRequired] public string Heading { get; set; } = string.Empty;
+
+    [Parameter] public string Eyebrow { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> EyebrowChanged { get; set; }
+    [Parameter, EditorRequired] public Expression<Func<string>>? EyebrowFor { get; set; }
+
+    [Parameter] public string Title { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> TitleChanged { get; set; }
+    [Parameter, EditorRequired] public Expression<Func<string>>? TitleFor { get; set; }
+
+    [Parameter] public string? Lead { get; set; }
+    [Parameter] public EventCallback<string?> LeadChanged { get; set; }
+    [Parameter, EditorRequired] public Expression<Func<string?>>? LeadFor { get; set; }
+}

@@ -8,16 +8,7 @@
     <div class="marketing-page-banner-overlay">
         <MudContainer MaxWidth="MaxWidth.Large">
             <MudText Typo="Typo.subtitle1" Class="marketing-display text-strong">@Title</MudText>
-            <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center" Class="mt-1">
-                <MudLink Href="/" Color="Color.Secondary" Underline="Underline.None" Typo="Typo.caption" Class="marketing-breadcrumb-link">Home</MudLink>
-                @if (ParentLabel is not null)
-                {
-                    <MudText Typo="Typo.caption" Color="Color.Secondary">/</MudText>
-                    <MudLink Href="@ParentHref" Color="Color.Secondary" Underline="Underline.None" Typo="Typo.caption" Class="marketing-breadcrumb-link">@ParentLabel</MudLink>
-                }
-                <MudText Typo="Typo.caption" Color="Color.Secondary">/</MudText>
-                <MudText Typo="Typo.caption" Color="Color.Primary" Class="text-strong">@SubPage</MudText>
-            </MudStack>
+            <MarketingBreadcrumb Current="@SubPage" ParentLabel="@ParentLabel" ParentHref="@ParentHref" Class="mt-1" />
         </MudContainer>
     </div>
 </div>

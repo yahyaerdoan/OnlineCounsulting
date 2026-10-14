@@ -9,6 +9,7 @@
 @inject IJSRuntime JsRuntime
 @inject IPlatformInfo PlatformInfo
 @inject IAuthSession AuthSession
+@inject SiteBrand Brand
 
 <AppThemeProvider Theme="MarketingTheme.Default" />
 <BrandFavicon />
@@ -25,23 +26,38 @@
                 <MarketingBrandMark />
                 <MudSpacer />
                 <MudStack Row="true" Spacing="5" AlignItems="AlignItems.Center" Class="marketing-nav">
-                    <NavLink href="/services" class="marketing-nav-link">Services</NavLink>
-                    <NavLink href="/membership" class="marketing-nav-link">Membership</NavLink>
-                    <NavLink href="/gallery" class="marketing-nav-link">Our work</NavLink>
-                    <NavLink href="/about" class="marketing-nav-link">About</NavLink>
-                    <NavLink href="/contact" class="marketing-nav-link">Contact</NavLink>
+                    @if (Brand.IsPlatform)
+                    {
+                        <NavLink href="/features" class="marketing-nav-link">Features</NavLink>
+                        <NavLink href="/industries" class="marketing-nav-link">Industries</NavLink>
+                        <NavLink href="/pricing" class="marketing-nav-link">Pricing</NavLink>
+                        <NavLink href="/about" class="marketing-nav-link">About</NavLink>
+                        <NavLink href="/contact" class="marketing-nav-link">Contact</NavLink>
+                    }
+                    else
+                    {
+                        <NavLink href="/services" class="marketing-nav-link">Services</NavLink>
+                        <NavLink href="/membership" class="marketing-nav-link">Membership</NavLink>
+                        <NavLink href="/gallery" class="marketing-nav-link">Our work</NavLink>
+                        <NavLink href="/about" class="marketing-nav-link">About</NavLink>
+                        <NavLink href="/contact" class="marketing-nav-link">Contact</NavLink>
+                    }
                 </MudStack>
                 <MudSpacer />
                 @if (_contact is { Phone.Length: > 0 })
                 {
-                    <MudTooltip Text="@($"24/7 emergency: {_contact.Phone}")">
+                    @* Tenant sites advertise their emergency line; the platform is just a sales number. *@
+                    <MudTooltip Text="@(Brand.IsPlatform ? $"Call us: {_contact.Phone}" : $"24/7 emergency: {_contact.Phone}")">
                         <MudIconButton Href="@($"tel:{_contact.Phone}")" Icon="@Icons.Material.Outlined.Phone" Color="Color.Inherit"
                                        Class="hide-on-phone" aria-label="@($"Call {_contact.Phone}")" />
                     </MudTooltip>
                 }
                 <ThemeModeMenu Class="hide-on-phone" />
                 <NotificationBell />
-                <CartBadge Class="mx-2" />
+                @if (!Brand.IsPlatform)
+                {
+                    <CartBadge Class="mx-2" />
+                }
                 <AuthorizeView>
                     <Authorized>
                         <MarketingAccountMenu User="context.User" Class="mr-3 hide-on-phone" />
@@ -50,7 +66,14 @@
                         <NavLink href="/login" class="marketing-nav-link mr-4 hide-on-phone">Sign in</NavLink>
                     </NotAuthorized>
                 </AuthorizeView>
-                <MudLink Href="/appointment" Underline="Underline.None" Class="header-book-now-btn hide-on-phone">Book Now</MudLink>
+                @if (Brand.IsPlatform)
+                {
+                    <MudLink Href="/signup" Underline="Underline.None" Class="header-book-now-btn hide-on-phone">Get started</MudLink>
+                }
+                else
+                {
+                    <MudLink Href="/appointment" Underline="Underline.None" Class="header-book-now-btn hide-on-phone">Book Now</MudLink>
+                }
             </MudContainer>
         </MudAppBar>
     </div>
@@ -74,6 +97,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await Brand.EnsureLoadedAsync();
         var contactResult = await ApiClient.GetAsync<CompanyContactResponse>(ApiRoutes.Inquiries.Contact.Get);
         _contact = contactResult.IsSuccessful ? contactResult.ResultData : null;
     }

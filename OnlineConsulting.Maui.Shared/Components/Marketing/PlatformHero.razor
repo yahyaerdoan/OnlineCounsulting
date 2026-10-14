@@ -1,0 +1,60 @@
+@* Platform page hero (landing, About, Contact, Features, Industries): optional breadcrumb, eyebrow, title, lead, then pricing and
+   contact buttons when their text is set. With an image the copy goes left-aligned beside it (stacked on phones). *@
+@inject IApiClient ApiClient
+
+<section class="@($"sales-intro {(HasImage ? "sales-intro-split" : "")}")">
+    @if (Breadcrumb is not null)
+    {
+        <MudContainer MaxWidth="MaxWidth.Large">
+            <MarketingBreadcrumb Current="@Breadcrumb" Class="sales-intro-breadcrumb" />
+        </MudContainer>
+    }
+    <MudContainer MaxWidth="@(HasImage ? MaxWidth.Large : MaxWidth.Medium)" Class="sales-intro-body">
+        <div class="sales-intro-copy">
+            @if (!string.IsNullOrWhiteSpace(Eyebrow))
+            {
+                <MudText Typo="Typo.subtitle2" Color="Color.Primary" Align="@TextAlign" Class="text-strong">@Eyebrow</MudText>
+            }
+            <MudText Typo="Typo.h3" Align="@TextAlign" Class="marketing-display text-strong mt-1">@Title</MudText>
+            @if (!string.IsNullOrWhiteSpace(Lead))
+            {
+                <MudText Typo="Typo.body1" Color="Color.Secondary" Align="@TextAlign" Class="mt-3 sales-intro-lead">@Lead</MudText>
+            }
+            @if (!string.IsNullOrWhiteSpace(PrimaryText) || !string.IsNullOrWhiteSpace(SecondaryText))
+            {
+                <div class="sales-intro-actions">
+                    @if (!string.IsNullOrWhiteSpace(PrimaryText))
+                    {
+                        <MudButton Href="/pricing" Variant="Variant.Filled" Size="Size.Large" EndIcon="@Icons.Material.Filled.ArrowForward" Class="sell-btn">@PrimaryText</MudButton>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(SecondaryText))
+                    {
+                        <MudButton Href="/contact" Variant="Variant.Filled" Size="Size.Large" Class="sell-btn-soft">@SecondaryText</MudButton>
+                    }
+                </div>
+            }
+        </div>
+        @if (HasImage)
+        {
+            <div class="sales-intro-media">
+                <MudImage Src="@MediaUrlResolver.Resolve(ApiClient, ImageUrl)" Alt="@Title" Fluid="true" Class="sales-intro-image" />
+            </div>
+        }
+    </MudContainer>
+</section>
+
+@code {
+    /// <summary>Current page name for a Home / X trail; the landing leaves it unset.</summary>
+    [Parameter] public string? Breadcrumb { get; set; }
+    [Parameter] public string? Eyebrow { get; set; }
+    [Parameter, EditorRequired] public string Title { get; set; } = string.Empty;
+    [Parameter] public string? Lead { get; set; }
+    [Parameter] public string? PrimaryText { get; set; }
+    [Parameter] public string? SecondaryText { get; set; }
+
+    /// <summary>Stored media url; empty keeps the centered layout.</summary>
+    [Parameter] public string? ImageUrl { get; set; }
+
+    private bool HasImage => !string.IsNullOrWhiteSpace(ImageUrl);
+    private Align TextAlign => HasImage ? Align.Start : Align.Center;
+}

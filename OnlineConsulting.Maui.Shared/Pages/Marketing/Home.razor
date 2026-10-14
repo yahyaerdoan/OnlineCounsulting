@@ -1,19 +1,38 @@
-@* Landing page - only entity-backed sections; Promotions/ServiceAreas hide themselves when empty. Services are shown once: category tabs
-   on wide screens, swipeable rails per category on phones. The promotions section replaces the top strip at every width. *@
+@* Landing page. The platform's own site sells the product (PlatformLanding); a business's site shows its storefront, built only from
+   entity-backed sections - Promotions/ServiceAreas hide themselves when empty. Services are shown once: category tabs on wide
+   screens, swipeable rails per category on phones. The promotions section replaces the top strip at every width. *@
 @page "/"
 @layout OnlineConsulting.Maui.Shared.Layout.MarketingLayout
 @using OnlineConsulting.Maui.Shared.Components.Marketing
+@inject SiteBrand Brand
 
 <BrandPageTitle Title="Home" />
 
-<HomeHero />
-<HomeQuickStart />
-<HomeServiceRails />
-<div class="hide-on-phone">
-    <HomeCategoriesSection />
-</div>
-<HomeFeatureHighlightsSection />
-<HomeProcessSection />
-<HomePromotionsSection />
-<HomeServiceAreasSection />
-<HomeTestimonialsSection />
+@if (_brandLoaded && Brand.IsPlatform)
+{
+    <PlatformLanding />
+}
+else if (_brandLoaded)
+{
+    <HomeHero />
+    <HomeQuickStart />
+    <HomeServiceRails />
+    <div class="hide-on-phone">
+        <HomeCategoriesSection />
+    </div>
+    <HomeFeatureHighlightsSection />
+    <HomeProcessSection />
+    <HomePromotionsSection />
+    <HomeServiceAreasSection />
+    <HomeTestimonialsSection />
+}
+
+@code {
+    private bool _brandLoaded;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Brand.EnsureLoadedAsync();
+        _brandLoaded = true;
+    }
+}

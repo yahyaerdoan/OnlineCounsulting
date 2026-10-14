@@ -1,0 +1,48 @@
+@* Platform-only: every feature card under a hero, then the sales close. Copy comes from the Landing Page admin (Features section). *@
+@page "/features"
+@layout OnlineConsulting.Maui.Shared.Layout.MarketingLayout
+@using OnlineConsulting.Maui.Shared.Components.Marketing
+@using OnlineConsulting.Maui.Shared.Infrastructure.Api
+@inject IApiClient ApiClient
+@inject NavigationManager Navigation
+@inject SiteBrand Brand
+
+<BrandPageTitle Title="Features" />
+
+@if (_page is not null)
+{
+    <PlatformHero Breadcrumb="Features" Eyebrow="@_page.FeaturesEyebrow" Title="@_page.FeaturesTitle" Lead="@_page.FeaturesLead" ImageUrl="@_page.FeaturesHeroImageUrl"
+                  PrimaryText="@_page.PrimaryCtaText" SecondaryText="@_page.SecondaryCtaText" />
+
+    @if (_features.Count > 0)
+    {
+        <MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
+            <LandingFeatureGrid Items="_features" />
+        </MudContainer>
+    }
+
+    <PlatformClosingCta Page="_page" />
+}
+
+@code {
+    private LandingPageResponse? _page;
+    private List<LandingBlockResponse> _features = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Brand.EnsureLoadedAsync();
+        if (!Brand.IsPlatform)
+        {
+            Navigation.NavigateTo(AppRoutes.NotFound, replace: true);
+            return;
+        }
+
+        var pageTask = ApiClient.GetAsync<LandingPageResponse>(ApiRoutes.SiteContent.LandingPage.Base);
+        var blocksTask = ApiClient.GetAsync<List<LandingBlockResponse>>(ApiRoutes.SiteContent.LandingBlocks.Base);
+        await Task.WhenAll(pageTask, blocksTask);
+
+        var pageResult = await pageTask;
+        _page = pageResult.IsSuccessful ? pageResult.ResultData : null;
+        _features = [.. ((await blocksTask).ResultData ?? []).Where(b => b.Section == LandingSections.Feature)];
+    }
+}

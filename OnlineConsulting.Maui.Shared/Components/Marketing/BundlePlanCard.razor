@@ -1,0 +1,88 @@
+@* One bundle as a sales card (Pricing and the platform landing). When the previous, cheaper bundle is fully contained, the card
+   lists only what it adds ("Everything in Starter, plus") and keeps the full list one tap away. *@
+@using OnlineConsulting.Maui.Shared.Infrastructure.Api
+
+<MudItem xs="12" sm="6" md="4" Class="@(Featured ? "plan-carousel-item plan-featured" : "plan-carousel-item")">
+    <div class="plan-card-wrap">
+        @if (Featured)
+        {
+            <span class="marketing-pricing-badge plan-badge-hot"><MudIcon Icon="@Icons.Material.Filled.LocalFireDepartment" Size="Size.Small" />Most Popular</span>
+        }
+        <MudCard Outlined="true" Class="@($"d-flex flex-column marketing-pricing-card plan-card {(Featured ? "marketing-pricing-card-featured" : "")}")" Style="height:100%;">
+            <div class="plan-card-top @AccentTone.At(Index)"></div>
+            <MudCardContent Class="d-flex flex-column flex-grow-1 pa-6 plan-card-body">
+                <div class="d-flex align-center gap-3">
+                    <span class="tone-bubble @AccentTone.At(Index)"><MudIcon Icon="@ModuleOfferingDisplay.BundleIcon(Index)" /></span>
+                    <div>
+                        <MudText Typo="Typo.h6" Class="text-strong">@Bundle.Name</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">@Modules.Count @(Modules.Count == 1 ? "module" : "modules") included</MudText>
+                    </div>
+                </div>
+                <div class="membership-price">
+                    <span class="membership-price-amount">@_amount</span>
+                    <span class="membership-price-cycle">@_cycle</span>
+                </div>
+
+                @if (_builtOn is not null)
+                {
+                    <MudText Typo="Typo.body2" Class="text-strong plan-card-builds-on">Everything in @_builtOn, plus:</MudText>
+                }
+                <ul class="membership-benefits">
+                    @foreach (var module in _shown)
+                    {
+                        <li><MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" Color="Color.Primary" /><span>@module.Name</span></li>
+                    }
+                </ul>
+                @if (_builtOn is not null)
+                {
+                    <details class="plan-card-all">
+                        <summary>See all @Modules.Count modules<MudIcon Icon="@Icons.Material.Filled.ExpandMore" Size="Size.Small" /></summary>
+                        <ul class="membership-benefits">
+                            @foreach (var module in Modules)
+                            {
+                                <li><MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" Color="Color.Primary" /><span>@module.Name</span></li>
+                            }
+                        </ul>
+                    </details>
+                }
+            </MudCardContent>
+            <MudCardActions Class="pa-6 pt-0 plan-card-actions d-flex flex-column gap-2">
+                <MudButton Href="@ModuleOfferingDisplay.SignupUrl(Bundle.ModuleKeys)" Variant="@(Highlighted ? Variant.Filled : Variant.Outlined)" Color="Color.Primary"
+                           FullWidth="true" Size="Size.Large" EndIcon="@Icons.Material.Filled.ArrowForward"
+                           Class="@(Highlighted ? "sell-btn" : "plan-outline-btn")">Start with @Bundle.Name</MudButton>
+                @SecondaryAction
+            </MudCardActions>
+        </MudCard>
+    </div>
+</MudItem>
+
+@code {
+    [Parameter, EditorRequired] public PublicBundleResponse Bundle { get; set; } = new(string.Empty, []);
+
+    /// <summary>This bundle's offerings, cheapest first.</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<PublicModuleOfferingResponse> Modules { get; set; } = [];
+
+    /// <summary>The next cheaper bundle, if any; enables the "Everything in X, plus" list.</summary>
+    [Parameter] public PublicBundleResponse? Previous { get; set; }
+
+    [Parameter] public int Index { get; set; }
+    [Parameter] public bool Featured { get; set; }
+    [Parameter] public bool Highlighted { get; set; }
+
+    /// <summary>Second button under "Start with ...", e.g. customize or compare.</summary>
+    [Parameter] public RenderFragment? SecondaryAction { get; set; }
+
+    private string _amount = string.Empty;
+    private string _cycle = string.Empty;
+    private string? _builtOn;
+    private IReadOnlyList<PublicModuleOfferingResponse> _shown = [];
+
+    protected override void OnParametersSet()
+    {
+        (_amount, _cycle) = ModuleOfferingDisplay.PriceParts(Modules);
+
+        var builds = Previous is { ModuleKeys.Count: > 0 } previous && previous.ModuleKeys.All(Bundle.ModuleKeys.Contains);
+        _builtOn = builds ? Previous?.Name : null;
+        _shown = builds ? [.. Modules.Where(m => Previous?.ModuleKeys.Contains(m.Key) != true)] : Modules;
+    }
+}

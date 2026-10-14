@@ -30,6 +30,23 @@ public static class ModuleOfferingDisplay
         };
     }
 
+    private static readonly string[] BundleIcons =
+    [
+        MudIcons.Material.Outlined.RocketLaunch,
+        MudIcons.Material.Outlined.TrendingUp,
+        MudIcons.Material.Outlined.Diamond,
+        MudIcons.Material.Outlined.Business,
+    ];
+
+    public static string BundleIcon(int index) => BundleIcons[index % BundleIcons.Length];
+
+    /// <summary>No "featured" flag on Bundle - the middle of three or more price-sorted bundles is spotlighted; -1 when none.</summary>
+    public static int FeaturedBundleIndex(int bundleCount) => bundleCount >= 3 ? bundleCount / 2 : -1;
+
+    /// <summary>Pre-selects these modules on Signup - no re-picking what was just picked.</summary>
+    public static string SignupUrl(IEnumerable<string> moduleKeys) =>
+        $"/signup?modules={Uri.EscapeDataString(string.Join(',', moduleKeys))}";
+
     /// <summary>Module keys are admin-defined, so the icon is picked from words in the key or name, with a generic fallback.</summary>
     public static string Icon(PublicModuleOfferingResponse offering)
     {

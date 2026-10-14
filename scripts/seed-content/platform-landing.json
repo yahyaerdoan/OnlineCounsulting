@@ -1,0 +1,154 @@
+{
+  "landingPage": {
+    "heroEyebrow": "For HVAC and home service businesses",
+    "heroTitle": "Run your whole service business from one app",
+    "heroLead": "Your own website, online booking, maintenance plans, an online store and a branded mobile app, all managed from one dashboard.",
+    "primaryCtaText": "See pricing",
+    "secondaryCtaText": "Talk to us",
+    "featuresEyebrow": "Everything in one place",
+    "featuresTitle": "Built for the way service businesses work",
+    "featuresLead": "Turn on the modules you need today and add more as you grow.",
+    "stepsEyebrow": "Getting started",
+    "stepsTitle": "Up and running in four steps",
+    "stepsLead": null,
+    "pricingEyebrow": "Pricing",
+    "pricingTitle": "Plans that grow with you",
+    "pricingLead": "Start with a bundle or pick only the modules you need.",
+    "faqEyebrow": "Questions",
+    "faqTitle": "Frequently asked questions",
+    "closingTitle": "Ready to grow your business?",
+    "closingLead": "Set up your company in minutes. You'll see your full price before you pay anything.",
+    "aboutHeroEyebrow": "About Comfort XPro",
+    "aboutHeroTitle": "Built for Businesses That Keep Things Moving",
+    "aboutHeroLead": "One platform for your business, your team, and your customers.",
+    "industriesEyebrow": "Who we serve",
+    "industriesTitle": "Built for the Trades That Keep Homes Running",
+    "industriesLead": "One platform, shaped to the way your kind of business works.",
+    "contactHeroEyebrow": "Get in touch",
+    "contactHeroTitle": "Let's Talk About Your Business",
+    "contactHeroLead": "Questions about plans, setup or switching from another tool? Send us a message and our team will get back to you."
+  },
+  "landingBlocks": [
+    {
+      "section": "Feature",
+      "displayOrder": 1,
+      "icon": "Web",
+      "title": "Website & service catalog",
+      "body": "A fast, mobile-friendly website with your services, service areas, gallery and reviews. You edit everything yourself."
+    },
+    {
+      "section": "Feature",
+      "displayOrder": 2,
+      "icon": "CalendarMonth",
+      "title": "Online booking & dispatch",
+      "body": "Customers book open slots online. Assign technicians, manage work orders and follow visits as they happen."
+    },
+    {
+      "section": "Feature",
+      "displayOrder": 3,
+      "icon": "WorkspacePremium",
+      "title": "Maintenance plans",
+      "body": "Sell monthly or yearly memberships with automatic billing and promo codes."
+    },
+    {
+      "section": "Feature",
+      "displayOrder": 4,
+      "icon": "ShoppingCart",
+      "title": "Online store & invoicing",
+      "body": "Sell parts and products online, take card payments and send invoices."
+    },
+    {
+      "section": "Feature",
+      "displayOrder": 5,
+      "icon": "PhoneIphone",
+      "title": "Your own mobile app",
+      "body": "An iOS and Android app with your name on it, so customers can book and pay from their phone."
+    },
+    {
+      "section": "Feature",
+      "displayOrder": 6,
+      "icon": "Forum",
+      "title": "Leads & messages",
+      "body": "Contact form requests, customer messages and newsletter signups in one place."
+    },
+    {
+      "section": "Feature",
+      "displayOrder": 7,
+      "icon": "AcUnit",
+      "title": "Customer equipment",
+      "body": "Keep a record of each customer's units for faster, better-prepared visits."
+    },
+    {
+      "section": "Feature",
+      "displayOrder": 8,
+      "icon": "CardGiftcard",
+      "title": "Referral program",
+      "body": "Reward customers who send you new business with account credit."
+    },
+    {
+      "section": "Step",
+      "displayOrder": 1,
+      "icon": "Sell",
+      "title": "Choose your plan",
+      "body": "Pick a bundle or only the modules you need. You see the full monthly price upfront."
+    },
+    {
+      "section": "Step",
+      "displayOrder": 2,
+      "icon": "Storefront",
+      "title": "Set up your business",
+      "body": "Add your services, prices, service areas and branding from the admin panel."
+    },
+    {
+      "section": "Step",
+      "displayOrder": 3,
+      "icon": "CreditCard",
+      "title": "Connect payments",
+      "body": "Connect your own Stripe account so customer payments go straight to you."
+    },
+    {
+      "section": "Step",
+      "displayOrder": 4,
+      "icon": "RocketLaunch",
+      "title": "Go live",
+      "body": "Share your site with customers and start taking bookings."
+    },
+    {
+      "section": "Faq",
+      "displayOrder": 1,
+      "title": "Do I need a website already?",
+      "body": "No. A ready-made website is included. You fill in your services and branding from the admin panel."
+    },
+    {
+      "section": "Faq",
+      "displayOrder": 2,
+      "title": "Can I change my modules later?",
+      "body": "Yes. Modules can be added or removed after you sign up, and your price changes with them."
+    },
+    {
+      "section": "Faq",
+      "displayOrder": 3,
+      "title": "How do customer payments work?",
+      "body": "Payments run through your own Stripe account. Card details are handled by Stripe and the money goes to you."
+    },
+    {
+      "section": "Faq",
+      "displayOrder": 4,
+      "title": "Does it work on phones?",
+      "body": "Yes. Your website works on any device, and the Branded Mobile App module adds your own iOS and Android app."
+    },
+    {
+      "section": "Faq",
+      "displayOrder": 5,
+      "title": "What does Priority Support & Custom Development include?",
+      "body": "Priority support plus up to one hour of small customizations each month. Larger custom work is quoted separately."
+    }
+  ],
+  "aboutUs": {
+    "title": "Comfort XPro",
+    "description": "<p>Comfort XPro is a flexible business platform built for modern service and contracting companies.</p><p>We bring together the tools businesses need to manage their daily operations, teams, customers, services, products, and online presence in one connected system.</p><p>From the office to the field and from your website to your customer&#39;s mobile device, Comfort XPro helps keep your business connected.</p><p></p><h2>Built Around Your Business</h2><p>Every business is different.</p><p>That is why Comfort XPro is designed to be flexible. Our multi-tenant platform can be customized to support different industries, workflows, services, and business models.</p><p>Comfort XPro can support businesses such as:</p><ul><li>HVAC</li><li>Plumbing</li><li>Remodeling</li><li>Electrical</li><li>Kitchen and Bath</li><li>General Contracting</li><li>Pest Control</li><li>Pool and Spa</li><li>Lawn Care and Landscaping</li><li>Cleaning</li><li>Roofing</li><li>Appliance Repair</li><li>Garage Door</li><li>Water Treatment</li><li>Solar and Generators</li><li>Restoration</li><li>Handyman</li><li>Carpet Cleaning</li><li>Window Cleaning</li><li>Pressure Washing</li><li>Painting</li><li>Flooring</li><li>Fencing</li><li>Locksmith</li><li>Chimney</li><li>Septic</li><li>Home Services</li><li>Other service-based businesses</li></ul><p>Each business can have its own branded experience, customized features, users, workflows, and content while operating on one powerful platform.</p><p></p><h2>One Platform. Different Experiences.</h2><p>Comfort XPro is designed for the people who keep your business moving.</p><p></p><h2>For Business Owners and Administrators</h2><p>Manage your business from one place.</p><p>Monitor customers, employees, technicians, jobs, products, services, orders, payments, and business activity through an organized and easy-to-use management system.</p><p>Get the visibility you need without jumping between multiple disconnected platforms.</p><p></p><h2>For Technicians and Field Teams</h2><p>Give your team the information they need wherever the job takes them.</p><p>Technicians can access assigned jobs, customer details, service history, equipment information, estimates, invoices, and important job updates through a mobile-friendly experience built for work in the field.</p>",
+    "coverImage": null,
+    "videoUrl": null,
+    "displayOrder": 0
+  }
+}

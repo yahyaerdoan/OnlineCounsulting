@@ -12,4 +12,7 @@ public class Category : SequentialGuidTenantEntity
 
     /// <summary>Hex color (e.g. "#FF5733") applied to Icon. Null means the frontend uses its default theme color (currentColor).</summary>
     public string? IconColor { get; set; }
+
+    /// <summary>Lower shows first; ties sort by title.</summary>
+    public int DisplayOrder { get; set; }
 }

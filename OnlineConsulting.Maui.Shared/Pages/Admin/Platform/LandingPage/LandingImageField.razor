@@ -1,0 +1,32 @@
+@* Optional hero picture for one landing page section: upload, pick from Media or remove. *@
+@namespace OnlineConsulting.Maui.Shared.Pages.Admin.Platform
+@using OnlineConsulting.Maui.Shared.Pages.Admin.Catalog
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+
+<CoverImagePicker ImageUrl="@Value" IsUploading="_isUploading" OnFileSelected="OnFileSelectedAsync"
+                  OnAssetSelected="@(asset => SetAsync(asset.Url))" OnRemove="@(() => SetAsync(null))" />
+
+@code {
+    [Parameter] public string? Value { get; set; }
+    [Parameter] public EventCallback<string?> ValueChanged { get; set; }
+
+    private bool _isUploading;
+
+    private async Task OnFileSelectedAsync(InputFileChangeEventArgs e)
+    {
+        _isUploading = true;
+        var result = await MediaUploadHelper.UploadAsync(ApiClient, e.File, MediaFolders.Landing);
+        _isUploading = false;
+
+        if (!result.IsSuccessful || result.ResultData is null)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        await SetAsync(result.ResultData.Url);
+    }
+
+    private Task SetAsync(string? url) => ValueChanged.InvokeAsync(url);
+}

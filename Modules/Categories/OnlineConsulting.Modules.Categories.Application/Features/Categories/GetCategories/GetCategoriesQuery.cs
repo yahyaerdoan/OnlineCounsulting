@@ -14,7 +14,7 @@ public class GetCategoriesHandler(ICategoryRepository repository) : IRequestHand
 {
     public async Task<OperationDataResult<Paginate<CategoryResponse>>> Handle(GetCategoriesQuery request, CancellationToken cancellationToken)
     {
-        var categories = await repository.GetListAsync(orderBy: q => q.OrderBy(c => c.Id), index: request.PageRequest.PageIndex, size: request.PageRequest.PageSize, cancellationToken: cancellationToken);
+        var categories = await repository.GetListAsync(orderBy: q => q.OrderBy(c => c.DisplayOrder).ThenBy(c => c.Title).ThenBy(c => c.Id), index: request.PageRequest.PageIndex, size: request.PageRequest.PageSize, cancellationToken: cancellationToken);
 
         var response = new Paginate<CategoryResponse>
         {

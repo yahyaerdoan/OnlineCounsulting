@@ -25,7 +25,7 @@ public class UpdateCategory : IEndpoint
     }
 }
 
-public record UpdateCategoryRequest(string Title, string Description, string Icon, string? IconColor = null)
+public record UpdateCategoryRequest(string Title, string Description, string Icon, string? IconColor = null, int DisplayOrder = 0)
 {
-    public UpdateCategoryCommand ToCommand(Guid id) => new(id, Title, Description, Icon, IconColor);
+    public UpdateCategoryCommand ToCommand(Guid id) => new(id, Title, Description, Icon, IconColor, DisplayOrder);
 }

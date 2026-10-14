@@ -544,6 +544,11 @@ a.tone-bubble:hover {
     color: #ffffff !important;
 }
 
+/* Sits above the centered hero copy, left-aligned like the page banner trail. */
+.sales-intro-breadcrumb {
+    margin-bottom: 20px;
+}
+
 .marketing-breadcrumb-link {
     text-decoration: none !important;
 }
@@ -1916,7 +1921,7 @@ a.tone-bubble:hover {
 
 .footer-columns {
     display: grid;
-    grid-template-columns: 1.4fr 1fr 1fr 1fr 1.3fr;
+    grid-template-columns: 1.4fr 1fr 1fr 1.3fr;
     gap: 32px;
 }
 
@@ -7465,9 +7470,62 @@ a.footer-reach-item:hover .footer-reach-value {
     overflow: hidden;
 }
 
+/* Anchors the "Most Popular" badge to its card. */
+.plan-card-wrap {
+    position: relative;
+    height: 100%;
+}
+
 .plan-card-top {
     height: 6px;
     background: var(--tone);
+}
+
+/* "Everything in X, plus:" takes over the list's divider; the list below it shows only the additions. */
+.plan-card-builds-on {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--mud-palette-lines-default);
+}
+
+.plan-card-builds-on + .membership-benefits,
+.plan-card-all .membership-benefits {
+    margin-top: 10px;
+    padding-top: 0;
+    border-top: 0;
+    flex-grow: 0;
+}
+
+.plan-card-all {
+    margin-top: 14px;
+}
+
+.plan-card-all summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    cursor: pointer;
+    list-style: none;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--mud-palette-primary);
+}
+
+.plan-card-all summary::-webkit-details-marker {
+    display: none;
+}
+
+.plan-card-all summary .mud-icon-root {
+    transition: transform var(--motion-fast);
+}
+
+.plan-card-all[open] summary .mud-icon-root {
+    transform: rotate(180deg);
+}
+
+.section-more {
+    margin-top: 16px;
+    text-align: center;
 }
 
 .pricing-builder-band {
@@ -10739,6 +10797,36 @@ div.order-card:hover {
     justify-content: center;
     gap: 12px;
     margin-top: 24px;
+}
+
+/* Hero with a picture: copy left, image right; stacks on phones. */
+.sales-intro-split .sales-intro-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: 48px;
+    align-items: center;
+    padding-bottom: 32px;
+}
+
+.sales-intro-split .sales-intro-lead {
+    margin-left: 0;
+}
+
+.sales-intro-split .sales-intro-actions {
+    justify-content: flex-start;
+}
+
+.sales-intro-image {
+    width: 100%;
+    border-radius: 16px;
+    box-shadow: 0 20px 48px rgba(15, 23, 42, 0.16);
+}
+
+@media (max-width: 959.98px) {
+    .sales-intro-split .sales-intro-body {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 28px;
+    }
 }
 
 .membership-benefit-grid {

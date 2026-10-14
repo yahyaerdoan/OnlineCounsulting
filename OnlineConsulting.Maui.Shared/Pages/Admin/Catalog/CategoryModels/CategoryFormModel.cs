@@ -10,4 +10,6 @@ public class CategoryFormModel
     public string Icon { get; set; } = string.Empty;
 
     public string? IconColor { get; set; }
+
+    public int DisplayOrder { get; set; }
 }

@@ -1,0 +1,21 @@
+@* Platform feature cards (Landing Blocks, Feature section); shared by the landing and the Features page. *@
+@using OnlineConsulting.Maui.Shared.Infrastructure.Api
+@using OnlineConsulting.Maui.Shared.Infrastructure.Icons
+
+<div class="membership-benefit-grid">
+    @foreach (var (feature, index) in Items.Select((f, i) => (f, i)))
+    {
+        <div class="membership-benefit">
+            @if (!string.IsNullOrWhiteSpace(feature.Icon))
+            {
+                <span class="tone-bubble tone-bubble-lg @AccentTone.At(index)"><MudIcon Icon="@IconCatalog.Resolve(feature.Icon)" /></span>
+            }
+            <MudText Typo="Typo.subtitle1" Class="text-strong">@feature.Title</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">@feature.Body</MudText>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<LandingBlockResponse> Items { get; set; } = [];
+}

@@ -11,7 +11,7 @@ namespace OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscripti
 
 /// <summary>Emails the tenant's primary contact a receipt for a paid subscription invoice. The provider's invoice stays the official document;
 /// the email relays its number, amount and period, and links to the provider's hosted invoice page and PDF. Best effort: failures are logged.</summary>
-public class TenantReceiptSender(IEmailOutboxWriter<ITenancyOutboxModule> outboxWriter, ISubscriptionGateway subscriptionGateway, ILogger<TenantReceiptSender> logger)
+public class TenantReceiptSender(IEmailOutboxWriter<ITenancyOutboxModule> outboxWriter, ISubscriptionGateway subscriptionGateway, ITenantBrandReader brandReader, ILogger<TenantReceiptSender> logger)
 {
     private static readonly CultureInfo Usd = CultureInfo.GetCultureInfo("en-US");
 
@@ -34,7 +34,9 @@ public class TenantReceiptSender(IEmailOutboxWriter<ITenancyOutboxModule> outbox
     {
         try
         {
-            var subject = $"Your receipt from ComfortPro{(invoice.Number is null ? "" : $" ({invoice.Number})")}: {Money(invoice.AmountPaid)} paid";
+            // Tenants pay the platform, so the receipt carries the platform's name.
+            var platform = await brandReader.GetAsync(TenantDefaults.DefaultTenantId, cancellationToken);
+            var subject = $"Your receipt from {platform.Name}{(invoice.Number is null ? "" : $" ({invoice.Number})")}: {Money(invoice.AmountPaid)} paid";
             await outboxWriter.EnqueueAsync(tenant.PrimaryContactEmail, subject, Build(tenant, invoice),
                 sourceReference: $"TenantInvoice:{invoice.ProviderInvoiceId}", cancellationToken: cancellationToken);
         }

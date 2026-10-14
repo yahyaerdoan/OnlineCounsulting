@@ -1,0 +1,145 @@
+@* The platform's own home page: sells the product to businesses. All copy is admin-managed (Landing Page + Landing Blocks;
+   industry cards are the platform's categories);
+   sections without content hide themselves. Reuses the Pricing/Membership sales styles. *@
+@using OnlineConsulting.Maui.Shared.Infrastructure.Api
+@using OnlineConsulting.Maui.Shared.Infrastructure.Icons
+@inject IApiClient ApiClient
+
+@if (_page is null)
+{
+    @if (!_loading)
+    {
+        <MudContainer MaxWidth="MaxWidth.Medium" Class="marketing-section-tight">
+            <EmptyState Icon="@Icons.Material.Outlined.Web" Title="@(_loadError ?? string.Empty)" ActionText="Contact us" ActionHref="/contact" />
+        </MudContainer>
+    }
+}
+else
+{
+    <PlatformHero Eyebrow="@_page.HeroEyebrow" Title="@_page.HeroTitle" Lead="@_page.HeroLead"
+                  ImageUrl="@_page.HeroImageUrl"
+                  PrimaryText="@_page.PrimaryCtaText" SecondaryText="@_page.SecondaryCtaText" />
+
+    @if (_features.Count > 0)
+    {
+        <MudContainer id="features" MaxWidth="MaxWidth.Large" Class="marketing-section-tight section-anchor">
+            <SectionHeading Eyebrow="@_page.FeaturesEyebrow" Title="@_page.FeaturesTitle" Lead="@_page.FeaturesLead" />
+            <LandingFeatureGrid Items="_features" />
+        </MudContainer>
+    }
+
+    @if (_industries.Count > 0 && !string.IsNullOrWhiteSpace(_page.IndustriesTitle))
+    {
+        <MudContainer id="industries" MaxWidth="MaxWidth.Large" Class="marketing-section-tight section-anchor">
+            <SectionHeading Eyebrow="@_page.IndustriesEyebrow" Title="@_page.IndustriesTitle" Lead="@_page.IndustriesLead" />
+            <IndustryGrid Items="@_industries.Take(VisibleIndustries)" />
+            @if (_industries.Count > VisibleIndustries)
+            {
+                <div class="section-more">
+                    <MudButton Href="/industries" Variant="Variant.Text" Color="Color.Primary" EndIcon="@Icons.Material.Filled.ArrowForward">See all @_industries.Count industries</MudButton>
+                </div>
+            }
+        </MudContainer>
+    }
+
+    @if (_steps.Count > 0)
+    {
+        <div class="marketing-dark-section">
+            <MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
+                <SectionHeading Eyebrow="@_page.StepsEyebrow" Title="@_page.StepsTitle" Lead="@_page.StepsLead" />
+
+                <ol class="@($"how-steps {(_steps.Count <= MaxSingleRow ? "how-steps-row" : "")}")" style="@($"--how-count:{Math.Min(_steps.Count, MaxSingleRow)};")">
+                    @for (var i = 0; i < _steps.Count; i++)
+                    {
+                        var step = _steps[i];
+                        <li class="@($"how-step {AccentTone.At(i)}")">
+                            <div class="how-step-marker" aria-hidden="true">
+                                <span class="how-step-icon"><MudIcon Icon="@IconCatalog.Resolve(step.Icon ?? DefaultStepIcon)" /></span>
+                            </div>
+                            <div class="how-step-card">
+                                <span class="how-step-label">Step @((i + 1).ToString("00"))</span>
+                                <h3 class="how-step-title">@step.Title</h3>
+                                <p class="how-step-text">@step.Body</p>
+                            </div>
+                        </li>
+                    }
+                </ol>
+            </MudContainer>
+        </div>
+    }
+
+    @if (_bundles.Count > 0)
+    {
+        <MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
+            <SectionHeading Eyebrow="@_page.PricingEyebrow" Title="@_page.PricingTitle" Lead="@_page.PricingLead" />
+            <MudGrid Justify="Justify.Center" Class="plan-carousel">
+                @foreach (var (bundle, index) in _bundles.Select((b, i) => (b, i)))
+                {
+                    var featuredIndex = ModuleOfferingDisplay.FeaturedBundleIndex(_bundles.Count);
+                    <BundlePlanCard Bundle="bundle" Modules="@ModulesOf(bundle)" Previous="@(index > 0 ? _bundles[index - 1] : null)" Index="index"
+                                    Featured="@(index == featuredIndex)" Highlighted="@(index == featuredIndex || featuredIndex < 0)">
+                        <SecondaryAction>
+                            <MudButton Href="/pricing#build" Variant="Variant.Filled" FullWidth="true" Size="Size.Large"
+                                       StartIcon="@Icons.Material.Outlined.Tune" Class="sell-btn-soft">Build your own plan</MudButton>
+                        </SecondaryAction>
+                    </BundlePlanCard>
+                }
+            </MudGrid>
+        </MudContainer>
+    }
+
+    @if (_faqs.Count > 0)
+    {
+        <MudContainer MaxWidth="MaxWidth.Medium" Class="marketing-section-tight">
+            <SectionHeading Eyebrow="@_page.FaqEyebrow" Title="@_page.FaqTitle" />
+            <FaqAccordion Items="@(_faqs.Select(f => (f.Title, f.Body)))" />
+        </MudContainer>
+    }
+
+    <PlatformClosingCta Page="_page" />
+}
+
+@code {
+    // Matches HomeProcessSection: more steps than this wrap into a timeline.
+    private const int MaxSingleRow = 4;
+    // Two rows of the grid; the Industries page lists the rest.
+    private const int VisibleIndustries = 8;
+    private static readonly string DefaultStepIcon = Icons.Material.Outlined.CheckCircle;
+
+    private LandingPageResponse? _page;
+    private List<LandingBlockResponse> _features = [];
+    private List<LandingBlockResponse> _steps = [];
+    private List<LandingBlockResponse> _faqs = [];
+    private List<CategoryResponse> _industries = [];
+    private List<PublicBundleResponse> _bundles = [];
+    private Dictionary<string, PublicModuleOfferingResponse> _offeringsByKey = [];
+    private bool _loading = true;
+    private string? _loadError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var pageTask = ApiClient.GetAsync<LandingPageResponse>(ApiRoutes.SiteContent.LandingPage.Base);
+        var blocksTask = ApiClient.GetAsync<List<LandingBlockResponse>>(ApiRoutes.SiteContent.LandingBlocks.Base);
+        var offeringsTask = ApiClient.GetAsync<List<PublicModuleOfferingResponse>>(ApiRoutes.Tenancy.ModuleOfferings);
+        var bundlesTask = ApiClient.GetAsync<List<PublicBundleResponse>>(ApiRoutes.Tenancy.Bundles);
+        var industriesTask = CategoryLookupHelper.GetAllAsync(ApiClient);
+        await Task.WhenAll(pageTask, blocksTask, offeringsTask, bundlesTask, industriesTask);
+
+        var pageResult = await pageTask;
+        _page = pageResult.IsSuccessful ? pageResult.ResultData : null;
+        _loadError = pageResult.IsSuccessful ? null : pageResult.DisplayMessage;
+
+        var blocks = (await blocksTask).ResultData ?? [];
+        _features = [.. blocks.Where(b => b.Section == LandingSections.Feature)];
+        _steps = [.. blocks.Where(b => b.Section == LandingSections.Step)];
+        _faqs = [.. blocks.Where(b => b.Section == LandingSections.Faq)];
+
+        _industries = await industriesTask;
+        _offeringsByKey = ((await offeringsTask).ResultData ?? []).ToDictionary(o => o.Key);
+        _bundles = [.. ((await bundlesTask).ResultData ?? []).OrderBy(b => ModulesOf(b).Sum(m => m.Price))];
+        _loading = false;
+    }
+
+    private List<PublicModuleOfferingResponse> ModulesOf(PublicBundleResponse bundle) =>
+        [.. bundle.ModuleKeys.Where(_offeringsByKey.ContainsKey).Select(k => _offeringsByKey[k]).OrderBy(m => m.Price)];
+}

@@ -1,0 +1,25 @@
+@* Home / [Parent] / Current trail; shared by the page banner and the platform heroes. *@
+
+<nav aria-label="Breadcrumb" class="@Class">
+    <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
+        <MudLink Href="/" Color="Color.Secondary" Underline="Underline.None" Typo="Typo.caption" Class="marketing-breadcrumb-link">Home</MudLink>
+        @if (ParentLabel is not null)
+        {
+            <MudText Typo="Typo.caption" Color="Color.Secondary">/</MudText>
+            <MudLink Href="@ParentHref" Color="Color.Secondary" Underline="Underline.None" Typo="Typo.caption" Class="marketing-breadcrumb-link">@ParentLabel</MudLink>
+        }
+        <MudText Typo="Typo.caption" Color="Color.Secondary">/</MudText>
+        <MudText Typo="Typo.caption" Color="Color.Primary" Class="text-strong" aria-current="page">@Current</MudText>
+    </MudStack>
+</nav>
+
+@code {
+    [Parameter, EditorRequired] public string Current { get; set; } = string.Empty;
+
+    /// <summary>Optional middle crumb, e.g. "Cart" for Checkout.</summary>
+    [Parameter] public string? ParentLabel { get; set; }
+
+    [Parameter] public string? ParentHref { get; set; }
+
+    [Parameter] public string? Class { get; set; }
+}

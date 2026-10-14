@@ -1,0 +1,17 @@
+@* Industry cards from the platform's categories; shared by the landing and the Industries page. *@
+@using OnlineConsulting.Maui.Shared.Infrastructure.Api
+
+<div class="membership-benefit-grid">
+    @foreach (var industry in Items)
+    {
+        <div class="membership-benefit">
+            <span class="tone-bubble tone-bubble-lg @AccentTone.For(industry.Id)"><MudIcon Icon="@industry.Icon" /></span>
+            <MudText Typo="Typo.subtitle1" Class="text-strong">@industry.Title</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">@industry.Description</MudText>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public IEnumerable<CategoryResponse> Items { get; set; } = [];
+}

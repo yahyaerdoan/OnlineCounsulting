@@ -28,7 +28,7 @@ public class CreateCategory : IEndpoint
     }
 }
 
-public record CreateCategoryRequest(string Title, string Description, string Icon, string? IconColor = null)
+public record CreateCategoryRequest(string Title, string Description, string Icon, string? IconColor = null, int DisplayOrder = 0)
 {
-    public CreateCategoryCommand ToCommand() => new(Title, Description, Icon, IconColor);
+    public CreateCategoryCommand ToCommand() => new(Title, Description, Icon, IconColor, DisplayOrder);
 }

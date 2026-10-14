@@ -14,7 +14,7 @@ namespace OnlineConsulting.Modules.Categories.Application.Features.Categories.Li
 /// <summary>Sortable/filterable variant of GetCategoriesQuery for the admin ServerDataTable.</summary>
 public record ListCategoriesQuery(PageRequest PageRequest, DynamicQuery? DynamicQuery = null) : IRequest<OperationDataResult<Paginate<CategoryResponse>>>, IDynamicListRequest
 {
-    public static IReadOnlySet<string> QueryableFields { get; } = new HashSet<string>([nameof(Category.Title), nameof(Category.Description)]);
+    public static IReadOnlySet<string> QueryableFields { get; } = new HashSet<string>([nameof(Category.Title), nameof(Category.Description), nameof(Category.DisplayOrder)]);
 }
 
 public class ListCategoriesHandler(ICategoryRepository repository) : IRequestHandler<ListCategoriesQuery, OperationDataResult<Paginate<CategoryResponse>>>

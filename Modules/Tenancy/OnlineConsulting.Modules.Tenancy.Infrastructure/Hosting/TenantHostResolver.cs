@@ -8,12 +8,16 @@ namespace OnlineConsulting.Modules.Tenancy.Infrastructure.Hosting;
 /// <summary>The platform host maps to the default tenant and "{slug}.{SubdomainRoot}" to that tenant. Misses are not cached, so a tenant is reachable right after signup.</summary>
 public class TenantHostResolver(ITenantRepository tenantRepository, IMemoryCache cache, IOptions<TenantHostingOptions> options) : ITenantHostResolver
 {
+    private const string WwwPrefix = "www.";
+
     public async Task<Guid?> ResolveAsync(string host, CancellationToken cancellationToken = default)
     {
         var normalizedHost = host.Trim().TrimEnd('.').ToLowerInvariant();
         var settings = options.Value;
 
-        if (Uri.TryCreate(settings.PlatformOrigin, UriKind.Absolute, out var platformOrigin) && normalizedHost == platformOrigin.Host.ToLowerInvariant())
+        // The www form of the platform host is the platform too.
+        if (Uri.TryCreate(settings.PlatformOrigin, UriKind.Absolute, out var platformOrigin)
+            && (normalizedHost == platformOrigin.Host.ToLowerInvariant() || normalizedHost == $"{WwwPrefix}{platformOrigin.Host.ToLowerInvariant()}"))
         {
             return TenantDefaults.DefaultTenantId;
         }
