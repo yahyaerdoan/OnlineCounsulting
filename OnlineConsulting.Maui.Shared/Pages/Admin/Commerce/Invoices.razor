@@ -37,20 +37,20 @@
         </MudTd>
         <MudTd DataLabel="Total" Class="mud-table-cell-align-right">@CurrencyFormat.Format(invoice.Total)</MudTd>
         <MudTd DataLabel="Actions">
-            <MudTooltip Text="Download PDF">
-                <MudIconButton aria-label="Download PDF" Icon="@Icons.Material.Outlined.FileDownload" Size="Size.Small" Disabled="@(!invoice.Can(LinkRels.Pdf))" OnClick="@(() => DownloadAsync(invoice))" />
-            </MudTooltip>
-            <MudTooltip Text="Record payment">
-                <MudMenu aria-label="Record payment" Icon="@Icons.Material.Outlined.Payments" Size="Size.Small" Dense="true" Disabled="@(!invoice.Can(LinkRels.MarkPaid))">
-                    <MudMenuItem OnClick="@(() => MarkPaidAsync(invoice, "Cash"))">Paid in cash</MudMenuItem>
-                    <MudMenuItem OnClick="@(() => MarkPaidAsync(invoice, "Check"))">Paid by check</MudMenuItem>
-                    <MudMenuItem OnClick="@(() => MarkPaidAsync(invoice, "Card"))">Card taken on site</MudMenuItem>
-                </MudMenu>
-            </MudTooltip>
-            <MudTooltip Text="Void">
-                <MudIconButton aria-label="Void" Icon="@Icons.Material.Outlined.Block" Color="Color.Error" Size="Size.Small" Disabled="@(!invoice.Can(LinkRels.Void))"
-                               OnClick="@(() => VoidAsync(invoice))" />
-            </MudTooltip>
+            <RowActions Actions="@([
+                new RowAction("Download PDF", Icons.Material.Outlined.FileDownload) { OnClick = () => DownloadAsync(invoice), Disabled = !invoice.Can(LinkRels.Pdf) },
+                new RowAction("Record payment", Icons.Material.Outlined.Payments)
+                {
+                    Disabled = !invoice.Can(LinkRels.MarkPaid),
+                    Items =
+                    [
+                        new RowAction("Paid in cash", Icons.Material.Outlined.Payments) { OnClick = () => MarkPaidAsync(invoice, "Cash") },
+                        new RowAction("Paid by check", Icons.Material.Outlined.Payments) { OnClick = () => MarkPaidAsync(invoice, "Check") },
+                        new RowAction("Card taken on site", Icons.Material.Outlined.Payments) { OnClick = () => MarkPaidAsync(invoice, "Card") },
+                    ],
+                },
+                new RowAction("Void", Icons.Material.Outlined.Block) { OnClick = () => VoidAsync(invoice), Disabled = !invoice.Can(LinkRels.Void), Color = Color.Error },
+            ])" />
         </MudTd>
     </RowTemplate>
 </ServerDataTable>

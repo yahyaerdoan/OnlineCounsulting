@@ -43,24 +43,11 @@ else
                 </MudChip>
             </MudTd>
             <MudTd DataLabel="Actions">
-                <MudTooltip Text="Edit">
-                    <MudIconButton aria-label="Edit" Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" Size="Size.Small" Disabled="@(!plan.Can(LinkRels.Edit))"
-                                   OnClick="@(() => Navigation.NavigateTo($"{AppRoutes.AdminHome}/growth/memberships/{plan.Id}/edit"))" />
-                </MudTooltip>
-                @if (plan.Can(LinkRels.SetActive) && plan.IsActive)
-                {
-                    <MudTooltip Text="Archive">
-                        <MudIconButton aria-label="Archive" Icon="@Icons.Material.Outlined.Archive" Color="Color.Default" Size="Size.Small"
-                                       OnClick="@(() => SetActiveAsync(plan, false))" />
-                    </MudTooltip>
-                }
-                else if (plan.Can(LinkRels.SetActive))
-                {
-                    <MudTooltip Text="Restore">
-                        <MudIconButton aria-label="Restore" Icon="@Icons.Material.Outlined.Unarchive" Color="Color.Default" Size="Size.Small"
-                                       OnClick="@(() => SetActiveAsync(plan, true))" />
-                    </MudTooltip>
-                }
+                <RowActions Actions="@([
+                    new RowAction("Edit", Icons.Material.Outlined.EditNote) { Href = $"{AppRoutes.AdminHome}/growth/memberships/{plan.Id}/edit", Disabled = !plan.Can(LinkRels.Edit) },
+                    new RowAction("Archive", Icons.Material.Outlined.Archive) { OnClick = () => SetActiveAsync(plan, false), Visible = plan.Can(LinkRels.SetActive) && plan.IsActive },
+                    new RowAction("Restore", Icons.Material.Outlined.Unarchive) { OnClick = () => SetActiveAsync(plan, true), Visible = plan.Can(LinkRels.SetActive) && !plan.IsActive },
+                ])" />
             </MudTd>
         </RowTemplate>
     </SearchableTable>

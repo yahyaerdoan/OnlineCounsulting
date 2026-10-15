@@ -5,7 +5,6 @@
 @inject IApiClient ApiClient
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
-@inject NavigationManager Navigation
 
 <PageTitle>Tenants</PageTitle>
 
@@ -51,35 +50,13 @@
         <MudTd DataLabel="Status"><StatusBadge Label="@StatusLabel(tenant.Status)" Kind="@StatusKind(tenant.Status)" /></MudTd>
         <MudTd DataLabel="Since">@(tenant.CreatedDate is { } created ? BusinessTime.FormatDate(created) : "-")</MudTd>
         <MudTd DataLabel="Actions" Class="cell-actions">
-            <MudTooltip Text="View subscription">
-                <MudIconButton Icon="@Icons.Material.Outlined.Receipt" Size="Size.Small" aria-label="View subscription"
-                               OnClick="@(() => Navigation.NavigateTo($"{AppRoutes.AdminHome}/platform/tenants/{tenant.Id}"))" />
-            </MudTooltip>
-            <MudTooltip Text="Manage modules">
-                <MudIconButton Icon="@Icons.Material.Outlined.Extension" Size="Size.Small" aria-label="Manage modules"
-                               OnClick="@(() => ManageModulesAsync(tenant))" />
-            </MudTooltip>
-            @if (tenant.Can(LinkRels.Reactivate))
-            {
-                <MudTooltip Text="Reactivate">
-                    <MudIconButton Icon="@Icons.Material.Outlined.PlayArrow" Color="Color.Success" Size="Size.Small" aria-label="Reactivate"
-                                   OnClick="@(() => ReactivateAsync(tenant))" />
-                </MudTooltip>
-            }
-            @if (tenant.Can(LinkRels.Suspend))
-            {
-                <MudTooltip Text="Suspend">
-                    <MudIconButton Icon="@Icons.Material.Outlined.Pause" Color="Color.Warning" Size="Size.Small" aria-label="Suspend"
-                                   OnClick="@(() => SuspendAsync(tenant))" />
-                </MudTooltip>
-            }
-            @if (tenant.Can(LinkRels.Cancel))
-            {
-                <MudTooltip Text="Cancel permanently">
-                    <MudIconButton Icon="@Icons.Material.Outlined.Cancel" Color="Color.Error" Size="Size.Small" aria-label="Cancel permanently"
-                                   OnClick="@(() => CancelAsync(tenant))" />
-                </MudTooltip>
-            }
+            <RowActions Actions="@([
+                new RowAction("View subscription", Icons.Material.Outlined.Receipt) { Href = $"{AppRoutes.AdminHome}/platform/tenants/{tenant.Id}" },
+                new RowAction("Manage modules", Icons.Material.Outlined.Extension) { OnClick = () => ManageModulesAsync(tenant) },
+                new RowAction("Reactivate", Icons.Material.Outlined.PlayArrow) { OnClick = () => ReactivateAsync(tenant), Visible = tenant.Can(LinkRels.Reactivate), Color = Color.Success },
+                new RowAction("Suspend", Icons.Material.Outlined.Pause) { OnClick = () => SuspendAsync(tenant), Visible = tenant.Can(LinkRels.Suspend), Color = Color.Warning },
+                new RowAction("Cancel permanently", Icons.Material.Outlined.Cancel) { OnClick = () => CancelAsync(tenant), Visible = tenant.Can(LinkRels.Cancel), Color = Color.Error },
+            ])" />
         </MudTd>
     </RowTemplate>
     <NoRecordsContent>

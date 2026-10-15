@@ -26,17 +26,10 @@
         <MudTd DataLabel="Name" Class="cell-primary">@role.Name</MudTd>
         <MudTd DataLabel="Description">@role.Description</MudTd>
         <MudTd DataLabel="Actions">
-            <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
-                <MudTooltip Text="Edit">
-                    <MudIconButton aria-label="Edit" Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default" Disabled="@(!role.Can(LinkRels.Edit))"
-                                   OnClick="@(() => EditAsync(role))" />
-                </MudTooltip>
-
-                <MudTooltip Text="Delete">
-                    <MudIconButton aria-label="Delete" Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" Disabled="@(!role.Can(LinkRels.Delete))"
-                                   OnClick="@(() => DeleteAsync(role))" />
-                </MudTooltip>
-            </MudButtonGroup>
+            <RowActions Actions="@([
+                new RowAction("Edit", Icons.Material.Outlined.EditNote) { OnClick = () => EditAsync(role), Disabled = !role.Can(LinkRels.Edit) },
+                new RowAction("Delete", Icons.Material.Outlined.DeleteOutline) { OnClick = () => DeleteAsync(role), Disabled = !role.Can(LinkRels.Delete), Color = Color.Error },
+            ])" />
         </MudTd>
     </RowTemplate>
 </ServerDataTable>

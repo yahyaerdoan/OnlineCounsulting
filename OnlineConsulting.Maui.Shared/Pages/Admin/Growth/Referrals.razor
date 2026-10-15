@@ -28,10 +28,9 @@
         <MudTd DataLabel="Status">@referral.Status</MudTd>
         <MudTd DataLabel="Reward" Class="mud-table-cell-align-right">@(referral.RewardAmount is { } amount ? CurrencyFormat.Format(amount) : "-")</MudTd>
         <MudTd DataLabel="Actions">
-            <MudTooltip Text="Complete">
-                <MudIconButton aria-label="Complete" Icon="@Icons.Material.Outlined.CardGiftcard" Color="Color.Primary" Size="Size.Small"
-                               Disabled="@(referral.Status == "Rewarded")" OnClick="@(() => CompleteAsync(referral))" />
-            </MudTooltip>
+            <RowActions Actions="@([
+                new RowAction("Complete", Icons.Material.Outlined.CardGiftcard) { OnClick = () => CompleteAsync(referral), Disabled = referral.Status == "Rewarded", Color = Color.Primary },
+            ])" />
         </MudTd>
     </RowTemplate>
 </ServerDataTable>

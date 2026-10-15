@@ -33,17 +33,10 @@
         <MudTd DataLabel="Email">@partnership.Email</MudTd>
         <MudTd DataLabel="Social Links">@partnership.SocialLinks.Count</MudTd>
         <MudTd DataLabel="Actions">
-            <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
-                <MudTooltip Text="Edit">
-                    <MudIconButton Disabled="@(!partnership.Can(LinkRels.Edit))" aria-label="Edit" Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default"
-                                   OnClick="@(() => EditAsync(partnership))" />
-                </MudTooltip>
-
-                <MudTooltip Text="Delete">
-                    <MudIconButton Disabled="@(!partnership.Can(LinkRels.Delete))" aria-label="Delete" Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error"
-                                   OnClick="@(() => DeleteAsync(partnership))" />
-                </MudTooltip>
-            </MudButtonGroup>
+            <RowActions Actions="@([
+                new RowAction("Edit", Icons.Material.Outlined.EditNote) { Href = EditUrl(partnership), Disabled = !partnership.Can(LinkRels.Edit) },
+                new RowAction("Delete", Icons.Material.Outlined.DeleteOutline) { OnClick = () => DeleteAsync(partnership), Disabled = !partnership.Can(LinkRels.Delete), Color = Color.Error },
+            ])" />
         </MudTd>
     </RowTemplate>
 </ServerDataTable>
@@ -54,7 +47,7 @@
 
     private void CreateAsync() => Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/partnerships/new");
 
-    private void EditAsync(PartnershipResponse partnership) => Navigation.NavigateTo(AppRoutes.AdminHome + $"/site-content/partnerships/{partnership.Id}/edit");
+    private static string EditUrl(PartnershipResponse partnership) => AppRoutes.AdminHome + $"/site-content/partnerships/{partnership.Id}/edit";
 
     private async Task DeleteAsync(PartnershipResponse partnership)
     {

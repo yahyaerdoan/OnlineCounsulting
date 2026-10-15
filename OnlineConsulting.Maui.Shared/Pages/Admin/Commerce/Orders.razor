@@ -31,10 +31,9 @@
         </MudTd>
         <MudTd DataLabel="Total" Class="mud-table-cell-align-right">@CurrencyFormat.Format(order.TotalPrice)</MudTd>
         <MudTd DataLabel="Actions">
-            <MudTooltip Text="Refund">
-                <MudIconButton aria-label="Refund" Icon="@Icons.Material.Outlined.Undo" Color="Color.Error" Size="Size.Small"
-                               Disabled="@(!order.Can(LinkRels.Refund))" OnClick="@(() => RefundAsync(order))" />
-            </MudTooltip>
+            <RowActions Actions="@([
+                new RowAction("Refund", Icons.Material.Outlined.Undo) { OnClick = () => RefundAsync(order), Disabled = !order.Can(LinkRels.Refund), Color = Color.Error },
+            ])" />
         </MudTd>
     </RowTemplate>
 </ServerDataTable>

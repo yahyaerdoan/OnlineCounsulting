@@ -30,17 +30,10 @@
         <MudTd DataLabel="Title" Class="cell-primary">@step.Title</MudTd>
         <MudTd DataLabel="Description">@step.Description</MudTd>
         <MudTd DataLabel="Actions">
-            <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
-                <MudTooltip Text="Edit">
-                    <MudIconButton Disabled="@(!step.Can(LinkRels.Edit))" aria-label="Edit" Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default"
-                                   OnClick="@(() => EditAsync(step))" />
-                </MudTooltip>
-
-                <MudTooltip Text="Delete">
-                    <MudIconButton Disabled="@(!step.Can(LinkRels.Delete))" aria-label="Delete" Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error"
-                                   OnClick="@(() => DeleteAsync(step))" />
-                </MudTooltip>
-            </MudButtonGroup>
+            <RowActions Actions="@([
+                new RowAction("Edit", Icons.Material.Outlined.EditNote) { Href = EditUrl(step), Disabled = !step.Can(LinkRels.Edit) },
+                new RowAction("Delete", Icons.Material.Outlined.DeleteOutline) { OnClick = () => DeleteAsync(step), Disabled = !step.Can(LinkRels.Delete), Color = Color.Error },
+            ])" />
         </MudTd>
     </RowTemplate>
 </ServerDataTable>
@@ -51,7 +44,7 @@
 
     private void CreateAsync() => Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/service-process-steps/new");
 
-    private void EditAsync(ServiceProcessStepResponse step) => Navigation.NavigateTo(AppRoutes.AdminHome + $"/site-content/service-process-steps/{step.Id}/edit");
+    private static string EditUrl(ServiceProcessStepResponse step) => AppRoutes.AdminHome + $"/site-content/service-process-steps/{step.Id}/edit";
 
     private async Task DeleteAsync(ServiceProcessStepResponse step)
     {

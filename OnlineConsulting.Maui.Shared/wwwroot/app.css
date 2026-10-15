@@ -2510,6 +2510,17 @@ a.tone-bubble:hover {
     overflow-x: hidden;
 }
 
+/* Phones get the desktop rail until MainLayout's viewport check runs; never let it take space there */
+@media (max-width: 959.98px) {
+    .mud-drawer.nav-drawer {
+        display: none;
+    }
+
+    .mud-layout:has(.mud-drawer.nav-drawer) .mud-main-content {
+        margin-left: 0;
+    }
+}
+
 /* padding-left tightened so top-level icons line up with the AppBar hamburger icon. */
 .nav-drawer .mud-nav-link,
 .nav-drawer-mobile .mud-nav-link {
@@ -10877,11 +10888,6 @@ div.order-card:hover {
         border-bottom: 0;
     }
 
-    .admin-table.mud-sm-table .mud-table-body .mud-table-cell[data-label="Actions"]::before,
-    .admin-table.mud-sm-table .mud-table-body .mud-table-cell.cell-actions::before {
-        display: none;
-    }
-
     .admin-table.mud-sm-table .mud-table-container .mud-table-root .mud-table-body .mud-table-row .mud-table-cell:last-child:not([data-label="Actions"]) {
         border-bottom: 0;
     }
@@ -10921,6 +10927,12 @@ div.order-card:hover {
         justify-content: center;
         height: auto;
         padding: 8px 0;
+    }
+
+    /* MudBlazor's -14px end margin (its own selector, one class more specific) pushes the pager past the screen edge */
+    .admin-table.mud-table .mud-table-pagination .mud-table-pagination-toolbar .mud-table-pagination-actions {
+        margin-right: 0;
+        margin-inline-end: 0;
     }
 }
 

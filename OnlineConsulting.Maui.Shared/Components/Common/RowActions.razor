@@ -1,0 +1,61 @@
+@* Row actions for list tables: icon buttons with tooltips on desktop, labelled buttons below md (touch has no hover). *@
+@namespace OnlineConsulting.Maui.Shared.Components.Common
+
+@* MudStack forces d-flex, so the breakpoint visibility sits on wrappers *@
+<div class="d-none d-md-block">
+    <MudStack Row="true" Spacing="0" AlignItems="AlignItems.Center">
+        @foreach (var action in VisibleActions)
+        {
+            <MudTooltip Text="@action.Text">
+                @if (action.Items is { } items)
+                {
+                    <MudMenu Icon="@action.Icon" Color="@action.Color" Size="Size.Small" Dense="true" Disabled="@action.Disabled" aria-label="@action.Text">
+                        @ChoiceItems(items)
+                    </MudMenu>
+                }
+                else
+                {
+                    <MudIconButton Icon="@action.Icon" Color="@action.Color" Size="Size.Small" Disabled="@action.Disabled" aria-label="@action.Text"
+                                   Href="@action.Href" OnClick="@(() => RunAsync(action))" />
+                }
+            </MudTooltip>
+        }
+    </MudStack>
+</div>
+
+<div class="d-md-none ml-auto">
+    <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap" Justify="Justify.FlexEnd">
+        @foreach (var action in VisibleActions)
+        {
+            @if (action.Items is { } items)
+            {
+                <MudMenu Label="@action.Text" StartIcon="@action.Icon" EndIcon="@Icons.Material.Filled.ArrowDropDown" IconColor="@action.Color"
+                         Color="@action.Color" Size="Size.Small" Dense="true" Disabled="@action.Disabled">
+                    @ChoiceItems(items)
+                </MudMenu>
+            }
+            else
+            {
+                <MudButton Variant="Variant.Text" Color="@action.Color" Size="Size.Small" Disabled="@action.Disabled"
+                           StartIcon="@action.Icon" IconSize="Size.Small" Href="@action.Href" OnClick="@(() => RunAsync(action))">@action.Text</MudButton>
+            }
+        }
+    </MudStack>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public IReadOnlyList<RowAction> Actions { get; set; } = [];
+
+    private IEnumerable<RowAction> VisibleActions => Actions.Where(a => a.Visible);
+
+    private static Task RunAsync(RowAction action) => action.OnClick?.Invoke() ?? Task.CompletedTask;
+
+    private RenderFragment ChoiceItems(IReadOnlyList<RowAction> items) => __builder =>
+    {
+        foreach (var item in items.Where(i => i.Visible))
+        {
+            <MudMenuItem Href="@item.Href" OnClick="@(() => RunAsync(item))" Disabled="@item.Disabled">@item.Text</MudMenuItem>
+        }
+    };
+}
