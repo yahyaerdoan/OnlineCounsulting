@@ -78,6 +78,7 @@ public static class IdentityModule
         _ = services.AddScoped<IUserNotificationInbox>(sp => sp.GetRequiredService<UserNotificationRepository>());
         _ = services.AddScoped<IInviteRepository, InviteRepository>();
         _ = services.AddScoped<IUserExistenceReader, UserExistenceReader>();
+        _ = services.AddScoped<IUserRoleReader, UserRoleReader>();
         _ = services.AddScoped<IUserContactReader, UserContactReader>();
         _ = services.AddScoped<IStaffDirectory, StaffDirectory>();
 

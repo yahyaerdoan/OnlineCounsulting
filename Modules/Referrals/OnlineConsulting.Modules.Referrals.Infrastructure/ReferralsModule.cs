@@ -21,7 +21,6 @@ using OnlineConsulting.SharedKernel.LiveUpdates;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Referrals;
-using OnlineConsulting.SharedKernel.Tenancy;
 using OnlineConsulting.SharedKernel.Transactions;
 
 namespace OnlineConsulting.Modules.Referrals.Infrastructure;
@@ -32,11 +31,10 @@ public static class ReferralsModule
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-        _ = services.AddScoped<TenantSaveChangesInterceptor>();
 
         _ = services.AddUserDataChangeRules(ReferralsUserDataChangeRules.Configure);
         _ = services.AddDbContext<ReferralsDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
-            .AddInterceptors(serviceProvider.GetRequiredService<TenantSaveChangesInterceptor>(), serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>())
+            .AddInterceptors(serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>())
             .AddUserDataChangeInterceptors(serviceProvider));
 
         _ = services.AddScoped<IReferralCodeRepository, ReferralCodeRepository>();

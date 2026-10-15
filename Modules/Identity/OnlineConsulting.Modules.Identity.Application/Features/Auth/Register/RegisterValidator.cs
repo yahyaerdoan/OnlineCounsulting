@@ -1,14 +1,13 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using OnlineConsulting.Modules.Identity.Domain;
-using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Identity.Application.Features.Auth.Register;
 
 /// <summary>Validates registration input. Uniqueness checks run synchronously - FluentValidation's implicit ASP.NET pipeline only supports sync rules.</summary>
 public class RegisterValidator : AbstractValidator<RegisterCommand>
 {
-    public RegisterValidator(UserManager<User> userManager, ITenantProvider tenantProvider)
+    public RegisterValidator(UserManager<User> userManager)
     {
         _ = RuleFor(x => x.FirstName).NotEmpty();
         _ = RuleFor(x => x.LastName).NotEmpty();
@@ -28,8 +27,7 @@ public class RegisterValidator : AbstractValidator<RegisterCommand>
             .Must(email =>
             {
                 var normalizedEmail = userManager.NormalizeEmail(email);
-                var tenantId = tenantProvider.TenantId;
-                return !userManager.Users.Any(u => u.TenantId == tenantId && u.NormalizedEmail == normalizedEmail);
+                return !userManager.Users.Any(u => u.NormalizedEmail == normalizedEmail);
             })
             .WithMessage("This email is already registered.");
 

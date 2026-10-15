@@ -1,14 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Core.PersistenceLayer.MultiTenancy;
+using Microsoft.EntityFrameworkCore;
 using OnlineConsulting.Modules.Services.Domain;
-using OnlineConsulting.SharedKernel.Tenancy;
 using OnlineConsulting.SharedKernel.Catalog;
 
 namespace OnlineConsulting.Modules.Services.Infrastructure.Persistence;
 
-public class ServicesDbContext(DbContextOptions<ServicesDbContext> options, ITenantProvider tenantProvider) : DbContext(options), ITenantScopedDbContext
+public class ServicesDbContext(DbContextOptions<ServicesDbContext> options, ITenantContext tenantContext) : TenantDbContext(options, tenantContext)
 {
-    public Guid CurrentTenantId => tenantProvider.TenantId;
-
     public DbSet<Service> Services => Set<Service>();
     public DbSet<ServiceMediaItem> ServiceMediaItems => Set<ServiceMediaItem>();
 
@@ -30,14 +28,12 @@ public class ServicesDbContext(DbContextOptions<ServicesDbContext> options, ITen
             _ = builder.Property(s => s.RowVersion).IsRowVersion();
             _ = builder.HasIndex(s => s.CategoryId);
             _ = builder.HasIndex(s => new { s.TenantId, s.Slug }).IsUnique().HasFilter("[DeletedDate] IS NULL");
-            _ = builder.ApplyTenantAndSoftDeleteFilter(this);
         });
 
         _ = modelBuilder.Entity<ServiceMediaItem>(builder =>
         {
             _ = builder.Property(m => m.RowVersion).IsRowVersion();
             _ = builder.HasIndex(m => m.ServiceId);
-            _ = builder.ApplyTenantAndSoftDeleteFilter(this);
         });
 
         base.OnModelCreating(modelBuilder);

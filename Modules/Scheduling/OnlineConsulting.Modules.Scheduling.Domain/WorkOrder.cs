@@ -1,4 +1,4 @@
-﻿using OnlineConsulting.SharedKernel.Tenancy;
+﻿using Core.PersistenceLayer.MultiTenancy;
 
 namespace OnlineConsulting.Modules.Scheduling.Domain;
 

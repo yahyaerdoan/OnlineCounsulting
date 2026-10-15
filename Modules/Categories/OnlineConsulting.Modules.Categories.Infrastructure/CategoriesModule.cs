@@ -11,7 +11,6 @@ using OnlineConsulting.Modules.Categories.Application;
 using OnlineConsulting.Modules.Categories.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Categories.Infrastructure.Repositories;
 using OnlineConsulting.SharedKernel.Authorization;
-using OnlineConsulting.SharedKernel.Tenancy;
 using OnlineConsulting.SharedKernel.Transactions;
 
 namespace OnlineConsulting.Modules.Categories.Infrastructure;
@@ -22,10 +21,9 @@ public static class CategoriesModule
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-        _ = services.AddScoped<TenantSaveChangesInterceptor>();
 
         _ = services.AddDbContext<CategoriesDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
-                .AddInterceptors(serviceProvider.GetRequiredService<TenantSaveChangesInterceptor>(), serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>()));
+                .AddInterceptors(serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>()));
 
         _ = services.AddScoped<ICategoryRepository, CategoryRepository>();
 

@@ -30,7 +30,6 @@ using OnlineConsulting.Modules.SiteContent.Infrastructure.Repositories.Gallery;
 using OnlineConsulting.Modules.SiteContent.Infrastructure.Repositories.Partnerships;
 using OnlineConsulting.Modules.SiteContent.Infrastructure.Repositories.Service;
 using OnlineConsulting.SharedKernel.Authorization;
-using OnlineConsulting.SharedKernel.Tenancy;
 using OnlineConsulting.SharedKernel.Transactions;
 
 namespace OnlineConsulting.Modules.SiteContent.Infrastructure;
@@ -43,10 +42,9 @@ public static class SiteContentModule
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-        _ = services.AddScoped<TenantSaveChangesInterceptor>();
 
         _ = services.AddDbContext<SiteContentDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
-            .AddInterceptors(serviceProvider.GetRequiredService<TenantSaveChangesInterceptor>(), serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>()));
+            .AddInterceptors(serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>()));
 
         _ = services.AddScoped<IAboutUsRepository, AboutUsRepository>();
         _ = services.AddScoped<IFooterInfoRepository, FooterInfoRepository>();

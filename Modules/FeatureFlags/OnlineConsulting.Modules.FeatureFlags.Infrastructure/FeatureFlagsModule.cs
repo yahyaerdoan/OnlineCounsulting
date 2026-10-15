@@ -15,7 +15,6 @@ using OnlineConsulting.Modules.FeatureFlags.Infrastructure.Repositories;
 using OnlineConsulting.Modules.FeatureFlags.Infrastructure.Writing;
 using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.FeatureFlags;
-using OnlineConsulting.SharedKernel.Tenancy;
 using OnlineConsulting.SharedKernel.Transactions;
 
 namespace OnlineConsulting.Modules.FeatureFlags.Infrastructure;
@@ -26,10 +25,9 @@ public static class FeatureFlagsModule
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-        _ = services.AddScoped<TenantSaveChangesInterceptor>();
 
         _ = services.AddDbContext<FeatureFlagsDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
-            .AddInterceptors(serviceProvider.GetRequiredService<TenantSaveChangesInterceptor>(), serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>()));
+            .AddInterceptors(serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>()));
 
         _ = services.AddMemoryCache();
 

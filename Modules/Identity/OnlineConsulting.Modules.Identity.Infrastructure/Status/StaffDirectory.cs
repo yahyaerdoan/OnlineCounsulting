@@ -1,3 +1,4 @@
+using Core.PersistenceLayer.MultiTenancy;
 using Core.SecurityLayer.Constants;
 using Microsoft.EntityFrameworkCore;
 using OnlineConsulting.Modules.Identity.Application.Features.Auth;
@@ -16,7 +17,7 @@ public class StaffDirectory(AppIdentityDbContext context) : IStaffDirectory
         List<string> granting = [.. permissions, PermissionClaimTypes.FullAccess];
 
         var grants = await (
-            from user in context.Users
+            from user in context.Users.IgnoreTenantFilter()
             where user.TenantId == tenantId && user.IsActive && user.DeletedDate == null
             join userRole in context.UserRoles on user.Id equals userRole.UserId
             join roleClaim in context.RoleClaims on userRole.RoleId equals roleClaim.RoleId

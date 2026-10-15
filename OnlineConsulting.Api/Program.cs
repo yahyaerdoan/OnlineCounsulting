@@ -4,6 +4,7 @@ using Core.ApplicationLayer.Pipelines.Cachings.Concretions.CacheBehaviors;
 using Core.ApplicationLayer.Pipelines.Cachings.Extensions;
 using Core.ApplicationLayer.Pipelines.Loggings.Concretions;
 using Core.ApplicationLayer.Pipelines.Validations.Concretions;
+using Core.PersistenceLayer.MultiTenancy;
 using Core.ApplicationLayer.Requests.Lists;
 using Core.ApplicationLayer.Validations;
 using Core.CrossCuttingConcernLayer.ExceptionHandlings.Extensions;
@@ -82,7 +83,9 @@ builder.AddServiceDefaults();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddAuditing();
-builder.Services.AddScoped<ITenantProvider, TenantProvider>();
+builder.Services.AddScoped<TenantProvider>();
+builder.Services.AddScoped<ITenantProvider>(sp => sp.GetRequiredService<TenantProvider>());
+builder.Services.AddScoped<ITenantContext>(sp => sp.GetRequiredService<TenantProvider>());
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(AuthorizationAddingBehavior<,>));
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TenantStatusCheckBehavior<,>));
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationAddingBehavior<,>));

@@ -9,10 +9,10 @@
     <PackageVersion Include="AutoMapper" Version="16.2.0" />
     <PackageVersion Include="Azure.Storage.Blobs" Version="12.29.2" />
     <PackageVersion Include="CommunityToolkit.Aspire.Hosting.MailPit" Version="13.6.0" />
-    <PackageVersion Include="Core.ApplicationLayer" Version="1.0.48" />
-    <PackageVersion Include="Core.CrossCuttingConcernLayer" Version="1.0.48" />
-    <PackageVersion Include="Core.PersistenceLayer" Version="1.0.48" />
-    <PackageVersion Include="Core.SecurityLayer" Version="1.0.48" />
+    <PackageVersion Include="Core.ApplicationLayer" Version="1.0.50" />
+    <PackageVersion Include="Core.CrossCuttingConcernLayer" Version="1.0.50" />
+    <PackageVersion Include="Core.PersistenceLayer" Version="1.0.50" />
+    <PackageVersion Include="Core.SecurityLayer" Version="1.0.50" />
     <PackageVersion Include="FirebaseAdmin" Version="3.6.0" />
     <PackageVersion Include="FluentValidation" Version="12.1.1" />
     <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />

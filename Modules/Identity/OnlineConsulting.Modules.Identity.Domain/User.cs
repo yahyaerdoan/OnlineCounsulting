@@ -1,9 +1,10 @@
+using Core.PersistenceLayer.MultiTenancy;
 using Core.PersistenceLayer.Repositories.Entities;
 using Core.SecurityLayer.Identity;
 
 namespace OnlineConsulting.Modules.Identity.Domain;
 
-public class User : SequentialGuidIdentityUser, IEntityAuditor
+public class User : SequentialGuidIdentityUser, IEntityAuditor, ITenantEntity
 {
     public required Guid TenantId { get; set; }
     public required string FirstName { get; set; }

@@ -18,10 +18,8 @@ public class LoginHandler(UserManager<User> userManager, RoleManager<Role> roleM
 {
     public async Task<OperationDataResult<AuthTokensResponse>> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
-        var tenantId = tenantProvider.TenantId;
-        var user = await userManager.FindByNameAsync(request.UserNameOrEmail) is { } byUserName && byUserName.TenantId == tenantId
-            ? byUserName
-            : await userManager.FindByEmailInTenantAsync(request.UserNameOrEmail, tenantId, cancellationToken);
+        var user = await userManager.FindByNameAsync(request.UserNameOrEmail)
+            ?? await userManager.FindByEmailInTenantAsync(request.UserNameOrEmail, tenantProvider.TenantId, cancellationToken);
 
         if (user is null)
         {

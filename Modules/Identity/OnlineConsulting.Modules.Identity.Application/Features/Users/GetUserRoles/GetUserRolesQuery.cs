@@ -2,6 +2,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using OnlineConsulting.Modules.Identity.Application.Common;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Constants;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Contracts;
 using OnlineConsulting.Modules.Identity.Domain;
@@ -23,7 +24,7 @@ public class GetUserRolesHandler(UserManager<User> userManager, RoleManager<Role
 {
     public async Task<OperationDataResult<List<RoleAssignmentResponse>>> Handle(GetUserRolesQuery request, CancellationToken cancellationToken)
     {
-        var user = await userManager.FindByIdAsync(request.UserId.ToString());
+        var user = await userManager.FindManageableUserAsync(request.UserId, currentUserAccessor, cancellationToken);
         if (user is null)
         {
             return Result.NotFound<List<RoleAssignmentResponse>>(UserMessages.UserNotFound);

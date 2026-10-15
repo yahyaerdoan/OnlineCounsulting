@@ -1,10 +1,14 @@
-using OnlineConsulting.SharedKernel.Tenancy;
+using Core.PersistenceLayer.Repositories.Entities;
 
 namespace OnlineConsulting.SharedKernel.Notifications;
 
-/// <summary>Transactional outbox row for an email to be sent by the background dispatcher.</summary>
-public class OutboxEmail : TenantEntity<Guid>
+/// <summary>Transactional outbox row for an email to be sent by the background dispatcher. Not an ITenantEntity on purpose: the dispatcher reads
+/// every tenant's rows, and TenantId only says whose brand the email goes out under.</summary>
+public class OutboxEmail : Entity<Guid>
 {
+    /// <summary>The tenant the email is sent for; set explicitly by EnqueueEmail.</summary>
+    public Guid TenantId { get; set; }
+
     public required string To { get; set; }
     public string? Cc { get; set; }
     public required string Subject { get; set; }

@@ -1,4 +1,5 @@
 ﻿using Core.PersistenceLayer.Converters;
+using Core.PersistenceLayer.MultiTenancy;
 using Core.SecurityLayer.Identity;
 using Microsoft.EntityFrameworkCore;
 using OnlineConsulting.Modules.Identity.Domain;
@@ -7,8 +8,10 @@ using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Identity.Infrastructure.Persistence;
 
-public class AppIdentityDbContext(DbContextOptions<AppIdentityDbContext> options) : BaseIdentityDbContext<User, Role, Guid>(options)
+public class AppIdentityDbContext(DbContextOptions<AppIdentityDbContext> options, ITenantContext tenantContext) : BaseIdentityDbContext<User, Role, Guid>(options), ITenantScopedDbContext
 {
+    public Guid? CurrentTenantId => TenantScope.Current ?? tenantContext.TenantId;
+
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<DeviceToken> DeviceTokens => Set<DeviceToken>();
     public DbSet<UserNotification> UserNotifications => Set<UserNotification>();
@@ -59,6 +62,15 @@ public class AppIdentityDbContext(DbContextOptions<AppIdentityDbContext> options
         base.OnModelCreating(modelBuilder);
 
         _ = modelBuilder.Entity<User>().HasIndex(u => new { u.TenantId, u.NormalizedEmail }).IsUnique().HasDatabaseName("TenantEmailIndex");
+        _ = modelBuilder.Entity<User>().HasIndex(u => u.NormalizedUserName).HasDatabaseName("UserNameIndex").IsUnique(false);
+        _ = modelBuilder.Entity<User>().HasIndex(u => new { u.TenantId, u.NormalizedUserName }).IsUnique().HasDatabaseName("TenantUserNameIndex");
+    }
+
+    /// <summary>Identity needs its own base class, so isolation is switched on here instead of through TenantDbContext.</summary>
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        base.OnConfiguring(optionsBuilder);
+        _ = optionsBuilder.UseTenantIsolation();
     }
 
     /// <summary>Forces every newly-added user to start active - IsActive is a manage-time toggle, not a creation input, regardless of what the caller set.</summary>

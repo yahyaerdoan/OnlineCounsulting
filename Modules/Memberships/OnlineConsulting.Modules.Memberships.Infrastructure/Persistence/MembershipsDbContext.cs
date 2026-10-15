@@ -1,14 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Core.PersistenceLayer.MultiTenancy;
+using Microsoft.EntityFrameworkCore;
 using OnlineConsulting.Modules.Memberships.Domain;
 using OnlineConsulting.SharedKernel.Notifications;
-using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Modules.Memberships.Infrastructure.Persistence;
 
-public class MembershipsDbContext(DbContextOptions<MembershipsDbContext> options, ITenantProvider tenantProvider) : DbContext(options), ITenantScopedDbContext
+public class MembershipsDbContext(DbContextOptions<MembershipsDbContext> options, ITenantContext tenantContext) : TenantDbContext(options, tenantContext)
 {
-    public Guid CurrentTenantId => tenantProvider.TenantId;
-
     public DbSet<MembershipPlan> MembershipPlans => Set<MembershipPlan>();
     public DbSet<CustomerMembership> CustomerMemberships => Set<CustomerMembership>();
     public DbSet<PromoCode> PromoCodes => Set<PromoCode>();
@@ -27,7 +25,6 @@ public class MembershipsDbContext(DbContextOptions<MembershipsDbContext> options
             _ = builder.Property(p => p.CreditAmount).HasColumnType("decimal(18,2)");
             _ = builder.Property(p => p.Benefits).HasMaxLength(2000);
             _ = builder.Property(p => p.RowVersion).IsRowVersion();
-            _ = builder.ApplyTenantAndSoftDeleteFilter(this);
         });
 
         _ = modelBuilder.Entity<CustomerMembership>(builder =>
@@ -36,7 +33,6 @@ public class MembershipsDbContext(DbContextOptions<MembershipsDbContext> options
             _ = builder.Property(m => m.RowVersion).IsRowVersion();
             _ = builder.HasIndex(m => m.UserId);
             _ = builder.HasIndex(m => m.MembershipPlanId);
-            _ = builder.ApplyTenantAndSoftDeleteFilter(this);
         });
 
         _ = modelBuilder.Entity<PromoCode>(builder =>
@@ -46,7 +42,6 @@ public class MembershipsDbContext(DbContextOptions<MembershipsDbContext> options
             _ = builder.Property(p => p.DiscountValue).HasColumnType("decimal(18,2)");
             _ = builder.Property(p => p.RowVersion).IsRowVersion();
             _ = builder.HasIndex(p => new { p.TenantId, p.Code }).IsUnique();
-            _ = builder.ApplyTenantAndSoftDeleteFilter(this);
         });
 
         modelBuilder.ConfigureOutboxEmail(ownsMigration: false);

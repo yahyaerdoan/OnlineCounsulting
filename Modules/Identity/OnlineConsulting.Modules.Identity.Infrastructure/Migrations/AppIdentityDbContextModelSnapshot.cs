@@ -243,6 +243,8 @@ namespace OnlineConsulting.Modules.Identity.Infrastructure.Migrations
                     b.HasIndex("Token")
                         .IsUnique();
 
+                    b.HasIndex("TenantId", "DeletedDate");
+
                     b.HasIndex("TenantId", "Email");
 
                     b.ToTable("Invites", "Identity");
@@ -417,14 +419,19 @@ namespace OnlineConsulting.Modules.Identity.Infrastructure.Migrations
                         .HasDatabaseName("EmailIndex");
 
                     b.HasIndex("NormalizedUserName")
-                        .IsUnique()
-                        .HasDatabaseName("UserNameIndex")
-                        .HasFilter("[NormalizedUserName] IS NOT NULL");
+                        .HasDatabaseName("UserNameIndex");
+
+                    b.HasIndex("TenantId", "DeletedDate");
 
                     b.HasIndex("TenantId", "NormalizedEmail")
                         .IsUnique()
                         .HasDatabaseName("TenantEmailIndex")
                         .HasFilter("[NormalizedEmail] IS NOT NULL");
+
+                    b.HasIndex("TenantId", "NormalizedUserName")
+                        .IsUnique()
+                        .HasDatabaseName("TenantUserNameIndex")
+                        .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", "Identity");
                 });

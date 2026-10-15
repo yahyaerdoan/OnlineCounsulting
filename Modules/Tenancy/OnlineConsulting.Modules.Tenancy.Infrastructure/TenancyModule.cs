@@ -28,7 +28,7 @@ namespace OnlineConsulting.Modules.Tenancy.Infrastructure;
 
 public static class TenancyModule
 {
-    /// <summary>Tenant/ModuleOffering/Bundle/TenantSubscription/TenantSubscriptionItem are platform-owner data, not tenant-scoped - no TenantSaveChangesInterceptor is registered for this context.</summary>
+    /// <summary>Tenant/ModuleOffering/Bundle/TenantSubscription/TenantSubscriptionItem are platform-owner data, not tenant-scoped, so this context deliberately isn't a TenantDbContext.</summary>
     public static IServiceCollection AddTenancyModule(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");

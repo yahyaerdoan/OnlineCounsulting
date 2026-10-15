@@ -2,6 +2,7 @@ using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using Core.SecurityLayer.Authorization;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
+using OnlineConsulting.Modules.Identity.Application.Common;
 using OnlineConsulting.Modules.Identity.Application.Features.Auth;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Constants;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Contracts;
@@ -24,7 +25,7 @@ public class GetUserByIdHandler(UserManager<User> userManager, RoleManager<Role>
 {
     public async Task<OperationDataResult<UserResponse>> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
     {
-        var user = await userManager.FindByIdAsync(request.UserId.ToString());
+        var user = await userManager.FindManageableUserAsync(request.UserId, currentUserAccessor, cancellationToken);
         if (user is null)
         {
             return Result.NotFound<UserResponse>(UserMessages.UserNotFound);
