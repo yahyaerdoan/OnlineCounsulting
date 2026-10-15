@@ -1,16 +1,13 @@
 using MediatR;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.Abstractions;
-using OnlineConsulting.Modules.Tenancy.Domain;
 using OnlineConsulting.SharedKernel.Payments;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.Signup.RollbackTenantSignup;
 
-/// <summary>Compensates a paid signup whose admin account couldn't be created: cancels the provider subscription, refunds the payment, and
-/// resets the reservation (no provider ids, items back to Pending) so a retry with the same email starts a fresh subscription instead of
-/// reaching for the cancelled one.</summary>
+/// <summary>Undoes a signup that failed before an admin existed: refunds any charge, then deletes the reservation so the name and email are free again.</summary>
 public record RollbackTenantSignupCommand(Guid TenantId) : IRequest<OperationResult>;
 
 public class RollbackTenantSignupHandler(ITenantRepository tenantRepository, ITenantSubscriptionRepository tenantSubscriptionRepository,
@@ -21,7 +18,7 @@ public class RollbackTenantSignupHandler(ITenantRepository tenantRepository, ITe
     {
         var tenant = await tenantRepository.GetAsync(t => t.Id == request.TenantId, cancellationToken: cancellationToken);
 
-        if (tenant is null)
+        if (tenant is null || tenant.OwnerUserId is not null)
         {
             return Result.Success("Nothing to roll back.");
         }
@@ -35,13 +32,10 @@ public class RollbackTenantSignupHandler(ITenantRepository tenantRepository, ITe
                 await subscriptionGateway.CancelAndRefundAsync(providerCustomerId, providerSubscriptionId, cancellationToken: cancellationToken);
             }
 
-            tenantSubscription.CancelSignup();
-            _ = await tenantSubscriptionRepository.UpdateAsync(tenantSubscription, cancellationToken: cancellationToken);
+            _ = await tenantSubscriptionRepository.DeleteAsync(tenantSubscription, cancellationToken: cancellationToken);
         }
 
-        tenant.FailSignup();
-
-        _ = await tenantRepository.UpdateAsync(tenant, cancellationToken: cancellationToken);
+        _ = await tenantRepository.DeleteAsync(tenant, cancellationToken: cancellationToken);
 
         return Result.Success("Tenant signup rolled back and the payment refunded.");
     }

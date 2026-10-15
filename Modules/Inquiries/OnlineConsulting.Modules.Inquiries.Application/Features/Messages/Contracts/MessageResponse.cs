@@ -11,7 +11,11 @@ public class MessageResponse
     public required string Subject { get; init; }
     public required string Description { get; init; }
     public required DateTimeOffset CreatedDate { get; init; }
+
+    /// <summary>Signed-in sender; null for anonymous contact-form messages.</summary>
+    public Guid? UserId { get; init; }
     public DateTimeOffset? RepliedAt { get; init; }
+    public required DateTimeOffset LastMessageAt { get; init; }
 
     /// <summary>Filled by GetMessage only; empty in lists.</summary>
     public IReadOnlyList<MessageReplyResponse> Replies { get; init; } = [];
@@ -25,12 +29,9 @@ public class MessageResponse
         Subject = message.Subject,
         Description = message.Description,
         CreatedDate = message.CreatedDate,
+        UserId = message.UserId,
         RepliedAt = message.RepliedAt,
+        LastMessageAt = message.LastMessageAt,
         Replies = [.. message.Replies.Select(MessageReplyResponse.FromDomain)],
     };
-}
-
-public record MessageReplyResponse(Guid Id, string Body, DateTimeOffset CreatedDate)
-{
-    public static MessageReplyResponse FromDomain(MessageReply reply) => new(reply.Id, reply.Body, reply.CreatedDate);
 }

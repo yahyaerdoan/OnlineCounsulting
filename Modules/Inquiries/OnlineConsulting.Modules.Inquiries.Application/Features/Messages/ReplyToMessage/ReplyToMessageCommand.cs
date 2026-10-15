@@ -28,14 +28,16 @@ public class ReplyToMessageHandler(IMessageRepository repository, IEmailOutboxWr
             return MessageBusinessRules.MessageNotFound(request.MessageId);
         }
 
-        message.RepliedAt = DateTimeOffset.UtcNow;
+        var now = DateTimeOffset.UtcNow;
+        message.RepliedAt = now;
+        message.LastMessageAt = now;
         await repository.AddReplyAsync(message, new MessageReply { MessageId = message.Id, Body = request.ReplyBody.Trim() }, cancellationToken);
 
         var model = new MessageReplyEmailModel(message.FirstName, message.Subject, request.ReplyBody);
-        var sourceReference = $"Message:{message.Id}";
+        var sourceReference = MessageSubmitter.SourceReference(message);
 
         await outboxWriter.EnqueueAsync(message.Email, replyTemplate.Subject(model), replyTemplate.Build(model), sourceReference: sourceReference, cancellationToken: cancellationToken);
 
-        return Result.Success("Reply sent successfully.");
+        return Result.Success(MessageMessages.ReplySent);
     }
 }

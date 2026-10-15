@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Messages.SubmitMessage;
+using OnlineConsulting.SharedKernel.CurrentUser;
 using ResultHandler.AspNetCore.Extensions;
 
 namespace OnlineConsulting.Api.Features.Inquiries.Messages;
@@ -13,18 +14,18 @@ public class SubmitMessage : IEndpoint
         _ = app.MapPost("/inquiries/messages", Handle)
             .WithTags("Inquiries/Messages")
             .WithName("SubmitMessage")
-            .WithDescription("Submits a contact-form message. Public - no login required.")
+            .WithDescription("Submits a contact-form message. Public - no login required; a signed-in sender also sees it in their inbox.")
             .ProducesEnveloped(StatusCodes.Status201Created);
     }
 
-    private static async Task<IResult> Handle([FromBody] SubmitMessageRequest request, ISender sender, HttpContext httpContext)
+    private static async Task<IResult> Handle([FromBody] SubmitMessageRequest request, ICurrentUserAccessor currentUser, ISender sender, HttpContext httpContext)
     {
-        var result = await sender.Send(request.ToCommand());
+        var result = await sender.Send(request.ToCommand(currentUser.Id));
         return result.ToEnvelopedResult(httpContext);
     }
 }
 
 public record SubmitMessageRequest(string FirstName, string LastName, string Email, string Subject, string Description)
 {
-    public SubmitMessageCommand ToCommand() => new(FirstName, LastName, Email, Subject, Description);
+    public SubmitMessageCommand ToCommand(Guid? userId) => new(FirstName, LastName, Email, Subject, Description, userId);
 }

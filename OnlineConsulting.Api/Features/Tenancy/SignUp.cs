@@ -20,7 +20,7 @@ namespace OnlineConsulting.Api.Features.Tenancy;
 public record SignUpTenantRequest(string CompanyName, string AdminFirstName, string AdminLastName, string AdminEmail, string AdminPassword, List<string> ModuleKeys, string PaymentMethodId, string? AdminPhoneNumber = null);
 
 /// <summary>Pay-first: charges the card before creating any user, so a decline never leaves an orphan account. The admin account's fields are
-/// validated before anything is charged; a rare post-charge user-creation failure (e.g. a race) triggers RollbackTenantSignupCommand, which refunds it.</summary>
+/// validated before anything is charged; a failed payment or admin creation triggers RollbackTenantSignupCommand, which refunds and deletes the reservation.</summary>
 public class SignUp : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
@@ -55,6 +55,7 @@ public class SignUp : IEndpoint
 
         if (!activateResult.IsSuccessful)
         {
+            _ = await sender.Send(new RollbackTenantSignupCommand(tenantId));
             return activateResult.ToEnvelopedResult(httpContext);
         }
 

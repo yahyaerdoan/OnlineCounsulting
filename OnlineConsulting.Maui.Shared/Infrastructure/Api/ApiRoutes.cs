@@ -276,6 +276,12 @@ public static class ApiRoutes
 
             /// <summary>POST submits a contact-form message - public, no login required.</summary>
             public const string Submit = Base;
+
+            /// <summary>GET the signed-in user's conversations; POST starts one.</summary>
+            public const string Mine = Base + "/mine";
+
+            /// <summary>GET one of the user's conversations with its replies.</summary>
+            public static string MineById(Guid id) => $"{Mine}/{id}";
         }
 
         public static class Newsletter

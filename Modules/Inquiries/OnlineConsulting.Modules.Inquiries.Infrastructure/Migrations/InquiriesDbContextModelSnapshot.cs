@@ -120,6 +120,9 @@ namespace OnlineConsulting.Modules.Inquiries.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<DateTimeOffset>("LastMessageAt")
+                        .HasColumnType("datetimeoffset");
+
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -147,7 +150,12 @@ namespace OnlineConsulting.Modules.Inquiries.Infrastructure.Migrations
                     b.Property<DateTimeOffset?>("UpdatedDate")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.HasIndex("TenantId", "DeletedDate");
 
@@ -176,6 +184,9 @@ namespace OnlineConsulting.Modules.Inquiries.Infrastructure.Migrations
 
                     b.Property<DateTimeOffset?>("DeletedDate")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<bool>("IsFromCustomer")
+                        .HasColumnType("bit");
 
                     b.Property<Guid>("MessageId")
                         .HasColumnType("uniqueidentifier");

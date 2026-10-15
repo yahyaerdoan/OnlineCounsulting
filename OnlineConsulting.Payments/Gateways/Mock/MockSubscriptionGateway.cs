@@ -16,7 +16,7 @@ public class MockSubscriptionGateway : ISubscriptionGateway
         Task.FromResult(new SubscriptionPriceResult($"mock_prod_{request.ReferenceId}", $"mock_price_{request.ReferenceId}"));
 
     public Task<SubscriptionResult> CreateSubscriptionAsync(CreateSubscriptionRequest request, string? idempotencyKey = null, CancellationToken cancellationToken = default) =>
-        Task.FromResult(new SubscriptionResult($"mock_sub_{request.ReferenceId}", PaymentStatuses.Succeeded, DateTimeOffset.UtcNow.AddMonths(1), FirstItemProviderId: $"mock_si_{request.ReferenceId}_{request.ProviderPriceId}"));
+        Task.FromResult(new SubscriptionResult($"mock_sub_{request.ReferenceId}", PaymentStatuses.Succeeded, DateTimeOffset.UtcNow.AddMonths(1), FirstItemProviderId: NewItemId()));
 
     public Task<SubscriptionResult> CancelSubscriptionAsync(string providerSubscriptionId, bool atPeriodEnd = false, string? connectedAccountId = null, CancellationToken cancellationToken = default) =>
         Task.FromResult(atPeriodEnd
@@ -42,11 +42,14 @@ public class MockSubscriptionGateway : ISubscriptionGateway
         Task.FromResult(new SubscriptionResult(providerSubscriptionId, PaymentStatuses.Succeeded, DateTimeOffset.UtcNow.AddMonths(1)));
 
     public Task<string> AddSubscriptionItemAsync(string providerSubscriptionId, string providerPriceId, string? idempotencyKey = null, string? connectedAccountId = null, CancellationToken cancellationToken = default) =>
-        Task.FromResult($"mock_si_{providerSubscriptionId}_{providerPriceId}");
+        Task.FromResult(NewItemId());
 
     public Task RemoveSubscriptionItemAsync(string providerSubscriptionItemId, string? connectedAccountId = null, CancellationToken cancellationToken = default) =>
         Task.CompletedTask;
 
     public Task<SubscriptionWebhookEvent?> VerifyAndParseWebhookAsync(string rawBody, string? signatureHeader, CancellationToken cancellationToken = default) =>
         Task.FromResult<SubscriptionWebhookEvent?>(null);
+
+    /// <summary>Short like Stripe's ids, so it fits the 100-char columns.</summary>
+    private static string NewItemId() => $"mock_si_{Guid.NewGuid():N}";
 }
