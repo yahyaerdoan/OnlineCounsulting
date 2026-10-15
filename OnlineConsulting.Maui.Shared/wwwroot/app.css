@@ -10166,12 +10166,7 @@ a.address-card {
 
 .admin-table .cell-actions,
 .admin-table .mud-table-body .mud-table-cell[data-label="Actions"] {
-    text-align: right;
     white-space: nowrap;
-}
-
-.admin-table:has(.mud-table-body .mud-table-cell:last-child[data-label="Actions"]) .mud-table-head .mud-table-cell:last-child {
-    text-align: right;
 }
 
 .cell-strong {
@@ -10208,6 +10203,162 @@ a.address-card {
 
 .cell-link:hover {
     text-decoration: underline;
+}
+
+/* Admin inbox: list beside conversation; one pane at a time below md */
+.inbox {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    height: calc(100dvh - 250px);
+    min-height: 420px;
+    overflow: hidden;
+}
+
+.inbox-list,
+.inbox-thread {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+}
+
+.inbox-list {
+    border-right: 1px solid var(--mud-palette-lines-default);
+}
+
+.inbox-search {
+    padding: 4px 12px 8px;
+    border-bottom: 1px solid var(--mud-palette-lines-default);
+}
+
+.inbox-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.inbox-item {
+    border-bottom: 1px solid var(--mud-palette-lines-default);
+}
+
+.inbox-item-time {
+    flex-shrink: 0;
+}
+
+/* Lines up under PersonCell's name (avatar + gap) */
+.inbox-item-preview {
+    padding-left: 50px;
+}
+
+.inbox-muted {
+    color: var(--mud-palette-text-secondary);
+}
+
+.inbox-ellipsis {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.inbox-thread-head {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--mud-palette-lines-default);
+}
+
+/* column-reverse pins scroll to the newest message */
+.inbox-messages {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column-reverse;
+    padding: 12px;
+}
+
+.inbox-subject {
+    align-self: center;
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: var(--mud-palette-background-gray);
+    color: var(--mud-palette-text-secondary);
+}
+
+.inbox-bubble {
+    max-width: 80%;
+    padding: 8px 12px;
+    border-radius: 16px;
+}
+
+.inbox-bubble-text {
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}
+
+.inbox-bubble--in {
+    align-self: flex-start;
+    background: var(--mud-palette-background-gray);
+    border-bottom-left-radius: 4px;
+}
+
+.inbox-bubble--out {
+    align-self: flex-end;
+    background: var(--mud-palette-primary);
+    color: var(--mud-palette-primary-text);
+    border-bottom-right-radius: 4px;
+}
+
+.inbox-bubble-time {
+    display: block;
+    margin-top: 2px;
+    text-align: right;
+    opacity: 0.75;
+}
+
+.inbox-composer {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    padding: 8px 12px;
+    border-top: 1px solid var(--mud-palette-lines-default);
+}
+
+.inbox-composer .inbox-composer-field.mud-input-control {
+    flex: 1;
+    margin: 0;
+}
+
+.inbox-composer-field .mud-input-outlined-border {
+    border-radius: 20px;
+}
+
+/* Same height as the dense outlined input */
+.inbox-composer .mud-icon-button {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+}
+
+@media (max-width: 959.98px) {
+    .inbox {
+        grid-template-columns: minmax(0, 1fr);
+        height: calc(100dvh - 210px);
+    }
+
+    .inbox--open {
+        height: calc(100dvh - 120px);
+    }
+
+    .inbox-list {
+        border-right: 0;
+    }
+
+    .inbox--open .inbox-list,
+    .inbox:not(.inbox--open) .inbox-thread,
+    .inbox-hero--open {
+        display: none;
+    }
 }
 
 .role-chip {
@@ -10721,7 +10872,6 @@ div.order-card:hover {
 
     .admin-table.mud-sm-table .mud-table-container .mud-table-root .mud-table-body .mud-table-row .mud-table-cell:last-child[data-label="Actions"],
     .admin-table.mud-sm-table .mud-table-container .mud-table-root .mud-table-body .mud-table-row .mud-table-cell.cell-actions {
-        justify-content: flex-end;
         flex-wrap: wrap;
         padding-top: 8px;
         border-bottom: 0;

@@ -1,61 +1,294 @@
+@* Inbox: message list beside the selected conversation; below md only one pane shows, the route picks which. *@
 @page "/admin/inquiries/messages"
+@page "/admin/inquiries/messages/{Id:guid}"
 @attribute [Authorize(Roles = "Admin,Super Admin,Member")]
-@using OnlineConsulting.Maui.Shared.Pages.Admin.Inquiries
+@using System.Globalization
+@using OnlineConsulting.Maui.Shared.Infrastructure.Forms
+@implements IDisposable
 @inject IApiClient ApiClient
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject DataChangeNotifier Notifier
+@inject FormState<ReplyModel> Form
 
 <PageTitle>Messages</PageTitle>
 
-<PageHeroBanner Title="Messages" Subtitle="Contact-form submissions from your public site." />
+<div class="@(Id is null ? null : "inbox-hero--open")">
+    <PageHeroBanner Title="Messages" Subtitle="Contact-form submissions from your public site." />
+</div>
 
 <ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
 
-<ServerDataTable TItem="MessageResponse" @ref="_table" ApiBasePath="@ApiRoutes.Inquiries.Messages.All"
-                 SearchPlaceholder="Search name, email or subject" OnLoadError="@(message => _loadError = message)">
-    <HeaderContent>
-        <MudTh><MudTableSortLabel SortLabel="@nameof(MessageResponse.CreatedDate)" T="MessageResponse">Received</MudTableSortLabel></MudTh>
-        <MudTh>From</MudTh>
-        <MudTh>Subject</MudTh>
-        <MudTh>Status</MudTh>
-        <MudTh>Actions</MudTh>
-    </HeaderContent>
-    <RowTemplate Context="message">
-        <MudTd DataLabel="Received">@BusinessTime.FormatDateTime(message.CreatedDate)</MudTd>
-        <MudTd DataLabel="From">@($"{message.FirstName} {message.LastName}") (@message.Email)</MudTd>
-        <MudTd DataLabel="Subject" Class="cell-primary">@message.Subject</MudTd>
-        <MudTd DataLabel="Status">
-            @if (message.RepliedAt is { } repliedAt)
+<MudPaper Outlined="true" Class="@(Id is null ? "inbox" : "inbox inbox--open")">
+    <div class="inbox-list">
+        <div class="inbox-search">
+            <MudTextField T="string" ValueChanged="SearchAsync" Immediate="true" DebounceInterval="300" Margin="Margin.Dense" Clearable="true"
+                          Placeholder="Search messages" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Outlined.Search" IconSize="Size.Small" />
+            <MudChipSet T="bool" SelectedValue="_awaitingOnly" SelectedValueChanged="FilterAsync" SelectionMode="SelectionMode.SingleSelection"
+                        CheckMark="false" Size="Size.Small" Variant="Variant.Text" Color="Color.Primary" Class="mt-1">
+                <MudChip T="bool" Value="false" Text="All" />
+                <MudChip T="bool" Value="true" Text="Awaiting reply" />
+            </MudChipSet>
+        </div>
+
+        <div class="inbox-scroll">
+            @if (_listLoading && _items.Count == 0)
             {
-                <MudChip T="string" Color="Color.Success" Size="Size.Small">Replied @BusinessTime.FormatDateTime(repliedAt)</MudChip>
+                <ListSkeleton Rows="5" />
+            }
+            else if (_items.Count == 0)
+            {
+                <div class="pa-3"><EmptyState Title="@EmptyListText" /></div>
             }
             else
             {
-                <MudChip T="string" Color="Color.Default" Size="Size.Small">Awaiting reply</MudChip>
-            }
-        </MudTd>
-        <MudTd DataLabel="Actions">
-            <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
-                <MudTooltip Text="Reply">
-                    <MudIconButton Disabled="@(!message.Can(LinkRels.Reply))" aria-label="Reply" Icon="@Icons.Material.Outlined.Reply" Color="Color.Default" Size="Size.Small"
-                                   OnClick="@(() => ReplyAsync(message))" />
-                </MudTooltip>
+                <MudList T="Guid" SelectedValue="@(Id ?? Guid.Empty)" Dense="true" Class="py-0">
+                    @foreach (var item in _items)
+                    {
+                        <MudListItem T="Guid" Value="@item.Id" Href="@MessageUrl(item.Id)" Class="inbox-item">
+                            <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start" Spacing="2">
+                                <PersonCell Name="@item.FullName" Secondary="@item.Subject" />
+                                <MudText Typo="Typo.caption" Color="@(item.RepliedAt is null ? Color.Primary : Color.Default)" Class="inbox-item-time">@BusinessTime.Ago(item.CreatedDate)</MudText>
+                            </MudStack>
+                            <MudText Typo="Typo.caption" Class="inbox-muted inbox-ellipsis inbox-item-preview">@item.Description</MudText>
+                        </MudListItem>
+                    }
+                </MudList>
 
-                <MudTooltip Text="Delete">
-                    <MudIconButton Disabled="@(!message.Can(LinkRels.Delete))" aria-label="Delete" Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" Size="Size.Small"
-                                   OnClick="@(() => DeleteAsync(message))" />
-                </MudTooltip>
-            </MudButtonGroup>
-        </MudTd>
-    </RowTemplate>
-</ServerDataTable>
+                @if (_hasMore)
+                {
+                    <div class="d-flex justify-center pa-2">
+                        <MudButton Variant="Variant.Text" Size="Size.Small" Disabled="@_listLoading" OnClick="LoadMoreAsync">Load more</MudButton>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+
+    <div class="inbox-thread">
+        @if (Id is null)
+        {
+            <div class="pa-3"><EmptyState Icon="@Icons.Material.Outlined.Forum" Title="Select a message to read and reply." /></div>
+        }
+        else if (_thread is not { } thread)
+        {
+            <div class="pa-3"><ListSkeleton Rows="3" /></div>
+        }
+        else
+        {
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="inbox-thread-head">
+                <MudIconButton Href="@ListUrl" Icon="@Icons.Material.Outlined.ArrowBack" Size="Size.Small" aria-label="Back to messages" Class="d-md-none" />
+                <PersonCell Name="@thread.FullName" Secondary="@thread.Email" />
+                <MudSpacer />
+                <MudMenu Icon="@Icons.Material.Outlined.MoreVert" Size="Size.Small" AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" aria-label="More actions">
+                    <MudMenuItem Href="@MailtoUrl(thread)">Open in email app</MudMenuItem>
+                    @if (thread.Can(LinkRels.Delete))
+                    {
+                        <MudMenuItem OnClick="@(() => DeleteAsync(thread))">Delete</MudMenuItem>
+                    }
+                </MudMenu>
+            </MudStack>
+
+            @* column-reverse keeps the scroll pinned to the newest message *@
+            <div class="inbox-messages">
+                <MudStack Spacing="2">
+                    <MudText Typo="Typo.caption" Align="Align.Center" Class="inbox-subject">@thread.Subject</MudText>
+
+                    <MudPaper Elevation="0" Class="inbox-bubble inbox-bubble--in">
+                        <MudText Typo="Typo.body2" Class="inbox-bubble-text">@thread.Description</MudText>
+                        <MudText Typo="Typo.caption" Class="inbox-bubble-time">@BusinessTime.FormatDateTime(thread.CreatedDate)</MudText>
+                    </MudPaper>
+
+                    @if (thread.RepliedAt is { } repliedAt && thread.Replies.Count == 0)
+                    {
+                        <MudText Typo="Typo.caption" Align="Align.Center" Class="inbox-muted">Replied @BusinessTime.FormatDateTime(repliedAt). Earlier reply text was not saved.</MudText>
+                    }
+
+                    @foreach (var reply in thread.Replies)
+                    {
+                        <MudPaper Elevation="0" Class="inbox-bubble inbox-bubble--out">
+                            <MudText Typo="Typo.body2" Class="inbox-bubble-text">@reply.Body</MudText>
+                            <MudText Typo="Typo.caption" Class="inbox-bubble-time">@BusinessTime.FormatDateTime(reply.CreatedDate)</MudText>
+                        </MudPaper>
+                    }
+                </MudStack>
+            </div>
+
+            @if (thread.Can(LinkRels.Reply))
+            {
+                <EditForm EditContext="@Form.EditContext" OnSubmit="SendAsync" class="inbox-composer">
+                    <MudTextField @bind-Value="_model.ReplyBody" For="@(() => _model.ReplyBody)" Immediate="true" OnKeyDown="OnComposerKeyDown"
+                                  Placeholder="@($"Reply to {NameCase(thread.FirstName)}")" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                  Lines="1" MaxLines="6" Sizing="InputSizing.Auto" Class="inbox-composer-field" />
+                    <MudTooltip Text="Send (Ctrl+Enter)">
+                        <MudIconButton ButtonType="ButtonType.Submit" aria-label="Send" Icon="@Icons.Material.Filled.Send" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small"
+                                       Disabled="@(Form.IsBusy || string.IsNullOrWhiteSpace(_model.ReplyBody))" />
+                    </MudTooltip>
+                </EditForm>
+            }
+        }
+    </div>
+</MudPaper>
 
 @code {
-    private ServerDataTable<MessageResponse> _table = default!;
-    private string? _loadError;
+    private const int PageSize = 20;
+    private const string ListUrl = $"{AppRoutes.AdminHome}/inquiries/messages";
 
-    private Task ReplyAsync(MessageResponse message) =>
-        DialogService.ShowAndReloadAsync("Reply", new DialogParameters<ReplyMessageDialog> { { x => x.Message, message } }, _table.ReloadAsync);
+    [Parameter]
+    public Guid? Id { get; set; }
+
+    private readonly List<MessageResponse> _items = [];
+    private readonly ReplyModel _model = new();
+    private IDisposable? _liveUpdates;
+    private MessageResponse? _thread;
+    private Guid? _loadedId;
+    private string? _search;
+    private string? _loadError;
+    private int _pageIndex;
+    private bool _hasMore;
+    private bool _listLoading;
+    private bool _awaitingOnly;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Form.Bind(_model);
+        _liveUpdates = Notifier.Subscribe(() => InvokeAsync(async () => { await RefreshAsync(); StateHasChanged(); }));
+        await LoadPageAsync(0);
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Id == _loadedId)
+        {
+            return;
+        }
+
+        _loadedId = Id;
+        _thread = null;
+        _model.ReplyBody = string.Empty;
+
+        if (Id is { } id)
+        {
+            await LoadThreadAsync(id);
+        }
+    }
+
+    private static string MessageUrl(Guid id) => $"{ListUrl}/{id}";
+
+    private static string MailtoUrl(MessageResponse message) => $"mailto:{message.Email}?subject={Uri.EscapeDataString($"Re: {message.Subject}")}";
+
+    private string EmptyListText => !string.IsNullOrWhiteSpace(_search) ? "No matching messages." : _awaitingOnly ? "All caught up." : "No messages yet.";
+
+    /// <summary>"YAHYA" or "yahya" to "Yahya".</summary>
+    private static string NameCase(string name) => CultureInfo.InvariantCulture.TextInfo.ToTitleCase(name.ToLowerInvariant());
+
+    private async Task LoadPageAsync(int index)
+    {
+        _listLoading = true;
+
+        var query = new DynamicQuery([new DynamicSort(nameof(MessageResponse.CreatedDate), "desc")], BuildFilter());
+        var result = await ApiClient.QueryAsync<PaginatedResponse<MessageResponse>>(ApiRoutes.Paged(ApiRoutes.Inquiries.Messages.All, index, PageSize), query);
+
+        _listLoading = false;
+
+        if (!result.IsSuccessful || result.ResultData is not { } page)
+        {
+            _loadError = result.DisplayMessage;
+            return;
+        }
+
+        if (index == 0)
+        {
+            _items.Clear();
+        }
+
+        _items.AddRange(page.Items);
+        _pageIndex = index;
+        _hasMore = index + 1 < page.Pages;
+    }
+
+    private async Task LoadThreadAsync(Guid id)
+    {
+        var result = await ApiClient.GetAsync<MessageResponse>(ApiRoutes.Inquiries.Messages.ById(id));
+        if (!result.IsSuccessful || result.ResultData is not { } thread)
+        {
+            _loadError = result.DisplayMessage;
+            return;
+        }
+
+        _thread = thread;
+
+        var index = _items.FindIndex(m => m.Id == id);
+        if (index >= 0)
+        {
+            _items[index] = thread;
+        }
+    }
+
+    /// <summary>Awaiting-reply filter AND search, either optional.</summary>
+    private DynamicFilter? BuildFilter()
+    {
+        var search = string.IsNullOrWhiteSpace(_search) ? null : DynamicFilter.AnyContains(MessageResponse.SearchFields, _search.Trim());
+        if (!_awaitingOnly)
+        {
+            return search;
+        }
+
+        var awaiting = new DynamicFilter(nameof(MessageResponse.RepliedAt), "isnull");
+        return search is null ? awaiting : awaiting with { Logic = "and", Filters = [search] };
+    }
+
+    private Task FilterAsync(bool awaitingOnly)
+    {
+        _awaitingOnly = awaitingOnly;
+        return LoadPageAsync(0);
+    }
+
+    private Task LoadMoreAsync() => LoadPageAsync(_pageIndex + 1);
+
+    private Task SearchAsync(string? text)
+    {
+        _search = text;
+        return LoadPageAsync(0);
+    }
+
+    private async Task RefreshAsync()
+    {
+        await LoadPageAsync(0);
+
+        if (Id is { } id)
+        {
+            await LoadThreadAsync(id);
+        }
+    }
+
+    private async Task OnComposerKeyDown(KeyboardEventArgs args)
+    {
+        if (args.Key == "Enter" && (args.CtrlKey || args.MetaKey))
+        {
+            await SendAsync();
+        }
+    }
+
+    private Task SendAsync() => Form.SubmitAsync(async () =>
+    {
+        if (_thread is not { } thread || thread.Links.Find(LinkRels.Reply) is not { } reply || string.IsNullOrWhiteSpace(_model.ReplyBody))
+        {
+            return;
+        }
+
+        var result = await ApiClient.FollowAsync(reply, new { replyBody = _model.ReplyBody });
+        if (!result.IsSuccessful)
+        {
+            Form.DisplayErrors(result, Snackbar);
+            return;
+        }
+
+        _model.ReplyBody = string.Empty;
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await LoadThreadAsync(thread.Id);
+    });
 
     private async Task DeleteAsync(MessageResponse message)
     {
@@ -77,6 +310,14 @@
         }
 
         Snackbar.ShowSuccess(result.DisplayMessage);
-        await _table.ReloadAsync();
+        _ = _items.RemoveAll(m => m.Id == message.Id);
+        Navigation.NavigateTo(ListUrl);
+    }
+
+    public void Dispose() => _liveUpdates?.Dispose();
+
+    private sealed class ReplyModel
+    {
+        public string ReplyBody { get; set; } = string.Empty;
     }
 }

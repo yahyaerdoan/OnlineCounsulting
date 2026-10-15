@@ -8,6 +8,7 @@ namespace OnlineConsulting.Modules.Inquiries.Infrastructure.Persistence;
 public class InquiriesDbContext(DbContextOptions<InquiriesDbContext> options, ITenantContext tenantContext) : TenantDbContext(options, tenantContext)
 {
     public DbSet<Message> Messages => Set<Message>();
+    public DbSet<MessageReply> MessageReplies => Set<MessageReply>();
     public DbSet<NewsletterSubscriber> NewsletterSubscribers => Set<NewsletterSubscriber>();
     public DbSet<CompanyContact> CompanyContacts => Set<CompanyContact>();
     public DbSet<OutboxEmail> OutboxEmails => Set<OutboxEmail>();
@@ -24,6 +25,14 @@ public class InquiriesDbContext(DbContextOptions<InquiriesDbContext> options, IT
             _ = builder.Property(m => m.Subject).HasMaxLength(200).IsRequired();
             _ = builder.Property(m => m.Description).HasMaxLength(4000).IsRequired();
             _ = builder.Property(m => m.RowVersion).IsRowVersion();
+            _ = builder.HasMany(m => m.Replies).WithOne().HasForeignKey(r => r.MessageId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        _ = modelBuilder.Entity<MessageReply>(builder =>
+        {
+            _ = builder.Property(r => r.Body).HasMaxLength(4000).IsRequired();
+            _ = builder.Property(r => r.RowVersion).IsRowVersion();
+            _ = builder.HasIndex(r => r.MessageId);
         });
 
         _ = modelBuilder.Entity<NewsletterSubscriber>(builder =>

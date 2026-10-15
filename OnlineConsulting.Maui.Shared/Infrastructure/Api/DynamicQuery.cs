@@ -9,4 +9,14 @@ public record DynamicQuery(List<DynamicSort>? Sort = null, DynamicFilter? Filter
 
 public record DynamicSort(string Field, string Direction);
 
-public record DynamicFilter(string Field, string Operator, string? Value = null, string? Logic = null, List<DynamicFilter>? Filters = null);
+public record DynamicFilter(string Field, string Operator, string? Value = null, string? Logic = null, List<DynamicFilter>? Filters = null)
+{
+    /// <summary>Any field contains the text; root filter needs its own Field/Operator too.</summary>
+    public static DynamicFilter AnyContains(string[] fields, string search)
+    {
+        var root = new DynamicFilter(fields[0], "contains", search);
+        return fields.Length == 1
+            ? root
+            : root with { Logic = "or", Filters = [.. fields.Skip(1).Select(f => new DynamicFilter(f, "contains", search))] };
+    }
+}

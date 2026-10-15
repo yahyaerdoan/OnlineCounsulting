@@ -271,6 +271,9 @@ public static class ApiRoutes
 
             public const string All = Base + "/query";
 
+            /// <summary>GET one message with its replies.</summary>
+            public static string ById(Guid id) => $"{Base}/{id}";
+
             /// <summary>POST submits a contact-form message - public, no login required.</summary>
             public const string Submit = Base;
         }

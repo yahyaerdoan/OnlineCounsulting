@@ -4,6 +4,7 @@ using OnlineConsulting.Modules.Inquiries.Application.Common.Templates;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Messages.Abstractions;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Messages.Constants;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Messages.Rules;
+using OnlineConsulting.Modules.Inquiries.Domain;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
 using ResultHandler.Core.Base;
@@ -28,7 +29,7 @@ public class ReplyToMessageHandler(IMessageRepository repository, IEmailOutboxWr
         }
 
         message.RepliedAt = DateTimeOffset.UtcNow;
-        _ = await repository.UpdateAsync(message, cancellationToken: cancellationToken);
+        await repository.AddReplyAsync(message, new MessageReply { MessageId = message.Id, Body = request.ReplyBody.Trim() }, cancellationToken);
 
         var model = new MessageReplyEmailModel(message.FirstName, message.Subject, request.ReplyBody);
         var sourceReference = $"Message:{message.Id}";

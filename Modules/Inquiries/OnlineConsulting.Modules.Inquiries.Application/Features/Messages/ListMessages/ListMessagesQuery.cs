@@ -16,7 +16,7 @@ namespace OnlineConsulting.Modules.Inquiries.Application.Features.Messages.ListM
 public record ListMessagesQuery(PageRequest PageRequest, DynamicQuery? DynamicQuery = null)
     : IRequest<OperationDataResult<Paginate<MessageResponse>>>, ISecureAddRequest, IDynamicListRequest
 {
-    public static IReadOnlySet<string> QueryableFields { get; } = new HashSet<string>([nameof(Message.FirstName), nameof(Message.LastName), nameof(Message.Email), nameof(Message.Subject), nameof(Message.CreatedDate)]);
+    public static IReadOnlySet<string> QueryableFields { get; } = new HashSet<string>([nameof(Message.FirstName), nameof(Message.LastName), nameof(Message.Email), nameof(Message.Subject), nameof(Message.Description), nameof(Message.CreatedDate), nameof(Message.RepliedAt)]);
 
     public string[] Roles => [MessagesOperationClaims.Admin, MessagesOperationClaims.Read];
 }

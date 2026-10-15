@@ -5,13 +5,19 @@
 param(
     [Parameter(Mandatory = $true)][string]$ApiBaseUrl,
     [Parameter(Mandatory = $true)][string]$Email,
-    [string]$CatalogPath = (Join-Path $PSScriptRoot 'platform-catalog.json'),
-    [string]$LandingPath = (Join-Path $PSScriptRoot 'platform-landing.json'),
-    [string]$CategoriesPath = (Join-Path $PSScriptRoot 'platform-categories.json'),
+    [string]$CatalogPath,
+    [string]$LandingPath,
+    [string]$CategoriesPath,
     [securestring]$Password
 )
 
 $ErrorActionPreference = 'Stop'
+
+# Defaults resolved here: $PSScriptRoot is empty inside param defaults on Windows PowerShell 5.1 with -File.
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+if (-not $CatalogPath) { $CatalogPath = Join-Path $scriptDir 'platform-catalog.json' }
+if (-not $LandingPath) { $LandingPath = Join-Path $scriptDir 'platform-landing.json' }
+if (-not $CategoriesPath) { $CategoriesPath = Join-Path $scriptDir 'platform-categories.json' }
 $api = "$($ApiBaseUrl.TrimEnd('/'))/api/v1"
 $catalog = Get-Content $CatalogPath -Raw -Encoding UTF8 | ConvertFrom-Json
 $landing = Get-Content $LandingPath -Raw -Encoding UTF8 | ConvertFrom-Json
