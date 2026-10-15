@@ -49,7 +49,7 @@ public class PayPalPaymentGateway(IHttpClientFactory httpClientFactory, IOptions
         return new PaymentIntentResult(order.Id, MapStatus(order.Status), approveLink);
     }
 
-    public async Task<PaymentStatusResult> GetStatusAsync(string providerPaymentId, CancellationToken cancellationToken = default)
+    public async Task<PaymentStatusResult> GetStatusAsync(string providerPaymentId, string? connectedAccountId = null, CancellationToken cancellationToken = default)
     {
         var accessToken = await GetAccessTokenAsync(cancellationToken);
 
@@ -68,7 +68,7 @@ public class PayPalPaymentGateway(IHttpClientFactory httpClientFactory, IOptions
     }
 
     /// <summary>Simplified: assumes a single full capture; production would need the capture id, not the order id, to refund correctly.</summary>
-    public async Task<PaymentStatusResult> RefundAsync(string providerPaymentId, decimal? amount = null, CancellationToken cancellationToken = default)
+    public async Task<PaymentStatusResult> RefundAsync(string providerPaymentId, decimal? amount = null, string? connectedAccountId = null, CancellationToken cancellationToken = default)
     {
         var accessToken = await GetAccessTokenAsync(cancellationToken);
 

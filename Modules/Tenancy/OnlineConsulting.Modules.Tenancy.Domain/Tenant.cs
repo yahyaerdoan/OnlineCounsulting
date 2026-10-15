@@ -30,6 +30,18 @@ public class Tenant : SequentialGuidEntity
     /// <summary>Logo shown on the tenant's site and app; null shows the name alone.</summary>
     public Guid? LogoMediaAssetId { get; private set; }
 
+    /// <summary>Stripe Connect Express account that customer-facing charges (orders, memberships) route to; null until the tenant connects one. Distinct from <see cref="ProviderCustomerId"/>, which is the tenant's own billing identity on the platform's account.</summary>
+    public string? StripeConnectedAccountId { get; private set; }
+
+    /// <summary>Mirrors the connected account's "charges_enabled" capability; false until Stripe finishes onboarding review.</summary>
+    public bool StripeChargesEnabled { get; private set; }
+
+    /// <summary>Mirrors the connected account's "payouts_enabled" capability.</summary>
+    public bool StripePayoutsEnabled { get; private set; }
+
+    /// <summary>Whether a checkout/subscription for this tenant's own customers can be charged - everything is in place on the provider side.</summary>
+    public bool IsReadyToAcceptPayments => StripeConnectedAccountId is not null && StripeChargesEnabled;
+
     /// <summary>Signup not finished: payment pending or the attempt failed.</summary>
     public bool IsAwaitingSignup => TenantRules.IsAwaitingSignup(Status);
 
@@ -79,6 +91,20 @@ public class Tenant : SequentialGuidEntity
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         Name = name.Trim();
         LogoMediaAssetId = logoMediaAssetId;
+    }
+
+    /// <summary>Remembers the Stripe Connect account created (or reused) for this tenant; capabilities start false until Stripe reports otherwise.</summary>
+    public void ConnectStripeAccount(string connectedAccountId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(connectedAccountId);
+        StripeConnectedAccountId = connectedAccountId;
+    }
+
+    /// <summary>Applies the connected account's current capabilities - called from the onboarding return-page refresh and the Connect webhook.</summary>
+    public void UpdateStripeConnectStatus(bool chargesEnabled, bool payoutsEnabled)
+    {
+        StripeChargesEnabled = chargesEnabled;
+        StripePayoutsEnabled = payoutsEnabled;
     }
 
     /// <summary>Records the tenant's first admin as its owner.</summary>

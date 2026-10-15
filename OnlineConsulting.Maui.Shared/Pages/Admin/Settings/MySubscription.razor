@@ -8,6 +8,7 @@
 @inject ISnackbar Snackbar
 @inject SiteBrand Brand
 @inject LogoTrimmer LogoTrimmer
+@inject NavigationManager Navigation
 @using OnlineConsulting.Maui.Shared.Pages.Admin.Catalog
 @using OnlineConsulting.Maui.Shared.Pages.Admin.Platform
 
@@ -72,6 +73,28 @@ else if (_tenant is not null)
             </MudPaper>
         }
 
+        @if (_tenant.Can(LinkRels.ConnectStripe))
+        {
+            <MudPaper Outlined="true" Class="pa-4 rounded-lg mt-4">
+                <MudText Typo="Typo.h6">Payments</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">Connect your own Stripe account so your customers' orders and membership payments go straight to you.</MudText>
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Wrap="Wrap.Wrap">
+                    <MudChip T="string" Size="Size.Small" Color="@(_tenant.StripeChargesEnabled ? Color.Success : _tenant.IsStripeConnected ? Color.Warning : Color.Default)">
+                        @(_tenant.StripeChargesEnabled ? "Connected" : _tenant.IsStripeConnected ? "Pending" : "Not connected")
+                    </MudChip>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="_connectingStripe" OnClick="ConnectStripeAsync">
+                        @(_connectingStripe ? "Redirecting..." : _tenant.IsStripeConnected ? "Finish setup" : "Connect Stripe")
+                    </MudButton>
+                    @if (_tenant.IsStripeConnected && !_tenant.StripeChargesEnabled)
+                    {
+                        <MudButton Variant="Variant.Text" Color="Color.Primary" Disabled="_refreshingStripeStatus" OnClick="RefreshStripeStatusAsync">
+                            @(_refreshingStripeStatus ? "Checking..." : "Refresh status")
+                        </MudButton>
+                    }
+                </MudStack>
+            </MudPaper>
+        }
+
         @if (_invoiceSettings is not null && _invoiceSettings.Can(LinkRels.Edit))
         {
             <MudPaper Outlined="true" Class="pa-4 rounded-lg mt-4">
@@ -106,6 +129,8 @@ else if (_tenant is not null)
     private bool _savingInvoiceSettings;
     private bool _loading = true;
     private string? _loadError;
+    private bool _connectingStripe;
+    private bool _refreshingStripeStatus;
 
     protected override Task OnInitializedAsync() => ReloadAsync();
 
@@ -215,6 +240,47 @@ else if (_tenant is not null)
 
         Snackbar.ShowSuccess(result.DisplayMessage);
         await Brand.ReloadAsync();
+        await ReloadAsync();
+    }
+
+    private async Task ConnectStripeAsync()
+    {
+        if (_tenant?.Links.Find(LinkRels.ConnectStripe) is not { } connectStripe)
+        {
+            return;
+        }
+
+        _connectingStripe = true;
+        var returnUrl = $"{Navigation.BaseUri.TrimEnd('/')}/admin/settings/stripe-connect/return";
+        var result = await ApiClient.FollowAsync<StripeConnectOnboardingLinkResponse>(connectStripe, new CreateStripeConnectOnboardingLinkRequest(returnUrl));
+        _connectingStripe = false;
+
+        if (!result.IsSuccessful || result.ResultData is null)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Navigation.NavigateTo(result.ResultData.Url, forceLoad: true);
+    }
+
+    private async Task RefreshStripeStatusAsync()
+    {
+        if (_tenant?.Links.Find(LinkRels.RefreshStripeStatus) is not { } refresh)
+        {
+            return;
+        }
+
+        _refreshingStripeStatus = true;
+        var result = await ApiClient.FollowAsync<StripeConnectStatusResponse>(refresh);
+        _refreshingStripeStatus = false;
+
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
         await ReloadAsync();
     }
 

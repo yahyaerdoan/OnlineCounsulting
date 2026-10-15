@@ -13,7 +13,7 @@ namespace OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemb
 public static class MembershipReactivation
 {
     public static async Task<OperationResult> RunAsync(CustomerMembership membership, ICustomerMembershipRepository repository, ISubscriptionGateway subscriptionGateway,
-        ITenantTimeZoneReader timeZoneReader, CancellationToken cancellationToken)
+        ITenantTimeZoneReader timeZoneReader, ITenantPaymentAccountReader paymentAccountReader, CancellationToken cancellationToken)
     {
         if (!membership.CanBeReactivated)
         {
@@ -22,7 +22,8 @@ public static class MembershipReactivation
 
         if (membership.ProviderSubscriptionId is { } subscriptionId)
         {
-            var failure = await PaymentGatewayCall.RunAsync(() => subscriptionGateway.ReactivateSubscriptionAsync(subscriptionId, cancellationToken), CustomerMembershipMessages.ReactivateFailed);
+            var paymentAccount = await paymentAccountReader.GetAsync(membership.TenantId, cancellationToken);
+            var failure = await PaymentGatewayCall.RunAsync(() => subscriptionGateway.ReactivateSubscriptionAsync(subscriptionId, paymentAccount.ConnectedAccountId, cancellationToken), CustomerMembershipMessages.ReactivateFailed);
 
             if (failure is not null)
             {

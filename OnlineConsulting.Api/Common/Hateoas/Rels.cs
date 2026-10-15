@@ -52,6 +52,8 @@ public static class Rels
     public const string PermissionOverrides = "permission-overrides";
     public const string ChangePassword = "change-password";
     public const string UpdateImage = "update-image";
+    public const string ConnectStripe = "connect-stripe";
+    public const string RefreshStripeStatus = "refresh-stripe-status";
 
     public static readonly IReadOnlyDictionary<string, string> Descriptions = new Dictionary<string, string>(StringComparer.Ordinal)
     {
@@ -98,5 +100,7 @@ public static class Rels
         [PermissionOverrides] = "Per-user permission overrides on top of the user's roles.",
         [ChangePassword] = "Changes the caller's password.",
         [UpdateImage] = "Replaces the caller's profile image.",
+        [ConnectStripe] = "Creates (or reuses) the caller's own tenant's Stripe Connect account and returns an onboarding link (tenant admins).",
+        [RefreshStripeStatus] = "Pulls the caller's own tenant's Stripe Connect capabilities live from the provider (tenant admins).",
     };
 }

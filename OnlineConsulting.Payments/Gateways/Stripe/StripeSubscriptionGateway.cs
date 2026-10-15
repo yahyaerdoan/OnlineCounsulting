@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Options;
 using OnlineConsulting.SharedKernel.Payments;
 using Stripe;
 
@@ -21,20 +21,22 @@ public class StripeSubscriptionGateway(IOptions<PaymentOptions> options) : ISubs
         {
             Email = request.Email,
             Metadata = new Dictionary<string, string> { ["ReferenceId"] = request.ReferenceId },
-        }, ToRequestOptions(idempotencyKey), cancellationToken);
+        }, ToRequestOptions(idempotencyKey, request.ConnectedAccountId), cancellationToken);
 
         return new SubscriptionCustomerResult(customer.Id);
     }
 
     public async Task<SubscriptionPriceResult> EnsurePriceAsync(EnsurePriceRequest request, CancellationToken cancellationToken = default)
     {
+        var requestOptions = ToRequestOptions(null, request.ConnectedAccountId);
+
         var productService = new ProductService(_client);
 
         var product = await productService.CreateAsync(new ProductCreateOptions
         {
             Name = request.Name,
             Metadata = new Dictionary<string, string> { ["ReferenceId"] = request.ReferenceId },
-        }, cancellationToken: cancellationToken);
+        }, requestOptions, cancellationToken);
 
         var priceService = new PriceService(_client);
 
@@ -45,26 +47,28 @@ public class StripeSubscriptionGateway(IOptions<PaymentOptions> options) : ISubs
             Currency = request.Currency.ToLowerInvariant(),
             Recurring = new PriceRecurringOptions { Interval = MapInterval(request.BillingCycle) },
             Metadata = new Dictionary<string, string> { ["ReferenceId"] = request.ReferenceId },
-        }, cancellationToken: cancellationToken);
+        }, requestOptions, cancellationToken);
 
         return new SubscriptionPriceResult(product.Id, price.Id);
     }
 
     public async Task<SubscriptionResult> CreateSubscriptionAsync(CreateSubscriptionRequest request, string? idempotencyKey = null, CancellationToken cancellationToken = default)
     {
+        var requestOptions = ToRequestOptions(null, request.ConnectedAccountId);
+
         var paymentMethodService = new PaymentMethodService(_client);
 
         var attachedPaymentMethod = await paymentMethodService.AttachAsync(request.PaymentMethodId, new PaymentMethodAttachOptions
         {
             Customer = request.ProviderCustomerId,
-        }, cancellationToken: cancellationToken);
+        }, requestOptions, cancellationToken);
 
         var customerService = new CustomerService(_client);
 
         _ = await customerService.UpdateAsync(request.ProviderCustomerId, new CustomerUpdateOptions
         {
             InvoiceSettings = new CustomerInvoiceSettingsOptions { DefaultPaymentMethod = attachedPaymentMethod.Id },
-        }, cancellationToken: cancellationToken);
+        }, requestOptions, cancellationToken);
 
         List<SubscriptionDiscountOptions>? discounts = null;
 
@@ -76,7 +80,7 @@ public class StripeSubscriptionGateway(IOptions<PaymentOptions> options) : ISubs
                 AmountOff = ToMinorUnits(request.DiscountAmount.Value),
                 Currency = "usd",
                 Duration = "once",
-            }, cancellationToken: cancellationToken);
+            }, requestOptions, cancellationToken);
 
             discounts = [new SubscriptionDiscountOptions { Coupon = coupon.Id }];
         }
@@ -90,41 +94,43 @@ public class StripeSubscriptionGateway(IOptions<PaymentOptions> options) : ISubs
             Discounts = discounts,
             TrialPeriodDays = request.TrialDays,
             Metadata = new Dictionary<string, string> { ["ReferenceId"] = request.ReferenceId },
-        }, ToRequestOptions(idempotencyKey), cancellationToken);
+        }, ToRequestOptions(idempotencyKey, request.ConnectedAccountId), cancellationToken);
 
         return ToSubscriptionResult(subscription);
     }
 
-    public async Task<SubscriptionResult> CancelSubscriptionAsync(string providerSubscriptionId, bool atPeriodEnd = false, CancellationToken cancellationToken = default)
+    public async Task<SubscriptionResult> CancelSubscriptionAsync(string providerSubscriptionId, bool atPeriodEnd = false, string? connectedAccountId = null, CancellationToken cancellationToken = default)
     {
         var service = new SubscriptionService(_client);
+        var requestOptions = ToRequestOptions(null, connectedAccountId);
 
         if (atPeriodEnd)
         {
-            var updated = await service.UpdateAsync(providerSubscriptionId, new SubscriptionUpdateOptions { CancelAtPeriodEnd = true }, cancellationToken: cancellationToken);
+            var updated = await service.UpdateAsync(providerSubscriptionId, new SubscriptionUpdateOptions { CancelAtPeriodEnd = true }, requestOptions, cancellationToken);
 
             return ToSubscriptionResult(updated);
         }
 
-        var subscription = await service.CancelAsync(providerSubscriptionId, cancellationToken: cancellationToken);
+        var subscription = await service.CancelAsync(providerSubscriptionId, requestOptions: requestOptions, cancellationToken: cancellationToken);
 
         return ToSubscriptionResult(subscription);
     }
 
-    public async Task<SubscriptionResult> ReactivateSubscriptionAsync(string providerSubscriptionId, CancellationToken cancellationToken = default)
+    public async Task<SubscriptionResult> ReactivateSubscriptionAsync(string providerSubscriptionId, string? connectedAccountId = null, CancellationToken cancellationToken = default)
     {
         var service = new SubscriptionService(_client);
 
-        var updated = await service.UpdateAsync(providerSubscriptionId, new SubscriptionUpdateOptions { CancelAtPeriodEnd = false }, cancellationToken: cancellationToken);
+        var updated = await service.UpdateAsync(providerSubscriptionId, new SubscriptionUpdateOptions { CancelAtPeriodEnd = false }, ToRequestOptions(null, connectedAccountId), cancellationToken);
 
         return ToSubscriptionResult(updated);
     }
 
-    public async Task<SubscriptionResult> UpdateSubscriptionPriceAsync(string providerSubscriptionId, string newProviderPriceId, CancellationToken cancellationToken = default)
+    public async Task<SubscriptionResult> UpdateSubscriptionPriceAsync(string providerSubscriptionId, string newProviderPriceId, string? connectedAccountId = null, CancellationToken cancellationToken = default)
     {
         var service = new SubscriptionService(_client);
+        var requestOptions = ToRequestOptions(null, connectedAccountId);
 
-        var subscription = await service.GetAsync(providerSubscriptionId, cancellationToken: cancellationToken);
+        var subscription = await service.GetAsync(providerSubscriptionId, requestOptions: requestOptions, cancellationToken: cancellationToken);
 
         var itemId = subscription.Items.Data[0].Id;
 
@@ -132,57 +138,60 @@ public class StripeSubscriptionGateway(IOptions<PaymentOptions> options) : ISubs
         {
             Items = [new SubscriptionItemOptions { Id = itemId, Price = newProviderPriceId }],
             ProrationBehavior = "create_prorations",
-        }, cancellationToken: cancellationToken);
+        }, requestOptions, cancellationToken);
 
         return ToSubscriptionResult(updated);
     }
 
-    public async Task<SubscriptionResult> PauseSubscriptionAsync(string providerSubscriptionId, CancellationToken cancellationToken = default)
+    public async Task<SubscriptionResult> PauseSubscriptionAsync(string providerSubscriptionId, string? connectedAccountId = null, CancellationToken cancellationToken = default)
     {
         var service = new SubscriptionService(_client);
 
         var updated = await service.UpdateAsync(providerSubscriptionId, new SubscriptionUpdateOptions
         {
             PauseCollection = new SubscriptionPauseCollectionOptions { Behavior = "void" },
-        }, cancellationToken: cancellationToken);
+        }, ToRequestOptions(null, connectedAccountId), cancellationToken);
 
         return ToSubscriptionResult(updated);
     }
 
     /// <summary>Stripe.net has no property to clear pause_collection; ExtraParams sends the literal empty object the API requires to unset it.</summary>
-    public async Task<SubscriptionResult> ResumeSubscriptionAsync(string providerSubscriptionId, CancellationToken cancellationToken = default)
+    public async Task<SubscriptionResult> ResumeSubscriptionAsync(string providerSubscriptionId, string? connectedAccountId = null, CancellationToken cancellationToken = default)
     {
         var service = new SubscriptionService(_client);
         var options = new SubscriptionUpdateOptions();
         options.AddExtraParam("pause_collection", "");
 
-        var updated = await service.UpdateAsync(providerSubscriptionId, options, cancellationToken: cancellationToken);
+        var updated = await service.UpdateAsync(providerSubscriptionId, options, ToRequestOptions(null, connectedAccountId), cancellationToken);
 
         return ToSubscriptionResult(updated);
     }
 
-    public async Task CancelAndRefundAsync(string providerCustomerId, string providerSubscriptionId, CancellationToken cancellationToken = default)
+    public async Task CancelAndRefundAsync(string providerCustomerId, string providerSubscriptionId, string? connectedAccountId = null, CancellationToken cancellationToken = default)
     {
+        var requestOptions = ToRequestOptions(null, connectedAccountId);
+
         var subscriptionService = new SubscriptionService(_client);
-        var subscription = await subscriptionService.GetAsync(providerSubscriptionId, cancellationToken: cancellationToken);
+        var subscription = await subscriptionService.GetAsync(providerSubscriptionId, requestOptions: requestOptions, cancellationToken: cancellationToken);
         if (subscription.Status is not ("canceled" or "incomplete_expired"))
         {
-            _ = await subscriptionService.CancelAsync(providerSubscriptionId, cancellationToken: cancellationToken);
+            _ = await subscriptionService.CancelAsync(providerSubscriptionId, requestOptions: requestOptions, cancellationToken: cancellationToken);
         }
 
         var chargeService = new ChargeService(_client);
         var refundService = new RefundService(_client);
-        var charges = await chargeService.ListAsync(new ChargeListOptions { Customer = providerCustomerId, Limit = 100 }, cancellationToken: cancellationToken);
+        var charges = await chargeService.ListAsync(new ChargeListOptions { Customer = providerCustomerId, Limit = 100 }, requestOptions, cancellationToken);
         foreach (var charge in charges.Data.Where(c => c.Paid && !c.Refunded && c.AmountRefunded < c.Amount))
         {
-            _ = await refundService.CreateAsync(new RefundCreateOptions { Charge = charge.Id }, new RequestOptions { IdempotencyKey = $"signup-rollback-refund:{charge.Id}" }, cancellationToken);
+            _ = await refundService.CreateAsync(new RefundCreateOptions { Charge = charge.Id },
+                new RequestOptions { IdempotencyKey = $"signup-rollback-refund:{charge.Id}", StripeAccount = connectedAccountId }, cancellationToken);
         }
     }
 
-    public async Task<SubscriptionInvoice?> GetLatestInvoiceAsync(string providerSubscriptionId, CancellationToken cancellationToken = default)
+    public async Task<SubscriptionInvoice?> GetLatestInvoiceAsync(string providerSubscriptionId, string? connectedAccountId = null, CancellationToken cancellationToken = default)
     {
         var service = new SubscriptionService(_client);
-        var subscription = await service.GetAsync(providerSubscriptionId, new SubscriptionGetOptions { Expand = ["latest_invoice"] }, cancellationToken: cancellationToken);
+        var subscription = await service.GetAsync(providerSubscriptionId, new SubscriptionGetOptions { Expand = ["latest_invoice"] }, ToRequestOptions(null, connectedAccountId), cancellationToken);
         return subscription.LatestInvoice is { } invoice ? ToSubscriptionInvoice(invoice) : null;
     }
 
@@ -199,7 +208,7 @@ public class StripeSubscriptionGateway(IOptions<PaymentOptions> options) : ISubs
         invoice.BillingReason,
         [.. invoice.Lines.Data.Select(l => new SubscriptionInvoiceLine(l.Description ?? "Subscription", l.Amount / 100m))]);
 
-    public async Task<string> AddSubscriptionItemAsync(string providerSubscriptionId, string providerPriceId, string? idempotencyKey = null, CancellationToken cancellationToken = default)
+    public async Task<string> AddSubscriptionItemAsync(string providerSubscriptionId, string providerPriceId, string? idempotencyKey = null, string? connectedAccountId = null, CancellationToken cancellationToken = default)
     {
         var service = new SubscriptionItemService(_client);
 
@@ -207,18 +216,19 @@ public class StripeSubscriptionGateway(IOptions<PaymentOptions> options) : ISubs
         {
             Subscription = providerSubscriptionId,
             Price = providerPriceId,
-        }, ToRequestOptions(idempotencyKey), cancellationToken);
+        }, ToRequestOptions(idempotencyKey, connectedAccountId), cancellationToken);
 
         return item.Id;
     }
 
-    public async Task RemoveSubscriptionItemAsync(string providerSubscriptionItemId, CancellationToken cancellationToken = default)
+    public async Task RemoveSubscriptionItemAsync(string providerSubscriptionItemId, string? connectedAccountId = null, CancellationToken cancellationToken = default)
     {
         var service = new SubscriptionItemService(_client);
 
-        _ = await service.DeleteAsync(providerSubscriptionItemId, cancellationToken: cancellationToken);
+        _ = await service.DeleteAsync(providerSubscriptionItemId, requestOptions: ToRequestOptions(null, connectedAccountId), cancellationToken: cancellationToken);
     }
 
+    /// <summary>stripeEvent.Account - see StripePaymentGateway.VerifyAndParseWebhookAsync.</summary>
     public Task<SubscriptionWebhookEvent?> VerifyAndParseWebhookAsync(string rawBody, string? signatureHeader, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(signatureHeader) || string.IsNullOrEmpty(rawBody))
@@ -250,7 +260,7 @@ public class StripeSubscriptionGateway(IOptions<PaymentOptions> options) : ISubs
 
                     return referenceId is null
                         ? Task.FromResult<SubscriptionWebhookEvent?>(null)
-                        : Task.FromResult<SubscriptionWebhookEvent?>(new SubscriptionWebhookEvent(subscription.Id, referenceId, SubscriptionEventKinds.Cancelled));
+                        : Task.FromResult<SubscriptionWebhookEvent?>(new SubscriptionWebhookEvent(subscription.Id, referenceId, SubscriptionEventKinds.Cancelled, ConnectedAccountId: stripeEvent.Account));
                 }
             case "invoice.payment_failed":
             case "invoice.paid":
@@ -274,7 +284,7 @@ public class StripeSubscriptionGateway(IOptions<PaymentOptions> options) : ISubs
                         : (DateTimeOffset?)null;
 
                     return Task.FromResult<SubscriptionWebhookEvent?>(new SubscriptionWebhookEvent(subscriptionDetails.SubscriptionId, referenceId, eventKind, newRenewalDate,
-                        eventKind == SubscriptionEventKinds.Renewed ? ToSubscriptionInvoice(invoice) : null));
+                        eventKind == SubscriptionEventKinds.Renewed ? ToSubscriptionInvoice(invoice) : null, stripeEvent.Account));
                 }
             default:
 
@@ -293,8 +303,8 @@ public class StripeSubscriptionGateway(IOptions<PaymentOptions> options) : ISubs
         return new SubscriptionResult(subscription.Id, MapStatus(subscription.Status), currentPeriodEnd, FirstItemProviderId: firstItemProviderId);
     }
 
-    private static RequestOptions? ToRequestOptions(string? idempotencyKey) =>
-        idempotencyKey is null ? null : new RequestOptions { IdempotencyKey = idempotencyKey };
+    private static RequestOptions? ToRequestOptions(string? idempotencyKey, string? connectedAccountId) =>
+        idempotencyKey is null && connectedAccountId is null ? null : new RequestOptions { IdempotencyKey = idempotencyKey, StripeAccount = connectedAccountId };
 
     private static long ToMinorUnits(decimal amount) => (long)(amount * 100);
 

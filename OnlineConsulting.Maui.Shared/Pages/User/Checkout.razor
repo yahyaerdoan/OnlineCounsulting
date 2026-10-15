@@ -265,6 +265,7 @@
     private string? _orderNumber;
     private Guid? _placedOrderId;
     private string? _clientSecret;
+    private string? _connectedAccountId;
     private bool _paymentElementMounted;
 
     protected override async Task OnInitializedAsync()
@@ -315,6 +316,7 @@
         }
 
         _clientSecret = result.ResultData.PaymentClientSecret;
+        _connectedAccountId = result.ResultData.PaymentConnectedAccountId;
         _paymentElementMounted = false;
         _phase = CheckoutPhase.Payment;
     }
@@ -336,7 +338,7 @@
         {
             _paymentElementMounted = true;
             var publishableKey = Configuration["Stripe:PublishableKey"];
-            _paymentError = await JsRuntime.InvokeAsync<string?>("checkoutStripe.init", publishableKey, _clientSecret);
+            _paymentError = await JsRuntime.InvokeAsync<string?>("checkoutStripe.init", publishableKey, _clientSecret, _connectedAccountId);
             if (_paymentError is not null)
             {
                 StateHasChanged();
@@ -467,6 +469,7 @@
         }
 
         _clientSecret = result.ResultData.PaymentClientSecret;
+        _connectedAccountId = result.ResultData.PaymentConnectedAccountId;
         _paymentElementMounted = false;
         _phase = CheckoutPhase.Payment;
         _isBusy = false;

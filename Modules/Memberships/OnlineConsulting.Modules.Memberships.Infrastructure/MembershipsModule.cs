@@ -31,7 +31,6 @@ public static class MembershipsModule
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-
         _ = services.AddUserDataChangeRules(MembershipsUserDataChangeRules.Configure);
         _ = services.AddDbContext<MembershipsDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
             .AddInterceptors(serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>())

@@ -1,6 +1,8 @@
-﻿using MediatR;
+﻿using Core.PersistenceLayer.MultiTenancy;
+using MediatR;
 using OnlineConsulting.Api.Common;
 using OnlineConsulting.SharedKernel.Payments;
+using OnlineConsulting.SharedKernel.Tenancy;
 
 namespace OnlineConsulting.Api.Features.Payments;
 
@@ -16,7 +18,8 @@ public class PaymentWebhook : IVersionNeutralEndpoint
             .Produces(StatusCodes.Status200OK);
     }
 
-    private static async Task<IResult> Handle(string provider, HttpContext httpContext, IServiceProvider serviceProvider, IPublisher publisher, CancellationToken cancellationToken)
+    private static async Task<IResult> Handle(string provider, HttpContext httpContext, IServiceProvider serviceProvider, IPublisher publisher,
+        ITenantPaymentAccountReader paymentAccountReader, CancellationToken cancellationToken)
     {
         var gateway = serviceProvider.GetKeyedService<IPaymentGateway>(provider);
 
@@ -37,6 +40,11 @@ public class PaymentWebhook : IVersionNeutralEndpoint
         {
             return Results.Ok();
         }
+
+        using var tenantScope = webhookEvent.ConnectedAccountId is { } connectedAccountId
+            && await paymentAccountReader.FindTenantIdByConnectedAccountAsync(connectedAccountId, cancellationToken) is { } tenantId
+            ? TenantScope.Begin(tenantId)
+            : null;
 
         if (webhookEvent.Succeeded)
         {

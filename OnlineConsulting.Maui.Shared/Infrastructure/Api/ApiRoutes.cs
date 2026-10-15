@@ -508,6 +508,15 @@ public static class ApiRoutes
 
         /// <summary>Public - the name and logo of the business whose site this is.</summary>
         public const string Branding = Base + "/branding";
+
+        /// <summary>Public - the caller's tenant's Stripe Connect account id, for client-side Stripe.js account context.</summary>
+        public const string PaymentAccount = Base + "/payment-account";
+
+        /// <summary>Authenticated - creates/reuses the caller's own tenant's Stripe Connect account and returns an onboarding link.</summary>
+        public const string StripeConnectOnboardingLink = Base + "/my-tenant/stripe-connect/onboarding-link";
+
+        /// <summary>Authenticated - pulls the caller's own tenant's Stripe Connect status live from the provider.</summary>
+        public const string StripeConnectRefresh = Base + "/my-tenant/stripe-connect/refresh";
     }
 
     public static class Platform

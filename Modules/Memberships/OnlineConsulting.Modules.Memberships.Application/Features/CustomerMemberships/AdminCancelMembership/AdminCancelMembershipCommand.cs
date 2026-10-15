@@ -4,6 +4,7 @@ using OnlineConsulting.Modules.Memberships.Application.Common;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Abstractions;
 using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemberships.Constants;
 using OnlineConsulting.SharedKernel.Payments;
+using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
@@ -16,7 +17,8 @@ public record AdminCancelMembershipCommand(Guid MembershipId) : IRequest<Operati
     public string[] Roles => [MembershipsOperationClaims.Admin, MembershipsOperationClaims.Write, MembershipsOperationClaims.Update];
 }
 
-public class AdminCancelMembershipHandler(ICustomerMembershipRepository repository, ISubscriptionGateway subscriptionGateway, IMembershipNotifier notifier) : IRequestHandler<AdminCancelMembershipCommand, OperationResult>
+public class AdminCancelMembershipHandler(ICustomerMembershipRepository repository, ISubscriptionGateway subscriptionGateway, IMembershipNotifier notifier,
+    ITenantPaymentAccountReader paymentAccountReader) : IRequestHandler<AdminCancelMembershipCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(AdminCancelMembershipCommand request, CancellationToken cancellationToken)
     {
@@ -34,7 +36,8 @@ public class AdminCancelMembershipHandler(ICustomerMembershipRepository reposito
 
         if (membership.ProviderSubscriptionId is not null)
         {
-            _ = await subscriptionGateway.CancelSubscriptionAsync(membership.ProviderSubscriptionId, cancellationToken: cancellationToken);
+            var paymentAccount = await paymentAccountReader.GetAsync(membership.TenantId, cancellationToken);
+            _ = await subscriptionGateway.CancelSubscriptionAsync(membership.ProviderSubscriptionId, connectedAccountId: paymentAccount.ConnectedAccountId, cancellationToken: cancellationToken);
         }
 
         membership.Cancel();

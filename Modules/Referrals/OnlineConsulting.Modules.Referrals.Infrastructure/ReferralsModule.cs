@@ -31,7 +31,6 @@ public static class ReferralsModule
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-
         _ = services.AddUserDataChangeRules(ReferralsUserDataChangeRules.Configure);
         _ = services.AddDbContext<ReferralsDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
             .AddInterceptors(serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>())

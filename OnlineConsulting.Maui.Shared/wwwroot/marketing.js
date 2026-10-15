@@ -53,13 +53,15 @@ window.checkoutStripe = (function () {
     let elements = null;
 
     return {
-        init: async function (publishableKey, clientSecret) {
+        // connectedAccountId is the tenant's Stripe Connect account the PaymentIntent was created on (direct charge) -
+        // Stripe.js must share that account context or it can't resolve the client secret; null/undefined means the platform's own account.
+        init: async function (publishableKey, clientSecret, connectedAccountId) {
             await loadStripe();
             const unavailable = stripeUnavailableReason(publishableKey);
             if (unavailable) {
                 return unavailable;
             }
-            stripe = Stripe(publishableKey);
+            stripe = connectedAccountId ? Stripe(publishableKey, { stripeAccount: connectedAccountId }) : Stripe(publishableKey);
             elements = stripe.elements({ clientSecret: clientSecret });
             elements.create('payment').mount('#payment-element');
             return null;
@@ -88,13 +90,15 @@ window.subscribeStripe = (function () {
     let cardElement = null;
 
     return {
-        init: async function (publishableKey, elementId, dotNetRef) {
+        // connectedAccountId: see checkoutStripe.init above - the PaymentMethod must be created in the same
+        // account context the subscription will be created in, or the backend's Stripe-Account call can't see it.
+        init: async function (publishableKey, elementId, dotNetRef, connectedAccountId) {
             await loadStripe();
             const unavailable = stripeUnavailableReason(publishableKey);
             if (unavailable) {
                 return unavailable;
             }
-            stripe = Stripe(publishableKey);
+            stripe = connectedAccountId ? Stripe(publishableKey, { stripeAccount: connectedAccountId }) : Stripe(publishableKey);
             var palette = getComputedStyle(document.documentElement);
             var themeColor = function (name, fallback) {
                 return (palette.getPropertyValue(name) || '').trim() || fallback;

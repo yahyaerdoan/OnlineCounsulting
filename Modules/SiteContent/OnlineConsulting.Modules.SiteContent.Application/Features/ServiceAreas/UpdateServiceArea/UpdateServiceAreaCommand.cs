@@ -40,6 +40,7 @@ public class UpdateServiceAreaHandler(IServiceAreaRepository repository, ICityGe
             entity.Latitude = null;
             entity.Longitude = null;
         }
+
         entity.IntroText = request.IntroText;
         entity.DisplayOrder = request.DisplayOrder;
 

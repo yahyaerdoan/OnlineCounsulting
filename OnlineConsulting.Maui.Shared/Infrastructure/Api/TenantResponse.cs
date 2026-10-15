@@ -13,7 +13,9 @@ public record TenantResponse(
     decimal TotalActivePrice,
     DateTimeOffset? CreatedDate = null,
     string? TimeZoneId = null,
-    Guid? LogoMediaAssetId = null) : HalResource, IQueryableFields
+    Guid? LogoMediaAssetId = null,
+    bool IsStripeConnected = false,
+    bool StripeChargesEnabled = false) : HalResource, IQueryableFields
 {
     public static string[] SearchFields => [nameof(Name), nameof(Slug), nameof(PrimaryContactEmail)];
 }

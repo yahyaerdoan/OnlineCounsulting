@@ -9,11 +9,11 @@ public interface IPaymentGateway
     /// <summary>Starts a payment for the given amount. Idempotent per idempotencyKey - retrying the same call (e.g. after a network timeout) must not create a second charge.</summary>
     Task<PaymentIntentResult> CreatePaymentIntentAsync(CreatePaymentIntentRequest request, CancellationToken cancellationToken = default);
 
-    /// <summary>The payment's current status at the provider.</summary>
-    Task<PaymentStatusResult> GetStatusAsync(string providerPaymentId, CancellationToken cancellationToken = default);
+    /// <summary>The payment's current status at the provider. connectedAccountId must match whatever CreatePaymentIntentAsync used for this payment, or the provider can't find it.</summary>
+    Task<PaymentStatusResult> GetStatusAsync(string providerPaymentId, string? connectedAccountId = null, CancellationToken cancellationToken = default);
 
-    /// <summary>amount null means a full refund.</summary>
-    Task<PaymentStatusResult> RefundAsync(string providerPaymentId, decimal? amount = null, CancellationToken cancellationToken = default);
+    /// <summary>amount null means a full refund; connectedAccountId - see GetStatusAsync.</summary>
+    Task<PaymentStatusResult> RefundAsync(string providerPaymentId, decimal? amount = null, string? connectedAccountId = null, CancellationToken cancellationToken = default);
 
     /// <summary>Verifies the webhook signature and normalizes the payload; null if it's not a payment-status event (providers send many unrelated event types on the same endpoint).</summary>
     Task<PaymentWebhookEvent?> VerifyAndParseWebhookAsync(string rawBody, string? signatureHeader, CancellationToken cancellationToken = default);

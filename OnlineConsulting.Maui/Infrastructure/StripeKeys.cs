@@ -5,7 +5,7 @@ public static class StripeKeys
 {
     private const string EnvironmentVariableName = "STRIPE_PUBLISHABLE_KEY";
 
-    private const string DevDefaultPublishableKey = "pk_test_51RW0m694AGEBtTE1nSx8F1IjePXWxQyxVDT4btUJg5sYkV3wA05IoMYJYNKIDrdd5lnNotHTi5jm7mYgp1KE1iba00lbBJO9p4";
+    private const string DevDefaultPublishableKey = "pk_test_51RW0m0GMoiP6iLTN22Sl4UACB7xqLJKrOPNTWyd3r5sASVoQzkIBIpMwY55Mfe5L86uPCcM23ez7IUG5zd0KylQH00qTEYf1VC";
 
     public static string PublishableKey =>
         Environment.GetEnvironmentVariable(EnvironmentVariableName) is { Length: > 0 } configured

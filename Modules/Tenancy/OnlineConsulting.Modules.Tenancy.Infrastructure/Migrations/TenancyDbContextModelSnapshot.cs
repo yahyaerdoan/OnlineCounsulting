@@ -188,6 +188,16 @@ namespace OnlineConsulting.Modules.Tenancy.Infrastructure.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("nvarchar(30)");
 
+                    b.Property<bool>("StripeChargesEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("StripeConnectedAccountId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("StripePayoutsEnabled")
+                        .HasColumnType("bit");
+
                     b.Property<string>("TimeZoneId")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -206,6 +216,10 @@ namespace OnlineConsulting.Modules.Tenancy.Infrastructure.Migrations
                     b.HasIndex("Slug")
                         .IsUnique()
                         .HasFilter("[DeletedDate] IS NULL");
+
+                    b.HasIndex("StripeConnectedAccountId")
+                        .IsUnique()
+                        .HasFilter("[StripeConnectedAccountId] IS NOT NULL");
 
                     b.ToTable("Tenants", "Tenancy");
                 });

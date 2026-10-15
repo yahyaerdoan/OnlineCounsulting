@@ -15,6 +15,7 @@ var api = builder.AddProject<Projects.OnlineConsulting_Api>("api").WithHttpHealt
 var mauiWeb = builder.AddProject<Projects.OnlineConsulting_Maui_Web>("maui-web").WithHttpHealthCheck("/health").WithReference(api).WaitFor(api);
 
 api.WithEnvironment("Tenancy__Hosting__PlatformOrigin", mauiWeb.GetEndpoint("https"));
+api.WithEnvironment("Tenancy__Hosting__ApiOrigin", api.GetEndpoint("https"));
 api.WithEnvironment("Media__PublicOrigin", api.GetEndpoint("https"));
 mauiWeb.WithEnvironment("Api__PublicBaseUrl", api.GetEndpoint("https"));
 

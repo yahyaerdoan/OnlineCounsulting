@@ -3,6 +3,7 @@ using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Abstractions
 using OnlineConsulting.Modules.Commerce.Application.Features.Orders.Contracts;
 using OnlineConsulting.Modules.Commerce.Domain;
 using OnlineConsulting.SharedKernel.Payments;
+using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 using SharedPaymentStatuses = OnlineConsulting.SharedKernel.Payments.PaymentStatuses;
@@ -12,7 +13,8 @@ namespace OnlineConsulting.Modules.Commerce.Application.Features.Orders.ResumeOr
 /// <summary>Returns the existing payment's client secret for an unpaid order; null when it is already paid or still processing.</summary>
 public record ResumeOrderPaymentQuery(Guid OrderId, Guid UserId) : IRequest<OperationDataResult<CreateOrderResult>>;
 
-public class ResumeOrderPaymentHandler(IOrderRepository orderRepository, IPaymentGateway paymentGateway, IPublisher publisher) : IRequestHandler<ResumeOrderPaymentQuery, OperationDataResult<CreateOrderResult>>
+public class ResumeOrderPaymentHandler(IOrderRepository orderRepository, IPaymentGateway paymentGateway, IPublisher publisher, ITenantPaymentAccountReader paymentAccountReader)
+    : IRequestHandler<ResumeOrderPaymentQuery, OperationDataResult<CreateOrderResult>>
 {
     public async Task<OperationDataResult<CreateOrderResult>> Handle(ResumeOrderPaymentQuery request, CancellationToken cancellationToken)
     {
@@ -38,8 +40,10 @@ public class ResumeOrderPaymentHandler(IOrderRepository orderRepository, IPaymen
             return Result.Conflict<CreateOrderResult>("This order has no payment to resume.");
         }
 
+        var paymentAccount = await paymentAccountReader.GetAsync(order.TenantId, cancellationToken);
+
         var (failure, status) = await PaymentGatewayCall.RunWithResultAsync(() =>
-        paymentGateway.GetStatusAsync(order.ProviderPaymentId, cancellationToken), $"Could not retrieve payment status for order {order.OrderNumber}. Please try again.");
+        paymentGateway.GetStatusAsync(order.ProviderPaymentId, paymentAccount.ConnectedAccountId, cancellationToken), $"Could not retrieve payment status for order {order.OrderNumber}. Please try again.");
 
         if (failure is not null || status is null)
         {
@@ -54,6 +58,6 @@ public class ResumeOrderPaymentHandler(IOrderRepository orderRepository, IPaymen
 
         return status.Status == SharedPaymentStatuses.Processing
             ? Result.Success(new CreateOrderResult(order.Id, PaymentClientSecret: null, order.OrderNumber), "Your payment is processing.")
-            : Result.Success(new CreateOrderResult(order.Id, status.ClientSecret, order.OrderNumber), "Payment resumed.");
+            : Result.Success(new CreateOrderResult(order.Id, status.ClientSecret, order.OrderNumber, paymentAccount.ConnectedAccountId), "Payment resumed.");
     }
 }

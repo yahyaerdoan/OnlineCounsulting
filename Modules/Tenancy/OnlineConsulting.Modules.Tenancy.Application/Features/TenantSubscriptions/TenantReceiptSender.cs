@@ -19,7 +19,7 @@ public class TenantReceiptSender(IEmailOutboxWriter<ITenancyOutboxModule> outbox
     {
         try
         {
-            if (await subscriptionGateway.GetLatestInvoiceAsync(providerSubscriptionId, cancellationToken) is { IsPaid: true } invoice)
+            if (await subscriptionGateway.GetLatestInvoiceAsync(providerSubscriptionId, cancellationToken: cancellationToken) is { IsPaid: true } invoice)
             {
                 await SendAsync(tenant, invoice, cancellationToken);
             }

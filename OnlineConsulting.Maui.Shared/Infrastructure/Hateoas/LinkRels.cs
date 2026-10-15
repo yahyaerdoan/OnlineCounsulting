@@ -30,4 +30,6 @@ public static class LinkRels
     public const string PermissionOverrides = "oc:permission-overrides";
     public const string MarkRead = "oc:mark-read";
     public const string Reply = "oc:reply";
+    public const string ConnectStripe = "oc:connect-stripe";
+    public const string RefreshStripeStatus = "oc:refresh-stripe-status";
 }

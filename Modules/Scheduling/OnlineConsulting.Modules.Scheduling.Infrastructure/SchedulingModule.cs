@@ -32,7 +32,6 @@ public static class SchedulingModule
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-
         _ = services.AddUserDataChangeRules(SchedulingUserDataChangeRules.Configure);
         _ = services.AddDbContext<SchedulingDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
             .AddInterceptors(serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>())

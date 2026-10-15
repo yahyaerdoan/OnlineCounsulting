@@ -5,6 +5,7 @@ using OnlineConsulting.Modules.Memberships.Application.Features.CustomerMembersh
 using OnlineConsulting.Modules.Memberships.Application.Features.MembershipPlans.Abstractions;
 using OnlineConsulting.Modules.Memberships.Domain;
 using OnlineConsulting.SharedKernel.Payments;
+using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
@@ -16,7 +17,8 @@ public record ChangeMembershipPlanCommand(Guid UserId, Guid NewMembershipPlanId)
     public string[] Roles => [];
 }
 
-public class ChangeMembershipPlanHandler(ICustomerMembershipRepository membershipRepository, IMembershipPlanRepository planRepository, ISubscriptionGateway subscriptionGateway)
+public class ChangeMembershipPlanHandler(ICustomerMembershipRepository membershipRepository, IMembershipPlanRepository planRepository, ISubscriptionGateway subscriptionGateway,
+    ITenantPaymentAccountReader paymentAccountReader)
     : IRequestHandler<ChangeMembershipPlanCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(ChangeMembershipPlanCommand request, CancellationToken cancellationToken)
@@ -47,7 +49,8 @@ public class ChangeMembershipPlanHandler(ICustomerMembershipRepository membershi
 
         if (membership.ProviderSubscriptionId is { } subscriptionId)
         {
-            var failure = await PaymentGatewayCall.RunAsync(() => subscriptionGateway.UpdateSubscriptionPriceAsync(subscriptionId, newPlan.ProviderPriceId, cancellationToken), CustomerMembershipMessages.PlanChangeFailed);
+            var paymentAccount = await paymentAccountReader.GetAsync(membership.TenantId, cancellationToken);
+            var failure = await PaymentGatewayCall.RunAsync(() => subscriptionGateway.UpdateSubscriptionPriceAsync(subscriptionId, newPlan.ProviderPriceId, paymentAccount.ConnectedAccountId, cancellationToken), CustomerMembershipMessages.PlanChangeFailed);
 
             if (failure is not null)
             {

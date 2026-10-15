@@ -36,7 +36,6 @@ public static class CommerceModule
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-
         _ = services.AddUserDataChangeRules(CommerceUserDataChangeRules.Configure);
         _ = services.AddDbContext<CommerceDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
             .AddInterceptors(serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>())

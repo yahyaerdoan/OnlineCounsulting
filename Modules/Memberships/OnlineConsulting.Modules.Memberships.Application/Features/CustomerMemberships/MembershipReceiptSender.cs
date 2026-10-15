@@ -14,7 +14,8 @@ namespace OnlineConsulting.Modules.Memberships.Application.Features.CustomerMemb
 /// <summary>Emails the member a receipt for a paid membership invoice - the provider's invoice stays the official document (number, PDF,
 /// hosted page); this relays it with the plan's perks. A $0 first invoice is a trial start. Best effort: failures are logged.</summary>
 public class MembershipReceiptSender(IEmailOutboxWriter<IMembershipsOutboxModule> outboxWriter, ISubscriptionGateway subscriptionGateway,
-    IUserContactReader contactReader, IMembershipPlanRepository planRepository, ITenantTimeZoneReader timeZoneReader, ILogger<MembershipReceiptSender> logger)
+    IUserContactReader contactReader, IMembershipPlanRepository planRepository, ITenantTimeZoneReader timeZoneReader, ITenantPaymentAccountReader paymentAccountReader,
+    ILogger<MembershipReceiptSender> logger)
 {
     private static readonly CultureInfo Usd = CultureInfo.GetCultureInfo("en-US");
 
@@ -27,7 +28,9 @@ public class MembershipReceiptSender(IEmailOutboxWriter<IMembershipsOutboxModule
 
         try
         {
-            if (await subscriptionGateway.GetLatestInvoiceAsync(providerSubscriptionId, cancellationToken) is { IsPaid: true } invoice)
+            var paymentAccount = await paymentAccountReader.GetAsync(membership.TenantId, cancellationToken);
+
+            if (await subscriptionGateway.GetLatestInvoiceAsync(providerSubscriptionId, paymentAccount.ConnectedAccountId, cancellationToken) is { IsPaid: true } invoice)
             {
                 await SendAsync(membership, invoice, cancellationToken);
             }

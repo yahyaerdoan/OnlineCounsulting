@@ -229,6 +229,7 @@
     ];
 
     private MembershipPlanResponse? _plan;
+    private string? _connectedAccountId;
     private bool _loading = true;
     private bool _isBusy;
     private bool _subscribed;
@@ -268,6 +269,9 @@
             _plan = result.ResultData;
         }
 
+        var paymentAccount = await ApiClient.GetAsync<TenantPaymentAccountResponse>(ApiRoutes.Tenancy.PaymentAccount);
+        _connectedAccountId = paymentAccount.IsSuccessful ? paymentAccount.ResultData?.ConnectedAccountId : null;
+
         _loading = false;
     }
 
@@ -287,7 +291,7 @@
         _cardElementMounted = true;
         var publishableKey = Configuration["Stripe:PublishableKey"];
         _selfReference ??= DotNetObjectReference.Create(this);
-        _paymentError = await JsRuntime.InvokeAsync<string?>("subscribeStripe.init", publishableKey, "membership-card-element", _selfReference);
+        _paymentError = await JsRuntime.InvokeAsync<string?>("subscribeStripe.init", publishableKey, "membership-card-element", _selfReference, _connectedAccountId);
         if (_paymentError is not null)
         {
             StateHasChanged();

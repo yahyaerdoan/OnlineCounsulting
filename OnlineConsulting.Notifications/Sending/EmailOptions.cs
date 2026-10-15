@@ -1,6 +1,6 @@
 namespace OnlineConsulting.Notifications.Sending;
 
-/// <summary>SMTP settings, bound from the "Email" config section.</summary>
+/// <summary>Bound from the "Email" config section; From* apply to every provider, Smtp* only to the Smtp one.</summary>
 public class EmailOptions
 {
     public required string SmtpHost { get; set; }
@@ -10,4 +10,11 @@ public class EmailOptions
     public required string FromAddress { get; set; }
     public required string FromName { get; set; }
     public bool UseSsl { get; set; } = true;
+    public BrevoEmailOptions Brevo { get; set; } = new();
+}
+
+/// <summary>Brevo transactional email API settings.</summary>
+public class BrevoEmailOptions
+{
+    public string ApiKey { get; set; } = string.Empty;
 }

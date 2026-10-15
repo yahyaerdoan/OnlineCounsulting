@@ -12,8 +12,11 @@ public record TenantSummaryResponse(
     decimal TotalActivePrice,
     DateTimeOffset CreatedDate,
     string TimeZoneId,
-    Guid? LogoMediaAssetId)
+    Guid? LogoMediaAssetId,
+    bool IsStripeConnected,
+    bool StripeChargesEnabled)
 {
     public static TenantSummaryResponse FromDomain(Tenant tenant, List<string> activeModuleKeys, decimal totalActivePrice) =>
-        new(tenant.Id, tenant.Name, tenant.Slug, tenant.Status, tenant.PrimaryContactEmail, activeModuleKeys, totalActivePrice, tenant.CreatedDate, tenant.TimeZoneId, tenant.LogoMediaAssetId);
+        new(tenant.Id, tenant.Name, tenant.Slug, tenant.Status, tenant.PrimaryContactEmail, activeModuleKeys, totalActivePrice, tenant.CreatedDate, tenant.TimeZoneId, tenant.LogoMediaAssetId,
+            tenant.StripeConnectedAccountId is not null, tenant.StripeChargesEnabled);
 }

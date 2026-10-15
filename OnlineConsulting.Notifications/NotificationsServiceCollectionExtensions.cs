@@ -22,12 +22,30 @@ public static class NotificationsServiceCollectionExtensions
         _ = services.Configure<EmailOptions>(configuration.GetSection("Email"));
         _ = services.Configure<OutboxDispatcherOptions>(configuration.GetSection("OutboxDispatcher"));
         _ = services.Configure<PushOptions>(configuration.GetSection("Push"));
-        _ = services.AddScoped<IEmailSender, MailKitEmailSender>();
         _ = services.AddHostedService<OutboxDispatcher>();
 
+        services.AddEmailSender(configuration);
         services.AddPushNotificationSender(configuration);
 
         return services;
+    }
+
+    /// <summary>Picks the sender from Email:ActiveProvider; defaults to Smtp.</summary>
+    private static void AddEmailSender(this IServiceCollection services, IConfiguration configuration)
+    {
+        var activeProvider = configuration.GetSection("Email")["ActiveProvider"];
+
+        if (string.IsNullOrWhiteSpace(activeProvider))
+        {
+            activeProvider = EmailProviderNames.Smtp;
+        }
+
+        _ = services.AddHttpClient(nameof(BrevoEmailSender), client => client.BaseAddress = new Uri(BrevoEmailSender.BaseAddress));
+
+        _ = services.AddKeyedScoped<IEmailSender, MailKitEmailSender>(EmailProviderNames.Smtp);
+        _ = services.AddKeyedScoped<IEmailSender, BrevoEmailSender>(EmailProviderNames.Brevo);
+
+        _ = services.AddScoped(sp => sp.GetRequiredKeyedService<IEmailSender>(activeProvider));
     }
 
     /// <summary>Fcm is only registered when Push:FirebaseCredentialsPath points at a real file; otherwise "ActiveProvider: Fcm" falls back to Mock instead of crashing at startup.

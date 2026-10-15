@@ -4,6 +4,7 @@ using OnlineConsulting.Modules.Memberships.Application.Common;
 using OnlineConsulting.Modules.Memberships.Application.Features.MembershipPlans.Abstractions;
 using OnlineConsulting.Modules.Memberships.Domain;
 using OnlineConsulting.SharedKernel.Payments;
+using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
@@ -16,14 +17,16 @@ public record CreateMembershipPlanCommand(string Name, string BillingCycle, deci
     public string[] Roles => [MembershipsOperationClaims.Admin, MembershipsOperationClaims.Write, MembershipsOperationClaims.Add];
 }
 
-public class CreateMembershipPlanHandler(IMembershipPlanRepository repository, ISubscriptionGateway subscriptionGateway) : IRequestHandler<CreateMembershipPlanCommand, OperationDataResult<Guid>>
+public class CreateMembershipPlanHandler(IMembershipPlanRepository repository, ISubscriptionGateway subscriptionGateway, ITenantProvider tenantProvider,
+    ITenantPaymentAccountReader paymentAccountReader) : IRequestHandler<CreateMembershipPlanCommand, OperationDataResult<Guid>>
 {
     public async Task<OperationDataResult<Guid>> Handle(CreateMembershipPlanCommand request, CancellationToken cancellationToken)
     {
         var plan = MembershipPlan.Create(request.Name, request.BillingCycle, request.Price, request.IncludedVisitsPerYear, request.DiscountPercent,
             request.CreditAmount, request.Benefits, request.TrialDays);
 
-        var priceResult = await subscriptionGateway.EnsurePriceAsync(new EnsurePriceRequest(plan.Id.ToString(), plan.Name, plan.Price, "usd", plan.BillingCycle), cancellationToken);
+        var paymentAccount = await paymentAccountReader.GetAsync(tenantProvider.TenantId, cancellationToken);
+        var priceResult = await subscriptionGateway.EnsurePriceAsync(new EnsurePriceRequest(plan.Id.ToString(), plan.Name, plan.Price, "usd", plan.BillingCycle, paymentAccount.ConnectedAccountId), cancellationToken);
 
         plan.AttachProviderPrice(priceResult.ProviderProductId, priceResult.ProviderPriceId);
 

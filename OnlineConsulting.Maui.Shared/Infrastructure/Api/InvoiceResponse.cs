@@ -21,7 +21,7 @@ public record InvoiceResponse(
     public bool IsOverdue => IsOpen && DueAt is { } due && due < DateTimeOffset.UtcNow;
 }
 
-public record PayInvoiceResult(bool Paid, string? ClientSecret);
+public record PayInvoiceResult(bool Paid, string? ClientSecret, string? ConnectedAccountId = null);
 
 /// <summary>Mirrors Commerce's SyncInvoicePaymentResult.</summary>
 public record SyncInvoicePaymentResult(string Status, bool Paid);

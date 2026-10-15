@@ -4,6 +4,7 @@ using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.Constants;
 using OnlineConsulting.Modules.Commerce.Application.Features.Invoices.Contracts;
 using OnlineConsulting.Modules.Commerce.Domain;
 using OnlineConsulting.SharedKernel.Payments;
+using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
@@ -13,7 +14,8 @@ namespace OnlineConsulting.Modules.Commerce.Application.Features.Invoices.PayInv
 /// synchronously marks it paid right away; otherwise the client confirms with ClientSecret and the webhook marks it paid.</summary>
 public record PayInvoiceCommand(Guid Id, Guid UserId) : IRequest<OperationDataResult<PayInvoiceResult>>;
 
-public class PayInvoiceHandler(IInvoiceRepository repository, IPaymentGateway paymentGateway, IInvoiceService invoiceService) : IRequestHandler<PayInvoiceCommand, OperationDataResult<PayInvoiceResult>>
+public class PayInvoiceHandler(IInvoiceRepository repository, IPaymentGateway paymentGateway, IInvoiceService invoiceService, ITenantPaymentAccountReader paymentAccountReader)
+    : IRequestHandler<PayInvoiceCommand, OperationDataResult<PayInvoiceResult>>
 {
     public async Task<OperationDataResult<PayInvoiceResult>> Handle(PayInvoiceCommand request, CancellationToken cancellationToken)
     {
@@ -34,12 +36,15 @@ public class PayInvoiceHandler(IInvoiceRepository repository, IPaymentGateway pa
             return Result.BadRequest<PayInvoiceResult>(InvoiceMessages.NothingToPay);
         }
 
+        var paymentAccount = await paymentAccountReader.GetAsync(invoice.TenantId, cancellationToken);
+
         PaymentIntentResult intent;
 
         try
         {
             intent = await paymentGateway
-                .CreatePaymentIntentAsync(new CreatePaymentIntentRequest(invoice.Total, invoice.Currency.ToLowerInvariant(), invoice.Id.ToString(), invoice.BillToEmail, $"invoice-pay:{invoice.Id}:{invoice.Total:0.00}"), cancellationToken);
+                .CreatePaymentIntentAsync(new CreatePaymentIntentRequest(invoice.Total, invoice.Currency.ToLowerInvariant(), invoice.Id.ToString(), invoice.BillToEmail,
+                    $"invoice-pay:{invoice.Id}:{invoice.Total:0.00}", paymentAccount.ConnectedAccountId), cancellationToken);
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
@@ -57,6 +62,6 @@ public class PayInvoiceHandler(IInvoiceRepository repository, IPaymentGateway pa
             return Result.Success(new PayInvoiceResult(true, null), "Payment received. Thank you!");
         }
 
-        return Result.Success(new PayInvoiceResult(false, intent.ClientSecret), "Payment started.");
+        return Result.Success(new PayInvoiceResult(false, intent.ClientSecret, paymentAccount.ConnectedAccountId), "Payment started.");
     }
 }
