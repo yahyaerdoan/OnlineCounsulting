@@ -10,4 +10,7 @@ public class Message : SequentialGuidTenantEntity
     public required string Subject { get; set; }
     public required string Description { get; set; }
     public DateTimeOffset? RepliedAt { get; set; }
+
+    /// <summary>Staff replies, oldest first once ordered.</summary>
+    public List<MessageReply> Replies { get; set; } = [];
 }

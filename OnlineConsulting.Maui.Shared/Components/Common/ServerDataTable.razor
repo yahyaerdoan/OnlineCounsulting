@@ -127,18 +127,9 @@
 
         var filter = ServerSearch || string.IsNullOrWhiteSpace(_searchText) || TItem.SearchFields.Length == 0
             ? null
-            : BuildSearchFilter(TItem.SearchFields, _searchText);
+            : DynamicFilter.AnyContains(TItem.SearchFields, _searchText);
 
         return sort is null && filter is null ? null : new DynamicQuery(sort, filter);
-    }
-
-    /// <summary>Root filter needs its own Field/Operator too - see DynamicQuery.cs.</summary>
-    private static DynamicFilter BuildSearchFilter(string[] fields, string search)
-    {
-        var root = new DynamicFilter(fields[0], "contains", search);
-        return fields.Length == 1
-            ? root
-            : root with { Logic = "or", Filters = [.. fields.Skip(1).Select(f => new DynamicFilter(f, "contains", search))] };
     }
 
     private Task OnSearch(string? text)

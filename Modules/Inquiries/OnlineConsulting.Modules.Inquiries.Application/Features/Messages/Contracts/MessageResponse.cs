@@ -13,6 +13,9 @@ public class MessageResponse
     public required DateTimeOffset CreatedDate { get; init; }
     public DateTimeOffset? RepliedAt { get; init; }
 
+    /// <summary>Filled by GetMessage only; empty in lists.</summary>
+    public IReadOnlyList<MessageReplyResponse> Replies { get; init; } = [];
+
     public static MessageResponse FromDomain(Message message) => new()
     {
         Id = message.Id,
@@ -23,5 +26,11 @@ public class MessageResponse
         Description = message.Description,
         CreatedDate = message.CreatedDate,
         RepliedAt = message.RepliedAt,
+        Replies = [.. message.Replies.Select(MessageReplyResponse.FromDomain)],
     };
+}
+
+public record MessageReplyResponse(Guid Id, string Body, DateTimeOffset CreatedDate)
+{
+    public static MessageReplyResponse FromDomain(MessageReply reply) => new(reply.Id, reply.Body, reply.CreatedDate);
 }
