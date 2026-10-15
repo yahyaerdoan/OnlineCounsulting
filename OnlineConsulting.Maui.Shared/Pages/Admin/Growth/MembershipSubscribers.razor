@@ -49,15 +49,10 @@
             @(membership.RenewalDate is { } renewal ? BusinessTime.FormatDate(renewal) : "-")
         </MudTd>
         <MudTd DataLabel="Actions" Class="cell-actions">
-            @if (membership.Can(LinkRels.Reactivate))
-            {
-                <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Success" StartIcon="@Icons.Material.Outlined.Replay"
-                           OnClick="@(() => ReactivateAsync(membership))">Keep active</MudButton>
-            }
-            <MudTooltip Text="Cancel now">
-                <MudIconButton Icon="@Icons.Material.Outlined.Cancel" Color="Color.Error" Size="Size.Small" aria-label="Cancel now"
-                               Disabled="@(!membership.Can(LinkRels.Cancel))" OnClick="@(() => CancelAsync(membership))" />
-            </MudTooltip>
+            <RowActions Actions="@([
+                new RowAction("Keep active", Icons.Material.Outlined.Replay) { OnClick = () => ReactivateAsync(membership), Visible = membership.Can(LinkRels.Reactivate), Color = Color.Success },
+                new RowAction("Cancel now", Icons.Material.Outlined.Cancel) { OnClick = () => CancelAsync(membership), Disabled = !membership.Can(LinkRels.Cancel), Color = Color.Error },
+            ])" />
         </MudTd>
     </RowTemplate>
     <NoRecordsContent>

@@ -38,10 +38,9 @@ else
             <MudTd DataLabel="End">@BusinessTime.FormatTime(rule.EndTime)</MudTd>
             <MudTd DataLabel="Slot Length">@rule.SlotDurationMinutes min</MudTd>
             <MudTd DataLabel="Actions">
-                <MudTooltip Text="Delete">
-                    <MudIconButton Disabled="@(!rule.Can(LinkRels.Delete))" aria-label="Delete" Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" Size="Size.Small"
-                                   OnClick="@(() => DeleteAsync(rule))" />
-                </MudTooltip>
+                <RowActions Actions="@([
+                    new RowAction("Delete", Icons.Material.Outlined.DeleteOutline) { OnClick = () => DeleteAsync(rule), Disabled = !rule.Can(LinkRels.Delete), Color = Color.Error },
+                ])" />
             </MudTd>
         </RowTemplate>
         <NoRecordsContent>

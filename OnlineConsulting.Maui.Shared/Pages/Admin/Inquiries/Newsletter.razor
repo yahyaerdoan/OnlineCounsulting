@@ -21,10 +21,9 @@
         <MudTd DataLabel="Email" Class="cell-primary">@subscriber.Email</MudTd>
         <MudTd DataLabel="Subscribed">@BusinessTime.FormatDateTime(subscriber.CreatedDate)</MudTd>
         <MudTd DataLabel="Actions">
-            <MudTooltip Text="Remove">
-                <MudIconButton Disabled="@(!subscriber.Can(LinkRels.Delete))" aria-label="Remove" Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error" Size="Size.Small"
-                               OnClick="@(() => RemoveAsync(subscriber))" />
-            </MudTooltip>
+            <RowActions Actions="@([
+                new RowAction("Remove", Icons.Material.Outlined.DeleteOutline) { OnClick = () => RemoveAsync(subscriber), Disabled = !subscriber.Can(LinkRels.Delete), Color = Color.Error },
+            ])" />
         </MudTd>
     </RowTemplate>
 </ServerDataTable>

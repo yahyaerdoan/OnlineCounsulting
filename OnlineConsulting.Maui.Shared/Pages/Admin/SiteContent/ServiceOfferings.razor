@@ -30,17 +30,10 @@
         <MudTd DataLabel="Title" Class="cell-primary">@offering.Title</MudTd>
         <MudTd DataLabel="Description">@offering.Description</MudTd>
         <MudTd DataLabel="Actions">
-            <MudButtonGroup Color="Color.Primary" Variant="Variant.Text" Size="Size.Small">
-                <MudTooltip Text="Edit">
-                    <MudIconButton Disabled="@(!offering.Can(LinkRels.Edit))" aria-label="Edit" Icon="@Icons.Material.Outlined.EditNote" Color="Color.Default"
-                                   OnClick="@(() => EditAsync(offering))" />
-                </MudTooltip>
-
-                <MudTooltip Text="Delete">
-                    <MudIconButton Disabled="@(!offering.Can(LinkRels.Delete))" aria-label="Delete" Icon="@Icons.Material.Outlined.DeleteOutline" Color="Color.Error"
-                                   OnClick="@(() => DeleteAsync(offering))" />
-                </MudTooltip>
-            </MudButtonGroup>
+            <RowActions Actions="@([
+                new RowAction("Edit", Icons.Material.Outlined.EditNote) { Href = EditUrl(offering), Disabled = !offering.Can(LinkRels.Edit) },
+                new RowAction("Delete", Icons.Material.Outlined.DeleteOutline) { OnClick = () => DeleteAsync(offering), Disabled = !offering.Can(LinkRels.Delete), Color = Color.Error },
+            ])" />
         </MudTd>
     </RowTemplate>
 </ServerDataTable>
@@ -51,7 +44,7 @@
 
     private void CreateAsync() => Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/service-offerings/new");
 
-    private void EditAsync(ServiceOfferingResponse offering) => Navigation.NavigateTo(AppRoutes.AdminHome + $"/site-content/service-offerings/{offering.Id}/edit");
+    private static string EditUrl(ServiceOfferingResponse offering) => AppRoutes.AdminHome + $"/site-content/service-offerings/{offering.Id}/edit";
 
     private async Task DeleteAsync(ServiceOfferingResponse offering)
     {

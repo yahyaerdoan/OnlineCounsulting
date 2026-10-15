@@ -32,13 +32,9 @@
         </MudTd>
         <MudTd DataLabel="Expires">@BusinessTime.FormatDate(invite.ExpiresAt)</MudTd>
         <MudTd DataLabel="Actions">
-            @if (invite.Can(LinkRels.Cancel))
-            {
-                <MudTooltip Text="Cancel invite">
-                    <MudIconButton aria-label="Cancel invite" Icon="@Icons.Material.Outlined.Cancel" Size="Size.Small" Color="Color.Error"
-                                   OnClick="@(() => CancelInviteAsync(invite))" />
-                </MudTooltip>
-            }
+            <RowActions Actions="@([
+                new RowAction("Cancel invite", Icons.Material.Outlined.Cancel) { OnClick = () => CancelInviteAsync(invite), Visible = invite.Can(LinkRels.Cancel), Color = Color.Error },
+            ])" />
         </MudTd>
     </RowTemplate>
 </ServerDataTable>

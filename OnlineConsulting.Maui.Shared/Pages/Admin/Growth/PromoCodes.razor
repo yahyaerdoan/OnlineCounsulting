@@ -43,20 +43,10 @@ else
                 </MudChip>
             </MudTd>
             <MudTd DataLabel="Actions">
-                @if (promo.Can(LinkRels.SetActive) && promo.IsActive)
-                {
-                    <MudTooltip Text="Deactivate">
-                        <MudIconButton aria-label="Deactivate" Icon="@Icons.Material.Outlined.Block" Color="Color.Default" Size="Size.Small"
-                                       OnClick="@(() => SetActiveAsync(promo, false))" />
-                    </MudTooltip>
-                }
-                else if (promo.Can(LinkRels.SetActive))
-                {
-                    <MudTooltip Text="Activate">
-                        <MudIconButton aria-label="Activate" Icon="@Icons.Material.Outlined.CheckCircleOutline" Color="Color.Default" Size="Size.Small"
-                                       OnClick="@(() => SetActiveAsync(promo, true))" />
-                    </MudTooltip>
-                }
+                <RowActions Actions="@([
+                    new RowAction("Deactivate", Icons.Material.Outlined.Block) { OnClick = () => SetActiveAsync(promo, false), Visible = promo.Can(LinkRels.SetActive) && promo.IsActive },
+                    new RowAction("Activate", Icons.Material.Outlined.CheckCircleOutline) { OnClick = () => SetActiveAsync(promo, true), Visible = promo.Can(LinkRels.SetActive) && !promo.IsActive },
+                ])" />
             </MudTd>
         </RowTemplate>
     </SearchableTable>
