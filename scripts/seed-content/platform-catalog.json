@@ -1,0 +1,19 @@
+{
+  "moduleOfferings": [
+    { "key": "website", "name": "Website & Service Catalog", "price": 59, "billingCycle": "Monthly", "isPubliclyVisible": true },
+    { "key": "inquiries", "name": "Leads & Messages", "price": 19, "billingCycle": "Monthly", "isPubliclyVisible": true },
+    { "key": "scheduling", "name": "Online Booking & Dispatch", "price": 89, "billingCycle": "Monthly", "isPubliclyVisible": true },
+    { "key": "commerce", "name": "Online Store & Invoicing", "price": 79, "billingCycle": "Monthly", "isPubliclyVisible": true },
+    { "key": "memberships", "name": "Maintenance Plans", "price": 49, "billingCycle": "Monthly", "isPubliclyVisible": true },
+    { "key": "mobile-app", "name": "Branded Mobile App (iOS & Android)", "price": 69, "billingCycle": "Monthly", "isPubliclyVisible": true },
+    { "key": "equipment", "name": "Customer Equipment", "price": 25, "billingCycle": "Monthly", "isPubliclyVisible": true },
+    { "key": "referrals", "name": "Referral Program", "price": 25, "billingCycle": "Monthly", "isPubliclyVisible": true },
+    { "key": "Partnerships", "name": "Partners & Brands", "price": 15, "billingCycle": "Monthly", "isPubliclyVisible": true },
+    { "key": "custom-dev", "name": "Priority Support & Custom Development", "price": 70, "billingCycle": "Monthly", "isPubliclyVisible": true }
+  ],
+  "bundles": [
+    { "name": "Starter", "moduleKeys": [ "website", "inquiries", "scheduling" ], "isPubliclyVisible": true },
+    { "name": "Growth", "moduleKeys": [ "website", "inquiries", "scheduling", "memberships", "mobile-app" ], "isPubliclyVisible": true },
+    { "name": "Complete", "moduleKeys": [ "website", "inquiries", "scheduling", "commerce", "memberships", "mobile-app", "equipment", "referrals", "Partnerships", "custom-dev" ], "isPubliclyVisible": true }
+  ]
+}

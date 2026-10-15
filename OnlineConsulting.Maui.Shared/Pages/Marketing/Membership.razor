@@ -91,7 +91,7 @@
                 var yearlySavings = YearlySavings(plan);
                 var isCurrent = plan.Id == _currentPlanId;
                 <MudItem xs="12" sm="6" md="4" Class="@(featured ? "plan-carousel-item plan-featured" : "plan-carousel-item")">
-                    <div class="position-relative" style="height:100%;">
+                    <div class="plan-card-wrap">
                         @if (isCurrent)
                         {
                             <span class="marketing-pricing-badge membership-badge-current">Your Plan</span>

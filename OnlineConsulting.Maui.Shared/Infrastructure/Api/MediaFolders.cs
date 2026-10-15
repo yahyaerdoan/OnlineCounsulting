@@ -15,4 +15,5 @@ public static class MediaFolders
     public const string HeroSlides = "hero-slides";
     public const string WorkOrders = "work-orders";
     public const string Branding = "branding";
+    public const string Landing = "landing";
 }

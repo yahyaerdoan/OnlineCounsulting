@@ -8,6 +8,8 @@
     <MudTextField @bind-Value="Model.Description" For="@(() => Model.Description)" Label="Description" Variant="Variant.Outlined" Margin="Margin.Dense"
                   Lines="1" MaxLines="5" Sizing="InputSizing.Auto" />
 
+    <MudNumericField @bind-Value="Model.DisplayOrder" For="@(() => Model.DisplayOrder)" Label="Display order" Variant="Variant.Outlined" Margin="Margin.Dense" />
+
     <IconPicker @bind-Value="Model.Icon" For="@(() => Model.Icon)" />
 
     <MudStack Spacing="1">

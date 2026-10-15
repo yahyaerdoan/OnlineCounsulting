@@ -9,7 +9,7 @@ using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Categories.Application.Features.Categories.UpdateCategory;
 
-public record UpdateCategoryCommand(Guid Id, string Title, string Description, string Icon, string? IconColor = null) : IRequest<OperationResult>, ISecureAddRequest
+public record UpdateCategoryCommand(Guid Id, string Title, string Description, string Icon, string? IconColor = null, int DisplayOrder = 0) : IRequest<OperationResult>, ISecureAddRequest
 {
     public string[] Roles => [CategoriesOperationClaims.Admin, CategoriesOperationClaims.Write, CategoriesOperationClaims.Update, GlobalOperationClaims.SuperAdmin];
 }
@@ -29,6 +29,7 @@ public class UpdateCategoryHandler(ICategoryRepository repository) : IRequestHan
         category.Description = request.Description;
         category.Icon = request.Icon;
         category.IconColor = request.IconColor;
+        category.DisplayOrder = request.DisplayOrder;
 
         _ = await repository.UpdateAsync(category, cancellationToken: cancellationToken);
 

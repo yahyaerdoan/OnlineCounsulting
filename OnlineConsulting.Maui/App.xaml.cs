@@ -14,7 +14,7 @@ public partial class App : Application
 
     protected override Window CreateWindow(IActivationState? activationState)
     {
-        var window = new Window(new MainPage()) { Title = "ComfortPro" };
+        var window = new Window(new MainPage()) { Title = "Comfort XPro" };
         window.Resumed += (_, _) => _resumeSource.RaiseResumed();
         return window;
     }

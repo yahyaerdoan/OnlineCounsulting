@@ -1,0 +1,49 @@
+@* Platform-only: every industry (the platform's categories, in display order) under a hero, then the sales close.
+   Copy comes from the Landing Page admin (Industries section). *@
+@page "/industries"
+@layout OnlineConsulting.Maui.Shared.Layout.MarketingLayout
+@using OnlineConsulting.Maui.Shared.Components.Marketing
+@using OnlineConsulting.Maui.Shared.Infrastructure.Api
+@inject IApiClient ApiClient
+@inject NavigationManager Navigation
+@inject SiteBrand Brand
+
+<BrandPageTitle Title="Industries" />
+
+@if (_page is { IndustriesTitle.Length: > 0 } landing)
+{
+    <PlatformHero Breadcrumb="Industries" Eyebrow="@landing.IndustriesEyebrow" Title="@landing.IndustriesTitle" Lead="@landing.IndustriesLead" ImageUrl="@landing.IndustriesHeroImageUrl"
+                  PrimaryText="@landing.PrimaryCtaText" SecondaryText="@landing.SecondaryCtaText" />
+
+    @if (_industries.Count > 0)
+    {
+        <MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
+            <IndustryGrid Items="_industries" />
+        </MudContainer>
+    }
+
+    <PlatformClosingCta Page="landing" />
+}
+
+@code {
+    private LandingPageResponse? _page;
+    private List<CategoryResponse> _industries = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Brand.EnsureLoadedAsync();
+        if (!Brand.IsPlatform)
+        {
+            Navigation.NavigateTo(AppRoutes.NotFound, replace: true);
+            return;
+        }
+
+        var pageTask = ApiClient.GetAsync<LandingPageResponse>(ApiRoutes.SiteContent.LandingPage.Base);
+        var industriesTask = CategoryLookupHelper.GetAllAsync(ApiClient);
+        await Task.WhenAll(pageTask, industriesTask);
+
+        var pageResult = await pageTask;
+        _page = pageResult.IsSuccessful ? pageResult.ResultData : null;
+        _industries = await industriesTask;
+    }
+}

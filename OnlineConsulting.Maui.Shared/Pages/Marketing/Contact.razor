@@ -1,13 +1,22 @@
 @* Contact page: phones lead with one-tap Call / Email / Directions, then the message form, then the details card;
-   wide screens keep form and details side by side. The contact record is loaded once here and shared. *@
+   wide screens keep form and details side by side. The contact record is loaded once here and shared. The platform's own site
+   swaps the banner for a hero (no buttons; the form is the action) once its title is set in the Landing Page admin. *@
 @page "/contact"
 @layout OnlineConsulting.Maui.Shared.Layout.MarketingLayout
 @using OnlineConsulting.Maui.Shared.Components.Marketing
 @inject IApiClient ApiClient
+@inject SiteBrand Brand
 
 <BrandPageTitle Title="Contact Us" />
 
-<MarketingPageBanner Title="Contact Us" SubPage="Contact" />
+@if (_landing is { ContactHeroTitle.Length: > 0 } landing)
+{
+    <PlatformHero Breadcrumb="Contact" Eyebrow="@landing.ContactHeroEyebrow" Title="@landing.ContactHeroTitle" Lead="@landing.ContactHeroLead" ImageUrl="@landing.ContactHeroImageUrl" />
+}
+else if (_headerReady)
+{
+    <MarketingPageBanner Title="Contact Us" SubPage="Contact" />
+}
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
     @if (_contact is { } contact)
@@ -52,10 +61,23 @@
 
 @code {
     private CompanyContactResponse? _contact;
+    private LandingPageResponse? _landing;
+    private bool _headerReady;
 
     protected override async Task OnInitializedAsync()
     {
-        var result = await ApiClient.GetAsync<CompanyContactResponse>(ApiRoutes.Inquiries.Contact.Get);
+        var contactTask = ApiClient.GetAsync<CompanyContactResponse>(ApiRoutes.Inquiries.Contact.Get);
+        await Brand.EnsureLoadedAsync();
+        if (Brand.IsPlatform)
+        {
+            var landing = await ApiClient.GetAsync<LandingPageResponse>(ApiRoutes.SiteContent.LandingPage.Base);
+            _landing = landing.IsSuccessful ? landing.ResultData : null;
+        }
+
+        // Header picked before render so the banner never flashes ahead of the hero.
+        _headerReady = true;
+
+        var result = await contactTask;
         _contact = result.IsSuccessful ? result.ResultData : null;
     }
 }

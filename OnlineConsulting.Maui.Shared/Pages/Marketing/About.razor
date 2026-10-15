@@ -1,17 +1,54 @@
 @* Matches the site's real AboutUs/Index.cshtml section order (reuses the same Home section
    components - the legacy source does exactly the same thing). Only entity-backed sections -
-   the static stats band is excluded. *@
+   the static stats band is excluded. The platform's own site keeps only the story and the team, then the sales close, and swaps
+   the banner for a hero once its title is set in the Landing Page admin. *@
 @page "/about"
 @layout OnlineConsulting.Maui.Shared.Layout.MarketingLayout
 @using OnlineConsulting.Maui.Shared.Components.Marketing
+@using OnlineConsulting.Maui.Shared.Infrastructure.Api
+@inject SiteBrand Brand
+@inject IApiClient ApiClient
 
 <BrandPageTitle Title="About Us" />
 
-<MarketingPageBanner Title="About Us" SubPage="About" />
+@if (_landing is { AboutHeroTitle.Length: > 0 } landing)
+{
+    <PlatformHero Breadcrumb="About" Eyebrow="@landing.AboutHeroEyebrow" Title="@landing.AboutHeroTitle" Lead="@landing.AboutHeroLead" ImageUrl="@landing.AboutHeroImageUrl"
+                  PrimaryText="@landing.PrimaryCtaText" SecondaryText="@landing.SecondaryCtaText" />
+}
+else
+{
+    <MarketingPageBanner Title="About Us" SubPage="About" />
+}
 <AboutUsSection />
-<HomeFeaturedServicesSection />
-<HomePartnershipSection Kind="@PartnershipKinds.Team" Eyebrow="Our People" Title="Meet Our Team"
-                        Lead="The owner and technicians who show up at your door." />
-<HomePartnershipSection />
-<HomeProcessSection />
-<HomeTestimonialsSection />
+@if (_brandLoaded && Brand.IsPlatform)
+{
+    <HomePartnershipSection Kind="@PartnershipKinds.Team" Eyebrow="Our People" Title="Meet Our Team" Lead="@($"The people behind {Brand.Name}.")" />
+    <PlatformClosingCta Page="_landing" />
+}
+else if (_brandLoaded)
+{
+    <HomeFeaturedServicesSection />
+    <HomePartnershipSection Kind="@PartnershipKinds.Team" Eyebrow="Our People" Title="Meet Our Team"
+                            Lead="The owner and technicians who show up at your door." />
+    <HomePartnershipSection />
+    <HomeProcessSection />
+    <HomeTestimonialsSection />
+}
+
+@code {
+    private bool _brandLoaded;
+    private LandingPageResponse? _landing;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Brand.EnsureLoadedAsync();
+        if (Brand.IsPlatform)
+        {
+            var result = await ApiClient.GetAsync<LandingPageResponse>(ApiRoutes.SiteContent.LandingPage.Base);
+            _landing = result.IsSuccessful ? result.ResultData : null;
+        }
+
+        _brandLoaded = true;
+    }
+}

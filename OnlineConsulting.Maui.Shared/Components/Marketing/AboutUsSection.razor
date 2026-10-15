@@ -2,6 +2,7 @@
    (first AboutUs CMS entry). *@
 @using OnlineConsulting.Maui.Shared.Infrastructure.Api
 @inject IApiClient ApiClient
+@inject SiteBrand Brand
 
 @if (_aboutUs is not null)
 {
@@ -15,7 +16,14 @@
                    HTML from MudExRichTextEdit and can contain block elements (h1/h2/ul/p); nesting
                    those inside a <p> is invalid HTML and browsers silently mangle the DOM. *@
                 <MudText HtmlTag="div" Typo="Typo.body1" Color="Color.Secondary" Class="mb-4 marketing-rich-text" Style="text-align:justify;">@((MarkupString)_aboutUs.Description)</MudText>
-                <MudButton Href="/services" Variant="Variant.Filled" Color="Color.Primary">Get Service Now</MudButton>
+                @if (Brand.IsPlatform)
+                {
+                    <MudButton Href="/pricing" Variant="Variant.Filled" Color="Color.Primary">See pricing</MudButton>
+                }
+                else
+                {
+                    <MudButton Href="/services" Variant="Variant.Filled" Color="Color.Primary">Get Service Now</MudButton>
+                }
             </MudItem>
             @if (!string.IsNullOrWhiteSpace(_videoUrl))
             {
@@ -36,6 +44,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await Brand.EnsureLoadedAsync();
         var result = await ApiClient.GetAsync<List<AboutUsResponse>>(ApiRoutes.SiteContent.AboutUs.Base);
         _aboutUs = result.IsSuccessful ? result.ResultData?.OrderBy(a => a.DisplayOrder).FirstOrDefault() : null;
         _videoUrl = ConvertToEmbedUrl(_aboutUs?.VideoUrl);

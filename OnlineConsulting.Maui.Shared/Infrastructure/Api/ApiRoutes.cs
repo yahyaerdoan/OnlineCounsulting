@@ -233,6 +233,19 @@ public static class ApiRoutes
             public static string ById(Guid id) => $"{Base}/{id}";
         }
 
+        public static class LandingPage
+        {
+            public const string Base = V1 + "/site-content/landing-page";
+        }
+
+        public static class LandingBlocks
+        {
+            public const string Base = V1 + "/site-content/landing-blocks";
+
+            public const string All = Base + "/query";
+            public static string ById(Guid id) => $"{Base}/{id}";
+        }
+
         public static class PageBanners
         {
             public const string Base = V1 + "/site-content/page-banners";

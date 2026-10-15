@@ -1,5 +1,6 @@
 @* Phone "Menu" hub (the bottom bar's last tab): who you are, every shortcut as a tile, settings, and what the desktop
-   footer holds (social links, newsletter, "For businesses") - phones don't render the footer. *@
+   footer holds (social links, newsletter, "For businesses") - phones don't render the footer. The platform's own site swaps the
+   homeowner tiles for product ones. *@
 @page "/menu"
 @using System.Security.Claims
 @using OnlineConsulting.Maui.Shared.Theme
@@ -42,19 +43,26 @@
                 <MudAvatar Color="Color.Default" Size="Size.Large"><MudIcon Icon="@Icons.Material.Outlined.Person" /></MudAvatar>
                 <span class="min-w-0">
                     <span class="menu-profile-name">Welcome</span>
-                    <span class="menu-profile-link">Sign in to book and track your visits</span>
+                    <span class="menu-profile-link">@(Brand.IsPlatform ? "Sign in to manage your business" : "Sign in to book and track your visits")</span>
                 </span>
             </div>
             <MudStack Row="true" Spacing="2" Class="mb-4">
                 <MudButton Href="/login?ReturnUrl=/menu" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true">Sign in</MudButton>
-                <MudButton Href="/register" Variant="Variant.Outlined" Color="Color.Primary" FullWidth="true">Create account</MudButton>
+                @if (Brand.IsPlatform)
+                {
+                    <MudButton Href="/signup" Variant="Variant.Outlined" Color="Color.Primary" FullWidth="true">Sign up</MudButton>
+                }
+                else
+                {
+                    <MudButton Href="/register" Variant="Variant.Outlined" Color="Color.Primary" FullWidth="true">Create account</MudButton>
+                }
             </MudStack>
         </NotAuthorized>
     </AuthorizeView>
 
     <MudText Typo="Typo.subtitle2" Class="menu-heading">Explore</MudText>
     <div class="menu-grid">
-        @foreach (var tile in PublicTiles)
+        @foreach (var tile in Brand.IsPlatform ? PlatformTiles : PublicTiles)
         {
             <a href="@tile.Href" class="menu-tile">
                 <span class="tone-bubble @tile.Tone"><MudIcon Icon="@tile.Icon" /></span>
@@ -88,7 +96,7 @@
     }
 
     <MudText Typo="Typo.subtitle2" Class="menu-heading">Newsletter</MudText>
-    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-2">Seasonal maintenance tips and offers, straight to your inbox.</MudText>
+    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-2">@NewsletterCopy.Lead(Brand.IsPlatform)</MudText>
     <NewsletterForm FormName="menu-newsletter" />
 
     <a href="@Brand.PlatformLink("/pricing")" class="business-promo">
@@ -135,6 +143,16 @@
         new("All services", "/services", Icons.Material.Outlined.HomeRepairService, AccentTone.Teal),
         new("Memberships", "/membership", Icons.Material.Outlined.Loyalty, AccentTone.Gold),
         new("Our work", "/gallery", Icons.Material.Outlined.PhotoLibrary, AccentTone.Green),
+        new("About us", "/about", Icons.Material.Outlined.Info, AccentTone.Cornflower),
+        new("Contact", "/contact", Icons.Material.Outlined.SupportAgent, AccentTone.Orange),
+    ];
+
+    private static readonly MenuTile[] PlatformTiles =
+    [
+        new("Features", "/features", Icons.Material.Outlined.Widgets, AccentTone.Blue),
+        new("Industries", "/industries", Icons.Material.Outlined.Business, AccentTone.Cornflower),
+        new("Pricing", "/pricing", Icons.Material.Outlined.Sell, AccentTone.Gold),
+        new("Sign up", "/signup", Icons.Material.Outlined.RocketLaunch, AccentTone.Green),
         new("About us", "/about", Icons.Material.Outlined.Info, AccentTone.Cornflower),
         new("Contact", "/contact", Icons.Material.Outlined.SupportAgent, AccentTone.Orange),
     ];

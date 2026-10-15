@@ -25,6 +25,9 @@ public sealed class SiteBrand(IApiClient apiClient)
     /// <summary>True on the platform's own site; pricing and signup exist only there.</summary>
     public bool IsPlatform { get; private set; } = true;
 
+    /// <summary>The platform's own name, the same on every site (footer credit).</summary>
+    public string PlatformName { get; private set; } = string.Empty;
+
     /// <summary>A platform page as a link that works from any site: relative on the platform, absolute on a business's site.</summary>
     public string PlatformLink(string path) => IsPlatform ? path : $"{_platformUrl}{path}";
 
@@ -53,6 +56,7 @@ public sealed class SiteBrand(IApiClient apiClient)
                 Name = brand.Name;
                 IsPlatform = brand.IsPlatform;
                 _platformUrl = brand.PlatformUrl;
+                PlatformName = brand.PlatformName;
                 LogoUrl = brand.LogoMediaAssetId is Guid logoId ? await MediaUploadHelper.GetUrlAsync(apiClient, logoId) : null;
             }
         }

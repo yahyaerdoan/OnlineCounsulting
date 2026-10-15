@@ -9,7 +9,7 @@ using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Categories.Application.Features.Categories.CreateCategory;
 
-public record CreateCategoryCommand(string Title, string Description, string Icon, string? IconColor = null) : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
+public record CreateCategoryCommand(string Title, string Description, string Icon, string? IconColor = null, int DisplayOrder = 0) : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
     public string[] Roles => [CategoriesOperationClaims.Admin, CategoriesOperationClaims.Write, CategoriesOperationClaims.Add, GlobalOperationClaims.SuperAdmin];
 }
@@ -24,6 +24,7 @@ public class CreateCategoryHandler(ICategoryRepository repository) : IRequestHan
             Description = request.Description,
             Icon = request.Icon,
             IconColor = request.IconColor,
+            DisplayOrder = request.DisplayOrder,
         };
 
         _ = await repository.AddAsync(category, cancellationToken: cancellationToken);

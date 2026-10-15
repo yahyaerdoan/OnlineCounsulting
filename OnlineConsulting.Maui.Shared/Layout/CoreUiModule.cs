@@ -35,6 +35,8 @@ public class CoreUiModule : IUiModule
             new NavItem("Tenants", $"{AdminPrefix}/platform/tenants", Icons.Material.Outlined.Domain, SuperAdminOnly: true),
             new NavItem("Module Offerings", $"{AdminPrefix}/platform/module-offerings", Icons.Material.Outlined.Widgets, SuperAdminOnly: true),
             new NavItem("Bundles", $"{AdminPrefix}/platform/bundles", Icons.Material.Outlined.Inventory2, SuperAdminOnly: true),
+            new NavItem("Landing Page", $"{AdminPrefix}/platform/landing-page", Icons.Material.Outlined.Web, SuperAdminOnly: true),
+            new NavItem("Landing Blocks", $"{AdminPrefix}/platform/landing-blocks", Icons.Material.Outlined.ViewAgenda, SuperAdminOnly: true),
         ]),
 
         new NavSection("Settings", Icons.Material.Outlined.Settings, Color.Tertiary,

@@ -1,7 +1,9 @@
 ﻿using Core.PersistenceLayer.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using OnlineConsulting.Modules.SiteContent.Domain;
+using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Domain.Gallery;
+using OnlineConsulting.Modules.SiteContent.Domain.Landing;
 using OnlineConsulting.Modules.SiteContent.Domain.Partnerships;
 using OnlineConsulting.Modules.SiteContent.Domain.Service;
 
@@ -28,6 +30,8 @@ public class SiteContentDbContext(DbContextOptions<SiteContentDbContext> options
     public DbSet<ServiceArea> ServiceAreas => Set<ServiceArea>();
     public DbSet<FaqItem> FaqItems => Set<FaqItem>();
     public DbSet<Promotion> Promotions => Set<Promotion>();
+    public DbSet<LandingPage> LandingPages => Set<LandingPage>();
+    public DbSet<LandingBlock> LandingBlocks => Set<LandingBlock>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -183,6 +187,52 @@ public class SiteContentDbContext(DbContextOptions<SiteContentDbContext> options
             _ = builder.Property(x => x.Description).HasMaxLength(2000).IsRequired();
             _ = builder.Property(x => x.CtaText).HasMaxLength(100);
             _ = builder.Property(x => x.CtaUrl).HasMaxLength(500);
+            _ = builder.Property(x => x.RowVersion).IsRowVersion();
+        });
+
+        _ = modelBuilder.Entity<LandingPage>(builder =>
+        {
+            _ = builder.Property(x => x.HeroEyebrow).HasMaxLength(LandingLimits.Eyebrow).IsRequired();
+            _ = builder.Property(x => x.HeroTitle).HasMaxLength(LandingLimits.Title).IsRequired();
+            _ = builder.Property(x => x.HeroLead).HasMaxLength(LandingLimits.Lead).IsRequired();
+            _ = builder.Property(x => x.PrimaryCtaText).HasMaxLength(LandingLimits.Cta).IsRequired();
+            _ = builder.Property(x => x.SecondaryCtaText).HasMaxLength(LandingLimits.Cta).IsRequired();
+            _ = builder.Property(x => x.FeaturesEyebrow).HasMaxLength(LandingLimits.Eyebrow).IsRequired();
+            _ = builder.Property(x => x.FeaturesTitle).HasMaxLength(LandingLimits.Title).IsRequired();
+            _ = builder.Property(x => x.FeaturesLead).HasMaxLength(LandingLimits.Lead);
+            _ = builder.Property(x => x.StepsEyebrow).HasMaxLength(LandingLimits.Eyebrow).IsRequired();
+            _ = builder.Property(x => x.StepsTitle).HasMaxLength(LandingLimits.Title).IsRequired();
+            _ = builder.Property(x => x.StepsLead).HasMaxLength(LandingLimits.Lead);
+            _ = builder.Property(x => x.PricingEyebrow).HasMaxLength(LandingLimits.Eyebrow).IsRequired();
+            _ = builder.Property(x => x.PricingTitle).HasMaxLength(LandingLimits.Title).IsRequired();
+            _ = builder.Property(x => x.PricingLead).HasMaxLength(LandingLimits.Lead);
+            _ = builder.Property(x => x.FaqEyebrow).HasMaxLength(LandingLimits.Eyebrow).IsRequired();
+            _ = builder.Property(x => x.FaqTitle).HasMaxLength(LandingLimits.Title).IsRequired();
+            _ = builder.Property(x => x.ClosingTitle).HasMaxLength(LandingLimits.Title).IsRequired();
+            _ = builder.Property(x => x.ClosingLead).HasMaxLength(LandingLimits.Lead);
+            _ = builder.Property(x => x.AboutHeroEyebrow).HasMaxLength(LandingLimits.Eyebrow);
+            _ = builder.Property(x => x.AboutHeroTitle).HasMaxLength(LandingLimits.Title);
+            _ = builder.Property(x => x.AboutHeroLead).HasMaxLength(LandingLimits.Lead);
+            _ = builder.Property(x => x.IndustriesEyebrow).HasMaxLength(LandingLimits.Eyebrow);
+            _ = builder.Property(x => x.IndustriesTitle).HasMaxLength(LandingLimits.Title);
+            _ = builder.Property(x => x.IndustriesLead).HasMaxLength(LandingLimits.Lead);
+            _ = builder.Property(x => x.ContactHeroEyebrow).HasMaxLength(LandingLimits.Eyebrow);
+            _ = builder.Property(x => x.ContactHeroTitle).HasMaxLength(LandingLimits.Title);
+            _ = builder.Property(x => x.ContactHeroLead).HasMaxLength(LandingLimits.Lead);
+            _ = builder.Property(x => x.HeroImageUrl).HasMaxLength(LandingLimits.ImageUrl);
+            _ = builder.Property(x => x.FeaturesHeroImageUrl).HasMaxLength(LandingLimits.ImageUrl);
+            _ = builder.Property(x => x.IndustriesHeroImageUrl).HasMaxLength(LandingLimits.ImageUrl);
+            _ = builder.Property(x => x.AboutHeroImageUrl).HasMaxLength(LandingLimits.ImageUrl);
+            _ = builder.Property(x => x.ContactHeroImageUrl).HasMaxLength(LandingLimits.ImageUrl);
+            _ = builder.Property(x => x.RowVersion).IsRowVersion();
+        });
+
+        _ = modelBuilder.Entity<LandingBlock>(builder =>
+        {
+            _ = builder.Property(x => x.Section).HasMaxLength(LandingLimits.Section).IsRequired();
+            _ = builder.Property(x => x.Title).HasMaxLength(LandingLimits.Title).IsRequired();
+            _ = builder.Property(x => x.Body).HasMaxLength(LandingLimits.Body).IsRequired();
+            _ = builder.Property(x => x.Icon).HasMaxLength(LandingLimits.Icon);
             _ = builder.Property(x => x.RowVersion).IsRowVersion();
         });
 

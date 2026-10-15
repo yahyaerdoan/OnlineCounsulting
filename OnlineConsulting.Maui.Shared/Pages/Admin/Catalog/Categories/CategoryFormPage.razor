@@ -66,11 +66,12 @@
         _model.Description = category.Description;
         _model.Icon = IconCatalog.Resolve(category.Icon);
         _model.IconColor = category.IconColor;
+        _model.DisplayOrder = category.DisplayOrder;
     }
 
     private Task SaveAsync() => Form.SubmitAsync(async () =>
     {
-        var body = new { title = _model.Title, description = _model.Description, icon = _model.Icon, iconColor = _model.IconColor };
+        var body = new { title = _model.Title, description = _model.Description, icon = _model.Icon, iconColor = _model.IconColor, displayOrder = _model.DisplayOrder };
 
         var result = Id is { } categoryId
             ? await ApiClient.PutAsync(ApiRoutes.Categories.ById(categoryId), body)

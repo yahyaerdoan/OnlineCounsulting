@@ -18,7 +18,7 @@ namespace OnlineConsulting.Modules.Categories.Infrastructure.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("Categories")
-                .HasAnnotation("ProductVersion", "10.0.10")
+                .HasAnnotation("ProductVersion", "10.0.12")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -45,6 +45,9 @@ namespace OnlineConsulting.Modules.Categories.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
 
                     b.Property<string>("Icon")
                         .IsRequired()

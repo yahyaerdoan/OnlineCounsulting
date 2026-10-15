@@ -9,6 +9,7 @@ public class CategoryResponse
     public required string Description { get; init; }
     public required string Icon { get; init; }
     public string? IconColor { get; init; }
+    public int DisplayOrder { get; init; }
 
     public static CategoryResponse FromDomain(Category category) => new()
     {
@@ -17,5 +18,6 @@ public class CategoryResponse
         Description = category.Description,
         Icon = category.Icon,
         IconColor = category.IconColor,
+        DisplayOrder = category.DisplayOrder,
     };
 }

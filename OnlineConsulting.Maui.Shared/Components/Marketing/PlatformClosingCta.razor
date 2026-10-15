@@ -1,0 +1,42 @@
+@* The platform's closing call to action (title, lead, pricing and contact buttons), from the admin-managed landing copy.
+   Pass Page when it is already loaded; otherwise it loads it, and hides when none is saved. *@
+@using OnlineConsulting.Maui.Shared.Infrastructure.Api
+@inject IApiClient ApiClient
+
+@if (_page is not null)
+{
+    <section class="membership-cta pricing-cta">
+        <MudContainer MaxWidth="MaxWidth.Medium" Class="d-flex flex-column align-center text-center">
+            <MudText Typo="Typo.h4" Class="marketing-display text-strong">@_page.ClosingTitle</MudText>
+            @if (!string.IsNullOrWhiteSpace(_page.ClosingLead))
+            {
+                <MudText Typo="Typo.body1" Class="mt-2 membership-cta-lead">@_page.ClosingLead</MudText>
+            }
+            <div class="sales-intro-actions sales-cta-actions">
+                <MudButton Href="/pricing" Variant="Variant.Filled" Size="Size.Large" EndIcon="@Icons.Material.Filled.ArrowForward" Class="sell-btn">@_page.PrimaryCtaText</MudButton>
+                <MudButton Href="/contact" Variant="Variant.Outlined" Size="Size.Large" Class="membership-cta-secondary">@_page.SecondaryCtaText</MudButton>
+            </div>
+        </MudContainer>
+    </section>
+}
+
+@code {
+    [Parameter] public LandingPageResponse? Page { get; set; }
+
+    private LandingPageResponse? _page;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Page is not null)
+        {
+            _page = Page;
+            return;
+        }
+
+        if (_page is null)
+        {
+            var result = await ApiClient.GetAsync<LandingPageResponse>(ApiRoutes.SiteContent.LandingPage.Base);
+            _page = result.IsSuccessful ? result.ResultData : null;
+        }
+    }
+}

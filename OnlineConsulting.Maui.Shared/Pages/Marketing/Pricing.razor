@@ -12,6 +12,9 @@
 <PageTitle>Pricing</PageTitle>
 
 <section class="sales-intro pricing-intro">
+    <MudContainer MaxWidth="MaxWidth.Large">
+        <MarketingBreadcrumb Current="Pricing" Class="sales-intro-breadcrumb" />
+    </MudContainer>
     <MudContainer MaxWidth="MaxWidth.Medium">
         <MudText Typo="Typo.subtitle2" Color="Color.Primary" Align="Align.Center" Class="text-strong">Pricing for service businesses</MudText>
         <MudText Typo="Typo.h3" Align="Align.Center" Class="marketing-display text-strong mt-1">Run your whole service business from one app</MudText>
@@ -65,47 +68,13 @@ else
             <MudGrid Justify="Justify.Center" Class="plan-carousel">
                 @foreach (var (bundle, index) in _bundles.Select((b, i) => (b, i)))
                 {
-                    var featured = IsFeaturedBundle(bundle);
-                    var highlighted = featured || !HasFeaturedBundle;
-                    var modules = ModulesFor(bundle).ToList();
-                    <MudItem xs="12" sm="6" md="4" Class="@(featured ? "plan-carousel-item plan-featured" : "plan-carousel-item")">
-                        <div class="position-relative" style="height:100%;">
-                            @if (featured)
-                            {
-                                <span class="marketing-pricing-badge plan-badge-hot"><MudIcon Icon="@Icons.Material.Filled.LocalFireDepartment" Size="Size.Small" />Most Popular</span>
-                            }
-                            <MudCard Outlined="true" Class="@($"d-flex flex-column marketing-pricing-card plan-card {(featured ? "marketing-pricing-card-featured" : "")}")" Style="height:100%;">
-                                <div class="plan-card-top @AccentTone.At(index)"></div>
-                                <MudCardContent Class="d-flex flex-column flex-grow-1 pa-6 plan-card-body">
-                                    <div class="d-flex align-center gap-3">
-                                        <span class="tone-bubble @AccentTone.At(index)"><MudIcon Icon="@BundleIcon(index)" /></span>
-                                        <div>
-                                            <MudText Typo="Typo.h6" Class="text-strong">@bundle.Name</MudText>
-                                            <MudText Typo="Typo.caption" Color="Color.Secondary">@modules.Count @(modules.Count == 1 ? "module" : "modules") included</MudText>
-                                        </div>
-                                    </div>
-                                    @{ var (amount, cycle) = ModuleOfferingDisplay.PriceParts(modules); }
-                                    <div class="membership-price">
-                                        <span class="membership-price-amount">@amount</span>
-                                        <span class="membership-price-cycle">@cycle</span>
-                                    </div>
-                                    <ul class="membership-benefits">
-                                        @foreach (var module in modules)
-                                        {
-                                            <li><MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" Color="Color.Primary" /><span>@module.Name</span></li>
-                                        }
-                                    </ul>
-                                </MudCardContent>
-                                <MudCardActions Class="pa-6 pt-0 plan-card-actions d-flex flex-column gap-2">
-                                    <MudButton Href="@SignupUrl(bundle.ModuleKeys)" Variant="@(highlighted ? Variant.Filled : Variant.Outlined)" Color="Color.Primary"
-                                               FullWidth="true" Size="Size.Large" EndIcon="@Icons.Material.Filled.ArrowForward"
-                                               Class="@(highlighted ? "sell-btn" : "plan-outline-btn")">Get started</MudButton>
-                                    <MudButton OnClick="@(() => CustomizeAsync(bundle))" Variant="Variant.Filled" FullWidth="true" Size="Size.Large"
-                                               StartIcon="@Icons.Material.Outlined.Tune" Class="sell-btn-soft" title="Start the plan builder with this bundle's modules, then add or remove any">Customize modules</MudButton>
-                                </MudCardActions>
-                            </MudCard>
-                        </div>
-                    </MudItem>
+                    <BundlePlanCard Bundle="bundle" Modules="@ModulesFor(bundle).ToList()" Previous="@(index > 0 ? _bundles[index - 1] : null)" Index="index"
+                                    Featured="@(index == FeaturedIndex)" Highlighted="@(index == FeaturedIndex || FeaturedIndex < 0)">
+                        <SecondaryAction>
+                            <MudButton OnClick="@(() => CustomizeAsync(bundle))" Variant="Variant.Filled" FullWidth="true" Size="Size.Large"
+                                       StartIcon="@Icons.Material.Outlined.Tune" Class="sell-btn-soft" title="Start the plan builder with this bundle's modules, then add or remove any">Customize modules</MudButton>
+                        </SecondaryAction>
+                    </BundlePlanCard>
                 }
             </MudGrid>
         </MudContainer>
@@ -218,7 +187,7 @@ else
                                 <span @key="SelectedTotalText" class="pricing-total-value">@SelectedTotalText</span>
                             </div>
                         }
-                        <MudButton Href="@SignupUrl(_selected)" Disabled="@(_selected.Count == 0)" Variant="Variant.Filled" Size="Size.Large" FullWidth="true"
+                        <MudButton Href="@ModuleOfferingDisplay.SignupUrl(_selected)" Disabled="@(_selected.Count == 0)" Variant="Variant.Filled" Size="Size.Large" FullWidth="true"
                                    EndIcon="@Icons.Material.Filled.ArrowForward" Class="sell-btn mt-4">@ContinueText</MudButton>
                         <span class="pricing-summary-note"><MudIcon Icon="@Icons.Material.Outlined.Info" Size="Size.Small" />You can still change modules at signup.</span>
                     </aside>
@@ -232,7 +201,7 @@ else
                         <span class="pricing-mobile-bar-count">@_selected.Count @(_selected.Count == 1 ? "module" : "modules")</span>
                         <span @key="SelectedTotalText" class="pricing-total-value">@SelectedTotalText</span>
                     </div>
-                    <MudButton Href="@SignupUrl(_selected)" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.ArrowForward" Class="sell-btn">Continue</MudButton>
+                    <MudButton Href="@ModuleOfferingDisplay.SignupUrl(_selected)" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.ArrowForward" Class="sell-btn">Continue</MudButton>
                 </div>
             }
         </section>
@@ -252,7 +221,7 @@ else
     <MudContainer MaxWidth="MaxWidth.Medium" Class="marketing-section-tight">
         <MudText Typo="Typo.h5" Align="Align.Center" Class="marketing-display text-strong mb-4">Pricing FAQs</MudText>
 
-        <FaqAccordion Items="@(_faqItems.Select(item => (item.Question, item.Answer)))" />
+        <FaqAccordion Items="@(_faqItems.Select(item => (item.Title, item.Body)))" />
     </MudContainer>
 }
 
@@ -276,22 +245,14 @@ else
     private static readonly (string Icon, string Title, string Detail)[] Perks =
     [
         (Icons.Material.Outlined.Extension, "Only pay for what you use", "Pick modules one by one, no bloated plans."),
-        (Icons.Material.Outlined.PhoneIphone, "Web and mobile apps included", "Your customers book from any device."),
+        (Icons.Material.Outlined.PhoneIphone, "Your own branded mobile app", "Add an iOS and Android app with your name on it."),
         (Icons.Material.Outlined.Lock, "Secure payments with Stripe", "Card details stay with Stripe, never with us."),
         (Icons.Material.Outlined.Bolt, "Set up in minutes", "Sign up, add your services, start booking."),
     ];
 
-    private static readonly string[] BundleIcons =
-    [
-        Icons.Material.Outlined.RocketLaunch,
-        Icons.Material.Outlined.TrendingUp,
-        Icons.Material.Outlined.Diamond,
-        Icons.Material.Outlined.Business,
-    ];
-
     private List<PublicModuleOfferingResponse> _offerings = [];
     private List<PublicBundleResponse> _bundles = [];
-    private List<FaqItemResponse> _faqItems = [];
+    private List<LandingBlockResponse> _faqItems = [];
     private readonly HashSet<string> _selected = [];
     private readonly HashSet<string> _bundleKeys = [];
     private string? _startedFrom;
@@ -320,8 +281,8 @@ else
         var bundlesResult = await ApiClient.GetAsync<List<PublicBundleResponse>>(ApiRoutes.Tenancy.Bundles);
         _bundles = bundlesResult.IsSuccessful ? [.. (bundlesResult.ResultData ?? []).OrderBy(BundlePrice)] : [];
 
-        var faqResult = await ApiClient.GetAsync<List<FaqItemResponse>>(ApiRoutes.SiteContent.FaqItems.Base);
-        _faqItems = faqResult.IsSuccessful ? faqResult.ResultData?.OrderBy(f => f.DisplayOrder).ToList() ?? [] : [];
+        var faqResult = await ApiClient.GetAsync<List<LandingBlockResponse>>(ApiRoutes.SiteContent.LandingBlocks.Base);
+        _faqItems = faqResult.IsSuccessful ? [.. (faqResult.ResultData ?? []).Where(b => b.Section == LandingSections.Faq)] : [];
 
         _loading = false;
     }
@@ -346,13 +307,7 @@ else
         var count => $"Continue with {count} modules",
     };
 
-    /// <summary>No "featured" flag on Bundle - just spotlights the middle-priced one.</summary>
-    private bool HasFeaturedBundle => _bundles.Count >= 3;
-
-    private bool IsFeaturedBundle(PublicBundleResponse bundle) =>
-        HasFeaturedBundle && bundle == _bundles[_bundles.Count / 2];
-
-    private static string BundleIcon(int index) => BundleIcons[index % BundleIcons.Length];
+    private int FeaturedIndex => ModuleOfferingDisplay.FeaturedBundleIndex(_bundles.Count);
 
     private void SelectAll()
     {
@@ -393,8 +348,4 @@ else
     }
 
     private async Task ScrollToAsync(string sectionId) => await JsRuntime.InvokeVoidAsync("comfortProScrollToSection", sectionId);
-
-    /// <summary>Pre-selects these modules on Signup - no re-picking what was just picked here.</summary>
-    private static string SignupUrl(IEnumerable<string> moduleKeys) =>
-        $"/signup?modules={Uri.EscapeDataString(string.Join(',', moduleKeys))}";
 }

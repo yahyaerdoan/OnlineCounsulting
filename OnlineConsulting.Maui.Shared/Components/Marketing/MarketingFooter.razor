@@ -1,5 +1,6 @@
 @* Wide-screen footer; hidden on phones, where the Menu page carries the social links, newsletter and "For businesses" card.
-   Opens with one entry card per audience (homeowners, businesses, technicians/staff), then link columns grouped the same way. *@
+   Opens with one entry card per audience (homeowners, businesses, technicians/staff), then link columns grouped the same way.
+   On the platform's own site the homeowner card and column give way to signup, since visitors there are businesses. *@
 @using OnlineConsulting.Maui.Shared.Infrastructure.Api
 @using OnlineConsulting.Maui.Shared.Layout
 @inject IApiClient ApiClient
@@ -8,14 +9,28 @@
 <footer class="marketing-footer">
     <MudContainer MaxWidth="MaxWidth.Large" Class="pt-8">
         <div class="footer-audiences">
-            <a href="/appointment" class="footer-audience footer-audience-home">
-                <span class="footer-audience-icon"><MudIcon Icon="@Icons.Material.Outlined.Home" /></span>
-                <span class="footer-audience-text">
-                    <span class="footer-audience-eyebrow">For Homeowners</span>
-                    <span class="footer-audience-title">Book a visit in a few taps</span>
-                    <span class="footer-audience-cta">Book now<MudIcon Icon="@Icons.Material.Filled.ArrowForward" Size="Size.Small" /></span>
-                </span>
-            </a>
+            @if (Brand.IsPlatform)
+            {
+                <a href="/signup" class="footer-audience footer-audience-home">
+                    <span class="footer-audience-icon"><MudIcon Icon="@Icons.Material.Outlined.Storefront" /></span>
+                    <span class="footer-audience-text">
+                        <span class="footer-audience-eyebrow">New to <BrandName /></span>
+                        <span class="footer-audience-title">Set up your business in minutes</span>
+                        <span class="footer-audience-cta">Sign up<MudIcon Icon="@Icons.Material.Filled.ArrowForward" Size="Size.Small" /></span>
+                    </span>
+                </a>
+            }
+            else
+            {
+                <a href="/appointment" class="footer-audience footer-audience-home">
+                    <span class="footer-audience-icon"><MudIcon Icon="@Icons.Material.Outlined.Home" /></span>
+                    <span class="footer-audience-text">
+                        <span class="footer-audience-eyebrow">For Homeowners</span>
+                        <span class="footer-audience-title">Book a visit in a few taps</span>
+                        <span class="footer-audience-cta">Book now<MudIcon Icon="@Icons.Material.Filled.ArrowForward" Size="Size.Small" /></span>
+                    </span>
+                </a>
+            }
             <a href="@Brand.PlatformLink("/pricing")" class="footer-audience footer-audience-business">
                 <span class="footer-audience-icon"><MudIcon Icon="@Icons.Material.Outlined.RocketLaunch" /></span>
                 <span class="footer-audience-text">
@@ -120,48 +135,53 @@
                 </ul>
             </div>
 
-            <nav class="footer-links" aria-label="For homeowners">
-                <span class="marketing-footer-heading">Homeowners</span>
-                <a href="/services">Services</a>
-                <a href="/appointment">Book a visit</a>
-                <a href="/membership">Membership</a>
-                <a href="/gallery">Our work</a>
-                <AuthorizeView>
-                    <Authorized>
-                        <a href="/user/dashboard">My account</a>
-                        <a href="/user/appointments">My visits</a>
-                    </Authorized>
-                    <NotAuthorized>
-                        <a href="/login">Sign in</a>
-                        <a href="/register">Create account</a>
-                    </NotAuthorized>
-                </AuthorizeView>
-                @if (_popularServices.Count > 0)
-                {
-                    <div class="footer-popular">
-                        <span class="footer-popular-head"><MudIcon Icon="@Icons.Material.Filled.LocalFireDepartment" Size="Size.Small" />Popular</span>
-                        @foreach (var service in _popularServices)
-                        {
-                            <a href="@($"/services/{service.Slug}")" class="@($"footer-popular-item {AccentTone.For(service.CategoryId)}")">
-                                <span class="footer-popular-icon">
-                                    <MudIcon Icon="@(service.Kind == ServiceKinds.Product ? Icons.Material.Outlined.Inventory2 : Icons.Material.Outlined.HomeRepairService)" Size="Size.Small" />
-                                </span>
-                                <span class="footer-popular-text">
-                                    <span class="footer-popular-title">@service.Title</span>
-                                    <span class="footer-popular-price">@ServicePriceFormat.Display(service)</span>
-                                </span>
-                                <MudIcon Icon="@Icons.Material.Filled.ChevronRight" Size="Size.Small" Class="footer-popular-chevron" />
-                            </a>
-                        }
-                        <a href="/services" class="footer-popular-all">All services<MudIcon Icon="@Icons.Material.Filled.ArrowForward" Size="Size.Small" /></a>
-                    </div>
-                }
-            </nav>
+            @if (!Brand.IsPlatform)
+            {
+                <nav class="footer-links" aria-label="For homeowners">
+                    <span class="marketing-footer-heading">Homeowners</span>
+                    <a href="/services">Services</a>
+                    <a href="/appointment">Book a visit</a>
+                    <a href="/membership">Membership</a>
+                    <a href="/gallery">Our work</a>
+                    <AuthorizeView>
+                        <Authorized>
+                            <a href="/user/dashboard">My account</a>
+                            <a href="/user/appointments">My visits</a>
+                        </Authorized>
+                        <NotAuthorized>
+                            <a href="/login">Sign in</a>
+                            <a href="/register">Create account</a>
+                        </NotAuthorized>
+                    </AuthorizeView>
+                    @if (_popularServices.Count > 0)
+                    {
+                        <div class="footer-popular">
+                            <span class="footer-popular-head"><MudIcon Icon="@Icons.Material.Filled.LocalFireDepartment" Size="Size.Small" />Popular</span>
+                            @foreach (var service in _popularServices)
+                            {
+                                <a href="@($"/services/{service.Slug}")" class="@($"footer-popular-item {AccentTone.For(service.CategoryId)}")">
+                                    <span class="footer-popular-icon">
+                                        <MudIcon Icon="@(service.Kind == ServiceKinds.Product ? Icons.Material.Outlined.Inventory2 : Icons.Material.Outlined.HomeRepairService)" Size="Size.Small" />
+                                    </span>
+                                    <span class="footer-popular-text">
+                                        <span class="footer-popular-title">@service.Title</span>
+                                        <span class="footer-popular-price">@ServicePriceFormat.Display(service)</span>
+                                    </span>
+                                    <MudIcon Icon="@Icons.Material.Filled.ChevronRight" Size="Size.Small" Class="footer-popular-chevron" />
+                                </a>
+                            }
+                            <a href="/services" class="footer-popular-all">All services<MudIcon Icon="@Icons.Material.Filled.ArrowForward" Size="Size.Small" /></a>
+                        </div>
+                    }
+                </nav>
+            }
 
             @if (Brand.IsPlatform)
             {
                 <nav class="footer-links" aria-label="For businesses">
                     <span class="marketing-footer-heading">Businesses</span>
+                    <a href="/features">Features</a>
+                    <a href="/industries">Industries</a>
                     <a href="/pricing">Plans &amp; pricing</a>
                     <a href="/pricing#build">Build your own plan</a>
                     <a href="/signup">Sign up your business</a>
@@ -188,7 +208,7 @@
 
             <div class="footer-newsletter">
                 <span class="marketing-footer-heading">Newsletter</span>
-                <MudText Typo="Typo.body2" Class="mb-2">Seasonal maintenance tips and offers, straight to your inbox.</MudText>
+                <MudText Typo="Typo.body2" Class="mb-2">@NewsletterCopy.Lead(Brand.IsPlatform)</MudText>
                 <NewsletterForm FormName="footer-newsletter" />
             </div>
         </div>
@@ -197,7 +217,10 @@
     <div class="footer-bottom">
         <MudContainer MaxWidth="MaxWidth.Large" Class="footer-bottom-inner">
             <span>&copy; 2024&ndash;@DateTime.UtcNow.Year <BrandName />. All rights reserved.</span>
-            <span>Developed by <a href="/">Fluent IT Innovator Solutions</a></span>
+            @if (Brand.PlatformName.Length > 0)
+            {
+                <span>Developed by <a href="@Brand.PlatformLink("/")">@Brand.PlatformName</a></span>
+            }
         </MudContainer>
     </div>
 </footer>
@@ -225,6 +248,12 @@
 
         var contactResult = await ApiClient.GetAsync<CompanyContactResponse>(ApiRoutes.Inquiries.Contact.Get);
         _contact = contactResult.IsSuccessful ? contactResult.ResultData : null;
+
+        // The platform's site has no homeowner column, so no popular services.
+        if (Brand.IsPlatform)
+        {
+            return;
+        }
 
         var servicesResult = await ApiClient.GetAsync<PaginatedResponse<ServiceResponse>>(ApiRoutes.Paged(ApiRoutes.Services.Base, 0, PopularCandidates));
         var services = servicesResult.IsSuccessful ? servicesResult.ResultData?.Items ?? [] : [];
