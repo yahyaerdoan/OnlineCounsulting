@@ -16,6 +16,7 @@ using OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.Abstractions
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Infrastructure.Branding;
 using OnlineConsulting.Modules.Tenancy.Infrastructure.Cleanup;
+using OnlineConsulting.Modules.Tenancy.Infrastructure.Contacts;
 using OnlineConsulting.Modules.Tenancy.Infrastructure.Domains;
 using OnlineConsulting.Modules.Tenancy.Infrastructure.Hosting;
 using OnlineConsulting.Modules.Tenancy.Infrastructure.Notifications;
@@ -68,6 +69,7 @@ public static class TenancyModule
         _ = services.AddScoped<TenantBrandReader>();
         _ = services.AddScoped<ITenantBrandReader>(sp => sp.GetRequiredService<TenantBrandReader>());
         _ = services.AddScoped<ITenantBrandCacheInvalidator>(sp => sp.GetRequiredService<TenantBrandReader>());
+        _ = services.AddScoped<ITenantContactReader, TenantContactReader>();
         _ = services.AddScoped<ITenantOwnershipReader, TenantOwnershipReader>();
         _ = services.AddScoped<ITenantPaymentAccountReader, TenantPaymentAccountReader>();
         _ = services.AddScoped<IStripeConnectStateProtector, StripeConnectStateProtector>();
