@@ -109,6 +109,11 @@
     "aboutHeroImageUrl: string?",
     "contactHeroImageUrl: string?"
   ],
+  "LegalPolicyResponse": [
+    "privacyPolicy: string?",
+    "termsOfService: string?",
+    "updatedDate: DateTimeOffset"
+  ],
   "PageBannerResponse": [
     "id: Guid",
     "title: string",

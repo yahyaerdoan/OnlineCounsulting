@@ -1,0 +1,10 @@
+@* Each site shows its own policy, set under Site Content > Policies. *@
+@page "/privacy-policy"
+@layout OnlineConsulting.Maui.Shared.Layout.MarketingLayout
+@using OnlineConsulting.Maui.Shared.Components.Legal
+@using OnlineConsulting.Maui.Shared.Components.Marketing
+
+<BrandPageTitle Title="Privacy Policy" />
+
+<MarketingPageBanner Title="Privacy Policy" SubPage="Privacy Policy" />
+<LegalDocument Route="@ApiRoutes.SiteContent.LegalPolicy.PrivacyPolicy" Select="@(policy => policy.PrivacyPolicy)" />

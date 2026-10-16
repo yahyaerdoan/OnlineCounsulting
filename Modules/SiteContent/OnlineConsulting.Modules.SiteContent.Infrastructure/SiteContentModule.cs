@@ -16,6 +16,7 @@ using OnlineConsulting.Modules.SiteContent.Application.Features.GalleryItems.Abs
 using OnlineConsulting.Modules.SiteContent.Application.Features.HeroSlides.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Application.Features.LandingBlocks.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Application.Features.LandingPages.Abstractions;
+using OnlineConsulting.Modules.SiteContent.Application.Features.LegalPolicies.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Application.Features.PageBanners.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Application.Features.Partnerships.Abstractions;
 using OnlineConsulting.Modules.SiteContent.Application.Features.PartnershipSocialLinks.Abstractions;
@@ -29,6 +30,7 @@ using OnlineConsulting.Modules.SiteContent.Infrastructure.Persistence;
 using OnlineConsulting.Modules.SiteContent.Infrastructure.Repositories;
 using OnlineConsulting.Modules.SiteContent.Infrastructure.Repositories.Gallery;
 using OnlineConsulting.Modules.SiteContent.Infrastructure.Repositories.Landing;
+using OnlineConsulting.Modules.SiteContent.Infrastructure.Repositories.Legal;
 using OnlineConsulting.Modules.SiteContent.Infrastructure.Repositories.Partnerships;
 using OnlineConsulting.Modules.SiteContent.Infrastructure.Repositories.Service;
 using OnlineConsulting.SharedKernel.Authorization;
@@ -64,6 +66,7 @@ public static class SiteContentModule
         _ = services.AddScoped<IServiceAreaRepository, ServiceAreaRepository>();
         _ = services.AddScoped<ILandingPageRepository, LandingPageRepository>();
         _ = services.AddScoped<ILandingBlockRepository, LandingBlockRepository>();
+        _ = services.AddScoped<ILegalPolicyRepository, LegalPolicyRepository>();
         _ = services.AddMemoryCache();
         _ = services.Configure<Geocoding.GeoapifyOptions>(configuration.GetSection(Geocoding.GeoapifyOptions.SectionName));
         _ = services.AddHttpClient(Geocoding.CityGeocoder.GeoapifyClient, client =>

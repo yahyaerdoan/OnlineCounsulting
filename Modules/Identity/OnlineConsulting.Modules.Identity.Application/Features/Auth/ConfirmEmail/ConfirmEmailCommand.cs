@@ -15,7 +15,7 @@ namespace OnlineConsulting.Modules.Identity.Application.Features.Auth.ConfirmEma
 /// <summary>Confirms a user's email from the link sent by ConfirmEmailTemplate.</summary>
 public record ConfirmEmailCommand(Guid UserId, string Token) : IRequest<OperationResult>, IIdentityTransactionRequest;
 
-public class ConfirmEmailHandler(UserManager<User> userManager, IEmailOutboxWriter<IIdentityOutboxModule> outboxWriter, IEmailTemplate<WelcomeEmailModel> welcomeTemplate, IEmailTemplate<PolicyNoticeEmailModel> policyTemplate, ITenantOriginReader originReader)
+public class ConfirmEmailHandler(UserManager<User> userManager, IEmailOutboxWriter<IIdentityOutboxModule> outboxWriter, IEmailTemplate<WelcomeEmailModel> welcomeTemplate, ITenantOriginReader originReader)
     : IRequestHandler<ConfirmEmailCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(ConfirmEmailCommand request, CancellationToken cancellationToken)
@@ -37,10 +37,6 @@ public class ConfirmEmailHandler(UserManager<User> userManager, IEmailOutboxWrit
         var email = user.Email ?? string.Empty;
 
         await outboxWriter.EnqueueAsync(email, welcomeTemplate.Subject(welcomeModel), welcomeTemplate.Build(welcomeModel), sourceReference: $"User:{user.Id}", cancellationToken: cancellationToken);
-
-        var policyModel = new PolicyNoticeEmailModel(user.FirstName, $"{origin}/privacy-policy", $"{origin}/terms-of-service");
-
-        await outboxWriter.EnqueueAsync(email, policyTemplate.Subject(policyModel), policyTemplate.Build(policyModel), sourceReference: $"User:{user.Id}", cancellationToken: cancellationToken);
 
         var confirmResult = await userManager.ConfirmEmailAsync(user, request.Token);
 

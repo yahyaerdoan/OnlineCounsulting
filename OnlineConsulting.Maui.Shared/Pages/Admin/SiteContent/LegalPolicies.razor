@@ -1,0 +1,67 @@
+@* The site's privacy policy and terms of service, shown at /privacy-policy and /terms-of-service. *@
+@page "/admin/site-content/legal-policies"
+@attribute [Authorize(Roles = "Admin,Super Admin,Member")]
+@using OnlineConsulting.Maui.Shared.Infrastructure.Forms
+@using OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent.LegalPolicyModels
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+@inject FormState<LegalPolicyFormModel> Form
+
+<PageTitle>Policies</PageTitle>
+
+<PageHeroBanner Title="Policies" Subtitle="Your privacy policy and terms of service. Blank lines start a new paragraph; start a line with # for a heading." />
+
+<EditForm EditContext="@Form.EditContext">
+    <MudPaper Class="pa-4">
+        <MudStack Spacing="4">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                <MudText Typo="Typo.subtitle1" Class="text-strong">Privacy Policy</MudText>
+                <MudButton Variant="Variant.Text" Size="Size.Small" StartIcon="@Icons.Material.Outlined.OpenInNew" Href="@AppRoutes.PrivacyPolicy" Target="_blank">View page</MudButton>
+            </MudStack>
+            <MudTextField @bind-Value="_model.PrivacyPolicy" For="@(() => _model.PrivacyPolicy)" Label="Privacy Policy" Variant="Variant.Outlined" Margin="Margin.Dense"
+                          Lines="12" MaxLines="30" Sizing="InputSizing.Auto" />
+
+            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                <MudText Typo="Typo.subtitle1" Class="text-strong">Terms of Service</MudText>
+                <MudButton Variant="Variant.Text" Size="Size.Small" StartIcon="@Icons.Material.Outlined.OpenInNew" Href="@AppRoutes.TermsOfService" Target="_blank">View page</MudButton>
+            </MudStack>
+            <MudTextField @bind-Value="_model.TermsOfService" For="@(() => _model.TermsOfService)" Label="Terms of Service" Variant="Variant.Outlined" Margin="Margin.Dense"
+                          Lines="12" MaxLines="30" Sizing="InputSizing.Auto" />
+        </MudStack>
+
+        <MudDivider Class="my-4" />
+
+        <MudStack Row="true" Justify="Justify.FlexEnd">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAsync" Disabled="@Form.IsBusy">Save</MudButton>
+        </MudStack>
+    </MudPaper>
+</EditForm>
+
+@code {
+    private readonly LegalPolicyFormModel _model = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Bind before any await - Blazor can render (and touch Form.EditContext) after the first yield point.
+        Form.Bind(_model);
+
+        // NotFound just means nothing is saved yet; the form starts empty.
+        var result = await ApiClient.GetAsync<LegalPolicyResponse>(ApiRoutes.SiteContent.LegalPolicy.Base);
+        if (result.IsSuccessful && result.ResultData is { } policy)
+        {
+            _model.Load(policy);
+        }
+    }
+
+    private Task SaveAsync() => Form.SubmitAsync(async () =>
+    {
+        var result = await ApiClient.PutAsync(ApiRoutes.SiteContent.LegalPolicy.Base, _model);
+        if (!result.IsSuccessful)
+        {
+            Form.DisplayErrors(result, Snackbar);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+    });
+}

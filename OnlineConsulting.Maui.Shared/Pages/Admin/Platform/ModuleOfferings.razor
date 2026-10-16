@@ -2,11 +2,14 @@
 @attribute [Authorize(Roles = "Admin,Super Admin,Member")]
 @inject IApiClient ApiClient
 @inject NavigationManager Navigation
+@inject ISnackbar Snackbar
 
 <PageTitle>Module Offerings</PageTitle>
 
 <PageHeroBanner Title="Module Offerings" Subtitle="The modules tenants can subscribe to.">
     <ActionContent>
+        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.Sync"
+                   Disabled="@_syncing" OnClick="SyncPricesAsync">Sync Prices</MudButton>
         <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.Add"
                    OnClick="@(() => Navigation.NavigateTo($"{AppRoutes.AdminHome}/platform/module-offerings/new"))">New Module Offering</MudButton>
     </ActionContent>
@@ -43,6 +46,7 @@ else
     private List<ModuleOfferingResponse> _offerings = [];
     private bool _loading = true;
     private string? _loadError;
+    private bool _syncing;
 
     protected override async Task OnInitializedAsync()
     {
@@ -58,5 +62,21 @@ else
         }
 
         _loading = false;
+    }
+
+    private async Task SyncPricesAsync()
+    {
+        _syncing = true;
+        var result = await ApiClient.PostAsync(ApiRoutes.Platform.ModuleOfferings.SyncPrices, null);
+        _syncing = false;
+
+        if (result.IsSuccessful)
+        {
+            Snackbar.ShowSuccess(result.DisplayMessage);
+        }
+        else
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+        }
     }
 }

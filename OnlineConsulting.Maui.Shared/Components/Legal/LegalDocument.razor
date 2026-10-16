@@ -1,0 +1,65 @@
+@* Renders a policy saved as plain text: blank lines split paragraphs, a line starting with # is a heading. *@
+@using OnlineConsulting.Maui.Shared.Infrastructure.Api
+@inject IApiClient ApiClient
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="py-8">
+    @if (!_loaded)
+    {
+        <MudSkeleton SkeletonType="SkeletonType.Text" Height="200px" />
+    }
+    else if (_text is null)
+    {
+        <MudText Typo="Typo.body1" Color="Color.Secondary">@_message</MudText>
+    }
+    else
+    {
+        <MudStack Spacing="3">
+            @if (_updated is { } updated)
+            {
+                <MudText Typo="Typo.body2" Color="Color.Secondary">Last updated @updated.ToString("MMMM d, yyyy")</MudText>
+            }
+            @foreach (var block in Blocks(_text))
+            {
+                if (block.StartsWith('#'))
+                {
+                    <MudText Typo="Typo.h6" Class="text-strong">@block.TrimStart('#').Trim()</MudText>
+                }
+                else
+                {
+                    <MudText Typo="Typo.body1" Style="white-space: pre-line;">@block</MudText>
+                }
+            }
+        </MudStack>
+    }
+</MudContainer>
+
+@code {
+    /// <summary>ApiRoutes.SiteContent.LegalPolicy route for this document; 404s while it is empty.</summary>
+    [Parameter, EditorRequired]
+    public string Route { get; set; } = string.Empty;
+
+    /// <summary>Which policy of the response to show.</summary>
+    [Parameter, EditorRequired]
+    public Func<LegalPolicyResponse, string?> Select { get; set; } = _ => null;
+
+    private bool _loaded;
+    private string? _text;
+    private string? _message;
+    private DateTimeOffset? _updated;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await ApiClient.GetAsync<LegalPolicyResponse>(Route);
+        if (result.IsSuccessful && result.ResultData is { } policy)
+        {
+            _text = Select(policy);
+            _updated = policy.UpdatedDate;
+        }
+
+        _message = result.DisplayMessage;
+        _loaded = true;
+    }
+
+    private static IEnumerable<string> Blocks(string text) =>
+        text.Replace("\r\n", "\n").Split("\n\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+}

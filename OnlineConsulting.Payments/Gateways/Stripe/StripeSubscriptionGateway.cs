@@ -52,6 +52,21 @@ public class StripeSubscriptionGateway(IOptions<PaymentOptions> options) : ISubs
         return new SubscriptionPriceResult(product.Id, price.Id);
     }
 
+    public async Task<bool> PriceExistsAsync(string providerPriceId, string? connectedAccountId = null, CancellationToken cancellationToken = default)
+    {
+        var service = new PriceService(_client);
+
+        try
+        {
+            var price = await service.GetAsync(providerPriceId, requestOptions: ToRequestOptions(null, connectedAccountId), cancellationToken: cancellationToken);
+            return price.Active;
+        }
+        catch (StripeException exception) when (exception.HttpStatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            return false;
+        }
+    }
+
     public async Task<SubscriptionResult> CreateSubscriptionAsync(CreateSubscriptionRequest request, string? idempotencyKey = null, CancellationToken cancellationToken = default)
     {
         var requestOptions = ToRequestOptions(null, request.ConnectedAccountId);

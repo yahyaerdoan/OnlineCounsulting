@@ -4,6 +4,7 @@ using OnlineConsulting.Modules.SiteContent.Domain;
 using OnlineConsulting.Modules.SiteContent.Application.Common;
 using OnlineConsulting.Modules.SiteContent.Domain.Gallery;
 using OnlineConsulting.Modules.SiteContent.Domain.Landing;
+using OnlineConsulting.Modules.SiteContent.Domain.Legal;
 using OnlineConsulting.Modules.SiteContent.Domain.Partnerships;
 using OnlineConsulting.Modules.SiteContent.Domain.Service;
 
@@ -31,6 +32,7 @@ public class SiteContentDbContext(DbContextOptions<SiteContentDbContext> options
     public DbSet<FaqItem> FaqItems => Set<FaqItem>();
     public DbSet<Promotion> Promotions => Set<Promotion>();
     public DbSet<LandingPage> LandingPages => Set<LandingPage>();
+    public DbSet<LegalPolicy> LegalPolicies => Set<LegalPolicy>();
     public DbSet<LandingBlock> LandingBlocks => Set<LandingBlock>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -187,6 +189,13 @@ public class SiteContentDbContext(DbContextOptions<SiteContentDbContext> options
             _ = builder.Property(x => x.Description).HasMaxLength(2000).IsRequired();
             _ = builder.Property(x => x.CtaText).HasMaxLength(100);
             _ = builder.Property(x => x.CtaUrl).HasMaxLength(500);
+            _ = builder.Property(x => x.RowVersion).IsRowVersion();
+        });
+
+        _ = modelBuilder.Entity<LegalPolicy>(builder =>
+        {
+            _ = builder.Property(x => x.PrivacyPolicy).HasMaxLength(LegalLimits.Document);
+            _ = builder.Property(x => x.TermsOfService).HasMaxLength(LegalLimits.Document);
             _ = builder.Property(x => x.RowVersion).IsRowVersion();
         });
 

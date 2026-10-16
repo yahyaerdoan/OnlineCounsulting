@@ -217,6 +217,7 @@
     <div class="footer-bottom">
         <MudContainer MaxWidth="MaxWidth.Large" Class="footer-bottom-inner">
             <span>&copy; 2024&ndash;@DateTime.UtcNow.Year <BrandName />. All rights reserved.</span>
+            <span><a href="@AppRoutes.PrivacyPolicy">Privacy Policy</a> &middot; <a href="@AppRoutes.TermsOfService">Terms of Service</a></span>
             @if (Brand.PlatformName.Length > 0)
             {
                 <span>Developed by <a href="@Brand.PlatformLink("/")">@Brand.PlatformName</a></span>

@@ -15,6 +15,9 @@ public interface ISubscriptionGateway
     /// <summary>Creates the provider-side product/price for a MembershipPlan. Prices are immutable on the provider side, so this is called once at plan creation - not on every update.</summary>
     Task<SubscriptionPriceResult> EnsurePriceAsync(EnsurePriceRequest request, CancellationToken cancellationToken = default);
 
+    /// <summary>False when the provider no longer has this price (wiped test data, other account/provider).</summary>
+    Task<bool> PriceExistsAsync(string providerPriceId, string? connectedAccountId = null, CancellationToken cancellationToken = default);
+
     /// <summary>Attaches the given payment method to the customer as default, then starts a recurring subscription against the given price. idempotencyKey - see EnsureCustomerAsync.</summary>
     Task<SubscriptionResult> CreateSubscriptionAsync(CreateSubscriptionRequest request, string? idempotencyKey = null, CancellationToken cancellationToken = default);
 
