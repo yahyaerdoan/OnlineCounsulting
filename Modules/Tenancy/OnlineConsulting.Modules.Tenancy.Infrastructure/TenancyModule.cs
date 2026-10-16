@@ -5,14 +5,18 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Signup;
 using OnlineConsulting.Modules.Tenancy.Application;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Bundles.Abstractions;
+using OnlineConsulting.Modules.Tenancy.Application.Features.TenantDomains;
+using OnlineConsulting.Modules.Tenancy.Application.Features.TenantDomains.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.ModuleOfferings.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Infrastructure.Branding;
 using OnlineConsulting.Modules.Tenancy.Infrastructure.Cleanup;
+using OnlineConsulting.Modules.Tenancy.Infrastructure.Domains;
 using OnlineConsulting.Modules.Tenancy.Infrastructure.Hosting;
 using OnlineConsulting.Modules.Tenancy.Infrastructure.Notifications;
 using OnlineConsulting.Modules.Tenancy.Infrastructure.Persistence;
@@ -48,6 +52,16 @@ public static class TenancyModule
         _ = services.AddScoped<ITenantTimeZoneReader>(sp => sp.GetRequiredService<TenantTimeZoneReader>());
         _ = services.AddScoped<ITenantTimeZoneCacheInvalidator>(sp => sp.GetRequiredService<TenantTimeZoneReader>());
         _ = services.AddScoped<ITenantModulePricingReader, TenantModulePricingReader>();
+        _ = services.AddScoped<ITenantDomainRepository, TenantDomainRepository>();
+        _ = services.AddScoped<ITenantHostCacheInvalidator, TenantHostCache>();
+        _ = services.AddScoped<TenantDomainActivator>();
+        _ = services.AddHttpClient(nameof(RailwayCustomDomainGateway));
+        _ = services.AddKeyedSingleton<ICustomDomainGateway, MockCustomDomainGateway>(CustomDomainProviderNames.Mock);
+        _ = services.AddKeyedSingleton<ICustomDomainGateway, RailwayCustomDomainGateway>(CustomDomainProviderNames.Railway);
+        _ = services.AddHttpClient(nameof(CloudflareCustomDomainGateway));
+        _ = services.AddKeyedSingleton<ICustomDomainGateway, CloudflareCustomDomainGateway>(CustomDomainProviderNames.Cloudflare);
+        _ = services.AddSingleton(serviceProvider => serviceProvider.GetRequiredKeyedService<ICustomDomainGateway>(
+            serviceProvider.GetRequiredService<IOptions<TenantDomainOptions>>().Value.Provider));
         _ = services.AddScoped<ITenantHostResolver, TenantHostResolver>();
         _ = services.AddScoped<ITenantOriginReader, TenantOriginReader>();
         _ = services.AddScoped<IApiOriginReader, ApiOriginReader>();
@@ -67,7 +81,9 @@ public static class TenancyModule
         _ = services.Configure<TenantTimeZoneOptions>(configuration.GetSection("Tenancy:TimeZone"));
         _ = services.Configure<TenantHostingOptions>(configuration.GetSection("Tenancy:Hosting"));
         _ = services.Configure<TenantBrandingOptions>(configuration.GetSection("Tenancy:Branding"));
+        _ = services.Configure<TenantDomainOptions>(configuration.GetSection("Tenancy:CustomDomains"));
         _ = services.AddHostedService<OrphanedTenantCleanupService>();
+        _ = services.AddHostedService<TenantDomainActivationService>();
 
         _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
         _ = services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);

@@ -8,6 +8,7 @@ using OnlineConsulting.Maui.Shared.Layout;
 using OnlineConsulting.Maui.Web.Components;
 using OnlineConsulting.Maui.Web.Infrastructure.Api;
 using OnlineConsulting.Maui.Web.Infrastructure.Auth;
+using OnlineConsulting.Maui.Web.Infrastructure.Hosting;
 using OnlineConsulting.ServiceDefaults;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -34,6 +35,7 @@ builder.Services.AddMauiSharedInfrastructure(typeof(App).Assembly);
 builder.Services.AddSingleton<IPlatformInfo, OnlineConsulting.Maui.Web.Infrastructure.WebPlatformInfo>();
 
 builder.Services.AddHttpContextAccessor();
+builder.Services.Configure<EdgeHostOptions>(builder.Configuration.GetSection("Edge"));
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
@@ -72,6 +74,9 @@ builder.Services.AddHttpClient<IApiClient, ApiClient>(client => client.BaseAddre
     .AddHttpMessageHandler<GuestIdHandler>();
 
 var app = builder.Build();
+
+// First, so everything after sees the customer's domain.
+app.UseMiddleware<EdgeHostMiddleware>();
 
 app.MapDefaultEndpoints();
 

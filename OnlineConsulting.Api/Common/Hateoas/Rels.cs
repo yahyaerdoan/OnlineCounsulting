@@ -54,6 +54,9 @@ public static class Rels
     public const string UpdateImage = "update-image";
     public const string ConnectStripe = "connect-stripe";
     public const string RefreshStripeStatus = "refresh-stripe-status";
+    public const string Domain = "domain";
+    public const string ConnectDomain = "connect-domain";
+    public const string CheckDomain = "check-domain";
 
     public static readonly IReadOnlyDictionary<string, string> Descriptions = new Dictionary<string, string>(StringComparer.Ordinal)
     {
@@ -102,5 +105,8 @@ public static class Rels
         [UpdateImage] = "Replaces the caller's profile image.",
         [ConnectStripe] = "Creates (or reuses) the caller's own tenant's Stripe Connect account and returns an onboarding link (tenant admins).",
         [RefreshStripeStatus] = "Pulls the caller's own tenant's Stripe Connect capabilities live from the provider (tenant admins).",
+        [Domain] = "The caller's own tenant's custom domain (tenant admins).",
+        [ConnectDomain] = "Registers the caller's own domain and returns the DNS records to add (tenant admins).",
+        [CheckDomain] = "Checks a pending custom domain now and activates it when ready (tenant admins).",
     };
 }

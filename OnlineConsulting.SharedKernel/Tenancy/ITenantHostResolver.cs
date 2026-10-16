@@ -5,4 +5,7 @@ public interface ITenantHostResolver
 {
     /// <summary>The tenant behind <paramref name="host"/> (no scheme or port), or null when no tenant owns it.</summary>
     Task<Guid?> ResolveAsync(string host, CancellationToken cancellationToken = default);
+
+    /// <summary>True for the platform's own hosts: its origin, its www form and anything under the tenant subdomain root.</summary>
+    bool IsPlatformHost(string host);
 }

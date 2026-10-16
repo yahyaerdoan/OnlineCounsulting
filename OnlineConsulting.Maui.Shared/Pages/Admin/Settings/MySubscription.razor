@@ -95,6 +95,11 @@ else if (_tenant is not null)
             </MudPaper>
         }
 
+        @if (_tenant.Links.Find(LinkRels.Domain) is { } domainLink)
+        {
+            <TenantDomainSettings DomainLink="domainLink" />
+        }
+
         @if (_invoiceSettings is not null && _invoiceSettings.Can(LinkRels.Edit))
         {
             <MudPaper Outlined="true" Class="pa-4 rounded-lg mt-4">

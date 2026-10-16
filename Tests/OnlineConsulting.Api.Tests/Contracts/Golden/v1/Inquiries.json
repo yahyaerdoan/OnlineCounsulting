@@ -8,6 +8,12 @@
     "workingHours: string",
     "_links: LinkCollection?"
   ],
+  "MessageReplyResponse": [
+    "id: Guid",
+    "body: string",
+    "isFromCustomer: bool",
+    "createdDate: DateTimeOffset"
+  ],
   "MessageResponse": [
     "id: Guid",
     "firstName: string",
@@ -16,7 +22,10 @@
     "subject: string",
     "description: string",
     "createdDate: DateTimeOffset",
+    "userId: Guid?",
     "repliedAt: DateTimeOffset?",
+    "lastMessageAt: DateTimeOffset",
+    "replies: IReadOnlyList<MessageReplyResponse>",
     "_links: LinkCollection?"
   ],
   "NewsletterSubscriberResponse": [
