@@ -51,7 +51,6 @@ public static class InquiriesModule
         _ = services.AddScoped<IEmailTemplate<NewInquiryNotificationEmailModel>, NewInquiryNotificationTemplate>();
         _ = services.AddScoped<IEmailTemplate<NewsletterSubscribedEmailModel>, NewsletterSubscribedTemplate>();
 
-        _ = services.Configure<InquiriesOptions>(configuration.GetSection("Inquiries"));
 
         _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
         _ = services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
