@@ -765,6 +765,53 @@ namespace OnlineConsulting.Modules.SiteContent.Infrastructure.Migrations
                     b.ToTable("LandingPages", "SiteContent");
                 });
 
+            modelBuilder.Entity("OnlineConsulting.Modules.SiteContent.Domain.Legal.LegalPolicy", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("CreatedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("DeletedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("PrivacyPolicy")
+                        .HasMaxLength(50000)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("TermsOfService")
+                        .HasMaxLength(50000)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("UpdatedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId", "DeletedDate");
+
+                    b.ToTable("LegalPolicies", "SiteContent");
+                });
+
             modelBuilder.Entity("OnlineConsulting.Modules.SiteContent.Domain.PageBanner", b =>
                 {
                     b.Property<Guid>("Id")

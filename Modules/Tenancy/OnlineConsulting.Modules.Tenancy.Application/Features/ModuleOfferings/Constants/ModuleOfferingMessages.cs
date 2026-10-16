@@ -4,4 +4,5 @@ public static class ModuleOfferingMessages
 {
     public const string ModuleOfferingNotFoundFormat = "Module offering {0} was not found.";
     public const string KeyAlreadyExists = "A module offering with this key already exists.";
+    public const string PricesSyncedFormat = "Payment prices synced; {0} module offering(s) updated.";
 }

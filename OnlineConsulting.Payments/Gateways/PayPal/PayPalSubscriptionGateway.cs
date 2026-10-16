@@ -97,6 +97,27 @@ public class PayPalSubscriptionGateway(IHttpClientFactory httpClientFactory, IOp
     }
 
     /// <summary>atPeriodEnd is ignored - PayPal has no deferred-cancellation concept, so this always cancels immediately.</summary>
+    /// <summary>The price id is a PayPal plan id; connectedAccountId is ignored.</summary>
+    public async Task<bool> PriceExistsAsync(string providerPriceId, string? connectedAccountId = null, CancellationToken cancellationToken = default)
+    {
+        var accessToken = await GetAccessTokenAsync(cancellationToken);
+
+        using var httpRequest = new HttpRequestMessage(HttpMethod.Get, $"/v1/billing/plans/{providerPriceId}");
+        httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+        using var client = CreateClient();
+        using var response = await client.SendAsync(httpRequest, cancellationToken);
+
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            return false;
+        }
+
+        _ = response.EnsureSuccessStatusCode();
+
+        return true;
+    }
+
     /// <summary>PayPal emails its own payment receipts, so there's no invoice document to relay.</summary>
     public Task<SubscriptionInvoice?> GetLatestInvoiceAsync(string providerSubscriptionId, string? connectedAccountId = null, CancellationToken cancellationToken = default) =>
         Task.FromResult<SubscriptionInvoice?>(null);

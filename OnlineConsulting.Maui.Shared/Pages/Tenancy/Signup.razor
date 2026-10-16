@@ -36,9 +36,10 @@
             <span class="subscribe-success-icon"><MudIcon Icon="@Icons.Material.Filled.RocketLaunch" /></span>
             <MudText Typo="Typo.h4" Align="Align.Center" Class="marketing-display text-strong">@_model.CompanyName is live!</MudText>
             <MudText Typo="Typo.body1" Color="Color.Secondary" Align="Align.Center" Class="subscribe-success-lead">
-                Your workspace is ready at <span class="text-strong">@_siteUrl</span>. Sign in there with @_model.Email to finish setting it up.
+                Your workspace is ready at <span class="text-strong">@_siteUrl</span>. We sent a confirmation link to <span class="text-strong">@_model.Email</span>. Confirm your email, then sign in to finish setting it up.
             </MudText>
             <ul class="subscribe-success-steps">
+                <li><span class="tone-bubble tone-bubble-sm @AccentTone.Blue"><MudIcon Icon="@Icons.Material.Outlined.Email" Size="Size.Small" /></span>Confirm your email (check your spam folder if you don't see it)</li>
                 <li><span class="tone-bubble tone-bubble-sm @AccentTone.Blue"><MudIcon Icon="@Icons.Material.Outlined.Login" Size="Size.Small" /></span>Sign in to your admin dashboard</li>
                 <li><span class="tone-bubble tone-bubble-sm @AccentTone.Green"><MudIcon Icon="@Icons.Material.Outlined.HomeRepairService" Size="Size.Small" /></span>Add your services, prices and working hours</li>
                 <li><span class="tone-bubble tone-bubble-sm @AccentTone.Gold"><MudIcon Icon="@Icons.Material.Outlined.GroupAdd" Size="Size.Small" /></span>Invite your team and start taking bookings</li>
@@ -245,6 +246,8 @@
 
                     <p class="subscribe-consent">
                         Your subscription starts today at @TotalText and renews automatically until you cancel.
+                        By subscribing you agree to our <MudLink Href="@AppRoutes.TermsOfService" Target="_blank" Typo="Typo.caption">Terms of Service</MudLink>
+                        and <MudLink Href="@AppRoutes.PrivacyPolicy" Target="_blank" Typo="Typo.caption">Privacy Policy</MudLink>.
                     </p>
 
                     <div class="subscribe-trust">

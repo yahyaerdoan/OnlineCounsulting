@@ -1,0 +1,10 @@
+@* Each site shows its own terms, set under Site Content > Policies. *@
+@page "/terms-of-service"
+@layout OnlineConsulting.Maui.Shared.Layout.MarketingLayout
+@using OnlineConsulting.Maui.Shared.Components.Legal
+@using OnlineConsulting.Maui.Shared.Components.Marketing
+
+<BrandPageTitle Title="Terms of Service" />
+
+<MarketingPageBanner Title="Terms of Service" SubPage="Terms of Service" />
+<LegalDocument Route="@ApiRoutes.SiteContent.LegalPolicy.TermsOfService" Select="@(policy => policy.TermsOfService)" />

@@ -82,7 +82,6 @@ public static class IdentityModule
         _ = services.AddScoped<IEmailOutboxWriter<IIdentityOutboxModule>, EmailOutboxWriter>();
         _ = services.AddScoped<IEmailTemplate<ConfirmEmailEmailModel>, ConfirmEmailTemplate>();
         _ = services.AddScoped<IEmailTemplate<WelcomeEmailModel>, WelcomeTemplate>();
-        _ = services.AddScoped<IEmailTemplate<PolicyNoticeEmailModel>, PolicyNoticeTemplate>();
         _ = services.AddScoped<IEmailTemplate<InviteEmailModel>, InviteTemplate>();
         _ = services.AddScoped<IEmailTemplate<ForgotPasswordEmailModel>, ForgotPasswordTemplate>();
         _ = services.AddScoped<IEmailTemplate<FindMyBusinessEmailModel>, FindMyBusinessTemplate>();

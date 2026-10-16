@@ -26,6 +26,7 @@ public class SiteContentUiModule : IUiModule
             new NavItem("Partnerships", $"{AdminPrefix}/site-content/partnerships", Icons.Material.Outlined.Handshake),
             new NavItem("FAQ Items", $"{AdminPrefix}/site-content/faq-items", Icons.Material.Outlined.QuestionAnswer),
             new NavItem("Page Banners", $"{AdminPrefix}/site-content/page-banners", Icons.Material.Outlined.ViewDay),
+            new NavItem("Policies", $"{AdminPrefix}/site-content/legal-policies", Icons.Material.Outlined.Gavel),
         ]),
     ];
 }

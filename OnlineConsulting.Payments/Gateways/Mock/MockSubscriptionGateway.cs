@@ -5,6 +5,8 @@ namespace OnlineConsulting.Payments.Gateways.Mock;
 /// <summary>No network calls - deterministic in-memory gateway for dev/testing without real provider credentials. Every call succeeds immediately.</summary>
 public class MockSubscriptionGateway : ISubscriptionGateway
 {
+    private const string MockPricePrefix = "mock_price_";
+
     public string ProviderName => PaymentProviderNames.Mock;
 
     public bool SupportsMultipleItems => true;
@@ -13,7 +15,10 @@ public class MockSubscriptionGateway : ISubscriptionGateway
         Task.FromResult(new SubscriptionCustomerResult($"mock_cus_{request.ReferenceId}"));
 
     public Task<SubscriptionPriceResult> EnsurePriceAsync(EnsurePriceRequest request, CancellationToken cancellationToken = default) =>
-        Task.FromResult(new SubscriptionPriceResult($"mock_prod_{request.ReferenceId}", $"mock_price_{request.ReferenceId}"));
+        Task.FromResult(new SubscriptionPriceResult($"mock_prod_{request.ReferenceId}", $"{MockPricePrefix}{request.ReferenceId}"));
+
+    public Task<bool> PriceExistsAsync(string providerPriceId, string? connectedAccountId = null, CancellationToken cancellationToken = default) =>
+        Task.FromResult(providerPriceId.StartsWith(MockPricePrefix, StringComparison.Ordinal));
 
     public Task<SubscriptionResult> CreateSubscriptionAsync(CreateSubscriptionRequest request, string? idempotencyKey = null, CancellationToken cancellationToken = default) =>
         Task.FromResult(new SubscriptionResult($"mock_sub_{request.ReferenceId}", PaymentStatuses.Succeeded, DateTimeOffset.UtcNow.AddMonths(1), FirstItemProviderId: NewItemId()));

@@ -238,6 +238,13 @@ public static class ApiRoutes
             public const string Base = V1 + "/site-content/landing-page";
         }
 
+        public static class LegalPolicy
+        {
+            public const string Base = V1 + "/site-content/legal-policy";
+            public const string PrivacyPolicy = Base + "?document=privacy-policy";
+            public const string TermsOfService = Base + "?document=terms-of-service";
+        }
+
         public static class LandingBlocks
         {
             public const string Base = V1 + "/site-content/landing-blocks";
@@ -548,6 +555,9 @@ public static class ApiRoutes
             public const string Base = V1 + "/tenancy/admin/module-offerings";
 
             public const string All = Base;
+
+            /// <summary>Re-creates prices missing on the active payment provider.</summary>
+            public const string SyncPrices = Base + "/sync-prices";
 
             public static string ById(Guid id) => $"{Base}/{id}";
         }

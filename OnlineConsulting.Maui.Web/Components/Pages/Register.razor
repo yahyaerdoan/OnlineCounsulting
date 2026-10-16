@@ -39,6 +39,10 @@
             }
 
             <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Class="auth-submit">Create account</MudButton>
+            <MudText Typo="Typo.caption" Color="Color.Secondary" Align="Align.Center" Class="d-block mt-2">
+                By creating an account you agree to our <MudLink Href="@AppRoutes.TermsOfService" Target="_blank" Typo="Typo.caption">Terms of Service</MudLink>
+                and <MudLink Href="@AppRoutes.PrivacyPolicy" Target="_blank" Typo="Typo.caption">Privacy Policy</MudLink>.
+            </MudText>
         </EditForm>
 
         <MudText Typo="Typo.body2" Class="mt-4" Align="Align.Center">
