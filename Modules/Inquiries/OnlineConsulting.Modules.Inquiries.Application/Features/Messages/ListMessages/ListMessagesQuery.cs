@@ -16,7 +16,7 @@ namespace OnlineConsulting.Modules.Inquiries.Application.Features.Messages.ListM
 public record ListMessagesQuery(PageRequest PageRequest, DynamicQuery? DynamicQuery = null)
     : IRequest<OperationDataResult<Paginate<MessageResponse>>>, ISecureAddRequest, IDynamicListRequest
 {
-    public static IReadOnlySet<string> QueryableFields { get; } = new HashSet<string>([nameof(Message.FirstName), nameof(Message.LastName), nameof(Message.Email), nameof(Message.Subject), nameof(Message.Description), nameof(Message.CreatedDate), nameof(Message.RepliedAt)]);
+    public static IReadOnlySet<string> QueryableFields { get; } = new HashSet<string>([nameof(Message.FirstName), nameof(Message.LastName), nameof(Message.Email), nameof(Message.Subject), nameof(Message.Description), nameof(Message.CreatedDate), nameof(Message.RepliedAt), nameof(Message.LastMessageAt)]);
 
     public string[] Roles => [MessagesOperationClaims.Admin, MessagesOperationClaims.Read];
 }
@@ -26,7 +26,7 @@ public class ListMessagesHandler(IMessageRepository repository)
 {
     public async Task<OperationDataResult<Paginate<MessageResponse>>> Handle(ListMessagesQuery request, CancellationToken cancellationToken)
     {
-        var paged = await repository.Query().ToDynamicPaginateAsync(request, defaultOrderBy: x => x.CreatedDate, tieBreaker: x => x.Id, cancellationToken: cancellationToken);
+        var paged = await repository.Query().ToDynamicPaginateAsync(request, defaultOrderBy: x => x.LastMessageAt, tieBreaker: x => x.Id, cancellationToken: cancellationToken);
 
         var response = new Paginate<MessageResponse>
         {

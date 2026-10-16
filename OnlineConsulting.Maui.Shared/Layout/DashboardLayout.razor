@@ -16,13 +16,13 @@
         @if (_sidebarOpen)
         {
             <MudItem xs="12" md="3" Class="dashboard-sidebar-col">
-                <MudPaper Class="pa-3" Outlined="true">
+                <MudPaper Class="pa-3 dashboard-panel" Outlined="true">
                     <DashboardSidebar />
                 </MudPaper>
             </MudItem>
         }
         <MudItem xs="12" md="@(_sidebarOpen ? 9 : 12)">
-            <MudPaper Class="pa-4" Outlined="true">
+            <MudPaper Class="pa-4 dashboard-panel" Outlined="true">
                 @Body
             </MudPaper>
         </MudItem>

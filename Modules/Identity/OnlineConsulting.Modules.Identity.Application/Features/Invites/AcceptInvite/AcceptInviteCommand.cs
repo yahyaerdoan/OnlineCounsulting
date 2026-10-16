@@ -61,7 +61,6 @@ public class AcceptInviteHandler(IInviteRepository inviteRepository, UserManager
             TenantId = invite.TenantId,
             EmailConfirmed = true,
             PhoneNumber = request.PhoneNumber,
-            ImageUrl = "/Resource/LocalStorage/DefaultImages/defaultUserImage.png",
         };
 
         var createResult = await userManager.CreateAsync(user, request.Password);

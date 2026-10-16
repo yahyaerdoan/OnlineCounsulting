@@ -12,4 +12,5 @@ public static class UserDataTopics
     public const string Equipment = "Equipment";
     public const string Referrals = "Referrals";
     public const string Notifications = "Notifications";
+    public const string Messages = "Messages";
 }

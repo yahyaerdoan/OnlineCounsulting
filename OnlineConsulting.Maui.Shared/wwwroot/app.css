@@ -2599,6 +2599,17 @@ a.tone-bubble:hover {
 
 /* User dashboard sidebar - same rounded-pill active/hover language as the admin .nav-drawer
    above, adapted for a standalone MudNavMenu inside a MudPaper card rather than a fixed rail. */
+/* Sidebar and content panels fill the grid row, so both end at the same line */
+.dashboard-panel {
+    height: 100%;
+}
+
+/* Menu stays in view on long pages, below the fixed header like the storefront's sticky panels */
+.user-dashboard-nav {
+    position: sticky;
+    top: 96px;
+}
+
 .user-dashboard-nav .mud-nav-link {
     border-radius: 8px;
     margin: 2px 4px;
@@ -10344,6 +10355,21 @@ a.address-card {
     border-radius: 20px;
 }
 
+/* New-message form fills the pane: subject on top, message box at the bottom */
+.inbox-compose {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+.inbox-compose-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 12px;
+}
+
 /* Same height as the dense outlined input */
 .inbox-composer .mud-icon-button {
     width: 40px;
@@ -10369,6 +10395,29 @@ a.address-card {
     .inbox:not(.inbox--open) .inbox-thread,
     .inbox-hero--open {
         display: none;
+    }
+
+    /* Customer inbox scrolls with the page; the message box sticks above the bottom nav */
+    .inbox--flow,
+    .inbox--flow.inbox--open {
+        height: auto;
+        min-height: 0;
+        overflow: visible;
+    }
+
+    .inbox--flow .inbox-messages {
+        overflow: visible;
+    }
+
+    .inbox--flow .inbox-compose-body {
+        min-height: 30dvh;
+    }
+
+    .inbox--flow .inbox-composer {
+        position: sticky;
+        bottom: calc(60px + env(safe-area-inset-bottom));
+        z-index: 2;
+        background: var(--mud-palette-surface);
     }
 }
 

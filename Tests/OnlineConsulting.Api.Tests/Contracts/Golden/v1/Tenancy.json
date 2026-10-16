@@ -18,6 +18,12 @@
     "timeZoneId: string",
     "_links: LinkCollection?"
   ],
+  "CustomDomainDnsRecord": [
+    "type: string",
+    "name: string",
+    "value: string",
+    "isConfigured: bool"
+  ],
   "ModuleOfferingAdminResponse": [
     "id: Guid",
     "key: string",
@@ -51,6 +57,7 @@
     "logoMediaAssetId: Guid?",
     "isPlatform: bool",
     "platformUrl: string",
+    "platformName: string",
     "_links: LinkCollection?"
   ],
   "TenantDetailResponse": [
@@ -65,6 +72,16 @@
     "subscriptionRenewalDate: DateTime?",
     "items: List<TenantSubscriptionItemSummary>",
     "_links: LinkCollection?"
+  ],
+  "TenantDomainResponse": [
+    "host: string?",
+    "status: string",
+    "records: List<CustomDomainDnsRecord>",
+    "problem: string?",
+    "_links: LinkCollection?"
+  ],
+  "TenantPaymentAccountResponse": [
+    "connectedAccountId: string?"
   ],
   "TenantSignupResult": [
     "tenantId: Guid",

@@ -1,0 +1,230 @@
+@* Customer inbox: conversations beside the open one, or the new-message pane at /new; below md one pane at a time, like the staff inbox. *@
+@page "/user/messages"
+@page "/user/messages/{Segment}"
+@attribute [Authorize(Roles = AppRoles.User)]
+@layout OnlineConsulting.Maui.Shared.Layout.DashboardLayout
+@using OnlineConsulting.Maui.Shared.Infrastructure.Forms
+@implements IDisposable
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+@inject DataChangeNotifier Notifier
+@inject FormState<NewMessageModel> Form
+
+<PageTitle>Messages</PageTitle>
+
+<div class="@(PaneOpen ? "inbox-hero--open" : null)">
+    <DashboardPageHeading Text="Messages">
+        @if (_items.Count > 0)
+        {
+            <MudButton Href="@NewUrl" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Outlined.Edit">New message</MudButton>
+        }
+    </DashboardPageHeading>
+</div>
+
+<ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
+
+<MudPaper Outlined="true" Class="@(PaneOpen ? "inbox inbox--flow inbox--open" : "inbox inbox--flow")">
+    <div class="inbox-list">
+        <div class="inbox-scroll">
+            @if (_loading)
+            {
+                <ListSkeleton Rows="4" />
+            }
+            else if (_items.Count == 0)
+            {
+                <div class="pa-3">
+                    <EmptyState Icon="@Icons.Material.Outlined.Forum" Title="No messages yet." Text="Questions about a visit, a quote or your account? Ask us here."
+                                ActionText="Start a conversation" ActionHref="@(IsCompose ? null : NewUrl)" />
+                </div>
+            }
+            else
+            {
+                <MudList T="Guid" SelectedValue="@(Id ?? Guid.Empty)" Dense="true" Class="py-0">
+                    @foreach (var item in _items)
+                    {
+                        <MudListItem T="Guid" Value="@item.Id" Href="@MessageUrl(item.Id)" Class="inbox-item">
+                            <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start" Spacing="2">
+                                <MudText Typo="Typo.subtitle2" Class="inbox-ellipsis">@item.Subject</MudText>
+                                <MudText Typo="Typo.caption" Class="inbox-item-time">@BusinessTime.Ago(item.LastMessageAt)</MudText>
+                            </MudStack>
+                            <MudText Typo="Typo.caption" Class="inbox-muted inbox-ellipsis">@(item.RepliedAt is null ? "Waiting for a reply" : "Replied")</MudText>
+                        </MudListItem>
+                    }
+                </MudList>
+            }
+        </div>
+    </div>
+
+    <div class="inbox-thread">
+        @if (IsCompose)
+        {
+            <EditForm EditContext="@Form.EditContext" OnSubmit="SendAsync" class="inbox-compose">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="inbox-thread-head">
+                    <MudIconButton Href="@ListUrl" Icon="@Icons.Material.Outlined.ArrowBack" Size="Size.Small" aria-label="Back to messages" Class="d-md-none" />
+                    <MudText Typo="Typo.subtitle2">New message</MudText>
+                </MudStack>
+
+                <div class="inbox-compose-body">
+                    <MudTextField @bind-Value="_model.Subject" For="@(() => _model.Subject)" Label="Subject" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                    <MudText Typo="Typo.caption" Class="inbox-muted mt-2">We usually reply within one business day. You'll also get our reply by email.</MudText>
+                </div>
+
+                <div class="inbox-composer">
+                    <MudTextField @bind-Value="_model.Description" For="@(() => _model.Description)" Immediate="true" OnKeyDown="OnComposerKeyDown"
+                                  Placeholder="Write your message" Variant="Variant.Outlined" Margin="Margin.Dense"
+                                  Lines="1" MaxLines="8" Sizing="InputSizing.Auto" Class="inbox-composer-field" />
+                    <MudTooltip Text="Send (Ctrl+Enter)">
+                        <MudIconButton ButtonType="ButtonType.Submit" aria-label="Send" Icon="@Icons.Material.Filled.Send" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small"
+                                       Disabled="@(Form.IsBusy || string.IsNullOrWhiteSpace(_model.Description))" />
+                    </MudTooltip>
+                </div>
+            </EditForm>
+        }
+        else if (Id is null)
+        {
+            <div class="pa-3"><EmptyState Icon="@Icons.Material.Outlined.Forum" Title="Select a conversation, or start a new one." /></div>
+        }
+        else if (_thread is not { } thread)
+        {
+            <div class="pa-3"><ListSkeleton Rows="3" /></div>
+        }
+        else
+        {
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="inbox-thread-head">
+                <MudIconButton Href="@ListUrl" Icon="@Icons.Material.Outlined.ArrowBack" Size="Size.Small" aria-label="Back to messages" Class="d-md-none" />
+                <MudText Typo="Typo.subtitle2" Class="inbox-ellipsis">@thread.Subject</MudText>
+            </MudStack>
+
+            <MessageConversation Message="thread" CustomerView="true" />
+
+            @if (thread.Links.Find(LinkRels.Reply) is { } reply)
+            {
+                <MessageComposer @key="thread.Id" Placeholder="Write a reply"
+                                 Send="@(body => ApiClient.FollowAsync(reply, new { replyBody = body }))" OnSent="RefreshAsync" />
+            }
+        }
+    </div>
+</MudPaper>
+
+@code {
+    private const string ListUrl = "/user/messages";
+    private const string NewSegment = "new";
+    private const string NewUrl = ListUrl + "/" + NewSegment;
+
+    /// <summary>"new" or a conversation id; a parameter so switching between them re-renders.</summary>
+    [Parameter]
+    public string? Segment { get; set; }
+
+    private Guid? Id => Guid.TryParse(Segment, out var id) ? id : null;
+
+    private NewMessageModel _model = new();
+    private List<MessageResponse> _items = [];
+    private IDisposable? _liveUpdates;
+    private MessageResponse? _thread;
+    private Guid? _loadedId;
+    private string? _loadError;
+    private bool _loading = true;
+
+    private bool IsCompose => string.Equals(Segment, NewSegment, StringComparison.OrdinalIgnoreCase);
+
+    private bool PaneOpen => IsCompose || Id is not null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Form.Bind(_model);
+        _liveUpdates = Notifier.Subscribe(() => InvokeAsync(async () => { await RefreshAsync(); StateHasChanged(); }), DataTopic.Messages);
+        await LoadListAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Id == _loadedId)
+        {
+            return;
+        }
+
+        _loadedId = Id;
+        _thread = null;
+
+        if (Id is { } id)
+        {
+            await LoadThreadAsync(id);
+        }
+    }
+
+    private static string MessageUrl(Guid id) => $"{ListUrl}/{id}";
+
+    private async Task LoadListAsync()
+    {
+        var result = await ApiClient.GetAsync<List<MessageResponse>>(ApiRoutes.Inquiries.Messages.Mine);
+        _loading = false;
+
+        if (!result.IsSuccessful || result.ResultData is not { } items)
+        {
+            _loadError = result.DisplayMessage;
+            return;
+        }
+
+        _items = items;
+    }
+
+    private async Task LoadThreadAsync(Guid id)
+    {
+        var result = await ApiClient.GetAsync<MessageResponse>(ApiRoutes.Inquiries.Messages.MineById(id));
+        if (!result.IsSuccessful || result.ResultData is not { } thread)
+        {
+            _loadError = result.DisplayMessage;
+            return;
+        }
+
+        _thread = thread;
+    }
+
+    private async Task RefreshAsync()
+    {
+        await LoadListAsync();
+
+        if (Id is { } id)
+        {
+            await LoadThreadAsync(id);
+        }
+    }
+
+    private async Task OnComposerKeyDown(KeyboardEventArgs args)
+    {
+        if (args.Key == "Enter" && (args.CtrlKey || args.MetaKey))
+        {
+            await SendAsync();
+        }
+    }
+
+    private Task SendAsync() => Form.SubmitAsync(async () =>
+    {
+        if (string.IsNullOrWhiteSpace(_model.Description))
+        {
+            return;
+        }
+
+        var result = await ApiClient.PostAsync<MessageResponse>(ApiRoutes.Inquiries.Messages.Mine, new { subject = _model.Subject, description = _model.Description });
+        if (!result.IsSuccessful || result.ResultData is not { } message)
+        {
+            Form.DisplayErrors(result, Snackbar);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        _model = new();
+        Form.Bind(_model);
+        await LoadListAsync();
+        Navigation.NavigateTo(MessageUrl(message.Id));
+    });
+
+    public void Dispose() => _liveUpdates?.Dispose();
+
+    private sealed class NewMessageModel
+    {
+        public string Subject { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+    }
+}

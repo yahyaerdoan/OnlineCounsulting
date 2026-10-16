@@ -1,0 +1,41 @@
+@* Chat bubbles for one message thread; the viewer's own messages sit on the right. *@
+
+@if (Message is { } message)
+{
+    @* column-reverse keeps the scroll pinned to the newest message *@
+    <div class="inbox-messages">
+        <MudStack Spacing="2">
+            <MudText Typo="Typo.caption" Align="Align.Center" Class="inbox-subject">@message.Subject</MudText>
+
+            <MudPaper Elevation="0" Class="@BubbleClass(fromCustomer: true)">
+                <MudText Typo="Typo.body2" Class="inbox-bubble-text">@message.Description</MudText>
+                <MudText Typo="Typo.caption" Class="inbox-bubble-time">@BusinessTime.FormatDateTime(message.CreatedDate)</MudText>
+            </MudPaper>
+
+            @if (!CustomerView && message.RepliedAt is { } repliedAt && !message.Replies.Any(r => !r.IsFromCustomer))
+            {
+                <MudText Typo="Typo.caption" Align="Align.Center" Class="inbox-muted">Replied @BusinessTime.FormatDateTime(repliedAt). Earlier reply text was not saved.</MudText>
+            }
+
+            @foreach (var reply in message.Replies)
+            {
+                <MudPaper Elevation="0" Class="@BubbleClass(reply.IsFromCustomer)">
+                    <MudText Typo="Typo.body2" Class="inbox-bubble-text">@reply.Body</MudText>
+                    <MudText Typo="Typo.caption" Class="inbox-bubble-time">@BusinessTime.FormatDateTime(reply.CreatedDate)</MudText>
+                </MudPaper>
+            }
+        </MudStack>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public MessageResponse? Message { get; set; }
+
+    /// <summary>True on the customer's inbox, false on the staff inbox.</summary>
+    [Parameter]
+    public bool CustomerView { get; set; }
+
+    private string BubbleClass(bool fromCustomer) =>
+        fromCustomer == CustomerView ? "inbox-bubble inbox-bubble--out" : "inbox-bubble inbox-bubble--in";
+}

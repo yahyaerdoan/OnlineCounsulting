@@ -32,4 +32,7 @@ public static class LinkRels
     public const string Reply = "oc:reply";
     public const string ConnectStripe = "oc:connect-stripe";
     public const string RefreshStripeStatus = "oc:refresh-stripe-status";
+    public const string Domain = "oc:domain";
+    public const string ConnectDomain = "oc:connect-domain";
+    public const string CheckDomain = "oc:check-domain";
 }

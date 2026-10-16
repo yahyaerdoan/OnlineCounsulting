@@ -1,0 +1,62 @@
+@* Reply box under a conversation; Ctrl+Enter sends. *@
+@using OnlineConsulting.Maui.Shared.Infrastructure.Forms
+@inject FormState<ReplyModel> Form
+@inject ISnackbar Snackbar
+
+<EditForm EditContext="@Form.EditContext" OnSubmit="SendAsync" class="inbox-composer">
+    <MudTextField @bind-Value="_model.ReplyBody" For="@(() => _model.ReplyBody)" Immediate="true" OnKeyDown="OnKeyDown"
+                  Placeholder="@Placeholder" Variant="Variant.Outlined" Margin="Margin.Dense"
+                  Lines="1" MaxLines="6" Sizing="InputSizing.Auto" Class="inbox-composer-field" />
+    <MudTooltip Text="Send (Ctrl+Enter)">
+        <MudIconButton ButtonType="ButtonType.Submit" aria-label="Send" Icon="@Icons.Material.Filled.Send" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small"
+                       Disabled="@(Form.IsBusy || string.IsNullOrWhiteSpace(_model.ReplyBody))" />
+    </MudTooltip>
+</EditForm>
+
+@code {
+    [Parameter]
+    public string? Placeholder { get; set; }
+
+    /// <summary>Posts the reply body; the box clears when it succeeds.</summary>
+    [Parameter, EditorRequired]
+    public Func<string, Task<ApiEnvelope>>? Send { get; set; }
+
+    [Parameter]
+    public EventCallback OnSent { get; set; }
+
+    private readonly ReplyModel _model = new();
+
+    protected override void OnInitialized() => Form.Bind(_model);
+
+    private async Task OnKeyDown(KeyboardEventArgs args)
+    {
+        if (args.Key == "Enter" && (args.CtrlKey || args.MetaKey))
+        {
+            await SendAsync();
+        }
+    }
+
+    private Task SendAsync() => Form.SubmitAsync(async () =>
+    {
+        if (Send is null || string.IsNullOrWhiteSpace(_model.ReplyBody))
+        {
+            return;
+        }
+
+        var result = await Send(_model.ReplyBody);
+        if (!result.IsSuccessful)
+        {
+            Form.DisplayErrors(result, Snackbar);
+            return;
+        }
+
+        _model.ReplyBody = string.Empty;
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await OnSent.InvokeAsync();
+    });
+
+    private sealed class ReplyModel
+    {
+        public string ReplyBody { get; set; } = string.Empty;
+    }
+}

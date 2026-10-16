@@ -41,7 +41,6 @@ public class CreateTenantAdminHandler(UserManager<User> userManager, IEmailOutbo
             LastName = request.LastName,
             TenantId = request.TenantId,
             PhoneNumber = request.PhoneNumber,
-            ImageUrl = "/Resource/LocalStorage/DefaultImages/defaultUserImage.png",
         };
 
         var createResult = await userManager.CreateAsync(user, request.Password);

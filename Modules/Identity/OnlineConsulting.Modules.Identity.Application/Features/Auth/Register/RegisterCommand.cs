@@ -27,7 +27,6 @@ public class RegisterHandler(UserManager<User> userManager, IEmailOutboxWriter<I
             FirstName = request.FirstName,
             LastName = request.LastName,
             TenantId = tenantProvider.TenantId,
-            ImageUrl = "/Resource/LocalStorage/DefaultImages/defaultUserImage.png",
         };
 
         var createResult = await userManager.CreateAsync(user, request.Password);

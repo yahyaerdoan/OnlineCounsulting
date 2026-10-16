@@ -126,10 +126,7 @@ public class TenantSubscriptionActivator(ITenantRepository tenantRepository, ITe
         catch (Exception exception)
         {
             logger.LogError(exception, "Tenant {TenantId}: activating the subscription failed.", tenant.Id);
-            tenant.FailSignup();
-            tenantSubscription.MarkFailed();
-            _ = await tenantRepository.UpdateAsync(tenant, cancellationToken: cancellationToken);
-            _ = await tenantSubscriptionRepository.UpdateAsync(tenantSubscription, cancellationToken: cancellationToken);
+            await MarkFailedAsync(tenant.Id, cancellationToken);
             return Result.BadGateway<ActivateTenantSubscriptionResult>(SignupMessages.PaymentSetupFailed);
         }
 
@@ -137,5 +134,23 @@ public class TenantSubscriptionActivator(ITenantRepository tenantRepository, ITe
         _ = await tenantRepository.UpdateAsync(tenant, cancellationToken: cancellationToken);
 
         return Result.Created(new ActivateTenantSubscriptionResult(tenant.Id, clientSecret), "Tenant subscription activated successfully.");
+    }
+
+    /// <summary>Reloads saved state first; the failed change would otherwise break this save too.</summary>
+    private async Task MarkFailedAsync(Guid tenantId, CancellationToken cancellationToken)
+    {
+        tenantSubscriptionRepository.DiscardUnsavedChanges();
+
+        if (await tenantRepository.GetAsync(t => t.Id == tenantId, cancellationToken: cancellationToken) is { } tenant)
+        {
+            tenant.FailSignup();
+            _ = await tenantRepository.UpdateAsync(tenant, cancellationToken: cancellationToken);
+        }
+
+        if (await tenantSubscriptionRepository.GetWithItemsAsync(s => s.TenantId == tenantId, cancellationToken: cancellationToken) is { } tenantSubscription)
+        {
+            tenantSubscription.MarkFailed();
+            _ = await tenantSubscriptionRepository.UpdateAsync(tenantSubscription, cancellationToken: cancellationToken);
+        }
     }
 }

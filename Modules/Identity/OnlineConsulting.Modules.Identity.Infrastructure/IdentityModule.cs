@@ -29,7 +29,6 @@ using OnlineConsulting.Modules.Identity.Infrastructure.Repositories;
 using OnlineConsulting.Modules.Identity.Infrastructure.Security;
 using OnlineConsulting.Modules.Identity.Infrastructure.Bootstrapping;
 using OnlineConsulting.Modules.Identity.Infrastructure.Status;
-using OnlineConsulting.Modules.Identity.Infrastructure.Storage;
 using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.LiveUpdates;
 using OnlineConsulting.SharedKernel.Identity;
@@ -70,7 +69,6 @@ public static class IdentityModule
         _ = services.AddScoped<IPasswordChecker, SignInManagerPasswordChecker>();
         _ = services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         _ = services.AddScoped<IRefreshTokenService, RefreshTokenService>();
-        _ = services.AddScoped<IUserImageStorage, UserImageStorage>();
         _ = services.AddScoped<IDeviceTokenRepository, DeviceTokenRepository>();
         _ = services.AddScoped<UserNotificationRepository>();
         _ = services.AddScoped<IUserNotificationRepository>(sp => sp.GetRequiredService<UserNotificationRepository>());

@@ -10,6 +10,6 @@ public class SubmitMessageValidator : AbstractValidator<SubmitMessageCommand>
         _ = RuleFor(x => x.LastName).NotEmpty().MaximumLength(100);
         _ = RuleFor(x => x.Email).NotEmpty().EmailAddress().MaximumLength(320);
         _ = RuleFor(x => x.Subject).NotEmpty().MaximumLength(200);
-        _ = RuleFor(x => x.Description).NotEmpty().MaximumLength(4000);
+        _ = RuleFor(x => x.Description).NotEmpty().MaximumLength(4000).WithName("Message");
     }
 }

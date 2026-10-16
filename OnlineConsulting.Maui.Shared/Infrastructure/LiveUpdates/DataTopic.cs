@@ -18,4 +18,5 @@ public enum DataTopic
     Equipment,
     Referrals,
     Notifications,
+    Messages,
 }

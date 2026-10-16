@@ -15,11 +15,13 @@ using OnlineConsulting.Modules.Inquiries.Application.Features.Messages.Constants
 using OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.Abstractions;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Newsletter.Constants;
 using OnlineConsulting.Modules.Inquiries.Infrastructure.Contacts;
+using OnlineConsulting.Modules.Inquiries.Infrastructure.LiveUpdates;
 using OnlineConsulting.Modules.Inquiries.Infrastructure.Notifications;
 using OnlineConsulting.Modules.Inquiries.Infrastructure.Persistence;
 using OnlineConsulting.Modules.Inquiries.Infrastructure.Repositories;
 using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.Inquiries;
+using OnlineConsulting.SharedKernel.LiveUpdates;
 using OnlineConsulting.SharedKernel.Notifications;
 using OnlineConsulting.SharedKernel.Notifications.Templates;
 using OnlineConsulting.SharedKernel.Transactions;
@@ -32,14 +34,17 @@ public static class InquiriesModule
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
+        _ = services.AddUserDataChangeRules(InquiriesUserDataChangeRules.Configure);
         _ = services.AddDbContext<InquiriesDbContext>((serviceProvider, options) => options.UseSqlServer(connectionString)
-            .AddInterceptors(serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>()));
+            .AddInterceptors(serviceProvider.GetRequiredService<AuditSaveChangesInterceptor>())
+            .AddUserDataChangeInterceptors(serviceProvider));
 
         _ = services.AddScoped<IMessageRepository, MessageRepository>();
         _ = services.AddScoped<INewsletterSubscriberRepository, NewsletterSubscriberRepository>();
         _ = services.AddScoped<ICompanyContactRepository, CompanyContactRepository>();
         _ = services.AddScoped<IBusinessContactReader, BusinessContactReader>();
         _ = services.AddScoped<IEmailOutboxWriter<IInquiriesOutboxModule>, EmailOutboxWriter>();
+        _ = services.AddScoped<MessageSubmitter>();
 
         _ = services.AddScoped<IEmailTemplate<MessageReceivedEmailModel>, MessageReceivedTemplate>();
         _ = services.AddScoped<IEmailTemplate<MessageReplyEmailModel>, MessageReplyTemplate>();

@@ -6,7 +6,7 @@ public static class SafeFileNaming
 {
     public static async Task<string> ResolveUniqueKeyAsync(string folder, string originalFileName, Func<string, Task<bool>> existsAsync)
     {
-        var safeFolder = SanitizeSegment(folder);
+        var safeFolder = SanitizeFolder(folder);
         var safeFileName = SanitizeSegment(Path.GetFileName(originalFileName));
         var nameWithoutExtension = Path.GetFileNameWithoutExtension(safeFileName);
         var extension = Path.GetExtension(safeFileName);
@@ -19,6 +19,18 @@ public static class SafeFileNaming
         }
 
         return candidate;
+    }
+
+    /// <summary>Keeps nested folders, drops empty, "." and ".." segments.</summary>
+    private static string SanitizeFolder(string folder)
+    {
+        var segments = folder.Split(['/', '\\'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(segment => segment is not ("." or ".."))
+            .Select(SanitizeSegment);
+
+        var path = string.Join('/', segments);
+
+        return path.Length == 0 ? "file" : path;
     }
 
     private static string SanitizeSegment(string value)

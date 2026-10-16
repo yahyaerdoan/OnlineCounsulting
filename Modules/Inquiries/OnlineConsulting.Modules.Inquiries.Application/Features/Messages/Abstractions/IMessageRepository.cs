@@ -9,6 +9,9 @@ public interface IMessageRepository : IAsyncRepository<Message, Guid>
     /// <summary>Message with its replies, oldest first.</summary>
     Task<Message?> GetWithRepliesAsync(Expression<Func<Message, bool>> predicate, CancellationToken cancellationToken = default);
 
+    /// <summary>Newest guest (no account) conversation for this email.</summary>
+    Task<Message?> GetLatestGuestConversationAsync(string email, CancellationToken cancellationToken = default);
+
     /// <summary>Inserts the reply and updates the message in one save.</summary>
     Task AddReplyAsync(Message message, MessageReply reply, CancellationToken cancellationToken = default);
 }

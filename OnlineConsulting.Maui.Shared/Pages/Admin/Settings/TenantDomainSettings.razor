@@ -1,0 +1,192 @@
+@* Custom domain: connect, DNS records while pending, live once active. Activation is automatic; "Check now" only skips the wait. *@
+@using OnlineConsulting.Maui.Shared.Infrastructure.Forms
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject IJSRuntime JsRuntime
+@inject FormState<DomainModel> Form
+
+<MudPaper Outlined="true" Class="pa-4 rounded-lg mt-4">
+    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap" Spacing="2">
+        <MudText Typo="Typo.h6">Custom Domain</MudText>
+        @if (_domain is { Host: not null } domain)
+        {
+            <MudChip T="string" Size="Size.Small" Color="@(domain.IsActive ? Color.Success : Color.Warning)">@(domain.IsActive ? "Live" : "Waiting for DNS")</MudChip>
+        }
+    </MudStack>
+
+    @if (_domain is null)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mt-3" />
+    }
+    else if (_domain.Host is null)
+    {
+        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">Use your own domain, like www.yourbusiness.com, for your website.</MudText>
+        @if (_domain.Links.Find(LinkRels.ConnectDomain) is { } connect)
+        {
+            <EditForm EditContext="@Form.EditContext" OnSubmit="@(() => ConnectAsync(connect))" class="settings-row">
+                <MudTextField @bind-Value="_model.Host" For="@(() => _model.Host)" Label="Domain" Placeholder="www.yourbusiness.com" Variant="Variant.Outlined" Margin="Margin.Dense" Class="settings-field" />
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="@(Form.IsBusy || string.IsNullOrWhiteSpace(_model.Host))">
+                    @(Form.IsBusy ? "Connecting..." : "Connect")
+                </MudButton>
+            </EditForm>
+        }
+    }
+    else if (_domain.IsActive)
+    {
+        <MudText Typo="Typo.body2" Class="mt-2">Your website is live at <MudLink Href="@($"https://{_domain.Host}")" Target="_blank">@_domain.Host</MudLink>.</MudText>
+    }
+    else
+    {
+        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2 mb-3">
+            Add these records for <b>@_domain.Host</b> at the company you bought your domain from. We check every few minutes and switch your website over on our own once they are in place.
+        </MudText>
+
+        <ApiErrorAlert Message="@_domain.Problem" Severity="Severity.Warning" />
+
+        <MudSimpleTable Dense="true" Class="mb-3">
+            <thead>
+                <tr><th>Type</th><th>Name</th><th>Value</th><th></th></tr>
+            </thead>
+            <tbody>
+                @foreach (var record in _domain.Records)
+                {
+                    <tr>
+                        <td>@record.Type</td>
+                        <td>@record.Name</td>
+                        <td style="overflow-wrap:anywhere">
+                            @record.Value
+                            <MudIconButton Icon="@(_copiedValue == record.Value ? Icons.Material.Outlined.Check : Icons.Material.Outlined.ContentCopy)" Size="Size.Small" aria-label="Copy value"
+                                           OnClick="@(() => CopyAsync(record.Value))" />
+                        </td>
+                        <td>
+                            <MudIcon Icon="@(record.IsConfigured ? Icons.Material.Outlined.CheckCircle : Icons.Material.Outlined.Schedule)" Size="Size.Small"
+                                     Color="@(record.IsConfigured ? Color.Success : Color.Default)" Title="@(record.IsConfigured ? "Found" : "Not found yet")" />
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </MudSimpleTable>
+
+        @if (_domain.Links.Find(LinkRels.CheckDomain) is { } check)
+        {
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="_busy" OnClick="@(() => CheckAsync(check))">@(_busy ? "Checking..." : "Check now")</MudButton>
+        }
+    }
+
+    @if (_domain?.Links.Find(LinkRels.Delete) is { } remove)
+    {
+        <MudButton Variant="Variant.Text" Color="Color.Error" Disabled="_busy" OnClick="@(() => RemoveAsync(remove))" Class="mt-3">Remove domain</MudButton>
+    }
+</MudPaper>
+
+@code {
+    /// <summary>The tenant's domain link.</summary>
+    [Parameter, EditorRequired]
+    public HalLink? DomainLink { get; set; }
+
+    private readonly DomainModel _model = new();
+    private TenantDomainResponse? _domain;
+    private string? _copiedValue;
+    private bool _busy;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Form.Bind(_model);
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        if (DomainLink is null)
+        {
+            return;
+        }
+
+        var result = await ApiClient.FollowAsync<TenantDomainResponse>(DomainLink);
+        if (!result.IsSuccessful || result.ResultData is not { } domain)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        _domain = domain;
+    }
+
+    private Task ConnectAsync(HalLink connect) => Form.SubmitAsync(async () =>
+    {
+        var result = await ApiClient.FollowAsync<TenantDomainResponse>(connect, new ConnectTenantDomainRequest(_model.Host.Trim()));
+        if (!result.IsSuccessful || result.ResultData is not { } domain)
+        {
+            Form.DisplayErrors(result, Snackbar);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        _model.Host = string.Empty;
+        _domain = domain;
+    });
+
+    private async Task CheckAsync(HalLink check)
+    {
+        _busy = true;
+        var result = await ApiClient.FollowAsync<TenantDomainResponse>(check);
+        _busy = false;
+
+        if (!result.IsSuccessful || result.ResultData is not { } domain)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        if (domain.IsActive)
+        {
+            Snackbar.ShowSuccess(result.DisplayMessage);
+        }
+        else
+        {
+            Snackbar.Add(result.DisplayMessage, Severity.Info);
+        }
+
+        _domain = domain;
+    }
+
+    private async Task RemoveAsync(HalLink remove)
+    {
+        if (!await DialogService.ConfirmAsync("Remove Domain", $"Stop using {_domain?.Host}? Your website stays available at its original address."))
+        {
+            return;
+        }
+
+        _busy = true;
+        var result = await ApiClient.FollowAsync(remove);
+        _busy = false;
+
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await LoadAsync();
+    }
+
+    private async Task CopyAsync(string value)
+    {
+        if (!await JsRuntime.InvokeAsync<bool>("copyToClipboard", value))
+        {
+            return;
+        }
+
+        _copiedValue = value;
+        StateHasChanged();
+        await Task.Delay(1500);
+        _copiedValue = null;
+    }
+
+    private sealed class DomainModel
+    {
+        public string Host { get; set; } = string.Empty;
+    }
+}

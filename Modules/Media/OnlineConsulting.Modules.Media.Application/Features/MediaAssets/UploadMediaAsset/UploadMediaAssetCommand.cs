@@ -5,6 +5,7 @@ using OnlineConsulting.Modules.Media.Application.Features.MediaAssets.Abstractio
 using OnlineConsulting.Modules.Media.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.Media;
+using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
 
@@ -17,11 +18,13 @@ public record UploadMediaAssetCommand(Stream FileStream, string FileName, string
     public string[] Roles => [MediaOperationClaims.Admin, MediaOperationClaims.Write, MediaOperationClaims.Add, GlobalOperationClaims.SuperAdmin];
 }
 
-public class UploadMediaAssetHandler(IMediaAssetRepository repository, IStorageService storageService) : IRequestHandler<UploadMediaAssetCommand, OperationDataResult<Guid>>
+public class UploadMediaAssetHandler(IMediaAssetRepository repository, IStorageService storageService, ITenantProvider tenantProvider) : IRequestHandler<UploadMediaAssetCommand, OperationDataResult<Guid>>
 {
     public async Task<OperationDataResult<Guid>> Handle(UploadMediaAssetCommand request, CancellationToken cancellationToken)
     {
-        var uploadResult = await storageService.UploadAsync(request.FileStream, request.FileName, request.ContentType, request.Folder, cancellationToken);
+        // Each tenant uploads under its own folder.
+        var folder = TenantMediaFolder.For(tenantProvider.TenantId, request.Folder);
+        var uploadResult = await storageService.UploadAsync(request.FileStream, request.FileName, request.ContentType, folder, cancellationToken);
 
         var entity = new MediaAsset
         {

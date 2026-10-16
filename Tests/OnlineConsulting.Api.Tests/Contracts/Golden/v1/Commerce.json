@@ -40,7 +40,8 @@
   "CreateOrderResult": [
     "orderId: Guid",
     "paymentClientSecret: string?",
-    "orderNumber: string"
+    "orderNumber: string",
+    "paymentConnectedAccountId: string?"
   ],
   "InvoiceLineResponse": [
     "description: string",
@@ -116,7 +117,8 @@
   ],
   "PayInvoiceResult": [
     "paid: bool",
-    "clientSecret: string?"
+    "clientSecret: string?",
+    "connectedAccountId: string?"
   ],
   "SyncInvoicePaymentResult": [
     "status: string",

@@ -11,6 +11,7 @@ namespace OnlineConsulting.Modules.Tenancy.Infrastructure.Persistence;
 public class TenancyDbContext(DbContextOptions<TenancyDbContext> options) : DbContext(options)
 {
     public DbSet<Tenant> Tenants => Set<Tenant>();
+    public DbSet<TenantDomain> TenantDomains => Set<TenantDomain>();
     public DbSet<ModuleOffering> ModuleOfferings => Set<ModuleOffering>();
     public DbSet<Bundle> Bundles => Set<Bundle>();
     public DbSet<TenantSubscription> TenantSubscriptions => Set<TenantSubscription>();
@@ -34,6 +35,18 @@ public class TenancyDbContext(DbContextOptions<TenancyDbContext> options) : DbCo
             _ = builder.Property(t => t.RowVersion).IsRowVersion();
             _ = builder.HasIndex(t => t.Slug).IsUnique().HasFilter("[DeletedDate] IS NULL");
             _ = builder.HasQueryFilter(QueryFilterNames.SoftDelete, t => t.DeletedDate == null);
+        });
+
+        _ = modelBuilder.Entity<TenantDomain>(builder =>
+        {
+            _ = builder.Property(d => d.Host).HasMaxLength(253).IsRequired();
+            _ = builder.Property(d => d.ProviderDomainId).HasMaxLength(100).IsRequired();
+            _ = builder.Property(d => d.Status).HasMaxLength(30).IsRequired();
+            _ = builder.Property(d => d.RowVersion).IsRowVersion();
+            _ = builder.Ignore(d => d.IsActive);
+            _ = builder.HasIndex(d => d.Host).IsUnique().HasFilter("[DeletedDate] IS NULL");
+            _ = builder.HasIndex(d => d.TenantId).IsUnique().HasFilter("[DeletedDate] IS NULL");
+            _ = builder.HasQueryFilter(QueryFilterNames.SoftDelete, d => d.DeletedDate == null);
         });
 
         _ = modelBuilder.Entity<ModuleOffering>(builder =>

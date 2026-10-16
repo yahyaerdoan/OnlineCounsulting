@@ -25,6 +25,7 @@ public class InquiriesDbContext(DbContextOptions<InquiriesDbContext> options, IT
             _ = builder.Property(m => m.Subject).HasMaxLength(200).IsRequired();
             _ = builder.Property(m => m.Description).HasMaxLength(4000).IsRequired();
             _ = builder.Property(m => m.RowVersion).IsRowVersion();
+            _ = builder.HasIndex(m => m.UserId);
             _ = builder.HasMany(m => m.Replies).WithOne().HasForeignKey(r => r.MessageId).OnDelete(DeleteBehavior.Cascade);
         });
 
