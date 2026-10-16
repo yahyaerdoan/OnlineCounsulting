@@ -2,7 +2,6 @@ using MediatR;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Messages.Abstractions;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Messages.Constants;
 using OnlineConsulting.Modules.Inquiries.Application.Features.Messages.Rules;
-using OnlineConsulting.Modules.Inquiries.Domain;
 using OnlineConsulting.SharedKernel.Transactions;
 using ResultHandler.Core.Base;
 using ResultHandler.Facade;
@@ -22,12 +21,7 @@ public class ReplyToMyMessageHandler(IMessageRepository repository, MessageSubmi
             return MessageBusinessRules.MessageNotFound(request.MessageId);
         }
 
-        var body = request.ReplyBody.Trim();
-        message.RepliedAt = null;
-        message.LastMessageAt = DateTimeOffset.UtcNow;
-        await repository.AddReplyAsync(message, new MessageReply { MessageId = message.Id, Body = body, IsFromCustomer = true }, cancellationToken);
-
-        await submitter.NotifyStaffAsync(message, $"Re: {message.Subject}", body, cancellationToken);
+        await submitter.AddCustomerReplyAsync(message, request.ReplyBody.Trim(), cancellationToken);
 
         return Result.Success(MessageMessages.ReplySent);
     }

@@ -15,10 +15,25 @@ public class MessageSubmitter(IMessageRepository repository, IEmailOutboxWriter<
     {
         _ = await repository.AddAsync(message, cancellationToken: cancellationToken);
 
-        var receivedModel = new MessageReceivedEmailModel(message.FirstName, message.Subject);
-        await outboxWriter.EnqueueAsync(message.Email, receivedTemplate.Subject(receivedModel), receivedTemplate.Build(receivedModel), sourceReference: SourceReference(message), cancellationToken: cancellationToken);
-
+        await ConfirmToSenderAsync(message, message.Subject, cancellationToken);
         await NotifyStaffAsync(message, message.Subject, message.Description, cancellationToken);
+    }
+
+    /// <summary>Guest wrote again with the same email: adds it to their conversation.</summary>
+    public async Task ContinueGuestAsync(Message conversation, string subject, string body, CancellationToken cancellationToken)
+    {
+        await AddCustomerReplyAsync(conversation, body, cancellationToken);
+        await ConfirmToSenderAsync(conversation, subject, cancellationToken);
+    }
+
+    /// <summary>Adds the customer's follow-up to the conversation, reopens it and emails staff.</summary>
+    public async Task AddCustomerReplyAsync(Message message, string body, CancellationToken cancellationToken)
+    {
+        message.RepliedAt = null;
+        message.LastMessageAt = DateTimeOffset.UtcNow;
+        await repository.AddReplyAsync(message, new MessageReply { MessageId = message.Id, Body = body, IsFromCustomer = true }, cancellationToken);
+
+        await NotifyStaffAsync(message, $"Re: {message.Subject}", body, cancellationToken);
     }
 
     /// <summary>Emails staff a new message or a customer's follow-up.</summary>
@@ -26,6 +41,12 @@ public class MessageSubmitter(IMessageRepository repository, IEmailOutboxWriter<
     {
         var model = new NewInquiryNotificationEmailModel(message.FirstName, message.LastName, message.Email, subject, body);
         await outboxWriter.EnqueueAsync(options.Value.AdminNotificationEmail, notificationTemplate.Subject(model), notificationTemplate.Build(model), sourceReference: SourceReference(message), cancellationToken: cancellationToken);
+    }
+
+    private async Task ConfirmToSenderAsync(Message message, string subject, CancellationToken cancellationToken)
+    {
+        var model = new MessageReceivedEmailModel(message.FirstName, subject);
+        await outboxWriter.EnqueueAsync(message.Email, receivedTemplate.Subject(model), receivedTemplate.Build(model), sourceReference: SourceReference(message), cancellationToken: cancellationToken);
     }
 
     public static string SourceReference(Message message) => $"Message:{message.Id}";

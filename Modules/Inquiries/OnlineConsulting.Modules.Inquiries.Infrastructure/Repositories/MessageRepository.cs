@@ -15,6 +15,13 @@ public class MessageRepository(InquiriesDbContext context) : EfRepositoryBase<Me
             .AsNoTracking()
             .FirstOrDefaultAsync(predicate, cancellationToken);
 
+    public Task<Message?> GetLatestGuestConversationAsync(string email, CancellationToken cancellationToken = default) =>
+        Context.Messages
+            .AsNoTracking()
+            .Where(m => m.UserId == null && m.Email == email)
+            .OrderByDescending(m => m.LastMessageAt)
+            .FirstOrDefaultAsync(cancellationToken);
+
     /// <summary>Explicit Add: base UpdateAsync would treat the new reply (Id already set) as Modified.</summary>
     public async Task AddReplyAsync(Message message, MessageReply reply, CancellationToken cancellationToken = default)
     {
