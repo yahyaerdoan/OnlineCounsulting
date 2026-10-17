@@ -56,7 +56,11 @@ public class CreateTenantAdminHandler(UserManager<User> userManager, IEmailOutbo
 
         var confirmModel = new ConfirmEmailEmailModel(user.FirstName, confirmationUrl);
 
-        await outboxWriter.EnqueueAsync(user.Email ?? string.Empty, confirmEmailTemplate.Subject(confirmModel), confirmEmailTemplate.Build(confirmModel), sourceReference: $"User:{user.Id}", cancellationToken: cancellationToken);
+        // Sent as the platform: the owner signed up with us, their own brand isn't set up yet.
+        using (TenantScope.Begin(TenantDefaults.DefaultTenantId))
+        {
+            await outboxWriter.EnqueueAsync(user.Email ?? string.Empty, confirmEmailTemplate.Subject(confirmModel), confirmEmailTemplate.Build(confirmModel), sourceReference: $"User:{user.Id}", cancellationToken: cancellationToken);
+        }
 
         // Also User - the tenant's admin can shop their own storefront (checkout, membership subscribe) without a second account.
         var roleResult = await userManager.AddToRolesAsync(user, [GeneralOperationClaims.Admin, GlobalOperationClaims.User]);
