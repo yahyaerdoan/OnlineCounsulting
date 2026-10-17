@@ -105,7 +105,8 @@ public class StripeSubscriptionGateway(IOptions<PaymentOptions> options) : ISubs
         var subscription = await subscriptionService.CreateAsync(new SubscriptionCreateOptions
         {
             Customer = request.ProviderCustomerId,
-            Items = [new SubscriptionItemOptions { Price = request.ProviderPriceId }],
+            Items = [new SubscriptionItemOptions { Price = request.ProviderPriceId },
+                .. (request.AdditionalPriceIds ?? []).Select(priceId => new SubscriptionItemOptions { Price = priceId })],
             Discounts = discounts,
             TrialPeriodDays = request.TrialDays,
             Metadata = new Dictionary<string, string> { ["ReferenceId"] = request.ReferenceId },
@@ -313,9 +314,9 @@ public class StripeSubscriptionGateway(IOptions<PaymentOptions> options) : ISubs
             ? new DateTimeOffset(subscription.Items.Data[0].CurrentPeriodEnd, TimeSpan.Zero)
             : DateTimeOffset.UtcNow;
 
-        var firstItemProviderId = subscription.Items.Data.Count > 0 ? subscription.Items.Data[0].Id : null;
+        var itemIdsByPriceId = subscription.Items.Data.ToDictionary(item => item.Price.Id, item => item.Id);
 
-        return new SubscriptionResult(subscription.Id, MapStatus(subscription.Status), currentPeriodEnd, FirstItemProviderId: firstItemProviderId);
+        return new SubscriptionResult(subscription.Id, MapStatus(subscription.Status), currentPeriodEnd, ItemIdsByPriceId: itemIdsByPriceId);
     }
 
     private static RequestOptions? ToRequestOptions(string? idempotencyKey, string? connectedAccountId) =>

@@ -69,6 +69,11 @@ public class PayPalSubscriptionGateway(IHttpClientFactory httpClientFactory, IOp
 
     public async Task<SubscriptionResult> CreateSubscriptionAsync(CreateSubscriptionRequest request, string? idempotencyKey = null, CancellationToken cancellationToken = default)
     {
+        if (request.AdditionalPriceIds is { Count: > 0 })
+        {
+            throw new NotSupportedException("PayPal subscriptions do not support multiple line items.");
+        }
+
         var accessToken = await GetAccessTokenAsync(cancellationToken);
 
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, "/v1/billing/subscriptions");
@@ -96,7 +101,6 @@ public class PayPalSubscriptionGateway(IHttpClientFactory httpClientFactory, IOp
         return new SubscriptionResult(subscription.Id, MapStatus(subscription.Status), DateTimeOffset.UtcNow, approveLink);
     }
 
-    /// <summary>atPeriodEnd is ignored - PayPal has no deferred-cancellation concept, so this always cancels immediately.</summary>
     /// <summary>The price id is a PayPal plan id; connectedAccountId is ignored.</summary>
     public async Task<bool> PriceExistsAsync(string providerPriceId, string? connectedAccountId = null, CancellationToken cancellationToken = default)
     {
@@ -126,6 +130,7 @@ public class PayPalSubscriptionGateway(IHttpClientFactory httpClientFactory, IOp
     public async Task CancelAndRefundAsync(string providerCustomerId, string providerSubscriptionId, string? connectedAccountId = null, CancellationToken cancellationToken = default) =>
         _ = await CancelSubscriptionAsync(providerSubscriptionId, cancellationToken: cancellationToken);
 
+    /// <summary>atPeriodEnd is ignored - PayPal has no deferred-cancellation concept, so this always cancels immediately.</summary>
     public async Task<SubscriptionResult> CancelSubscriptionAsync(string providerSubscriptionId, bool atPeriodEnd = false, string? connectedAccountId = null, CancellationToken cancellationToken = default)
     {
         var accessToken = await GetAccessTokenAsync(cancellationToken);

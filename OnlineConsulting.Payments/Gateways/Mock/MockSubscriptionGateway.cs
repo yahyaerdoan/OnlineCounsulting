@@ -21,7 +21,8 @@ public class MockSubscriptionGateway : ISubscriptionGateway
         Task.FromResult(providerPriceId.StartsWith(MockPricePrefix, StringComparison.Ordinal));
 
     public Task<SubscriptionResult> CreateSubscriptionAsync(CreateSubscriptionRequest request, string? idempotencyKey = null, CancellationToken cancellationToken = default) =>
-        Task.FromResult(new SubscriptionResult($"mock_sub_{request.ReferenceId}", PaymentStatuses.Succeeded, DateTimeOffset.UtcNow.AddMonths(1), FirstItemProviderId: NewItemId()));
+        Task.FromResult(new SubscriptionResult($"mock_sub_{request.ReferenceId}", PaymentStatuses.Succeeded, DateTimeOffset.UtcNow.AddMonths(1),
+            ItemIdsByPriceId: new[] { request.ProviderPriceId }.Concat(request.AdditionalPriceIds ?? []).ToDictionary(priceId => priceId, _ => NewItemId())));
 
     public Task<SubscriptionResult> CancelSubscriptionAsync(string providerSubscriptionId, bool atPeriodEnd = false, string? connectedAccountId = null, CancellationToken cancellationToken = default) =>
         Task.FromResult(atPeriodEnd

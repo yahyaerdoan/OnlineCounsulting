@@ -64,16 +64,19 @@ public class TenantSubscriptionActivator(ITenantRepository tenantRepository, ITe
 
             if (tenantSubscription.ProviderSubscriptionId is null)
             {
-                var firstItem = pendingItems.FirstOrDefault()
-                    ?? throw new InvalidOperationException($"TenantSubscription {tenantSubscription.Id} has no ProviderSubscriptionId yet, but has no pending TenantSubscriptionItem to create it from.");
-                var firstOffering = offeringsByKey.TryGetValue(firstItem.ModuleKey, out var offering)
-                    ? offering
-                    : throw new InvalidOperationException($"ModuleOffering {firstItem.ModuleKey} was not found for pending TenantSubscriptionItem {firstItem.Id}.");
-                var firstOfferingPriceId = firstOffering.ProviderPriceId
-                    ?? throw new InvalidOperationException($"ModuleOffering {firstOffering.Key} has no ProviderPriceId.");
+                if (pendingItems.Count == 0)
+                {
+                    throw new InvalidOperationException($"TenantSubscription {tenantSubscription.Id} has no ProviderSubscriptionId yet, but has no pending TenantSubscriptionItem to create it from.");
+                }
+
+                // All modules go on one subscription so the first invoice bills them together.
+                var initialItems = subscriptionGateway.SupportsMultipleItems ? pendingItems.ToList() : [pendingItems[0]];
+                var priceIdsByModuleKey = initialItems.ToDictionary(i => i.ModuleKey, i => PriceIdOf(offeringsByKey, i));
+                var firstPriceId = priceIdsByModuleKey[initialItems[0].ModuleKey];
 
                 var subscription = await subscriptionGateway.CreateSubscriptionAsync(
-                    new CreateSubscriptionRequest(providerCustomerId, firstOfferingPriceId, paymentMethodId, tenantSubscription.Id.ToString()),
+                    new CreateSubscriptionRequest(providerCustomerId, firstPriceId, paymentMethodId, tenantSubscription.Id.ToString(),
+                        AdditionalPriceIds: [.. initialItems.Skip(1).Select(i => priceIdsByModuleKey[i.ModuleKey])]),
                     idempotencyKey: $"tenant-signup-subscription:{tenantSubscription.Id}:{paymentMethodId}",
                     cancellationToken: cancellationToken);
 
@@ -88,11 +91,16 @@ public class TenantSubscriptionActivator(ITenantRepository tenantRepository, ITe
 
                 tenantSubscription.AttachProviderSubscription(subscription.ProviderSubscriptionId, subscription.CurrentPeriodEnd.UtcDateTime,
                     paid: subscription.Status == PaymentStatuses.Succeeded);
-                tenantSubscription.ActivateModule(firstItem.ModuleKey, subscription.FirstItemProviderId);
+                foreach (var item in initialItems)
+                {
+                    var itemId = subscription.ItemIdsByPriceId?.GetValueOrDefault(priceIdsByModuleKey[item.ModuleKey]);
+                    tenantSubscription.ActivateModule(item.ModuleKey, itemId);
+                    _ = pendingItems.Remove(item);
+                }
+
                 _ = await tenantSubscriptionRepository.UpdateAsync(tenantSubscription, cancellationToken: cancellationToken);
 
                 clientSecret = subscription.ClientSecret;
-                _ = pendingItems.Remove(firstItem);
             }
             else if (tenantSubscription.Status == TenantSubscriptionStatuses.Failed)
             {
@@ -108,15 +116,8 @@ public class TenantSubscriptionActivator(ITenantRepository tenantRepository, ITe
                 var providerSubscriptionItemId = item.ProviderSubscriptionItemId;
                 if (providerSubscriptionItemId is null)
                 {
-                    var offering = offeringsByKey.TryGetValue(item.ModuleKey, out var o)
-                        ? o
-                        : throw new InvalidOperationException($"ModuleOffering {item.ModuleKey} was not found for pending TenantSubscriptionItem {item.Id}.");
-
-                    var offeringPriceId = offering.ProviderPriceId
-                        ?? throw new InvalidOperationException($"ModuleOffering {offering.Key} has no ProviderPriceId.");
-
                     providerSubscriptionItemId = await subscriptionGateway
-                        .AddSubscriptionItemAsync(activeProviderSubscriptionId, offeringPriceId, idempotencyKey: $"tenant-signup-item:{activeProviderSubscriptionId}:{offering.Key}", cancellationToken: cancellationToken);
+                        .AddSubscriptionItemAsync(activeProviderSubscriptionId, PriceIdOf(offeringsByKey, item), idempotencyKey: $"tenant-signup-item:{activeProviderSubscriptionId}:{item.ModuleKey}", cancellationToken: cancellationToken);
                 }
 
                 tenantSubscription.ActivateModule(item.ModuleKey, providerSubscriptionItemId);
@@ -134,6 +135,16 @@ public class TenantSubscriptionActivator(ITenantRepository tenantRepository, ITe
         _ = await tenantRepository.UpdateAsync(tenant, cancellationToken: cancellationToken);
 
         return Result.Created(new ActivateTenantSubscriptionResult(tenant.Id, clientSecret), "Tenant subscription activated successfully.");
+    }
+
+    private static string PriceIdOf(Dictionary<string, ModuleOffering> offeringsByKey, TenantSubscriptionItem item)
+    {
+        var offering = offeringsByKey.TryGetValue(item.ModuleKey, out var o)
+            ? o
+            : throw new InvalidOperationException($"ModuleOffering {item.ModuleKey} was not found for pending TenantSubscriptionItem {item.Id}.");
+
+        return offering.ProviderPriceId
+            ?? throw new InvalidOperationException($"ModuleOffering {offering.Key} has no ProviderPriceId.");
     }
 
     /// <summary>Reloads saved state first; the failed change would otherwise break this save too.</summary>
