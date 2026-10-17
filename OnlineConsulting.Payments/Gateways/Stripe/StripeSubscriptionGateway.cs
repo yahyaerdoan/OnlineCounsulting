@@ -224,7 +224,7 @@ public class StripeSubscriptionGateway(IOptions<PaymentOptions> options) : ISubs
         invoice.BillingReason,
         [.. invoice.Lines.Data.Select(l => new SubscriptionInvoiceLine(l.Description ?? "Subscription", l.Amount / 100m))]);
 
-    public async Task<string> AddSubscriptionItemAsync(string providerSubscriptionId, string providerPriceId, string? idempotencyKey = null, string? connectedAccountId = null, CancellationToken cancellationToken = default)
+    public async Task<string> AddSubscriptionItemAsync(string providerSubscriptionId, string providerPriceId, ProrationBilling billing, string? idempotencyKey = null, string? connectedAccountId = null, CancellationToken cancellationToken = default)
     {
         var service = new SubscriptionItemService(_client);
 
@@ -232,17 +232,27 @@ public class StripeSubscriptionGateway(IOptions<PaymentOptions> options) : ISubs
         {
             Subscription = providerSubscriptionId,
             Price = providerPriceId,
+            ProrationBehavior = ToProrationBehavior(billing),
+            // Charging now must fail outright when the payment fails, not leave the item unpaid.
+            PaymentBehavior = billing == ProrationBilling.ChargeNow ? "error_if_incomplete" : null,
         }, ToRequestOptions(idempotencyKey, connectedAccountId), cancellationToken);
 
         return item.Id;
     }
 
-    public async Task RemoveSubscriptionItemAsync(string providerSubscriptionItemId, string? connectedAccountId = null, CancellationToken cancellationToken = default)
+    public async Task RemoveSubscriptionItemAsync(string providerSubscriptionItemId, ProrationBilling billing, string? connectedAccountId = null, CancellationToken cancellationToken = default)
     {
         var service = new SubscriptionItemService(_client);
 
-        _ = await service.DeleteAsync(providerSubscriptionItemId, requestOptions: ToRequestOptions(null, connectedAccountId), cancellationToken: cancellationToken);
+        _ = await service.DeleteAsync(providerSubscriptionItemId, new SubscriptionItemDeleteOptions { ProrationBehavior = ToProrationBehavior(billing) },
+            ToRequestOptions(null, connectedAccountId), cancellationToken);
     }
+
+    private static string ToProrationBehavior(ProrationBilling billing) => billing switch
+    {
+        ProrationBilling.ChargeNow => "always_invoice",
+        _ => "none",
+    };
 
     /// <summary>stripeEvent.Account - see StripePaymentGateway.VerifyAndParseWebhookAsync.</summary>
     public Task<SubscriptionWebhookEvent?> VerifyAndParseWebhookAsync(string rawBody, string? signatureHeader, CancellationToken cancellationToken = default)

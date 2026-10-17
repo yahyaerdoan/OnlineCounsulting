@@ -85,6 +85,7 @@ public static class TenancyModule
         _ = services.Configure<TenantBrandingOptions>(configuration.GetSection("Tenancy:Branding"));
         _ = services.Configure<TenantDomainOptions>(configuration.GetSection("Tenancy:CustomDomains"));
         _ = services.AddHostedService<OrphanedTenantCleanupService>();
+        _ = services.AddHostedService<EndingModuleService>();
         _ = services.AddHostedService<TenantDomainActivationService>();
 
         _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));

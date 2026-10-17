@@ -1,94 +1,166 @@
-@* Platform landing copy: one form, saved as a single row. Lists (features, steps, FAQ) live on the Landing Blocks page. *@
+@* Platform landing copy, grouped by site page (Home / About / Contact) into collapsible sections. The copy is one row saved together;
+   each section's cards, steps or FAQ entries are landing blocks, edited from inside their section. *@
 @page "/admin/platform/landing-page"
 @attribute [Authorize(Roles = "Admin,Super Admin,Member")]
+@using System.Text.Json
 @using OnlineConsulting.Maui.Shared.Infrastructure.Forms
 @using OnlineConsulting.Maui.Shared.Pages.Admin.Platform.LandingPageModels
 @inject IApiClient ApiClient
 @inject ISnackbar Snackbar
-@inject NavigationManager Navigation
 @inject FormState<LandingPageFormModel> Form
 
 <PageTitle>Landing Page</PageTitle>
 
-<PageHeroBanner Title="Landing Page" Subtitle="Headlines and buttons on the platform's home page.">
+<PageHeroBanner Title="Landing Page" Subtitle="What visitors see on the platform's Home, About and Contact pages.">
     <ActionContent>
-        <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.ViewAgenda"
-                   OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/platform/landing-blocks"))">Landing Blocks</MudButton>
         <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.OpenInNew" Href="/" Target="_blank">View page</MudButton>
     </ActionContent>
 </PageHeroBanner>
 
-<EditForm EditContext="@Form.EditContext">
-    <MudPaper Class="pa-4">
-        <MudStack Spacing="4">
-            <MudText Typo="Typo.subtitle1" Class="text-strong">Hero</MudText>
-            <MudGrid Spacing="2">
-                <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.HeroEyebrow" For="@(() => _model.HeroEyebrow)" Label="Eyebrow" Variant="Variant.Outlined" Margin="Margin.Dense" /></MudItem>
-                <MudItem xs="12" md="8"><MudTextField @bind-Value="_model.HeroTitle" For="@(() => _model.HeroTitle)" Label="Title" Variant="Variant.Outlined" Margin="Margin.Dense" /></MudItem>
-                <MudItem xs="12"><MudTextField @bind-Value="_model.HeroLead" For="@(() => _model.HeroLead)" Label="Lead" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="2" MaxLines="4" Sizing="InputSizing.Auto" /></MudItem>
-                <MudItem xs="12" sm="6"><MudTextField @bind-Value="_model.PrimaryCtaText" For="@(() => _model.PrimaryCtaText)" Label="Primary button (to Pricing)" Variant="Variant.Outlined" Margin="Margin.Dense" /></MudItem>
-                <MudItem xs="12" sm="6"><MudTextField @bind-Value="_model.SecondaryCtaText" For="@(() => _model.SecondaryCtaText)" Label="Secondary button (to Contact)" Variant="Variant.Outlined" Margin="Margin.Dense" /></MudItem>
-                @* Pictures are optional; a hero with one turns into text beside the picture. *@
-                <MudItem xs="12"><LandingImageField @bind-Value="_model.HeroImageUrl" /></MudItem>
-            </MudGrid>
+@* No <form>: each section list has its own inline editor, and forms can't nest. Saving is by button, not submit. *@
+<CascadingValue Value="@Form.EditContext">
+    <MudTabs Elevation="0" Rounded="true" MinimumTabWidth="0" Ripple="false" Class="landing-tabs">
+        <MudTabPanel Text="Home" Icon="@Icons.Material.Outlined.Home">
+            <MudExpansionPanels MultiExpansion="true" Outlined="true" Elevation="0" Class="mt-4">
+                <LandingSectionPanel Heading="Hero" Summary="@_model.HeroTitle" ImageUrl="@_model.HeroImageUrl" Expanded="true">
+                    <LandingPictureSection @bind-ImageUrl="_model.HeroImageUrl">
+                        <MudStack Spacing="2">
+                            <MudTextField @bind-Value="_model.HeroEyebrow" For="@(() => _model.HeroEyebrow)" Label="Eyebrow" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="1" Sizing="InputSizing.Auto" />
+                            <MudTextField @bind-Value="_model.HeroTitle" For="@(() => _model.HeroTitle)" Label="Title" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="1" Sizing="InputSizing.Auto" />
+                            <MudTextField @bind-Value="_model.HeroLead" For="@(() => _model.HeroLead)" Label="Lead" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="1" Sizing="InputSizing.Auto" />
+                            <MudTextField @bind-Value="_model.PrimaryCtaText" For="@(() => _model.PrimaryCtaText)" Label="Primary button (to Pricing)" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="1" Sizing="InputSizing.Auto" />
+                            <MudTextField @bind-Value="_model.SecondaryCtaText" For="@(() => _model.SecondaryCtaText)" Label="Secondary button (to Contact)" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="1" Sizing="InputSizing.Auto" />
+                        </MudStack>
+                    </LandingPictureSection>
+                </LandingSectionPanel>
 
-            <LandingSectionFields Heading="Features" @bind-Eyebrow="_model.FeaturesEyebrow" @bind-Title="_model.FeaturesTitle" @bind-Lead="_model.FeaturesLead"
-                                  EyebrowFor="@(() => _model.FeaturesEyebrow)" TitleFor="@(() => _model.FeaturesTitle)" LeadFor="@(() => _model.FeaturesLead)" />
-            <LandingImageField @bind-Value="_model.FeaturesHeroImageUrl" />
+                <LandingSectionPanel Heading="Features" Summary="@_model.FeaturesTitle" ImageUrl="@_model.FeaturesHeroImageUrl" CountLabel="@Count(LandingSections.Feature, "card")">
+                    <LandingPictureSection @bind-ImageUrl="_model.FeaturesHeroImageUrl">
+                        <LandingSectionFields @bind-Eyebrow="_model.FeaturesEyebrow" @bind-Title="_model.FeaturesTitle" @bind-Lead="_model.FeaturesLead"
+                                              EyebrowFor="@(() => _model.FeaturesEyebrow)" TitleFor="@(() => _model.FeaturesTitle)" LeadFor="@(() => _model.FeaturesLead)" />
+                    </LandingPictureSection>
+                    <MudDivider Class="my-4" />
+                    <LandingBlockList Section="@LandingSections.Feature" Label="Feature cards" Blocks="@BlocksOf(LandingSections.Feature)" OnChanged="LoadBlocksAsync" />
+                </LandingSectionPanel>
 
-            <LandingSectionFields Heading="Industries (cards come from Categories; leave the title empty to hide)" @bind-Eyebrow="_model.IndustriesEyebrow" @bind-Title="_model.IndustriesTitle" @bind-Lead="_model.IndustriesLead"
-                                  EyebrowFor="@(() => _model.IndustriesEyebrow)" TitleFor="@(() => _model.IndustriesTitle)" LeadFor="@(() => _model.IndustriesLead)" />
-            <LandingImageField @bind-Value="_model.IndustriesHeroImageUrl" />
+                <LandingSectionPanel Heading="Industries" Summary="@_model.IndustriesTitle" ImageUrl="@_model.IndustriesHeroImageUrl" Icon="@Icons.Material.Outlined.Category">
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">Cards come from Categories. Leave the title empty to hide this section.</MudText>
+                    <LandingPictureSection @bind-ImageUrl="_model.IndustriesHeroImageUrl">
+                        <LandingSectionFields @bind-Eyebrow="_model.IndustriesEyebrow" @bind-Title="_model.IndustriesTitle" @bind-Lead="_model.IndustriesLead"
+                                              EyebrowFor="@(() => _model.IndustriesEyebrow)" TitleFor="@(() => _model.IndustriesTitle)" LeadFor="@(() => _model.IndustriesLead)" />
+                    </LandingPictureSection>
+                </LandingSectionPanel>
 
-            <LandingSectionFields Heading="How it works" @bind-Eyebrow="_model.StepsEyebrow" @bind-Title="_model.StepsTitle" @bind-Lead="_model.StepsLead"
-                                  EyebrowFor="@(() => _model.StepsEyebrow)" TitleFor="@(() => _model.StepsTitle)" LeadFor="@(() => _model.StepsLead)" />
+                <LandingSectionPanel Heading="How it works" Summary="@_model.StepsTitle" Icon="@Icons.Material.Outlined.FormatListNumbered" CountLabel="@Count(LandingSections.Step, "step")">
+                    <LandingSectionFields @bind-Eyebrow="_model.StepsEyebrow" @bind-Title="_model.StepsTitle" @bind-Lead="_model.StepsLead"
+                                          EyebrowFor="@(() => _model.StepsEyebrow)" TitleFor="@(() => _model.StepsTitle)" LeadFor="@(() => _model.StepsLead)" />
+                    <MudDivider Class="my-4" />
+                    <LandingBlockList Section="@LandingSections.Step" Label="Steps" Blocks="@BlocksOf(LandingSections.Step)" OnChanged="LoadBlocksAsync" />
+                </LandingSectionPanel>
 
-            <LandingSectionFields Heading="Pricing" @bind-Eyebrow="_model.PricingEyebrow" @bind-Title="_model.PricingTitle" @bind-Lead="_model.PricingLead"
-                                  EyebrowFor="@(() => _model.PricingEyebrow)" TitleFor="@(() => _model.PricingTitle)" LeadFor="@(() => _model.PricingLead)" />
+                <LandingSectionPanel Heading="Pricing" Summary="@_model.PricingTitle" Icon="@Icons.Material.Outlined.Sell">
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">Plans come from Module Offerings and Bundles.</MudText>
+                    <LandingSectionFields @bind-Eyebrow="_model.PricingEyebrow" @bind-Title="_model.PricingTitle" @bind-Lead="_model.PricingLead"
+                                          EyebrowFor="@(() => _model.PricingEyebrow)" TitleFor="@(() => _model.PricingTitle)" LeadFor="@(() => _model.PricingLead)" />
+                </LandingSectionPanel>
 
-            <MudText Typo="Typo.subtitle1" Class="text-strong">FAQ</MudText>
-            <MudGrid Spacing="2">
-                <MudItem xs="12" md="4"><MudTextField @bind-Value="_model.FaqEyebrow" For="@(() => _model.FaqEyebrow)" Label="Eyebrow" Variant="Variant.Outlined" Margin="Margin.Dense" /></MudItem>
-                <MudItem xs="12" md="8"><MudTextField @bind-Value="_model.FaqTitle" For="@(() => _model.FaqTitle)" Label="Title" Variant="Variant.Outlined" Margin="Margin.Dense" /></MudItem>
-            </MudGrid>
+                <LandingSectionPanel Heading="FAQ" Summary="@_model.FaqTitle" Icon="@Icons.Material.Outlined.HelpOutline" CountLabel="@Count(LandingSections.Faq, "question")">
+                    <MudStack Spacing="2">
+                        <MudTextField @bind-Value="_model.FaqEyebrow" For="@(() => _model.FaqEyebrow)" Label="Eyebrow" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="1" Sizing="InputSizing.Auto" />
+                        <MudTextField @bind-Value="_model.FaqTitle" For="@(() => _model.FaqTitle)" Label="Title" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="1" Sizing="InputSizing.Auto" />
+                    </MudStack>
+                    <MudDivider Class="my-4" />
+                    <LandingBlockList Section="@LandingSections.Faq" Label="Questions" Blocks="@BlocksOf(LandingSections.Faq)" OnChanged="LoadBlocksAsync" />
+                </LandingSectionPanel>
 
-            <LandingSectionFields Heading="About page hero (leave the title empty to keep the plain banner)" @bind-Eyebrow="_model.AboutHeroEyebrow" @bind-Title="_model.AboutHeroTitle" @bind-Lead="_model.AboutHeroLead"
-                                  EyebrowFor="@(() => _model.AboutHeroEyebrow)" TitleFor="@(() => _model.AboutHeroTitle)" LeadFor="@(() => _model.AboutHeroLead)" />
-            <LandingImageField @bind-Value="_model.AboutHeroImageUrl" />
+                <LandingSectionPanel Heading="Closing call to action" Summary="@_model.ClosingTitle" Icon="@Icons.Material.Outlined.Campaign">
+                    <MudStack Spacing="2">
+                        <MudTextField @bind-Value="_model.ClosingTitle" For="@(() => _model.ClosingTitle)" Label="Title" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="1" Sizing="InputSizing.Auto" />
+                        <MudTextField @bind-Value="_model.ClosingLead" For="@(() => _model.ClosingLead)" Label="Lead" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="1" Sizing="InputSizing.Auto" />
+                    </MudStack>
+                </LandingSectionPanel>
+            </MudExpansionPanels>
+        </MudTabPanel>
 
-            <LandingSectionFields Heading="Contact page hero (leave the title empty to keep the plain banner)" @bind-Eyebrow="_model.ContactHeroEyebrow" @bind-Title="_model.ContactHeroTitle" @bind-Lead="_model.ContactHeroLead"
-                                  EyebrowFor="@(() => _model.ContactHeroEyebrow)" TitleFor="@(() => _model.ContactHeroTitle)" LeadFor="@(() => _model.ContactHeroLead)" />
-            <LandingImageField @bind-Value="_model.ContactHeroImageUrl" />
+        <MudTabPanel Text="About" Icon="@Icons.Material.Outlined.Info">
+            <MudExpansionPanels Outlined="true" Elevation="0" Class="mt-4">
+                <LandingSectionPanel Heading="About page hero" Summary="@_model.AboutHeroTitle" ImageUrl="@_model.AboutHeroImageUrl" Expanded="true">
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">Leave the title empty to keep the plain banner.</MudText>
+                    <LandingPictureSection @bind-ImageUrl="_model.AboutHeroImageUrl">
+                        <LandingSectionFields @bind-Eyebrow="_model.AboutHeroEyebrow" @bind-Title="_model.AboutHeroTitle" @bind-Lead="_model.AboutHeroLead"
+                                              EyebrowFor="@(() => _model.AboutHeroEyebrow)" TitleFor="@(() => _model.AboutHeroTitle)" LeadFor="@(() => _model.AboutHeroLead)" />
+                    </LandingPictureSection>
+                </LandingSectionPanel>
+            </MudExpansionPanels>
+        </MudTabPanel>
 
-            <MudText Typo="Typo.subtitle1" Class="text-strong">Closing call to action</MudText>
-            <MudGrid Spacing="2">
-                <MudItem xs="12"><MudTextField @bind-Value="_model.ClosingTitle" For="@(() => _model.ClosingTitle)" Label="Title" Variant="Variant.Outlined" Margin="Margin.Dense" /></MudItem>
-                <MudItem xs="12"><MudTextField @bind-Value="_model.ClosingLead" For="@(() => _model.ClosingLead)" Label="Lead" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="1" MaxLines="3" Sizing="InputSizing.Auto" /></MudItem>
-            </MudGrid>
-        </MudStack>
+        <MudTabPanel Text="Contact" Icon="@Icons.Material.Outlined.Mail">
+            <MudExpansionPanels Outlined="true" Elevation="0" Class="mt-4">
+                <LandingSectionPanel Heading="Contact page hero" Summary="@_model.ContactHeroTitle" ImageUrl="@_model.ContactHeroImageUrl" Expanded="true">
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">Leave the title empty to keep the plain banner.</MudText>
+                    <LandingPictureSection @bind-ImageUrl="_model.ContactHeroImageUrl">
+                        <LandingSectionFields @bind-Eyebrow="_model.ContactHeroEyebrow" @bind-Title="_model.ContactHeroTitle" @bind-Lead="_model.ContactHeroLead"
+                                              EyebrowFor="@(() => _model.ContactHeroEyebrow)" TitleFor="@(() => _model.ContactHeroTitle)" LeadFor="@(() => _model.ContactHeroLead)" />
+                    </LandingPictureSection>
+                </LandingSectionPanel>
+            </MudExpansionPanels>
+        </MudTabPanel>
+    </MudTabs>
 
-        <MudDivider Class="my-4" />
-
-        <MudStack Row="true" Justify="Justify.FlexEnd">
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAsync" Disabled="@Form.IsBusy">Save</MudButton>
-        </MudStack>
-    </MudPaper>
-</EditForm>
+    @if (IsDirty)
+    {
+        <MudPaper Elevation="4" Class="pa-3 mt-4 rounded-lg landing-save-bar">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Wrap="Wrap.Wrap" Spacing="2">
+                <MudText Typo="Typo.body2" Class="text-strong">Unsaved changes</MudText>
+                <MudStack Row="true" Spacing="2">
+                    <MudButton Variant="Variant.Text" OnClick="DiscardAsync" Disabled="@Form.IsBusy">Discard</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAsync" Disabled="@Form.IsBusy">Save</MudButton>
+                </MudStack>
+            </MudStack>
+        </MudPaper>
+    }
+</CascadingValue>
 
 @code {
     private readonly LandingPageFormModel _model = new();
+    private string _savedSnapshot = Snapshot(new LandingPageFormModel());
+    private List<LandingBlockResponse> _blocks = [];
+
+    private bool IsDirty => Snapshot(_model) != _savedSnapshot;
 
     protected override async Task OnInitializedAsync()
     {
         // Bind before any await - Blazor can render (and touch Form.EditContext) after the first yield point.
         Form.Bind(_model);
 
+        await Task.WhenAll(LoadPageAsync(), LoadBlocksAsync());
+    }
+
+    /// <summary>Loads the saved copy into the bound model (same EditContext, so open sections stay open).</summary>
+    private async Task LoadPageAsync()
+    {
         // NotFound just means nothing is saved yet; the form starts empty.
         var result = await ApiClient.GetAsync<LandingPageResponse>(ApiRoutes.SiteContent.LandingPage.Base);
         if (result.IsSuccessful && result.ResultData is { } page)
         {
             _model.Load(page);
         }
+
+        _savedSnapshot = Snapshot(_model);
+    }
+
+    private async Task LoadBlocksAsync()
+    {
+        var result = await ApiClient.GetAsync<List<LandingBlockResponse>>(ApiRoutes.SiteContent.LandingBlocks.Base);
+        _blocks = result.IsSuccessful ? [.. (result.ResultData ?? []).OrderBy(b => b.DisplayOrder)] : [];
+    }
+
+    private IReadOnlyList<LandingBlockResponse> BlocksOf(string section) => [.. _blocks.Where(b => b.Section == section)];
+
+    private string Count(string section, string noun)
+    {
+        var count = _blocks.Count(b => b.Section == section);
+        return $"{count} {noun}{(count == 1 ? "" : "s")}";
     }
 
     private Task SaveAsync() => Form.SubmitAsync(async () =>
@@ -100,6 +172,11 @@
             return;
         }
 
+        _savedSnapshot = Snapshot(_model);
         Snackbar.ShowSuccess(result.DisplayMessage);
     });
+
+    private Task DiscardAsync() => Form.SubmitAsync(LoadPageAsync);
+
+    private static string Snapshot(LandingPageFormModel model) => JsonSerializer.Serialize(model);
 }

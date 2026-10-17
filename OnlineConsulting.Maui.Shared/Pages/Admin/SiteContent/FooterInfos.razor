@@ -25,7 +25,7 @@
         <MudTh>Actions</MudTh>
     </HeaderContent>
     <RowTemplate Context="entry">
-        <MudTd DataLabel="Image"><MudAvatar Size="Size.Small" Square="true"><MudImage Src="@entry.ImageUrl" /></MudAvatar></MudTd>
+        <MudTd DataLabel="Image"><MudAvatar Size="Size.Small" Square="true"><MudImage Src="@MediaUrlResolver.Resolve(ApiClient, entry.ImageUrl)" /></MudAvatar></MudTd>
         <MudTd DataLabel="Description" Class="cell-primary">@entry.Description</MudTd>
         <MudTd DataLabel="Order">@entry.DisplayOrder</MudTd>
         <MudTd DataLabel="Actions">

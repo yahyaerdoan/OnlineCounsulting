@@ -1,0 +1,53 @@
+@* One collapsible landing section: heading, picture thumbnail and current title when closed; its editor when open. *@
+@namespace OnlineConsulting.Maui.Shared.Pages.Admin.Platform
+@inject IApiClient ApiClient
+
+<MudExpansionPanel @bind-Expanded="_expanded">
+    <TitleContent>
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3" Class="landing-panel-title">
+            @if (MediaUrlResolver.Resolve(ApiClient, ImageUrl) is { } thumbnail)
+            {
+                <MudAvatar Size="Size.Small" Rounded="true"><MudImage Src="@thumbnail" /></MudAvatar>
+            }
+            else
+            {
+                <MudAvatar Size="Size.Small" Rounded="true" Color="Color.Primary" Variant="Variant.Outlined"><MudIcon Icon="@Icon" Size="Size.Small" /></MudAvatar>
+            }
+            <MudStack Spacing="0" Class="landing-panel-text">
+                <MudText Typo="Typo.subtitle2" Class="text-strong">@Heading</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="text-truncate">@(string.IsNullOrWhiteSpace(Summary) ? "Not set" : Summary)</MudText>
+            </MudStack>
+            @if (CountLabel is not null)
+            {
+                <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined">@CountLabel</MudChip>
+            }
+        </MudStack>
+    </TitleContent>
+    <ChildContent>
+        @ChildContent
+    </ChildContent>
+</MudExpansionPanel>
+
+@code {
+    [Parameter, EditorRequired] public string Heading { get; set; } = string.Empty;
+
+    /// <summary>Shown under the heading while closed - usually the section title.</summary>
+    [Parameter] public string? Summary { get; set; }
+
+    [Parameter] public string? ImageUrl { get; set; }
+
+    /// <summary>Shown when the section has no picture.</summary>
+    [Parameter] public string Icon { get; set; } = Icons.Material.Outlined.ViewAgenda;
+
+    /// <summary>e.g. "4 cards"; hidden when null.</summary>
+    [Parameter] public string? CountLabel { get; set; }
+
+    /// <summary>Open on first render only; afterwards the user's choice wins.</summary>
+    [Parameter] public bool Expanded { get; set; }
+
+    [Parameter, EditorRequired] public RenderFragment? ChildContent { get; set; }
+
+    private bool _expanded;
+
+    protected override void OnInitialized() => _expanded = Expanded;
+}

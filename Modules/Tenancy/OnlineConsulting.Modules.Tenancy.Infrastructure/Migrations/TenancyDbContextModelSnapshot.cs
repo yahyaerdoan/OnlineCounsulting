@@ -362,6 +362,9 @@ namespace OnlineConsulting.Modules.Tenancy.Infrastructure.Migrations
                     b.Property<DateTimeOffset?>("DeletedDate")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<DateTime?>("EndsAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("ModuleKey")
                         .IsRequired()
                         .HasMaxLength(100)

@@ -1,0 +1,25 @@
+@* One landing section with a picture: picture and its upload area on the left, the section's fields on the right; stacked on small screens. *@
+@namespace OnlineConsulting.Maui.Shared.Pages.Admin.Platform
+
+@if (!string.IsNullOrEmpty(Heading))
+{
+    <MudText Typo="Typo.subtitle1" Class="text-strong">@Heading</MudText>
+}
+<MudGrid Spacing="3">
+    <MudItem xs="12" md="5">
+        <LandingImageField Value="@ImageUrl" ValueChanged="@ImageUrlChanged" />
+    </MudItem>
+    <MudItem xs="12" md="7">
+        @ChildContent
+    </MudItem>
+</MudGrid>
+
+@code {
+    /// <summary>Left out inside a LandingSectionPanel, which shows it.</summary>
+    [Parameter] public string? Heading { get; set; }
+
+    [Parameter] public string? ImageUrl { get; set; }
+    [Parameter] public EventCallback<string?> ImageUrlChanged { get; set; }
+
+    [Parameter, EditorRequired] public RenderFragment? ChildContent { get; set; }
+}

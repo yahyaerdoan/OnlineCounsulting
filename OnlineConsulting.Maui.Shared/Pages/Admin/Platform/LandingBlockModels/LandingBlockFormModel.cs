@@ -2,7 +2,7 @@ using OnlineConsulting.Maui.Shared.Infrastructure;
 
 namespace OnlineConsulting.Maui.Shared.Pages.Admin.Platform.LandingBlockModels;
 
-/// <summary>Bound by LandingBlockFormPage for both create and edit.</summary>
+/// <summary>Bound by LandingBlockEditor for both add and edit.</summary>
 public class LandingBlockFormModel
 {
     public string Section { get; set; } = LandingSections.Feature;

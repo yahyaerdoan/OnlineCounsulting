@@ -1,5 +1,6 @@
 ﻿using Core.PersistenceLayer.MultiTenancy;
 using OnlineConsulting.Modules.FeatureFlags.Application.Features.FeatureFlags;
+using OnlineConsulting.Modules.FeatureFlags.Application.Features.FeatureFlags.Constants;
 using OnlineConsulting.SharedKernel.FeatureFlags;
 using OnlineConsulting.SharedKernel.Tenancy;
 
@@ -8,9 +9,14 @@ namespace OnlineConsulting.Modules.FeatureFlags.Infrastructure.Writing;
 /// <summary>Cross-module IFeatureFlagWriter; delegates to FeatureFlagUpserter under a TenantScope so the ITenantProvider-resolved repository/cache target the caller's tenant.</summary>
 public class FeatureFlagWriter(FeatureFlagUpserter upserter) : IFeatureFlagWriter
 {
-    /// <summary>Sets the flag for <paramref name="tenantId"/>; throws <see cref="InvalidOperationException"/> if the upsert fails (e.g. unknown key).</summary>
+    /// <summary>Sets the flag for <paramref name="tenantId"/>; a module key with no flag isn't gated, so there is nothing to set. Throws if the upsert fails.</summary>
     public async Task SetAsync(Guid tenantId, string key, bool isEnabled, CancellationToken cancellationToken = default)
     {
+        if (!FeatureFlagKeys.Defaults.ContainsKey(key))
+        {
+            return;
+        }
+
         using var scope = TenantScope.Begin(tenantId);
 
         var result = await upserter.UpsertAsync(key, isEnabled, cancellationToken);

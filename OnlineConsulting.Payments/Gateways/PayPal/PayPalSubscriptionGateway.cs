@@ -191,11 +191,11 @@ public class PayPalSubscriptionGateway(IHttpClientFactory httpClientFactory, IOp
         throw new NotSupportedException("PayPal subscriptions do not support in-place plan changes.");
 
     /// <summary>PayPal models a subscription as a single plan_id, so à la carte multi-module tenants aren't representable on this provider.</summary>
-    public Task<string> AddSubscriptionItemAsync(string providerSubscriptionId, string providerPriceId, string? idempotencyKey = null, string? connectedAccountId = null, CancellationToken cancellationToken = default) =>
+    public Task<string> AddSubscriptionItemAsync(string providerSubscriptionId, string providerPriceId, ProrationBilling billing, string? idempotencyKey = null, string? connectedAccountId = null, CancellationToken cancellationToken = default) =>
         throw new NotSupportedException("PayPal subscriptions do not support multiple line items.");
 
     /// <summary>See AddSubscriptionItemAsync.</summary>
-    public Task RemoveSubscriptionItemAsync(string providerSubscriptionItemId, string? connectedAccountId = null, CancellationToken cancellationToken = default) =>
+    public Task RemoveSubscriptionItemAsync(string providerSubscriptionItemId, ProrationBilling billing, string? connectedAccountId = null, CancellationToken cancellationToken = default) =>
         throw new NotSupportedException("PayPal subscriptions do not support multiple line items.");
 
     public async Task<SubscriptionWebhookEvent?> VerifyAndParseWebhookAsync(string rawBody, string? signatureHeader, CancellationToken cancellationToken = default)

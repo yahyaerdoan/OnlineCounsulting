@@ -117,7 +117,7 @@ public class TenantSubscriptionActivator(ITenantRepository tenantRepository, ITe
                 if (providerSubscriptionItemId is null)
                 {
                     providerSubscriptionItemId = await subscriptionGateway
-                        .AddSubscriptionItemAsync(activeProviderSubscriptionId, PriceIdOf(offeringsByKey, item), idempotencyKey: $"tenant-signup-item:{activeProviderSubscriptionId}:{item.ModuleKey}", cancellationToken: cancellationToken);
+                        .AddSubscriptionItemAsync(activeProviderSubscriptionId, PriceIdOf(offeringsByKey, item), ProrationBilling.ChargeNow, idempotencyKey: $"tenant-signup-item:{activeProviderSubscriptionId}:{item.ModuleKey}", cancellationToken: cancellationToken);
                 }
 
                 tenantSubscription.ActivateModule(item.ModuleKey, providerSubscriptionItemId);

@@ -23,5 +23,8 @@ public class TenantSubscriptionRepository(TenancyDbContext context) : EfReposito
     public async Task<IReadOnlyList<TenantSubscription>> GetAllWithItemsAsync(Expression<Func<TenantSubscription, bool>> predicate, CancellationToken cancellationToken = default) =>
         await Context.TenantSubscriptions.Include(s => s.Items).AsNoTracking().Where(predicate).ToListAsync(cancellationToken);
 
+    public async Task<IReadOnlyList<TenantSubscription>> GetWithDueEndingModulesAsync(DateTime now, CancellationToken cancellationToken = default) =>
+        await Context.TenantSubscriptions.Include(s => s.Items).Where(s => s.Items.Any(i => i.EndsAt != null && i.EndsAt <= now)).ToListAsync(cancellationToken);
+
     public void DiscardUnsavedChanges() => Context.ChangeTracker.Clear();
 }

@@ -1,0 +1,133 @@
+﻿@* The cards, steps or FAQ entries of one landing section: edited, added, reordered and deleted in place. *@
+@namespace OnlineConsulting.Maui.Shared.Pages.Admin.Platform
+@using OnlineConsulting.Maui.Shared.Infrastructure.Icons
+@inject IApiClient ApiClient
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<MudStack Spacing="1">
+    <MudText Typo="Typo.subtitle2" Class="text-strong">@Label</MudText>
+    @if (Blocks.Count == 0 && !_adding)
+    {
+        <MudText Typo="Typo.body2" Color="Color.Secondary">Nothing added yet.</MudText>
+    }
+
+    @for (var i = 0; i < Blocks.Count; i++)
+    {
+        var index = i;
+        var block = Blocks[index];
+        if (_editingId == block.Id)
+        {
+            <LandingBlockEditor @key="block.Id" Section="@Section" Block="@block" OnSaved="SavedAsync" OnCancel="CloseEditor" />
+        }
+        else
+        {
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Wrap="Wrap.Wrap" Class="landing-block-row">
+                @if (!string.IsNullOrWhiteSpace(block.Icon))
+                {
+                    <MudIcon Icon="@IconCatalog.Resolve(block.Icon)" Size="Size.Small" Color="Color.Primary" />
+                }
+                <MudText Typo="Typo.body2" Class="flex-grow-1 landing-block-title" @onclick="@(() => Edit(block))">@(index + 1). @block.Title</MudText>
+                <RowActions Actions="@([
+                    new RowAction("Move up", Icons.Material.Outlined.ArrowUpward) { OnClick = () => SwapAsync(index, index - 1), Disabled = _busy || index == 0 },
+                    new RowAction("Move down", Icons.Material.Outlined.ArrowDownward) { OnClick = () => SwapAsync(index, index + 1), Disabled = _busy || index == Blocks.Count - 1 },
+                    new RowAction("Edit", Icons.Material.Outlined.EditNote) { OnClick = () => { Edit(block); return Task.CompletedTask; } },
+                    new RowAction("Delete", Icons.Material.Outlined.DeleteOutline) { OnClick = () => DeleteAsync(block), Disabled = _busy, Color = Color.Error },
+                ])" />
+            </MudStack>
+        }
+    }
+
+    @if (_adding)
+    {
+        <LandingBlockEditor @key="Section" Section="@Section" NextOrder="@NextOrder" OnSaved="SavedAsync" OnCancel="CloseEditor" />
+    }
+    else
+    {
+        <div>
+            <MudButton Variant="Variant.Text" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Add" Size="Size.Small" OnClick="Add">Add</MudButton>
+        </div>
+    }
+</MudStack>
+
+@code {
+    [Parameter, EditorRequired] public string Section { get; set; } = string.Empty;
+
+    [Parameter, EditorRequired] public string Label { get; set; } = string.Empty;
+
+    /// <summary>In display order.</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<LandingBlockResponse> Blocks { get; set; } = [];
+
+    /// <summary>Reloads the blocks after any change.</summary>
+    [Parameter] public EventCallback OnChanged { get; set; }
+
+    private Guid? _editingId;
+    private bool _adding;
+    private bool _busy;
+
+    private int NextOrder => Blocks.Count == 0 ? 1 : Blocks.Max(b => b.DisplayOrder) + 1;
+
+    private void Edit(LandingBlockResponse block)
+    {
+        _adding = false;
+        _editingId = block.Id;
+    }
+
+    private void Add()
+    {
+        _editingId = null;
+        _adding = true;
+    }
+
+    private void CloseEditor()
+    {
+        _editingId = null;
+        _adding = false;
+    }
+
+    private async Task SavedAsync()
+    {
+        CloseEditor();
+        await OnChanged.InvokeAsync();
+    }
+
+    /// <summary>Moves an entry one place and saves the section's whole order in one request.</summary>
+    private async Task SwapAsync(int from, int to)
+    {
+        _busy = true;
+
+        var ordered = Blocks.Select(b => b.Id).ToList();
+        (ordered[from], ordered[to]) = (ordered[to], ordered[from]);
+
+        var result = await ApiClient.PutAsync(ApiRoutes.SiteContent.LandingBlocks.Order, new { section = Section, orderedIds = ordered });
+        _busy = false;
+
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+        }
+
+        await OnChanged.InvokeAsync();
+    }
+
+    private async Task DeleteAsync(LandingBlockResponse block)
+    {
+        if (!await DialogService.ConfirmDeleteAsync("item", block.Title))
+        {
+            return;
+        }
+
+        _busy = true;
+        var result = await ApiClient.DeleteAsync(ApiRoutes.SiteContent.LandingBlocks.ById(block.Id));
+        _busy = false;
+
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await OnChanged.InvokeAsync();
+    }
+}

@@ -25,7 +25,7 @@
         <MudTh>Actions</MudTh>
     </HeaderContent>
     <RowTemplate Context="highlight">
-        <MudTd DataLabel="Image"><MudAvatar Size="Size.Small" Square="true"><MudImage Src="@highlight.ImageUrl" /></MudAvatar></MudTd>
+        <MudTd DataLabel="Image"><MudAvatar Size="Size.Small" Square="true"><MudImage Src="@MediaUrlResolver.Resolve(ApiClient, highlight.ImageUrl)" /></MudAvatar></MudTd>
         <MudTd DataLabel="Title" Class="cell-primary">@highlight.Title</MudTd>
         <MudTd DataLabel="Description">@highlight.Description</MudTd>
         <MudTd DataLabel="Actions">

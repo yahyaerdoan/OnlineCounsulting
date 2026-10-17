@@ -25,6 +25,11 @@ public class TenantSubscriptionItem : Entity<Guid>
 
     public DateTime AddedAt { get; private set; }
 
+    /// <summary>Set when the tenant removed the module: usable until then, no longer billed.</summary>
+    public DateTime? EndsAt { get; private set; }
+
+    public bool IsEnding => EndsAt is not null;
+
     /// <summary>Pending or failed, so billing can be (re)tried.</summary>
     public bool IsAwaitingBilling => Status is TenantSubscriptionItemStatuses.Pending or TenantSubscriptionItemStatuses.Failed;
 
@@ -58,6 +63,30 @@ public class TenantSubscriptionItem : Entity<Guid>
     }
 
     internal void Remove(DateTimeOffset removedAt) => DeletedDate = removedAt;
+
+    /// <summary>Stops renewal; the provider item is already gone.</summary>
+    internal void ScheduleEnd(DateTime endsAt)
+    {
+        EnsureActive(nameof(ScheduleEnd));
+        EndsAt = endsAt;
+        ProviderSubscriptionItemId = null;
+    }
+
+    /// <summary>Renews again under a new provider item.</summary>
+    internal void Resume(string? providerSubscriptionItemId)
+    {
+        EnsureActive(nameof(Resume));
+        EndsAt = null;
+        ProviderSubscriptionItemId = providerSubscriptionItemId;
+    }
+
+    private void EnsureActive(string action)
+    {
+        if (!IsActive)
+        {
+            throw new InvalidOperationException($"{action} needs an active module, but {Id} is {Status}.");
+        }
+    }
 
     private void EnsureAwaitingBilling(string action)
     {

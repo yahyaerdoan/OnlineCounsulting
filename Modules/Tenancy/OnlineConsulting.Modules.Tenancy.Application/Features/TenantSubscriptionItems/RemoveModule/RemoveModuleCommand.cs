@@ -1,13 +1,13 @@
 ﻿using Core.ApplicationLayer.Pipelines.Authorizations.Abstractions;
 using Core.SecurityLayer.Constants;
 using MediatR;
+using System.Globalization;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.Constants;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.Rules;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.CurrentUser;
-using OnlineConsulting.SharedKernel.FeatureFlags;
 using OnlineConsulting.SharedKernel.Payments;
 using OnlineConsulting.SharedKernel.Tenancy;
 using ResultHandler.Core.Base;
@@ -15,13 +15,14 @@ using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptionItems.RemoveModule;
 
-/// <summary>Mirror of AddModuleCommand - removes one à la carte module, prorated refund/credit. Same authorization: tenant admins (own tenant, via TenantOwnershipGuard) or a SuperAdmin.</summary>
+/// <summary>Mirror of AddModuleCommand - stops renewing one module: no refund, it stays usable until the paid period ends, then EndingModuleService removes it. Same authorization: tenant admins (own tenant, via TenantOwnershipGuard) or a SuperAdmin.</summary>
 public record RemoveModuleCommand(Guid TenantId, string ModuleKey) : IRequest<OperationResult>, ISecureAddRequest
 {
     public string[] Roles => [GeneralOperationClaims.Admin, GlobalOperationClaims.SuperAdmin];
 }
 
-public class RemoveModuleHandler(ITenantSubscriptionRepository tenantSubscriptionRepository, ISubscriptionGateway subscriptionGateway, IFeatureFlagWriter featureFlagWriter, ITenantProvider tenantProvider, ICurrentUserAccessor currentUserAccessor)
+public class RemoveModuleHandler(ITenantSubscriptionRepository tenantSubscriptionRepository, ISubscriptionGateway subscriptionGateway, ITenantProvider tenantProvider, ICurrentUserAccessor currentUserAccessor,
+    ITenantTimeZoneReader timeZoneReader)
     : IRequestHandler<RemoveModuleCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(RemoveModuleCommand request, CancellationToken cancellationToken)
@@ -38,7 +39,7 @@ public class RemoveModuleHandler(ITenantSubscriptionRepository tenantSubscriptio
             return TenantSubscriptionItemBusinessRules.NoActiveSubscription();
         }
 
-        var item = tenantSubscription.ActiveItems.FirstOrDefault(i => i.ModuleKey == request.ModuleKey);
+        var item = tenantSubscription.RenewingItems.FirstOrDefault(i => i.ModuleKey == request.ModuleKey);
 
         if (item is null)
         {
@@ -53,19 +54,21 @@ public class RemoveModuleHandler(ITenantSubscriptionRepository tenantSubscriptio
         var providerSubscriptionItemId = item.ProviderSubscriptionItemId
             ?? throw new InvalidOperationException($"TenantSubscriptionItem {item.Id} has no ProviderSubscriptionItemId.");
 
-        var failure = await PaymentGatewayCall.RunAsync(() => subscriptionGateway.RemoveSubscriptionItemAsync(providerSubscriptionItemId, cancellationToken: cancellationToken), TenantSubscriptionItemMessages.ModuleRemovalFailed);
+        var failure = await PaymentGatewayCall.RunAsync(() => subscriptionGateway.RemoveSubscriptionItemAsync(providerSubscriptionItemId, ProrationBilling.None, cancellationToken: cancellationToken), TenantSubscriptionItemMessages.ModuleRemovalFailed);
 
         if (failure is not null)
         {
             return failure;
         }
 
-        tenantSubscription.RemoveModule(request.ModuleKey, DateTimeOffset.UtcNow);
+        var endsAt = tenantSubscription.ScheduleModuleRemoval(request.ModuleKey, DateTime.UtcNow);
 
         _ = await tenantSubscriptionRepository.UpdateAsync(tenantSubscription, cancellationToken: cancellationToken);
 
-        await featureFlagWriter.SetAsync(request.TenantId, request.ModuleKey, false, cancellationToken);
+        // The date as the business sees it, matching the admin UI.
+        var zone = await timeZoneReader.GetAsync(request.TenantId, cancellationToken);
+        var localEnd = new DateTimeOffset(endsAt, TimeSpan.Zero).InZone(zone);
 
-        return Result.Success("Module removed from the tenant's subscription.");
+        return Result.Success(string.Format(CultureInfo.InvariantCulture, TenantSubscriptionItemMessages.ModuleRemovalScheduledFormat, localEnd));
     }
 }

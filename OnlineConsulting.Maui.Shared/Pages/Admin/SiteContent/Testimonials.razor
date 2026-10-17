@@ -25,7 +25,7 @@
         <MudTh>Actions</MudTh>
     </HeaderContent>
     <RowTemplate Context="testimonial">
-        <MudTd DataLabel="Photo"><MudAvatar Size="Size.Small"><MudImage Src="@testimonial.ImageUrl" /></MudAvatar></MudTd>
+        <MudTd DataLabel="Photo"><MudAvatar Size="Size.Small"><MudImage Src="@MediaUrlResolver.Resolve(ApiClient, testimonial.ImageUrl)" /></MudAvatar></MudTd>
         <MudTd DataLabel="Name" Class="cell-primary">@testimonial.FirstName @testimonial.LastName</MudTd>
         <MudTd DataLabel="Title">@testimonial.Title</MudTd>
         <MudTd DataLabel="Actions">

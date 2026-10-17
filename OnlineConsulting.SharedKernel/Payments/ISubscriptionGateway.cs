@@ -37,11 +37,11 @@ public interface ISubscriptionGateway
     /// <summary>Reverses PauseSubscriptionAsync - billing resumes normally. connectedAccountId - see CancelSubscriptionAsync.</summary>
     Task<SubscriptionResult> ResumeSubscriptionAsync(string providerSubscriptionId, string? connectedAccountId = null, CancellationToken cancellationToken = default);
 
-    /// <summary>Adds a priced line item to an existing subscription, prorated; returns the new item id, which callers must persist to remove it later. Not supported by every provider (PayPal). connectedAccountId - see CancelSubscriptionAsync.</summary>
-    Task<string> AddSubscriptionItemAsync(string providerSubscriptionId, string providerPriceId, string? idempotencyKey = null, string? connectedAccountId = null, CancellationToken cancellationToken = default);
+    /// <summary>Adds a priced line item to an existing subscription, billed per <paramref name="billing"/>; returns the new item id, which callers must persist to remove it later. Not supported by every provider (PayPal). connectedAccountId - see CancelSubscriptionAsync.</summary>
+    Task<string> AddSubscriptionItemAsync(string providerSubscriptionId, string providerPriceId, ProrationBilling billing, string? idempotencyKey = null, string? connectedAccountId = null, CancellationToken cancellationToken = default);
 
-    /// <summary>Removes one line item, prorated refund/credit for the remainder of the period. Not supported by every provider (PayPal). connectedAccountId - see CancelSubscriptionAsync.</summary>
-    Task RemoveSubscriptionItemAsync(string providerSubscriptionItemId, string? connectedAccountId = null, CancellationToken cancellationToken = default);
+    /// <summary>Removes one line item, credited per <paramref name="billing"/>. Not supported by every provider (PayPal). connectedAccountId - see CancelSubscriptionAsync.</summary>
+    Task RemoveSubscriptionItemAsync(string providerSubscriptionItemId, ProrationBilling billing, string? connectedAccountId = null, CancellationToken cancellationToken = default);
 
     /// <summary>Undoes a signup that couldn't finish after it was paid: cancels the subscription now and refunds what the customer paid on it.
     /// The customer must be one created for this signup only, since every charge on it is refunded. Safe to call again (already

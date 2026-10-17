@@ -24,6 +24,10 @@
     "value: string",
     "isConfigured: bool"
   ],
+  "EndingModuleResponse": [
+    "moduleKey: string",
+    "endsAt: DateTime"
+  ],
   "ModuleOfferingAdminResponse": [
     "id: Guid",
     "key: string",
@@ -106,6 +110,8 @@
     "logoMediaAssetId: Guid?",
     "isStripeConnected: bool",
     "stripeChargesEnabled: bool",
+    "endingModules: List<EndingModuleResponse>",
+    "renewalDate: DateTime?",
     "_links: LinkCollection?"
   ]
 }
