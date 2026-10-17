@@ -15,7 +15,9 @@ public record TenantResponse(
     string? TimeZoneId = null,
     Guid? LogoMediaAssetId = null,
     bool IsStripeConnected = false,
-    bool StripeChargesEnabled = false) : HalResource, IQueryableFields
+    bool StripeChargesEnabled = false,
+    List<EndingModuleResponse>? EndingModules = null,
+    DateTime? RenewalDate = null) : HalResource, IQueryableFields
 {
     public static string[] SearchFields => [nameof(Name), nameof(Slug), nameof(PrimaryContactEmail)];
 }

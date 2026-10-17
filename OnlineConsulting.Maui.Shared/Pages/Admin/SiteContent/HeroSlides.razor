@@ -25,7 +25,7 @@
         <MudTh>Actions</MudTh>
     </HeaderContent>
     <RowTemplate Context="slide">
-        <MudTd DataLabel="Image"><MudAvatar Size="Size.Small" Square="true"><MudImage Src="@slide.ImageUrl" /></MudAvatar></MudTd>
+        <MudTd DataLabel="Image"><MudAvatar Size="Size.Small" Square="true"><MudImage Src="@MediaUrlResolver.Resolve(ApiClient, slide.ImageUrl)" /></MudAvatar></MudTd>
         <MudTd DataLabel="Title" Class="cell-primary">@slide.Title</MudTd>
         <MudTd DataLabel="Description">@slide.Description</MudTd>
         <MudTd DataLabel="Actions">

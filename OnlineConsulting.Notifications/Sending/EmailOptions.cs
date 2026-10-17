@@ -12,9 +12,3 @@ public class EmailOptions
     public bool UseSsl { get; set; } = true;
     public BrevoEmailOptions Brevo { get; set; } = new();
 }
-
-/// <summary>Brevo transactional email API settings.</summary>
-public class BrevoEmailOptions
-{
-    public string ApiKey { get; set; } = string.Empty;
-}

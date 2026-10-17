@@ -85,6 +85,7 @@ public class TenancyDbContext(DbContextOptions<TenancyDbContext> options) : DbCo
             _ = builder.HasMany(s => s.Items).WithOne().HasForeignKey(i => i.TenantSubscriptionId).OnDelete(DeleteBehavior.Cascade);
             _ = builder.Navigation(s => s.Items).HasField("_items");
             _ = builder.Ignore(s => s.ActiveItems);
+            _ = builder.Ignore(s => s.RenewingItems);
             _ = builder.HasQueryFilter(QueryFilterNames.SoftDelete, s => s.DeletedDate == null);
         });
 

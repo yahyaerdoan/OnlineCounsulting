@@ -2,6 +2,7 @@
 
 namespace OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.Contracts;
 
+/// <summary>TotalActivePrice is next period's price: ending modules are left out. RenewalDate ends the current paid period.</summary>
 public record TenantSummaryResponse(
     Guid Id,
     string Name,
@@ -14,9 +15,13 @@ public record TenantSummaryResponse(
     string TimeZoneId,
     Guid? LogoMediaAssetId,
     bool IsStripeConnected,
-    bool StripeChargesEnabled)
+    bool StripeChargesEnabled,
+    List<EndingModuleResponse> EndingModules,
+    DateTime? RenewalDate)
 {
-    public static TenantSummaryResponse FromDomain(Tenant tenant, List<string> activeModuleKeys, decimal totalActivePrice) =>
-        new(tenant.Id, tenant.Name, tenant.Slug, tenant.Status, tenant.PrimaryContactEmail, activeModuleKeys, totalActivePrice, tenant.CreatedDate, tenant.TimeZoneId, tenant.LogoMediaAssetId,
-            tenant.StripeConnectedAccountId is not null, tenant.StripeChargesEnabled);
+    public static TenantSummaryResponse FromDomain(Tenant tenant, IReadOnlyList<TenantSubscriptionItem> activeItems, DateTime? renewalDate) =>
+        new(tenant.Id, tenant.Name, tenant.Slug, tenant.Status, tenant.PrimaryContactEmail, [.. activeItems.Select(i => i.ModuleKey)],
+            activeItems.Where(i => !i.IsEnding).Sum(i => i.PriceAtAddition), tenant.CreatedDate, tenant.TimeZoneId, tenant.LogoMediaAssetId,
+            tenant.StripeConnectedAccountId is not null, tenant.StripeChargesEnabled,
+            [.. activeItems.Where(i => i.EndsAt is not null).Select(i => new EndingModuleResponse(i.ModuleKey, i.EndsAt ?? default))], renewalDate);
 }

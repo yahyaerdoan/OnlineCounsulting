@@ -31,10 +31,15 @@ public class TenantSubscription : SequentialGuidEntity
     /// <summary>The billed modules the tenant can use.</summary>
     public IReadOnlyList<TenantSubscriptionItem> ActiveItems => [.. _items.Where(i => i.IsActive)];
 
+    /// <summary>Active modules that bill again next period (not ending).</summary>
+    public IReadOnlyList<TenantSubscriptionItem> RenewingItems => [.. ActiveItems.Where(i => !i.IsEnding)];
+
     public bool HasActiveModule(string moduleKey) => _items.Any(i => i.IsActive && i.ModuleKey == moduleKey);
 
-    /// <summary>The module is active and isn't the last one, so it can be removed.</summary>
-    public bool CanRemoveModule(string moduleKey) => HasActiveModule(moduleKey) && ActiveItems.Count > 1;
+    public bool IsModuleEnding(string moduleKey) => ActiveItems.Any(i => i.ModuleKey == moduleKey && i.IsEnding);
+
+    /// <summary>The module renews and isn't the last renewing one, so it can be removed.</summary>
+    public bool CanRemoveModule(string moduleKey) => RenewingItems.Any(i => i.ModuleKey == moduleKey) && RenewingItems.Count > 1;
 
     /// <summary>Starts a subscription awaiting its first payment.</summary>
     public static TenantSubscription Start(Guid tenantId, DateTime startDate) => new() { TenantId = tenantId, StartDate = startDate };
@@ -148,15 +153,39 @@ public class TenantSubscription : SequentialGuidEntity
     /// <summary>Billing the module failed; adding it again retries the same item.</summary>
     public void FailModuleBilling(string moduleKey) => GetItem(moduleKey).MarkBillingFailed();
 
-    /// <summary>Removes an active module, keeping its row as history. Requires <see cref="CanRemoveModule"/>.</summary>
-    public void RemoveModule(string moduleKey, DateTimeOffset now)
+    /// <summary>Stops renewing the module; it stays usable until the paid period ends. Requires <see cref="CanRemoveModule"/>. Returns the end date.</summary>
+    public DateTime ScheduleModuleRemoval(string moduleKey, DateTime now)
     {
         if (!CanRemoveModule(moduleKey))
         {
-            throw new InvalidOperationException($"Module {moduleKey} cannot be removed from subscription {Id}: it isn't active or it's the last module.");
+            throw new InvalidOperationException($"Module {moduleKey} cannot be removed from subscription {Id}: it isn't renewing or it's the last module.");
         }
 
-        ActiveItems.First(i => i.ModuleKey == moduleKey).Remove(now);
+        var endsAt = RenewalDate is { } renewal && renewal > now ? renewal : now;
+        ActiveItems.First(i => i.ModuleKey == moduleKey).ScheduleEnd(endsAt);
+        return endsAt;
+    }
+
+    /// <summary>Undoes <see cref="ScheduleModuleRemoval"/> before the module ends.</summary>
+    public void ResumeModule(string moduleKey, string? providerSubscriptionItemId)
+    {
+        var item = ActiveItems.FirstOrDefault(i => i.ModuleKey == moduleKey && i.IsEnding)
+            ?? throw new InvalidOperationException($"Module {moduleKey} is not ending on subscription {Id}.");
+
+        item.Resume(providerSubscriptionItemId);
+    }
+
+    /// <summary>Removes the ending modules whose paid period is over, keeping their rows as history. Returns their keys.</summary>
+    public IReadOnlyList<string> EndDueModules(DateTimeOffset now)
+    {
+        var due = ActiveItems.Where(i => i.EndsAt <= now.UtcDateTime).ToList();
+
+        foreach (var item in due)
+        {
+            item.Remove(now);
+        }
+
+        return [.. due.Select(i => i.ModuleKey)];
     }
 
     private TenantSubscriptionItem GetItem(string moduleKey) =>

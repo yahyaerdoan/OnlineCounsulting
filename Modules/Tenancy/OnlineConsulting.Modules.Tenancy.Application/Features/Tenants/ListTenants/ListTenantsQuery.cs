@@ -52,14 +52,14 @@ public class ListTenantsHandler(ITenantRepository tenantRepository, ITenantSubsc
         var subscriptions = await tenantSubscriptionRepository
             .GetAllWithItemsAsync(s => tenantIds.Contains(s.TenantId) && s.Status != TenantSubscriptionStatuses.Cancelled, cancellationToken);
 
-        var itemsByTenantId = subscriptions.GroupBy(s => s.TenantId).ToDictionary(g => g.Key, g => g.SelectMany(s => s.ActiveItems).ToList());
+        var subscriptionsByTenantId = subscriptions.GroupBy(s => s.TenantId).ToDictionary(g => g.Key, g => g.ToList());
 
         var response = new Paginate<TenantSummaryResponse>
         {
             Items = [.. tenants.Items.Select(t =>
             {
-                var tenantItems = itemsByTenantId.GetValueOrDefault(t.Id, []);
-                return TenantSummaryResponse.FromDomain(t,[.. tenantItems.Select(i => i.ModuleKey)],tenantItems.Sum(i => i.PriceAtAddition));
+                var tenantSubscriptions = subscriptionsByTenantId.GetValueOrDefault(t.Id, []);
+                return TenantSummaryResponse.FromDomain(t, [.. tenantSubscriptions.SelectMany(s => s.ActiveItems)], tenantSubscriptions.Max(s => s.RenewalDate));
             })],
             Index = tenants.Index,
             Size = tenants.Size,

@@ -29,7 +29,7 @@ else if (_user is not null)
             }
             else
             {
-                <MudAvatar Size="Size.Large" Class="profile-hero-avatar"><MudImage Src="@_user.ImageUrl" Alt="@FullName" /></MudAvatar>
+                <MudAvatar Size="Size.Large" Class="profile-hero-avatar"><MudImage Src="@MediaUrlResolver.Resolve(ApiClient, _user.ImageUrl)" Alt="@FullName" /></MudAvatar>
             }
             <div class="profile-hero-text">
                 <span class="profile-hero-name">@FullName</span>

@@ -253,12 +253,12 @@ else
         if (isBeforePhoto)
         {
             _beforePhotoAssetId = result.ResultData.Id;
-            _beforePhotoUrl = result.ResultData.Url;
+            _beforePhotoUrl = MediaUrlResolver.Resolve(ApiClient, result.ResultData.Url);
         }
         else
         {
             _afterPhotoAssetId = result.ResultData.Id;
-            _afterPhotoUrl = result.ResultData.Url;
+            _afterPhotoUrl = MediaUrlResolver.Resolve(ApiClient, result.ResultData.Url);
         }
     }
 

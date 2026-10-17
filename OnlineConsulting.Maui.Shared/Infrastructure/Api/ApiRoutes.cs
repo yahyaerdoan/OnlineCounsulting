@@ -250,6 +250,9 @@ public static class ApiRoutes
             public const string Base = V1 + "/site-content/landing-blocks";
 
             public const string All = Base + "/query";
+
+            /// <summary>PUT one section's full order in a single save.</summary>
+            public const string Order = Base + "/order";
             public static string ById(Guid id) => $"{Base}/{id}";
         }
 

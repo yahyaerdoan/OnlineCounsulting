@@ -9,4 +9,7 @@ public static class SiteContentMessages
     public const string LegalPolicyRetrieved = "Policies retrieved successfully.";
     public const string LegalPolicySaved = "Policies saved successfully.";
     public const string UnknownLandingSectionFormat = "Section must be one of: {0}.";
+    public const string LandingBlocksReordered = "Order saved.";
+    public const string LandingBlockOrderOutdated = "This list changed in the meantime. Reload the page and try again.";
+    public const string LandingBlockOrderDuplicate = "Each entry can appear only once in the order.";
 }

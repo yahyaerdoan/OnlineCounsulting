@@ -3147,6 +3147,58 @@ button.step-indicator-button {
 
 /* ---- Before / after comparison (BeforeAfterSlider) ---- */
 
+/* Landing Page admin: panel header text can shrink so a long title truncates; save bar stays in view while scrolling. */
+.mud-expand-panel-text:has(> .landing-panel-title),
+.landing-panel-title,
+.landing-panel-text {
+    min-width: 0;
+}
+
+.landing-panel-text {
+    flex: 1;
+}
+
+.landing-panel-text .text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Landing Page tabs: soft rounded hover instead of the full-height gray block. */
+.landing-tabs .mud-tab {
+    margin: 6px 4px;
+    min-height: 40px;
+    border-radius: 8px;
+    text-transform: none;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.landing-tabs .mud-tab:hover {
+    background-color: color-mix(in srgb, var(--mud-palette-primary) 8%, transparent);
+    color: var(--mud-palette-primary);
+}
+
+.landing-tabs .mud-tab.mud-tab-active {
+    color: var(--mud-palette-primary);
+}
+
+.landing-block-title {
+    cursor: pointer;
+}
+
+.landing-save-bar {
+    position: sticky;
+    bottom: 16px;
+    z-index: 2;
+}
+
+/* Admin image preview: whole picture, never cropped; height follows the screen. */
+.cover-image-preview {
+    display: block;
+    max-height: min(45vh, 420px);
+    background: var(--mud-palette-background-gray);
+}
+
 .before-after {
     position: relative;
     overflow: hidden;

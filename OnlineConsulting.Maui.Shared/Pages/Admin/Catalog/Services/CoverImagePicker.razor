@@ -1,9 +1,12 @@
 @namespace OnlineConsulting.Maui.Shared.Pages.Admin.Catalog
+@inject IApiClient ApiClient
 
 <MudStack Spacing="2">
-    @if (ImageUrl is not null)
+    @* Relative media urls are served by the Api, not this page's origin. *@
+    @if (MediaUrlResolver.Resolve(ApiClient, ImageUrl) is { } src)
     {
-        <MudImage Src="@ImageUrl" Height="160" ObjectFit="@Fit" Class="rounded-lg" />
+        @* Whole picture, aspect kept, scales with the screen. *@
+        <MudImage Src="@src" Fluid="true" ObjectFit="ObjectFit.Contain" Class="rounded-lg cover-image-preview" />
     }
 
     <MudFileUpload T="IBrowserFile" Files="_selectedFile" FilesChanged="OnSelectedFileChangedAsync" OnFilesChanged="OnFileSelected"
@@ -18,10 +21,6 @@
 @code {
     [Parameter]
     public string? ImageUrl { get; set; }
-
-    /// <summary>Contain for logos, so the preview isn't cropped.</summary>
-    [Parameter]
-    public ObjectFit Fit { get; set; } = ObjectFit.Cover;
 
     [Parameter]
     public bool IsUploading { get; set; }

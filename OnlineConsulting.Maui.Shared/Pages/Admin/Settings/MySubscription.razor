@@ -31,6 +31,10 @@ else if (_tenant is not null)
             <MudChip T="string" Size="Size.Small" Color="@(_tenant.Status == "Active" ? Color.Success : Color.Default)">@_tenant.Status</MudChip>
         </MudStack>
         <MudText Typo="Typo.body2" Color="Color.Secondary">@_tenant.ActiveModuleKeys.Count active module(s) - @CurrencyFormat.Format(_tenant.TotalActivePrice) / period</MudText>
+        @if (_tenant.RenewalDate is { } renewal)
+        {
+            <MudText Typo="Typo.caption" Color="Color.Secondary">Next renewal: @BusinessTime.FormatDate(new DateTimeOffset(DateTime.SpecifyKind(renewal, DateTimeKind.Utc)))</MudText>
+        }
         <AuthorizeView Roles="Admin,Super Admin">
             <div class="settings-actions mt-3">
                 <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Extension" OnClick="ManageModulesAsync">Manage Modules</MudButton>
@@ -62,7 +66,7 @@ else if (_tenant is not null)
                 <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">The business name and logo your customers see on your website, app and emails.</MudText>
                 <MudStack Spacing="3">
                     <MudTextField @bind-Value="_brandName" Label="Business Name" Variant="Variant.Outlined" MaxLength="200" />
-                    <CoverImagePicker ImageUrl="@_logoUrl" Fit="ObjectFit.Contain" IsUploading="_uploadingLogo" OnFileSelected="OnLogoSelectedAsync"
+                    <CoverImagePicker ImageUrl="@_logoUrl" IsUploading="_uploadingLogo" OnFileSelected="OnLogoSelectedAsync"
                                       OnAssetSelected="OnLogoAssetSelected" OnRemove="@(() => { _logoMediaAssetId = null; _logoUrl = null; })" />
                     <div class="settings-actions">
                         <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(_savingBranding || _uploadingLogo || string.IsNullOrWhiteSpace(_brandName))" OnClick="SaveBrandingAsync">

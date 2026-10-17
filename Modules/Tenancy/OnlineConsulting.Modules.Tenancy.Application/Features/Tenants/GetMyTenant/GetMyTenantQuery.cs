@@ -34,7 +34,7 @@ public class GetMyTenantHandler(ITenantRepository tenantRepository, ITenantSubsc
 
         var items = subscription?.ActiveItems ?? [];
 
-        var response = TenantSummaryResponse.FromDomain(tenant, [.. items.Select(i => i.ModuleKey)], items.Sum(i => i.PriceAtAddition));
+        var response = TenantSummaryResponse.FromDomain(tenant, items, subscription?.RenewalDate);
         return Result.Success(response, "Tenant retrieved successfully.");
     }
 }

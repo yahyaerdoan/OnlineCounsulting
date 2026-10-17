@@ -6,11 +6,14 @@ public static class TenantSubscriptionItemMessages
     public const string ModuleNotFound = "Module was not found or is not available for purchase.";
     public const string NoActiveSubscription = "This tenant has no active subscription to add or remove modules on.";
     public const string ModuleAlreadyAdded = "This module is already active on the tenant's subscription.";
-    public const string ModuleNotActive = "This module is not currently active on the tenant's subscription.";
-    public const string CannotRemoveLastModule = "Cannot remove the tenant's only active module - a subscription needs at least one. Suspend the tenant instead if they should lose access entirely.";
+    public const string ModuleNotActive = "This module is not active, or it is already set to end.";
+    public const string CannotRemoveLastModule = "Cannot remove the last module that keeps renewing - a subscription needs at least one. Suspend the tenant instead if they should lose access entirely.";
     public const string NotAuthorizedForTenant = "You are not authorized to manage this tenant's modules.";
-    public const string ModuleBillingFailed = "We couldn't bill this module. Please try again in a few minutes.";
+    public const string ModuleBillingFailed = "We couldn't charge the card on file for this module. Check the payment method and try again.";
     public const string ModuleRemovalFailed = "We couldn't remove this module with the payment provider. Please try again in a few minutes.";
+    public const string ModuleAdded = "Module added. The prorated amount for the rest of this billing period was charged and the receipt emailed.";
+    public const string ModuleRemovalUndone = "The module will keep renewing. Nothing extra was charged.";
+    public const string ModuleRemovalScheduledFormat = "The module stays active until {0:MMMM d, yyyy}, then it is removed. It won't be billed again.";
     public const string ModuleFeatureFlagFailed = "The module was billed and recorded but could not be enabled. Please contact support.";
     public const string MultipleModulesNotSupportedByProvider = "Your active payment provider doesn't support multiple modules in one subscription - please contact support.";
 }

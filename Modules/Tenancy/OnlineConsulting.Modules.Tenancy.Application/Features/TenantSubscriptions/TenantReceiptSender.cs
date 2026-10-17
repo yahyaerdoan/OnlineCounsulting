@@ -49,10 +49,12 @@ public class TenantReceiptSender(IEmailOutboxWriter<ITenancyOutboxModule> outbox
     private static string Build(Tenant tenant, SubscriptionInvoice invoice)
     {
         var zone = BusinessTimeZones.FindOrDefault(tenant.TimeZoneId);
-        var first = invoice.BillingReason == SubscriptionInvoice.FirstInvoiceReason;
-        var intro = first
-            ? $"Welcome aboard! Thanks for subscribing. Here's the receipt for {tenant.Name}'s first payment."
-            : $"Thanks! Your subscription for {tenant.Name} has renewed. Here's your receipt.";
+        var intro = invoice.BillingReason switch
+        {
+            SubscriptionInvoice.FirstInvoiceReason => $"Welcome aboard! Thanks for subscribing. Here's the receipt for {tenant.Name}'s first payment.",
+            SubscriptionInvoice.ModuleChangeReason => $"Thanks! You added a module to {tenant.Name}'s subscription. Here's the receipt for the rest of this billing period.",
+            _ => $"Thanks! Your subscription for {tenant.Name} has renewed. Here's your receipt.",
+        };
         var period = invoice.PeriodStart is { } start && invoice.PeriodEnd is { } end
             ? $"<p style=\"color: #777777;\">Service period: {start.InZone(zone).ToString("MMM d, yyyy", Usd)} to {end.InZone(zone).ToString("MMM d, yyyy", Usd)}</p>"
             : "";

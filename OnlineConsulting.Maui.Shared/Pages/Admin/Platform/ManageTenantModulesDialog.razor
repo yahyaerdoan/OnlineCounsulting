@@ -1,6 +1,7 @@
 @namespace OnlineConsulting.Maui.Shared.Pages.Admin.Platform
 @inject IApiClient ApiClient
 @inject ISnackbar Snackbar
+@inject IDialogService DialogService
 
 <MudDialog>
     <TitleContent>
@@ -17,18 +18,22 @@
         }
         else
         {
-            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">Changes are billed right away, prorated to your current period.</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">Added modules are charged now for the rest of the billing period. Removed modules stay active until the period ends.</MudText>
             <MudStack Spacing="0" Class="module-toggle-list">
                 @foreach (var offering in _allOfferings)
                 {
-                    var isActive = _activeModuleKeys.Contains(offering.Key);
+                    var renews = _activeModuleKeys.Contains(offering.Key) && !_endingModules.ContainsKey(offering.Key);
                     <div class="module-toggle-row">
-                        <MudIcon Icon="@ModuleOfferingDisplay.Icon(offering)" Color="Color.Primary" />
+                        <MudIcon Icon="@ModuleOfferingDisplay.Icon(offering)" Color="Color.Primary" Size="Size.Small" />
                         <div class="module-toggle-text">
                             <MudText Typo="Typo.body1" Class="text-strong">@offering.Name</MudText>
                             <MudText Typo="Typo.body2" Color="Color.Secondary">@CurrencyFormat.Format(offering.Price) / @ModuleOfferingDisplay.CycleLabel(offering)</MudText>
+                            @if (_endingModules.TryGetValue(offering.Key, out var endsAt))
+                            {
+                                <MudText Typo="Typo.caption" Color="Color.Warning">Active until @BusinessTime.FormatDate(AsUtc(endsAt))</MudText>
+                            }
                         </div>
-                        <MudSwitch T="bool" Value="@isActive" ValueChanged="@(active => ToggleModuleAsync(offering.Key, active))" Color="Color.Primary"
+                        <MudSwitch T="bool" Value="@renews" ValueChanged="@(on => ToggleModuleAsync(offering, on))" Color="Color.Primary"
                                    Disabled="@(_togglingKey is not null)" aria-label="@offering.Name" />
                     </div>
                 }
@@ -50,6 +55,7 @@
 
     private List<PublicModuleOfferingResponse> _allOfferings = [];
     private HashSet<string> _activeModuleKeys = [];
+    private Dictionary<string, DateTime> _endingModules = [];
     private bool _loading = true;
     private string? _togglingKey;
     private string? _error;
@@ -67,17 +73,25 @@
         }
 
         _activeModuleKeys = [.. Tenant.ActiveModuleKeys];
+        _endingModules = (Tenant.EndingModules ?? []).ToDictionary(m => m.ModuleKey, m => m.EndsAt);
 
         _loading = false;
     }
 
-    private async Task ToggleModuleAsync(string key, bool active)
+    private async Task ToggleModuleAsync(PublicModuleOfferingResponse offering, bool on)
     {
-        _togglingKey = key;
+        var resuming = on && _endingModules.ContainsKey(offering.Key);
 
-        var result = active
-            ? await ApiClient.PostAsync(ApiRoutes.Platform.Tenants.AddModule(Tenant.Id, key), new { })
-            : await ApiClient.DeleteAsync(ApiRoutes.Platform.Tenants.RemoveModule(Tenant.Id, key));
+        if (!resuming && !await ConfirmAsync(offering, on))
+        {
+            return;
+        }
+
+        _togglingKey = offering.Key;
+
+        var result = on
+            ? await ApiClient.PostAsync(ApiRoutes.Platform.Tenants.AddModule(Tenant.Id, offering.Key), new { })
+            : await ApiClient.DeleteAsync(ApiRoutes.Platform.Tenants.RemoveModule(Tenant.Id, offering.Key));
 
         _togglingKey = null;
 
@@ -88,14 +102,45 @@
         }
 
         _error = null;
+        Snackbar.ShowSuccess(result.DisplayMessage);
 
-        if (active)
+        if (on)
         {
-            _ = _activeModuleKeys.Add(key);
+            _ = _activeModuleKeys.Add(offering.Key);
+            _ = _endingModules.Remove(offering.Key);
         }
         else
         {
-            _ = _activeModuleKeys.Remove(key);
+            _endingModules[offering.Key] = PeriodEnd() ?? DateTime.UtcNow;
         }
     }
+
+    private Task<bool> ConfirmAsync(PublicModuleOfferingResponse offering, bool adding)
+    {
+        var periodEnd = PeriodEnd();
+        var until = periodEnd is { } end ? $"until {BusinessTime.FormatDate(AsUtc(end))}" : "until the end of the current billing period";
+
+        return adding
+            ? DialogService.ConfirmAsync($"Add {offering.Name}?",
+                $"{ChargeNowText(offering, periodEnd)} to the card on file, then {CurrencyFormat.Format(offering.Price)} / {ModuleOfferingDisplay.CycleLabel(offering)} with the subscription.")
+            : DialogService.ConfirmAsync($"Remove {offering.Name}?",
+                $"It stays active {until} and won't be billed again. No refund is issued for the current period.");
+    }
+
+    /// <summary>Estimate only; the provider prorates to the second.</summary>
+    private static string ChargeNowText(PublicModuleOfferingResponse offering, DateTime? periodEnd)
+    {
+        if (periodEnd is not { } end || end <= DateTime.UtcNow)
+        {
+            return "The prorated amount for the rest of this billing period is charged now";
+        }
+
+        var start = ModuleOfferingDisplay.IsAnnual(offering) ? end.AddYears(-1) : end.AddMonths(-1);
+        var share = (decimal)((end - DateTime.UtcNow) / (end - start));
+        return $"About {CurrencyFormat.Format(Math.Round(offering.Price * Math.Clamp(share, 0m, 1m), 2))} is charged now for the rest of this billing period";
+    }
+
+    private DateTime? PeriodEnd() => Tenant.RenewalDate is { } renewal && renewal > DateTime.UtcNow ? renewal : null;
+
+    private static DateTimeOffset AsUtc(DateTime value) => new(DateTime.SpecifyKind(value, DateTimeKind.Utc));
 }

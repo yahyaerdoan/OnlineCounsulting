@@ -47,10 +47,10 @@ public class MockSubscriptionGateway : ISubscriptionGateway
     public Task<SubscriptionResult> ResumeSubscriptionAsync(string providerSubscriptionId, string? connectedAccountId = null, CancellationToken cancellationToken = default) =>
         Task.FromResult(new SubscriptionResult(providerSubscriptionId, PaymentStatuses.Succeeded, DateTimeOffset.UtcNow.AddMonths(1)));
 
-    public Task<string> AddSubscriptionItemAsync(string providerSubscriptionId, string providerPriceId, string? idempotencyKey = null, string? connectedAccountId = null, CancellationToken cancellationToken = default) =>
+    public Task<string> AddSubscriptionItemAsync(string providerSubscriptionId, string providerPriceId, ProrationBilling billing, string? idempotencyKey = null, string? connectedAccountId = null, CancellationToken cancellationToken = default) =>
         Task.FromResult(NewItemId());
 
-    public Task RemoveSubscriptionItemAsync(string providerSubscriptionItemId, string? connectedAccountId = null, CancellationToken cancellationToken = default) =>
+    public Task RemoveSubscriptionItemAsync(string providerSubscriptionItemId, ProrationBilling billing, string? connectedAccountId = null, CancellationToken cancellationToken = default) =>
         Task.CompletedTask;
 
     public Task<SubscriptionWebhookEvent?> VerifyAndParseWebhookAsync(string rawBody, string? signatureHeader, CancellationToken cancellationToken = default) =>

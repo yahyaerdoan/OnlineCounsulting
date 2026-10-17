@@ -77,30 +77,68 @@ public class TenantSubscriptionModuleTests
     }
 
     [Fact]
-    public void RemoveModule_KeepsHistoryAndAllowsAddingItAgain()
+    public void ScheduleModuleRemoval_KeepsModuleUntilRenewalAndStopsRenewing()
     {
         var subscription = WithModules("Scheduling", "Memberships");
-        var removed = subscription.ActiveItems.Single(i => i.ModuleKey == "Scheduling");
+        var renewal = Now.UtcDateTime.AddDays(20);
+        subscription.AttachProviderSubscription("sub_1", renewal, paid: true);
+        var item = subscription.ActiveItems.Single(i => i.ModuleKey == "Scheduling");
 
-        subscription.RemoveModule("Scheduling", Now);
+        var endsAt = subscription.ScheduleModuleRemoval("Scheduling", Now.UtcDateTime);
 
-        Assert.Equal(Now, removed.DeletedDate);
+        Assert.Equal(renewal, endsAt);
+        Assert.Equal(renewal, item.EndsAt);
+        Assert.Null(item.ProviderSubscriptionItemId);
+        Assert.True(subscription.HasActiveModule("Scheduling"));
+        Assert.True(subscription.IsModuleEnding("Scheduling"));
+        Assert.DoesNotContain(item, subscription.RenewingItems);
+    }
+
+    [Fact]
+    public void ResumeModule_RenewsAgain()
+    {
+        var subscription = WithModules("Scheduling", "Memberships");
+        _ = subscription.ScheduleModuleRemoval("Scheduling", Now.UtcDateTime);
+
+        subscription.ResumeModule("Scheduling", "si_new");
+
+        var item = subscription.ActiveItems.Single(i => i.ModuleKey == "Scheduling");
+        Assert.Null(item.EndsAt);
+        Assert.Equal("si_new", item.ProviderSubscriptionItemId);
+        Assert.False(subscription.IsModuleEnding("Scheduling"));
+    }
+
+    [Fact]
+    public void EndDueModules_RemovesOnlyEndedModulesAndAllowsAddingAgain()
+    {
+        var subscription = WithModules("Scheduling", "Memberships", "Inquiries");
+        subscription.AttachProviderSubscription("sub_1", Now.UtcDateTime.AddDays(20), paid: true);
+        _ = subscription.ScheduleModuleRemoval("Scheduling", Now.UtcDateTime);
+        var item = subscription.ActiveItems.Single(i => i.ModuleKey == "Scheduling");
+
+        Assert.Empty(subscription.EndDueModules(Now.AddDays(19)));
+
+        var ended = subscription.EndDueModules(Now.AddDays(20));
+
+        Assert.Equal(["Scheduling"], ended);
+        Assert.NotNull(item.DeletedDate);
         Assert.False(subscription.HasActiveModule("Scheduling"));
-        Assert.DoesNotContain(removed, subscription.Items);
 
         var readded = subscription.AddModule("Scheduling", 59m, Now);
-        Assert.NotSame(removed, readded);
+        Assert.NotSame(item, readded);
         Assert.Equal(59m, readded.PriceAtAddition);
     }
 
     [Fact]
-    public void RemoveModule_LastOrInactiveModule_Throws()
+    public void ScheduleModuleRemoval_LastRenewingOrInactiveModule_Throws()
     {
-        var subscription = WithModules("Scheduling");
+        var subscription = WithModules("Scheduling", "Memberships");
+        _ = subscription.ScheduleModuleRemoval("Memberships", Now.UtcDateTime);
 
         Assert.False(subscription.CanRemoveModule("Scheduling"));
         Assert.False(subscription.CanRemoveModule("Memberships"));
-        _ = Assert.Throws<InvalidOperationException>(() => subscription.RemoveModule("Scheduling", Now));
+        Assert.False(subscription.CanRemoveModule("Inquiries"));
+        _ = Assert.Throws<InvalidOperationException>(() => subscription.ScheduleModuleRemoval("Scheduling", Now.UtcDateTime));
     }
 
     [Fact]

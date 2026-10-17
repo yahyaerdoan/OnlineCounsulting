@@ -2,22 +2,26 @@
 @namespace OnlineConsulting.Maui.Shared.Pages.Admin.Platform
 @using System.Linq.Expressions
 
-<MudText Typo="Typo.subtitle1" Class="text-strong">@Heading</MudText>
+@if (!string.IsNullOrEmpty(Heading))
+{
+    <MudText Typo="Typo.subtitle1" Class="text-strong">@Heading</MudText>
+}
 <MudGrid Spacing="2">
-    <MudItem xs="12" md="4">
-        <MudTextField T="string" Value="@Eyebrow" ValueChanged="@EyebrowChanged" For="@EyebrowFor" Label="Eyebrow" Variant="Variant.Outlined" Margin="Margin.Dense" />
+    <MudItem xs="12">
+        <MudTextField T="string" Value="@Eyebrow" ValueChanged="@EyebrowChanged" For="@EyebrowFor" Label="Eyebrow" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="1" Sizing="InputSizing.Auto" />
     </MudItem>
-    <MudItem xs="12" md="8">
-        <MudTextField T="string" Value="@Title" ValueChanged="@TitleChanged" For="@TitleFor" Label="Title" Variant="Variant.Outlined" Margin="Margin.Dense" />
+    <MudItem xs="12">
+        <MudTextField T="string" Value="@Title" ValueChanged="@TitleChanged" For="@TitleFor" Label="Title" Variant="Variant.Outlined" Margin="Margin.Dense" Lines="1" Sizing="InputSizing.Auto" />
     </MudItem>
     <MudItem xs="12">
         <MudTextField T="string" Value="@Lead" ValueChanged="@LeadChanged" For="@LeadFor" Label="Lead (optional)" Variant="Variant.Outlined" Margin="Margin.Dense"
-                      Lines="1" MaxLines="3" Sizing="InputSizing.Auto" />
+                      Lines="1" Sizing="InputSizing.Auto" />
     </MudItem>
 </MudGrid>
 
 @code {
-    [Parameter, EditorRequired] public string Heading { get; set; } = string.Empty;
+    /// <summary>Left out when a LandingPictureSection already shows it.</summary>
+    [Parameter] public string? Heading { get; set; }
 
     [Parameter] public string Eyebrow { get; set; } = string.Empty;
     [Parameter] public EventCallback<string> EyebrowChanged { get; set; }

@@ -12,6 +12,9 @@ public interface ITenantSubscriptionRepository : IAsyncRepository<TenantSubscrip
     /// <summary>Every matching subscription loaded with its modules, read-only.</summary>
     Task<IReadOnlyList<TenantSubscription>> GetAllWithItemsAsync(Expression<Func<TenantSubscription, bool>> predicate, CancellationToken cancellationToken = default);
 
+    /// <summary>Subscriptions with an ending module whose end has passed, tracked for removing them.</summary>
+    Task<IReadOnlyList<TenantSubscription>> GetWithDueEndingModulesAsync(DateTime now, CancellationToken cancellationToken = default);
+
     /// <summary>Drops unsaved changes after a failed save, so later saves in the request don't retry them.</summary>
     void DiscardUnsavedChanges();
 }

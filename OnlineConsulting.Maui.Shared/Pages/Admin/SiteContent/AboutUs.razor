@@ -28,7 +28,7 @@
         <MudTd DataLabel="Cover">
             @if (entry.CoverImage is not null)
             {
-                <MudAvatar Size="Size.Small" Square="true"><MudImage Src="@entry.CoverImage" /></MudAvatar>
+                <MudAvatar Size="Size.Small" Square="true"><MudImage Src="@MediaUrlResolver.Resolve(ApiClient, entry.CoverImage)" /></MudAvatar>
             }
         </MudTd>
         <MudTd DataLabel="Title" Class="cell-primary">@entry.Title</MudTd>
