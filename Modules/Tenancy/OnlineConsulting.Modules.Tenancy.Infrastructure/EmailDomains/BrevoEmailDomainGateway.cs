@@ -99,7 +99,9 @@ public class BrevoEmailDomainGateway(IHttpClientFactory httpClientFactory, IOpti
 
     private static EmailDomainSetup ToSetup(string domain, DomainConfig config)
     {
-        var records = new[] { config.DnsRecords?.BrevoCode, config.DnsRecords?.DkimRecord, config.DnsRecords?.DmarcRecord }
+        // Keys vary by account (dkim_record, or dkim1/dkim2 CNAMEs), so every entry is taken.
+        var records = (config.DnsRecords ?? [])
+            .Values
             .OfType<DnsRecord>()
             .Select(r => new CustomDomainDnsRecord(r.Type, RelativeName(r.HostName, domain), r.Value, r.Status))
             .ToList();
@@ -119,9 +121,7 @@ public class BrevoEmailDomainGateway(IHttpClientFactory httpClientFactory, IOpti
         return hostName.EndsWith(suffix, StringComparison.OrdinalIgnoreCase) ? hostName[..^suffix.Length] : hostName;
     }
 
-    private sealed record DomainConfig(string Domain, bool Verified, bool Authenticated, DnsRecords? DnsRecords);
-
-    private sealed record DnsRecords(DnsRecord? BrevoCode, DnsRecord? DkimRecord, DnsRecord? DmarcRecord);
+    private sealed record DomainConfig(string Domain, bool Verified, bool Authenticated, Dictionary<string, DnsRecord?>? DnsRecords);
 
     private sealed record DnsRecord(string Type, string Value, string? HostName, bool Status);
 }
