@@ -1,7 +1,29 @@
 @page "/not-found"
-@layout MainLayout
+@layout NotFoundLayout
+@inject NavigationManager Navigation
 
 <PageTitle>Not found</PageTitle>
 
-<MudText Typo="Typo.h4" Class="mb-2">Page not found</MudText>
-<MudText Typo="Typo.body1" Color="Color.Secondary">Sorry, the content you are looking for does not exist.</MudText>
+<MudContainer MaxWidth="MaxWidth.Small" Class="marketing-section">
+    <MudStack AlignItems="AlignItems.Center" Spacing="2" Class="text-center">
+        <MudIcon Icon="@Icons.Material.Outlined.SearchOff" Size="Size.Small" Color="Color.Secondary" />
+        <MudText Typo="Typo.h5" Class="text-strong">Page not found</MudText>
+        <MudText Typo="Typo.body1" Color="Color.Secondary">Sorry, the content you are looking for does not exist.</MudText>
+        @if (IsAdminPath)
+        {
+            <MudButton Href="@AppRoutes.AdminHome" Variant="Variant.Filled" Color="Color.Primary" Class="mt-2">Back to dashboard</MudButton>
+        }
+        else
+        {
+            <MudStack Row="true" Spacing="2" Justify="Justify.Center" Wrap="Wrap.Wrap" Class="mt-2">
+                <MudButton Href="/" Variant="Variant.Filled" Color="Color.Primary">Go home</MudButton>
+                <MudButton Href="/services" Variant="Variant.Outlined" Color="Color.Primary">Our services</MudButton>
+                <MudButton Href="/contact" Variant="Variant.Text" Color="Color.Primary">Contact us</MudButton>
+            </MudStack>
+        }
+    </MudStack>
+</MudContainer>
+
+@code {
+    private bool IsAdminPath => AppRoutes.IsAdmin(Navigation.Uri);
+}

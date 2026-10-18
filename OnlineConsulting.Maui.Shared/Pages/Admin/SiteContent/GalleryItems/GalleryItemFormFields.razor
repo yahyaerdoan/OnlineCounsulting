@@ -9,7 +9,7 @@
                   Lines="1" MaxLines="5" Sizing="InputSizing.Auto" />
 
     <MudSelect T="Guid" MultiSelection="true" Label="Categories" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true"
-               SelectedValues="Model.CategoryIds" SelectedValuesChanged="OnCategoriesChanged">
+               SelectedValues="Model.CategoryIds" SelectedValuesChanged="OnCategoriesChanged" ToStringFunc="CategoryName">
         @foreach (var category in Categories)
         {
             <MudSelectItem T="Guid" Value="@category.Id">@category.Name</MudSelectItem>
@@ -46,6 +46,9 @@
     }
 
     private void OnCategoriesChanged(IEnumerable<Guid> values) => Model.CategoryIds = [.. values];
+
+    /// <summary>Selected-text label; without it the select shows raw ids.</summary>
+    private string CategoryName(Guid id) => Categories.Find(c => c.Id == id)?.Name ?? string.Empty;
 
     private async Task OnPhotoSelectedAsync(InputFileChangeEventArgs e)
     {

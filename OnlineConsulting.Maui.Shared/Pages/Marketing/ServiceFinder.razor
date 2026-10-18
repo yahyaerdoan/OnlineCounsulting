@@ -1,14 +1,16 @@
 @* "What do I need?" helper: three yes/no questions (Infrastructure/Marketing/ServiceFinderQuiz) lead to a kind of service and the
    matching catalog services, each one tap away from the booking flow. *@
 @page "/service-finder"
+@using OnlineConsulting.Maui.Shared.Components.Marketing
 @using OnlineConsulting.Maui.Shared.Infrastructure.Marketing
 @layout OnlineConsulting.Maui.Shared.Layout.MarketingLayout
 @inject IApiClient ApiClient
 
 <PageTitle>Find the right service</PageTitle>
 
+<MarketingPageBanner Title="Not sure what you need?" SubPage="Service Finder" />
+
 <MudContainer MaxWidth="MaxWidth.Medium" Class="marketing-section">
-    <MudText Typo="Typo.h4" Class="mb-2">Not sure what you need?</MudText>
     <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-6">Answer a few quick questions and we'll point you to the right visit.</MudText>
 
     @if (_answers.Count > 0)

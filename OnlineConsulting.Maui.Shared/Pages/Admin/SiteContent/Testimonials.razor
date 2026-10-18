@@ -19,14 +19,12 @@
 <ServerDataTable TItem="TestimonialResponse" @ref="_table" ApiBasePath="@ApiRoutes.SiteContent.Testimonial.All"
                  SearchPlaceholder="Search name or title" OnLoadError="@(message => _loadError = message)">
     <HeaderContent>
-        <MudTh>Photo</MudTh>
         <MudTh><MudTableSortLabel SortLabel="@nameof(TestimonialResponse.FirstName)" T="TestimonialResponse">Name</MudTableSortLabel></MudTh>
         <MudTh>Title</MudTh>
         <MudTh>Actions</MudTh>
     </HeaderContent>
     <RowTemplate Context="testimonial">
-        <MudTd DataLabel="Photo"><MudAvatar Size="Size.Small"><MudImage Src="@MediaUrlResolver.Resolve(ApiClient, testimonial.ImageUrl)" /></MudAvatar></MudTd>
-        <MudTd DataLabel="Name" Class="cell-primary">@testimonial.FirstName @testimonial.LastName</MudTd>
+        <MudTd DataLabel="Name" Class="cell-primary"><PersonCell Name="@($"{testimonial.FirstName} {testimonial.LastName}")" ImageUrl="@testimonial.ImageUrl" /></MudTd>
         <MudTd DataLabel="Title">@testimonial.Title</MudTd>
         <MudTd DataLabel="Actions">
             <RowActions Actions="@([

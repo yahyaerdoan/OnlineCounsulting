@@ -10,4 +10,7 @@ public static class AppRoutes
     public const string NotFound = "/not-found";
     public const string PrivacyPolicy = "/privacy-policy";
     public const string TermsOfService = "/terms-of-service";
+
+    /// <summary>True when the absolute uri points into the admin area.</summary>
+    public static bool IsAdmin(string uri) => new Uri(uri).AbsolutePath.StartsWith(AdminHome, StringComparison.OrdinalIgnoreCase);
 }

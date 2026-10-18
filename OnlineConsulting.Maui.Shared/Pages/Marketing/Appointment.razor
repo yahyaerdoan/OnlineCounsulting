@@ -1,9 +1,10 @@
-@* Booking flow in three steps (service, time, details); browsing is public and the sign-in prompt replaces the
+@* Booking flow in three steps (service, time, details); picking a service or a time moves straight to the next step. Browsing is public and the sign-in prompt replaces the
    confirm button for anonymous visitors - same browse-then-sign-in pattern as Cart/Checkout. ?service={id} preselects
    a service and starts at the time step. The time step is a month calendar; picking a day loads its open times,
    grouped by part of day, beside the calendar on wide screens and below it (scrolled into view) on phones. Going to sign in or
    register saves the picks as a draft on the device (localStorage, 24 hours) and coming back restores them at the details step. *@
 @page "/appointment"
+@using OnlineConsulting.Maui.Shared.Components.Marketing
 @using OnlineConsulting.Maui.Shared.Infrastructure.Forms
 @layout OnlineConsulting.Maui.Shared.Layout.MarketingLayout
 @inject IApiClient ApiClient
@@ -14,8 +15,9 @@
 
 <PageTitle>Book an Appointment</PageTitle>
 
+<MarketingPageBanner Title="Book an Appointment" SubPage="Book" />
+
 <MudContainer MaxWidth="MaxWidth.Medium" Class="marketing-section">
-    <MudText Typo="Typo.h4" Class="mb-2">Book an Appointment</MudText>
     <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-6">
         Three quick steps. Prefer to talk first? Use the <MudLink Href="/contact">Contact page</MudLink>.
     </MudText>
@@ -43,7 +45,7 @@
             </div>
             <div class="booking-choice-grid" role="radiogroup" aria-label="Service">
                 <button type="button" class="booking-choice @(_serviceId is null ? "selected" : null)" role="radio" aria-checked="@(_serviceId is null)"
-                        @onclick="@(() => _serviceId = null)">
+                        @onclick="@(() => PickService(null))">
                     <MudIcon Icon="@Icons.Material.Outlined.HelpOutline" />
                     <span class="booking-choice-title">Not sure yet</span>
                     <span class="booking-choice-text">A technician will assess it on site.</span>
@@ -52,15 +54,12 @@
                 {
                     var id = service.Id;
                     <button type="button" class="booking-choice @(_serviceId == id ? "selected" : null)" role="radio" aria-checked="@(_serviceId == id)"
-                            @onclick="@(() => _serviceId = id)">
+                            @onclick="@(() => PickService(id))">
                         <MudIcon Icon="@Icons.Material.Outlined.HomeRepairService" />
                         <span class="booking-choice-title">@service.Title</span>
                         <span class="booking-choice-text">@service.Description</span>
                     </button>
                 }
-            </div>
-            <div class="booking-actions">
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => _step = 1)">Continue</MudButton>
             </div>
         }
         else if (_step == 1)
@@ -114,7 +113,7 @@
                                     {
                                         var isSelected = _selectedSlot == slot;
                                         <button type="button" role="option" aria-selected="@isSelected" class="booking-slot @(isSelected ? "selected" : null)"
-                                                @onclick="@(() => _selectedSlot = slot)">
+                                                @onclick="@(() => PickSlot(slot))">
                                             @BusinessTime.FormatTime(slot.Start)
                                         </button>
                                     }
@@ -127,7 +126,6 @@
 
             <div class="booking-actions">
                 <MudButton Variant="Variant.Text" OnClick="@(() => _step = 0)">Back</MudButton>
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(_selectedSlot is null)" OnClick="@(() => _step = 2)">Continue</MudButton>
             </div>
         }
         else if (_selectedSlot is { } selected)
@@ -276,6 +274,18 @@
     private static readonly string[] StepNames = ["Service", "Date & time", "Details"];
 
     private int _step;
+
+    private void PickService(Guid? serviceId)
+    {
+        _serviceId = serviceId;
+        _step = 1;
+    }
+
+    private void PickSlot(AvailableSlotResponse slot)
+    {
+        _selectedSlot = slot;
+        _step = 2;
+    }
     private DateTime? _date;
     private Guid? _serviceId;
     private List<ServiceResponse> _services = [];

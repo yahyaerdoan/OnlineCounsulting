@@ -11,7 +11,7 @@
 
 <PageTitle>@(_service?.Title ?? "Service")</PageTitle>
 
-<MarketingPageBanner Title="@(_service?.Title ?? "Service")" SubPage="Services" />
+<MarketingPageBanner Title="@(_service?.Title ?? "Service")" SubPage="@(_service?.Title ?? "Service")" ParentLabel="Services" ParentHref="/services" />
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
     @if (_notFound)

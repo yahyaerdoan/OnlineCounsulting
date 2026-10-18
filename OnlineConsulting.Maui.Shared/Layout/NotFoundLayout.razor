@@ -1,0 +1,11 @@
+@* 404 chrome: the admin layout for /admin paths, the public site layout everywhere else. *@
+@inherits LayoutComponentBase
+@inject NavigationManager Navigation
+
+<LayoutView Layout="@(IsAdminPath ? typeof(MainLayout) : typeof(MarketingLayout))">
+    @Body
+</LayoutView>
+
+@code {
+    private bool IsAdminPath => AppRoutes.IsAdmin(Navigation.Uri);
+}
