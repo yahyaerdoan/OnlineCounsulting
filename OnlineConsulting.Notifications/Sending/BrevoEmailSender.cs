@@ -15,7 +15,7 @@ public class BrevoEmailSender(IHttpClientFactory httpClientFactory, IOptions<Ema
     // Brevo rejects "cc": null, so nulls are omitted.
     private static readonly JsonSerializerOptions JsonOptions = new() { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
 
-    public async Task SendAsync(string to, string subject, string htmlBody, string? cc, string? fromName, CancellationToken cancellationToken)
+    public async Task SendAsync(string to, string subject, string htmlBody, string? cc, string? fromName, string? fromAddress, CancellationToken cancellationToken)
     {
         var settings = options.Value;
 
@@ -23,7 +23,7 @@ public class BrevoEmailSender(IHttpClientFactory httpClientFactory, IOptions<Ema
         request.Headers.Add(ApiKeyHeader, settings.Brevo.ApiKey);
         request.Content = JsonContent.Create(new
         {
-            sender = new { name = string.IsNullOrWhiteSpace(fromName) ? settings.FromName : fromName, email = settings.FromAddress },
+            sender = new { name = string.IsNullOrWhiteSpace(fromName) ? settings.FromName : fromName, email = string.IsNullOrWhiteSpace(fromAddress) ? settings.FromAddress : fromAddress },
             to = new[] { new { email = to } },
             cc = string.IsNullOrWhiteSpace(cc) ? null : new[] { new { email = cc } },
             subject,

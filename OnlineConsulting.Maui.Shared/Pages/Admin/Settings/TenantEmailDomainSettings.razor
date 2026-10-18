@@ -1,0 +1,155 @@
+@* Email domain: connect, DNS records while pending, then emails go out from noreply@ the tenant's domain. *@
+@using OnlineConsulting.Maui.Shared.Infrastructure.Forms
+@inject IApiClient ApiClient
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject FormState<EmailDomainModel> Form
+
+<MudPaper Outlined="true" Class="pa-4 rounded-lg mt-4">
+    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap" Spacing="2">
+        <MudText Typo="Typo.h6">Email Domain</MudText>
+        @if (_domain is { Domain: not null } domain)
+        {
+            <MudChip T="string" Size="Size.Small" Color="@(domain.IsActive ? Color.Success : Color.Warning)">@(domain.IsActive ? "Live" : "Waiting for DNS")</MudChip>
+        }
+    </MudStack>
+
+    @if (_domain is null)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mt-3" />
+    }
+    else if (_domain.Domain is null)
+    {
+        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">Send booking and order emails from your own domain, like noreply@yourbusiness.com.</MudText>
+        @if (_domain.Links.Find(LinkRels.ConnectEmailDomain) is { } connect)
+        {
+            <EditForm EditContext="@Form.EditContext" OnSubmit="@(() => ConnectAsync(connect))" class="settings-row">
+                <MudTextField @bind-Value="_model.Domain" For="@(() => _model.Domain)" Label="Domain" Placeholder="yourbusiness.com" Variant="Variant.Outlined" Margin="Margin.Dense" Class="settings-field" />
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="@(Form.IsBusy || string.IsNullOrWhiteSpace(_model.Domain))">
+                    @(Form.IsBusy ? "Connecting..." : "Connect")
+                </MudButton>
+            </EditForm>
+        }
+    }
+    else if (_domain.IsActive)
+    {
+        <MudText Typo="Typo.body2" Class="mt-2">Emails go out from <b>@_domain.SenderAddress</b>.</MudText>
+    }
+    else
+    {
+        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2 mb-3">
+            Add these records for <b>@_domain.Domain</b> at the company you bought your domain from, then press "Check now". Until then emails go out from our address.
+        </MudText>
+
+        <ApiErrorAlert Message="@_domain.Problem" Severity="Severity.Warning" />
+
+        <DnsRecordTable Records="_domain.Records" />
+
+        @if (_domain.Links.Find(LinkRels.CheckEmailDomain) is { } check)
+        {
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="_busy" OnClick="@(() => CheckAsync(check))">@(_busy ? "Checking..." : "Check now")</MudButton>
+        }
+    }
+
+    @if (_domain?.Links.Find(LinkRels.Delete) is { } remove)
+    {
+        <MudButton Variant="Variant.Text" Color="Color.Error" Disabled="_busy" OnClick="@(() => RemoveAsync(remove))" Class="mt-3">Remove email domain</MudButton>
+    }
+</MudPaper>
+
+@code {
+    /// <summary>The tenant's email domain link.</summary>
+    [Parameter, EditorRequired]
+    public HalLink? EmailDomainLink { get; set; }
+
+    private readonly EmailDomainModel _model = new();
+    private TenantEmailDomainResponse? _domain;
+    private bool _busy;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Form.Bind(_model);
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        if (EmailDomainLink is null)
+        {
+            return;
+        }
+
+        var result = await ApiClient.FollowAsync<TenantEmailDomainResponse>(EmailDomainLink);
+        if (!result.IsSuccessful || result.ResultData is not { } domain)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        _domain = domain;
+    }
+
+    private Task ConnectAsync(HalLink connect) => Form.SubmitAsync(async () =>
+    {
+        var result = await ApiClient.FollowAsync<TenantEmailDomainResponse>(connect, new ConnectTenantEmailDomainRequest(_model.Domain.Trim()));
+        if (!result.IsSuccessful || result.ResultData is not { } domain)
+        {
+            Form.DisplayErrors(result, Snackbar);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        _model.Domain = string.Empty;
+        _domain = domain;
+    });
+
+    private async Task CheckAsync(HalLink check)
+    {
+        _busy = true;
+        var result = await ApiClient.FollowAsync<TenantEmailDomainResponse>(check);
+        _busy = false;
+
+        if (!result.IsSuccessful || result.ResultData is not { } domain)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        if (domain.IsActive)
+        {
+            Snackbar.ShowSuccess(result.DisplayMessage);
+        }
+        else
+        {
+            Snackbar.Add(result.DisplayMessage, Severity.Info);
+        }
+
+        _domain = domain;
+    }
+
+    private async Task RemoveAsync(HalLink remove)
+    {
+        if (!await DialogService.ConfirmAsync("Remove Email Domain", $"Stop sending from {_domain?.Domain}? Emails go out from our address again."))
+        {
+            return;
+        }
+
+        _busy = true;
+        var result = await ApiClient.FollowAsync(remove);
+        _busy = false;
+
+        if (!result.IsSuccessful)
+        {
+            Snackbar.ShowError(result.DisplayMessage);
+            return;
+        }
+
+        Snackbar.ShowSuccess(result.DisplayMessage);
+        await LoadAsync();
+    }
+
+    private sealed class EmailDomainModel
+    {
+        public string Domain { get; set; } = string.Empty;
+    }
+}
