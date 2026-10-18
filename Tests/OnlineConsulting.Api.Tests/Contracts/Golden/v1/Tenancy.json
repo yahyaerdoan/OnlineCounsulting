@@ -85,6 +85,14 @@
     "problem: string?",
     "_links: LinkCollection?"
   ],
+  "TenantEmailDomainResponse": [
+    "domain: string?",
+    "status: string",
+    "senderAddress: string?",
+    "records: List<CustomDomainDnsRecord>",
+    "problem: string?",
+    "_links: LinkCollection?"
+  ],
   "TenantPaymentAccountResponse": [
     "connectedAccountId: string?"
   ],

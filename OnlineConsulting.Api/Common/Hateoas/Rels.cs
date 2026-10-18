@@ -57,6 +57,9 @@ public static class Rels
     public const string Domain = "domain";
     public const string ConnectDomain = "connect-domain";
     public const string CheckDomain = "check-domain";
+    public const string EmailDomain = "email-domain";
+    public const string ConnectEmailDomain = "connect-email-domain";
+    public const string CheckEmailDomain = "check-email-domain";
 
     public static readonly IReadOnlyDictionary<string, string> Descriptions = new Dictionary<string, string>(StringComparer.Ordinal)
     {
@@ -108,5 +111,8 @@ public static class Rels
         [Domain] = "The caller's own tenant's custom domain (tenant admins).",
         [ConnectDomain] = "Registers the caller's own domain and returns the DNS records to add (tenant admins).",
         [CheckDomain] = "Checks a pending custom domain now and activates it when ready (tenant admins).",
+        [EmailDomain] = "The caller's own tenant's email sending domain (tenant admins).",
+        [ConnectEmailDomain] = "Registers the caller's email domain and returns the DNS records to add (tenant admins).",
+        [CheckEmailDomain] = "Verifies a pending email domain now and activates it when authenticated (tenant admins).",
     };
 }

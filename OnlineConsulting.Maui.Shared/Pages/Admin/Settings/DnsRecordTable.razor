@@ -1,0 +1,46 @@
+@* DNS records a tenant adds at their domain provider, with a copy button per value and a found/not-yet mark. *@
+@inject IJSRuntime JsRuntime
+
+<MudSimpleTable Dense="true" Class="mb-3">
+    <thead>
+        <tr><th>Type</th><th>Name</th><th>Value</th><th></th></tr>
+    </thead>
+    <tbody>
+        @foreach (var record in Records)
+        {
+            <tr>
+                <td>@record.Type</td>
+                <td>@record.Name</td>
+                <td style="overflow-wrap:anywhere">
+                    @record.Value
+                    <MudIconButton Icon="@(_copiedValue == record.Value ? Icons.Material.Outlined.Check : Icons.Material.Outlined.ContentCopy)" Size="Size.Small" aria-label="Copy value"
+                                   OnClick="@(() => CopyAsync(record.Value))" />
+                </td>
+                <td>
+                    <MudIcon Icon="@(record.IsConfigured ? Icons.Material.Outlined.CheckCircle : Icons.Material.Outlined.Schedule)" Size="Size.Small"
+                             Color="@(record.IsConfigured ? Color.Success : Color.Default)" Title="@(record.IsConfigured ? "Found" : "Not found yet")" />
+                </td>
+            </tr>
+        }
+    </tbody>
+</MudSimpleTable>
+
+@code {
+    [Parameter, EditorRequired]
+    public List<TenantDomainDnsRecord> Records { get; set; } = [];
+
+    private string? _copiedValue;
+
+    private async Task CopyAsync(string value)
+    {
+        if (!await JsRuntime.InvokeAsync<bool>("copyToClipboard", value))
+        {
+            return;
+        }
+
+        _copiedValue = value;
+        StateHasChanged();
+        await Task.Delay(1500);
+        _copiedValue = null;
+    }
+}

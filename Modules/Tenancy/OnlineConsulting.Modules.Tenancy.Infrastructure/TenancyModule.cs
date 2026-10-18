@@ -11,6 +11,7 @@ using OnlineConsulting.Modules.Tenancy.Application;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Bundles.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantDomains;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantDomains.Abstractions;
+using OnlineConsulting.Modules.Tenancy.Application.Features.TenantEmailDomains.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.ModuleOfferings.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.Abstractions;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantSubscriptions.Abstractions;
@@ -18,6 +19,7 @@ using OnlineConsulting.Modules.Tenancy.Infrastructure.Branding;
 using OnlineConsulting.Modules.Tenancy.Infrastructure.Cleanup;
 using OnlineConsulting.Modules.Tenancy.Infrastructure.Contacts;
 using OnlineConsulting.Modules.Tenancy.Infrastructure.Domains;
+using OnlineConsulting.Modules.Tenancy.Infrastructure.EmailDomains;
 using OnlineConsulting.Modules.Tenancy.Infrastructure.Hosting;
 using OnlineConsulting.Modules.Tenancy.Infrastructure.Notifications;
 using OnlineConsulting.Modules.Tenancy.Infrastructure.Persistence;
@@ -63,6 +65,13 @@ public static class TenancyModule
         _ = services.AddKeyedSingleton<ICustomDomainGateway, CloudflareCustomDomainGateway>(CustomDomainProviderNames.Cloudflare);
         _ = services.AddSingleton(serviceProvider => serviceProvider.GetRequiredKeyedService<ICustomDomainGateway>(
             serviceProvider.GetRequiredService<IOptions<TenantDomainOptions>>().Value.Provider));
+        _ = services.AddScoped<ITenantEmailDomainRepository, TenantEmailDomainRepository>();
+        _ = services.AddHttpClient(nameof(BrevoEmailDomainGateway));
+        _ = services.AddKeyedSingleton<IEmailDomainGateway, MockEmailDomainGateway>(EmailProviderNames.Smtp);
+        _ = services.AddKeyedSingleton<IEmailDomainGateway, BrevoEmailDomainGateway>(EmailProviderNames.Brevo);
+        // Same provider that sends the mail; Smtp has no domain API, so it gets the mock.
+        _ = services.AddSingleton(serviceProvider => serviceProvider.GetRequiredKeyedService<IEmailDomainGateway>(
+            configuration["Email:ActiveProvider"] == EmailProviderNames.Brevo ? EmailProviderNames.Brevo : EmailProviderNames.Smtp));
         _ = services.AddScoped<ITenantHostResolver, TenantHostResolver>();
         _ = services.AddScoped<ITenantOriginReader, TenantOriginReader>();
         _ = services.AddScoped<IApiOriginReader, ApiOriginReader>();
@@ -84,6 +93,7 @@ public static class TenancyModule
         _ = services.Configure<TenantHostingOptions>(configuration.GetSection("Tenancy:Hosting"));
         _ = services.Configure<TenantBrandingOptions>(configuration.GetSection("Tenancy:Branding"));
         _ = services.Configure<TenantDomainOptions>(configuration.GetSection("Tenancy:CustomDomains"));
+        _ = services.Configure<BrevoEmailDomainOptions>(configuration.GetSection("Email:Brevo"));
         _ = services.AddHostedService<OrphanedTenantCleanupService>();
         _ = services.AddHostedService<EndingModuleService>();
         _ = services.AddHostedService<TenantDomainActivationService>();

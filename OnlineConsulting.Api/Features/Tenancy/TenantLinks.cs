@@ -2,6 +2,7 @@ using Hateoas;
 using Hateoas.AspNetCore;
 using OnlineConsulting.Api.Common.Hateoas;
 using OnlineConsulting.Modules.Tenancy.Application.Features.TenantDomains.GetMyTenantDomain;
+using OnlineConsulting.Modules.Tenancy.Application.Features.TenantEmailDomains.GetMyTenantEmailDomain;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.CancelTenant;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.ChangeTenantTimeZone;
 using OnlineConsulting.Modules.Tenancy.Application.Features.Tenants.Contracts;
@@ -17,7 +18,7 @@ using OnlineConsulting.SharedKernel.Tenancy;
 namespace OnlineConsulting.Api.Features.Tenancy;
 
 /// <summary>Staff actions follow the handlers (suspend while Active or PastDue, reactivate while Suspended, cancel until Cancelled); a tenant admin viewing
-/// their own tenant can change its time zone, branding and domain.</summary>
+/// their own tenant can change its time zone, branding, domain and email domain.</summary>
 public sealed class TenantLinks : LinkProvider<TenantSummaryResponse>
 {
     protected override void AddLinks(TenantSummaryResponse resource, HateoasLinkBuilder links)
@@ -39,6 +40,7 @@ public sealed class TenantLinks : LinkProvider<TenantSummaryResponse>
             .AddCustomIf(isOwnTenant && user.CanSend<UpdateTenantBrandingCommand>(), Rels.UpdateBranding, "UpdateTenantBranding", HttpMethods.Put)
             .AddCustomIf(isOwnTenant && user.CanSend<CreateStripeConnectOnboardingLinkCommand>(), Rels.ConnectStripe, "CreateStripeConnectOnboardingLink", HttpMethods.Post)
             .AddCustomIf(isOwnTenant && user.CanSend<RefreshStripeConnectStatusCommand>(), Rels.RefreshStripeStatus, "RefreshStripeConnectStatus", HttpMethods.Post)
-            .AddCustomIf(isOwnTenant && user.CanSend<GetMyTenantDomainQuery>(), Rels.Domain, "GetMyTenantDomain", HttpMethods.Get);
+            .AddCustomIf(isOwnTenant && user.CanSend<GetMyTenantDomainQuery>(), Rels.Domain, "GetMyTenantDomain", HttpMethods.Get)
+            .AddCustomIf(isOwnTenant && user.CanSend<GetMyTenantEmailDomainQuery>(), Rels.EmailDomain, "GetMyTenantEmailDomain", HttpMethods.Get);
     }
 }

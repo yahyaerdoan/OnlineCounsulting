@@ -63,12 +63,12 @@ public class OutboxDispatcher(IServiceScopeFactory scopeFactory, IOptions<Outbox
 
         var brandReader = scope.ServiceProvider.GetRequiredService<ITenantBrandReader>();
         var mediaUrlReader = scope.ServiceProvider.GetRequiredService<IMediaAssetUrlReader>();
-        var brands = new Dictionary<Guid, (string Name, string Header)>();
+        var brands = new Dictionary<Guid, (string Name, string Header, string? SenderAddress)>();
         foreach (var tenantId in due.Select(e => e.TenantId).Distinct())
         {
             var brand = await brandReader.GetAsync(tenantId, cancellationToken);
             var logoUrl = brand.LogoMediaAssetId is Guid logoId ? await mediaUrlReader.GetPublicUrlAsync(logoId, cancellationToken) : null;
-            brands[tenantId] = (brand.Name, LogoHeader(logoUrl, brand.Name));
+            brands[tenantId] = (brand.Name, LogoHeader(logoUrl, brand.Name), brand.SenderAddress);
         }
 
         var outcomes = new Exception?[due.Count];
@@ -89,7 +89,7 @@ public class OutboxDispatcher(IServiceScopeFactory scopeFactory, IOptions<Outbox
         ? string.Empty
         : $"""<p style="margin: 0 0 16px;"><img src="{WebUtility.HtmlEncode(logoUrl)}" alt="{WebUtility.HtmlEncode(brandName)}" style="max-height: 48px; max-width: 200px;" /></p>""";
 
-    private async Task<Exception?> SendAsync(OutboxEmail email, (string Name, string Header) brand, IEmailSender emailSender, CancellationToken cancellationToken)
+    private async Task<Exception?> SendAsync(OutboxEmail email, (string Name, string Header, string? SenderAddress) brand, IEmailSender emailSender, CancellationToken cancellationToken)
     {
         var subject = email.Subject.Replace(EmailLayout.BrandToken, brand.Name, StringComparison.Ordinal);
         var htmlBody = email.HtmlBody
@@ -98,7 +98,7 @@ public class OutboxDispatcher(IServiceScopeFactory scopeFactory, IOptions<Outbox
 
         try
         {
-            await _sendPipeline.ExecuteAsync(ct => new ValueTask(emailSender.SendAsync(email.To, subject, htmlBody, email.Cc, brand.Name, ct)), cancellationToken);
+            await _sendPipeline.ExecuteAsync(ct => new ValueTask(emailSender.SendAsync(email.To, subject, htmlBody, email.Cc, brand.Name, brand.SenderAddress, ct)), cancellationToken);
 
             return null;
         }
