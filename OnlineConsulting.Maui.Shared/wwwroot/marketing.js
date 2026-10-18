@@ -322,6 +322,61 @@ window.subscribeStripe = (function () {
         });
     }
 
+    // Home hero slides ([data-hero]): timed cross-fade + dots; no auto-advance for reduced motion.
+    function initHeroRotator() {
+        var intervalMs = 7000;
+
+        var show = function (hero, index) {
+            var count = hero.querySelectorAll('[data-hero-slide]').length;
+            var target = ((index % count) + count) % count;
+            hero.querySelectorAll('[data-hero-slide]').forEach(function (slide) {
+                slide.classList.toggle('active', Number(slide.getAttribute('data-hero-slide')) === target);
+            });
+            hero.querySelectorAll('[data-hero-copy]').forEach(function (copy) {
+                copy.hidden = Number(copy.getAttribute('data-hero-copy')) !== target;
+            });
+            hero.querySelectorAll('[data-hero-dot]').forEach(function (dot) {
+                var isActive = Number(dot.getAttribute('data-hero-dot')) === target;
+                dot.classList.toggle('active', isActive);
+                dot.setAttribute('aria-current', isActive ? 'true' : 'false');
+            });
+            hero.__heroIndex = target;
+            hero.__heroShownAt = Date.now();
+        };
+
+        if (document.__heroBound) {
+            return;
+        }
+        document.__heroBound = true;
+
+        document.addEventListener('click', function (event) {
+            var dot = event.target.closest && event.target.closest('[data-hero-dot]');
+            var hero = dot && dot.closest('[data-hero]');
+            if (hero) {
+                show(hero, Number(dot.getAttribute('data-hero-dot')));
+            }
+        });
+
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            return;
+        }
+
+        window.setInterval(function () {
+            var hero = document.querySelector('[data-hero]');
+            if (!hero || document.hidden || hero.querySelectorAll('[data-hero-slide]').length < 2) {
+                return;
+            }
+            // A freshly rendered hero starts its own clock.
+            if (!hero.__heroShownAt) {
+                hero.__heroShownAt = Date.now();
+                return;
+            }
+            if (Date.now() - hero.__heroShownAt >= intervalMs) {
+                show(hero, (hero.__heroIndex || 0) + 1);
+            }
+        }, 1000);
+    }
+
     // Horizontal snap carousels ([data-carousel] > [data-carousel-track]): arrows page by one viewport, dots jump to a card,
     // and scrolling (swipe, trackpad, arrows) keeps the active dot and arrow disabled states in sync. Delegated on document,
     // scroll via capture since it doesn't bubble - carousels rendered later by Blazor work without re-binding.
@@ -731,6 +786,7 @@ window.subscribeStripe = (function () {
         initAreaMaps();
         initAreaFinder();
         initCarousels();
+        initHeroRotator();
         initStickyHeader();
         initScrollReveal();
         initServiceGallery();

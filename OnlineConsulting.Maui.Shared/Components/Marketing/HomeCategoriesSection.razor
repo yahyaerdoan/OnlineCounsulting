@@ -21,7 +21,7 @@
                         var count = ServicesOf(id).Count();
                         <button type="button" role="tab" id="@($"category-tab-{id}")" aria-controls="category-panel"
                                 aria-selected="@(id == _selectedId ? "true" : "false")"
-                                class="@($"category-explorer-tab {AccentTone.For(id)} {(id == _selectedId ? "selected" : "")}")"
+                                class="@($"category-explorer-tab {AccentTone.For(id)} {(id == _selectedId ? "selected" : "")}")" style="@AccentTone.Override(category.IconColor)"
                                 @onclick="@(() => SelectAsync(id))">
                             <span class="tone-bubble category-explorer-tab-icon"><MudIcon Icon="@category.Icon" Size="Size.Small" /></span>
                             <span class="category-explorer-tab-text">
@@ -37,7 +37,7 @@
                 {
                     var services = ServicesOf(selected.Id).OrderByDescending(s => s.FeaturedArea).Take(4).ToList();
                     var all = ServicesOf(selected.Id).ToList();
-                    <div class="@($"category-explorer-panel {AccentTone.For(selected.Id)}")" role="tabpanel" id="category-panel"
+                    <div class="@($"category-explorer-panel {AccentTone.For(selected.Id)}")" style="@AccentTone.Override(selected.IconColor)" role="tabpanel" id="category-panel"
                          aria-labelledby="@($"category-tab-{selected.Id}")" @key="selected.Id">
                         <div class="category-explorer-head">
                             <span class="category-explorer-head-icon"><MudIcon Icon="@selected.Icon" /></span>

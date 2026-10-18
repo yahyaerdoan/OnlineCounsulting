@@ -14,7 +14,7 @@ public class UpdateFaqItem : IEndpoint
             .WithTags("SiteContent/FaqItems")
             .RequireAuthorization()
             .WithName("UpdateFaqItem")
-            .WithDescription("Updates a service-specific FAQ item.")
+            .WithDescription("Updates an FAQ item, for one service or general when ServiceId is null.")
             .ProducesEnveloped();
     }
 
@@ -25,7 +25,7 @@ public class UpdateFaqItem : IEndpoint
     }
 }
 
-public record UpdateFaqItemRequest(Guid ServiceId, string Question, string Answer, int DisplayOrder = 0)
+public record UpdateFaqItemRequest(Guid? ServiceId, string Question, string Answer, int DisplayOrder = 0)
 {
     public UpdateFaqItemCommand ToCommand(Guid id) => new(id, ServiceId, Question, Answer, DisplayOrder);
 }

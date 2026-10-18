@@ -2,7 +2,8 @@ namespace OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent.FaqItemModels;
 
 public class FaqItemFormModel
 {
-    public Guid ServiceId { get; set; }
+    /// <summary>Null = general FAQ.</summary>
+    public Guid? ServiceId { get; set; }
 
     public string Question { get; set; } = string.Empty;
 

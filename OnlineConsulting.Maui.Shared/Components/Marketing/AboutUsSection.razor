@@ -1,5 +1,4 @@
-@* Matches AboutUsAboutComponentPartial 1:1 - title/description + an optional YouTube embed
-   (first AboutUs CMS entry). *@
+@* Matches AboutUsAboutComponentPartial - title/description + YouTube embed, else the cover photo (first AboutUs CMS entry). *@
 @using OnlineConsulting.Maui.Shared.Infrastructure.Api
 @inject IApiClient ApiClient
 @inject SiteBrand Brand
@@ -8,7 +7,7 @@
 {
     <MudContainer MaxWidth="MaxWidth.Large" Class="marketing-section-tight">
         <MudGrid Spacing="6">
-            <MudItem xs="12" md="@(string.IsNullOrWhiteSpace(_videoUrl) ? 10 : 6)" Class="@(string.IsNullOrWhiteSpace(_videoUrl) ? "mx-auto text-center" : "")">
+            <MudItem xs="12" md="@(HasMedia ? 6 : 10)" Class="@(HasMedia ? "" : "mx-auto text-center")">
                 <MudText Typo="Typo.h5" Class="marketing-display text-strong mb-3">
                     Welcome to <span style="color:var(--mud-palette-primary);">@_aboutUs.Title</span>
                 </MudText>
@@ -34,6 +33,12 @@
                     </div>
                 </MudItem>
             }
+            else if (!string.IsNullOrWhiteSpace(_coverUrl))
+            {
+                <MudItem xs="12" md="6">
+                    <MudImage Src="@_coverUrl" Alt="@_aboutUs.Title" Fluid="true" Class="about-cover-image marketing-video-embed-sticky" />
+                </MudItem>
+            }
         </MudGrid>
     </MudContainer>
 }
@@ -41,6 +46,9 @@
 @code {
     private AboutUsResponse? _aboutUs;
     private string? _videoUrl;
+    private string? _coverUrl;
+
+    private bool HasMedia => !string.IsNullOrWhiteSpace(_videoUrl) || !string.IsNullOrWhiteSpace(_coverUrl);
 
     protected override async Task OnInitializedAsync()
     {
@@ -48,6 +56,7 @@
         var result = await ApiClient.GetAsync<List<AboutUsResponse>>(ApiRoutes.SiteContent.AboutUs.Base);
         _aboutUs = result.IsSuccessful ? result.ResultData?.OrderBy(a => a.DisplayOrder).FirstOrDefault() : null;
         _videoUrl = ConvertToEmbedUrl(_aboutUs?.VideoUrl);
+        _coverUrl = MediaUrlResolver.Resolve(ApiClient, _aboutUs?.CoverImage);
     }
 
     /// <summary>Mirrors the legacy site's YouTube-URL-to-embed-URL conversion exactly.</summary>

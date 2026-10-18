@@ -14,7 +14,7 @@ public class CreateFaqItem : IEndpoint
             .WithTags("SiteContent/FaqItems")
             .RequireAuthorization()
             .WithName("CreateFaqItem")
-            .WithDescription("Creates a service-specific FAQ item.")
+            .WithDescription("Creates an FAQ item, for one service or general when ServiceId is null.")
             .ProducesEnveloped<Guid>(StatusCodes.Status201Created);
     }
 
@@ -25,7 +25,7 @@ public class CreateFaqItem : IEndpoint
     }
 }
 
-public record CreateFaqItemRequest(Guid ServiceId, string Question, string Answer, int DisplayOrder = 0)
+public record CreateFaqItemRequest(Guid? ServiceId, string Question, string Answer, int DisplayOrder = 0)
 {
     public CreateFaqItemCommand ToCommand() => new(ServiceId, Question, Answer, DisplayOrder);
 }

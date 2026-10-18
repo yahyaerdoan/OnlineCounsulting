@@ -18,7 +18,7 @@
                 {
                     var step = _steps[i];
                     var number = (i + 1).ToString("00");
-                    <li class="@($"how-step {AccentTone.At(i)}")" style="@(string.IsNullOrWhiteSpace(step.IconColor) ? null : $"--tone:{step.IconColor};")">
+                    <li class="@($"how-step {AccentTone.At(i)}")" style="@AccentTone.Override(step.IconColor)">
                         <div class="how-step-marker" aria-hidden="true">
                             <span class="how-step-icon"><MudIcon Icon="@step.Icon" /></span>
                         </div>

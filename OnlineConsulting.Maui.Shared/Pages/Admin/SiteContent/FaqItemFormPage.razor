@@ -11,7 +11,7 @@
 
 <PageTitle>@(Id is null ? "New FAQ Item" : "Edit FAQ Item")</PageTitle>
 
-<PageHeroBanner Title="@(Id is null ? "New FAQ Item" : "Edit FAQ Item")" Subtitle="Shown on the related service's page.">
+<PageHeroBanner Title="@(Id is null ? "New FAQ Item" : "Edit FAQ Item")" Subtitle="Shown on the chosen service's page, or in the general FAQ section.">
     <ActionContent>
         <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.ArrowBack"
                    OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/faq-items"))">Back to FAQ Items</MudButton>
@@ -21,20 +21,18 @@
 
 <ApiErrorAlert Message="@_loadError" Severity="Severity.Warning" />
 
-@if (!_loading && _services.Count == 0 && _loadError is null)
-{
-    <ApiErrorAlert Message="Create a service first before adding FAQ items." Severity="Severity.Warning" />
-}
-else if (!_loading)
+@if (!_loading)
 {
     <EditForm EditContext="@Form.EditContext">
         <MudPaper Class="pa-4">
             <MudGrid Spacing="3">
                 <MudItem xs="12" md="6">
-                    <MudSelect T="Guid" @bind-Value="_model.ServiceId" Label="Service" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true">
+                    <MudSelect T="Guid?" @bind-Value="_model.ServiceId" Label="Shown on" Variant="Variant.Outlined" Margin="Margin.Dense" Dense="true"
+                               ToStringFunc="@ServiceLabel">
+                        <MudSelectItem T="Guid?" Value="@((Guid?)null)">@FaqScopeLabels.General</MudSelectItem>
                         @foreach (var service in _services)
                         {
-                            <MudSelectItem T="Guid" Value="@service.Id">@service.Title</MudSelectItem>
+                            <MudSelectItem T="Guid?" Value="@service.Id">@service.Title</MudSelectItem>
                         }
                     </MudSelect>
                 </MudItem>
@@ -97,11 +95,6 @@ else if (!_loading)
         var servicesResult = await ApiClient.GetAsync<PaginatedResponse<ServiceResponse>>($"{ApiRoutes.Services.Base}?size=100");
         _services = servicesResult.IsSuccessful && servicesResult.ResultData is not null ? servicesResult.ResultData.Items : [];
 
-        if (Id is null && _services.Count > 0)
-        {
-            _model.ServiceId = _services[0].Id;
-        }
-
         _loading = false;
     }
 
@@ -137,6 +130,9 @@ else if (!_loading)
 
         CompleteSave(result.DisplayMessage);
     });
+
+    private string ServiceLabel(Guid? serviceId) =>
+        serviceId is { } id ? _services.Find(s => s.Id == id)?.Title ?? string.Empty : FaqScopeLabels.General;
 
     private void CompleteSave(string message)
     {

@@ -11,6 +11,11 @@ public sealed class FaqItemLinks() : ManagedContentLinks<FaqItemResponse, Update
     protected override void AddLinks(FaqItemResponse resource, HateoasLinkBuilder links)
     {
         base.AddLinks(resource, links);
-        _ = links.AddCustom(Rels.Service, "GetServiceById", HttpMethods.Get, new { id = resource.ServiceId });
+
+        // General FAQs have no service to link to.
+        if (resource.ServiceId is { } serviceId)
+        {
+            _ = links.AddCustom(Rels.Service, "GetServiceById", HttpMethods.Get, new { id = serviceId });
+        }
     }
 }

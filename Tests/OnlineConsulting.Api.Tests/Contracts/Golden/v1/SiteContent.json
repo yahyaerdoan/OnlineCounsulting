@@ -11,7 +11,7 @@
   ],
   "FaqItemResponse": [
     "id: Guid",
-    "serviceId: Guid",
+    "serviceId: Guid?",
     "question: string",
     "answer: string",
     "displayOrder: int",

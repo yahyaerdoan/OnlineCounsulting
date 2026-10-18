@@ -7,7 +7,7 @@ using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.SiteContent.Application.Features.FaqItems.UpdateFaqItem;
 
-public record UpdateFaqItemCommand(Guid Id, Guid ServiceId, string Question, string Answer, int DisplayOrder = 0)
+public record UpdateFaqItemCommand(Guid Id, Guid? ServiceId, string Question, string Answer, int DisplayOrder = 0)
     : IRequest<OperationResult>, ISecureAddRequest
 {
     public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Update];

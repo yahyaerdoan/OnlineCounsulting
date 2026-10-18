@@ -18,4 +18,7 @@ public static class AccentTone
 
     /// <summary>A stable tone per id (e.g. a category), so the same category keeps its color on every page.</summary>
     public static string For(Guid id) => At(id.GetHashCode());
+
+    /// <summary>Inline style overriding the tone with an admin-picked color; null keeps the class tone.</summary>
+    public static string? Override(string? color) => string.IsNullOrWhiteSpace(color) ? null : $"--tone:{color};";
 }
