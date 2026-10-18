@@ -1,5 +1,6 @@
 using OnlineConsulting.Modules.Scheduling.Application.Features.AppointmentMediaItems.Contracts;
 using OnlineConsulting.Modules.Scheduling.Domain;
+using OnlineConsulting.SharedKernel.Identity;
 
 namespace OnlineConsulting.Modules.Scheduling.Application.Features.Appointments.Contracts;
 
@@ -18,13 +19,22 @@ public class AppointmentResponse
     public required string MeetingType { get; init; }
     public string? Topic { get; init; }
 
+    /// <summary>Staff list only; null elsewhere.</summary>
+    public string? CustomerName { get; init; }
+
+    /// <summary>Staff list only; null elsewhere.</summary>
+    public string? CustomerEmail { get; init; }
+
+    /// <summary>Staff list only; null elsewhere.</summary>
+    public string? ServiceTitle { get; init; }
+
     /// <summary>Maps deep link built from free-text ServiceAddress - no geocoding, the device's maps app resolves it.</summary>
     public string? NavigationUrl { get; init; }
 
     /// <summary>Empty for list queries to avoid an N+1 join per row - populated only by GetAppointmentById.</summary>
     public List<AppointmentMediaItemResponse> MediaItems { get; init; } = [];
 
-    public static AppointmentResponse FromDomain(Appointment appointment, List<AppointmentMediaItemResponse>? mediaItems = null) => new()
+    public static AppointmentResponse FromDomain(Appointment appointment, List<AppointmentMediaItemResponse>? mediaItems = null, UserContact? customer = null, string? serviceTitle = null) => new()
     {
         Id = appointment.Id,
         UserId = appointment.UserId,
@@ -38,6 +48,9 @@ public class AppointmentResponse
         ServiceAddress = appointment.ServiceAddress,
         MeetingType = appointment.MeetingType,
         Topic = appointment.Topic,
+        CustomerName = customer?.FullName,
+        CustomerEmail = customer?.Email,
+        ServiceTitle = serviceTitle,
         NavigationUrl = string.IsNullOrWhiteSpace(appointment.ServiceAddress)
             ? null
             : $"https://www.google.com/maps/dir/?api=1&destination={Uri.EscapeDataString(appointment.ServiceAddress)}",

@@ -13,6 +13,8 @@
 <ServerDataTable TItem="AppointmentResponse" @ref="_table" ApiBasePath="@ApiRoutes.Operations.Appointments.All"
                  SearchPlaceholder="Search status" OnLoadError="@(message => _loadError = message)">
     <HeaderContent>
+        <MudTh>Customer</MudTh>
+        <MudTh>Service</MudTh>
         <MudTh><MudTableSortLabel SortLabel="@nameof(AppointmentResponse.ScheduledStart)" T="AppointmentResponse">Scheduled</MudTableSortLabel></MudTh>
         <MudTh>Where</MudTh>
         <MudTh>Status</MudTh>
@@ -20,7 +22,9 @@
         <MudTh>Actions</MudTh>
     </HeaderContent>
     <RowTemplate Context="appointment">
-        <MudTd DataLabel="Scheduled" Class="cell-primary">@BusinessTime.FormatDateTime(appointment.ScheduledStart)</MudTd>
+        <MudTd DataLabel="Customer"><PersonCell Name="@(appointment.CustomerName ?? string.Empty)" Secondary="@appointment.CustomerEmail" /></MudTd>
+        <MudTd DataLabel="Service">@(appointment.ServiceTitle ?? "-")</MudTd>
+        <MudTd DataLabel="Scheduled">@BusinessTime.FormatDateTime(appointment.ScheduledStart)</MudTd>
         <MudTd DataLabel="Where">
             <span class="appointment-where">
                 <MudIcon Icon="@(appointment.IsOnline ? Icons.Material.Outlined.VideoCall : Icons.Material.Outlined.LocationOn)" Size="Size.Small" />

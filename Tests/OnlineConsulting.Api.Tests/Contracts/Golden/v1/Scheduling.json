@@ -18,6 +18,9 @@
     "serviceAddress: string?",
     "meetingType: string",
     "topic: string?",
+    "customerName: string?",
+    "customerEmail: string?",
+    "serviceTitle: string?",
     "navigationUrl: string?",
     "mediaItems: List<AppointmentMediaItemResponse>",
     "_links: LinkCollection?"
