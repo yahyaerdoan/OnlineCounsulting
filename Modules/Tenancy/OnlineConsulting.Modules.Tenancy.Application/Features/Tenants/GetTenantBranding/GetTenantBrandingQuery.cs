@@ -17,8 +17,10 @@ public class GetTenantBrandingHandler(ITenantProvider tenantProvider, ITenantBra
         var tenantId = tenantProvider.TenantId;
         var brand = await brandReader.GetAsync(tenantId, cancellationToken);
         var platformUrl = await originReader.GetOriginAsync(TenantDefaults.DefaultTenantId, cancellationToken);
-        var platform = tenantId == TenantDefaults.DefaultTenantId ? brand : await brandReader.GetAsync(TenantDefaults.DefaultTenantId, cancellationToken);
+        var isPlatform = tenantId == TenantDefaults.DefaultTenantId;
+        var platform = isPlatform ? brand : await brandReader.GetAsync(TenantDefaults.DefaultTenantId, cancellationToken);
+        var siteUrl = isPlatform ? platformUrl : await originReader.GetOriginAsync(tenantId, cancellationToken);
 
-        return Result.Success(new TenantBrandingResponse(brand.Name, brand.LogoMediaAssetId, tenantId == TenantDefaults.DefaultTenantId, platformUrl, platform.Name), "Branding retrieved successfully.");
+        return Result.Success(new TenantBrandingResponse(brand.Name, brand.LogoMediaAssetId, isPlatform, platformUrl, platform.Name, siteUrl), "Branding retrieved successfully.");
     }
 }

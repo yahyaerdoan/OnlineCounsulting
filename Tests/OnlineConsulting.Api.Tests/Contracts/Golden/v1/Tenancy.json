@@ -62,6 +62,7 @@
     "isPlatform: bool",
     "platformUrl: string",
     "platformName: string",
+    "siteUrl: string",
     "_links: LinkCollection?"
   ],
   "TenantDetailResponse": [

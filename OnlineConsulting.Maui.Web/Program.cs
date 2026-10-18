@@ -65,6 +65,7 @@ if (Uri.TryCreate(builder.Configuration["Api:PublicBaseUrl"], UriKind.Absolute, 
     builder.Services.AddSingleton(new PublicApiOrigin(publicApiUrl));
 }
 
+builder.Services.AddMemoryCache();
 builder.Services.AddTransient<TenantHostHandler>();
 builder.Services.AddHttpClient(ApiHttpClientNames.Anonymous, client => client.BaseAddress = new Uri(apiBaseUrl))
     .AddHttpMessageHandler<TenantHostHandler>();
@@ -77,6 +78,9 @@ var app = builder.Build();
 
 // First, so everything after sees the customer's domain.
 app.UseMiddleware<EdgeHostMiddleware>();
+
+// Then a business's old address (its subdomain) goes to its live custom domain.
+app.UseMiddleware<CanonicalHostMiddleware>();
 
 app.MapDefaultEndpoints();
 
