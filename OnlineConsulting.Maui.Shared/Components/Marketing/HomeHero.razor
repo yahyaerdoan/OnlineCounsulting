@@ -1,4 +1,4 @@
-﻿@* The first slide (by DisplayOrder) as the home hero. The photo drifts slowly behind a deep brand gradient with a warm glow;
+﻿@* The slides (by DisplayOrder) rotate as the home hero via marketing.js initHeroRotator. The photo drifts slowly behind a deep brand gradient with a warm glow;
    the copy fades up in sequence: a pill with the business's own service categories, the headline with its last words in gold,
    the first paragraph, a glowing booking button and glass secondary actions. Below, live proof from the data (services offered,
    areas served, customer reviews), and on wide screens a glass card with the next open visit time from the booking calendar.
@@ -7,10 +7,14 @@
 @using OnlineConsulting.Maui.Shared.Infrastructure.Api
 @inject IApiClient ApiClient
 
-@if (_slide is not null)
+@if (_slides.Count > 0)
 {
-    <section class="marketing-hero hero-wow">
-        <div class="hero-wow-bg" style="@($"background-image:url('{MediaUrlResolver.Resolve(ApiClient, _slide.ImageUrl)}')")" aria-hidden="true"></div>
+    <section class="marketing-hero hero-wow" data-hero>
+        @for (var i = 0; i < _slides.Count; i++)
+        {
+            <div class="@($"hero-wow-bg {(i == 0 ? "active" : "")}")" data-hero-slide="@i"
+                 style="@($"background-image:url('{MediaUrlResolver.Resolve(ApiClient, _slides[i].ImageUrl)}')")" aria-hidden="true"></div>
+        }
         <div class="hero-wow-glow" aria-hidden="true"></div>
         <div class="marketing-hero-overlay">
             <MudContainer MaxWidth="MaxWidth.Large" Class="hero-wow-grid">
@@ -19,13 +23,19 @@
                     {
                         <span class="hero-wow-pill hero-wow-in" style="--delay:0ms"><MudIcon Icon="@Icons.Material.Filled.AutoAwesome" Size="Size.Small" />@_categoryLine</span>
                     }
-                    <h1 class="marketing-hero-title hero-wow-in" style="--delay:80ms">
-                        @_titleLead<span class="hero-wow-accent">@_titleAccent</span>
-                    </h1>
-                    <p class="marketing-hero-subtitle hero-wow-in" style="--delay:160ms">@_summary</p>
-                    @if (_hasMoreToRead)
+                    @for (var i = 0; i < _copies.Count; i++)
                     {
-                        <MudLink Href="/about" Class="marketing-hero-learn-more hero-wow-in">Learn more about us &rarr;</MudLink>
+                        var copy = _copies[i];
+                        <div data-hero-copy="@i" hidden="@(i != 0)">
+                            <h1 class="marketing-hero-title hero-wow-in" style="--delay:80ms">
+                                @copy.Lead<span class="hero-wow-accent">@copy.Accent</span>
+                            </h1>
+                            <p class="marketing-hero-subtitle hero-wow-in" style="--delay:160ms">@copy.Summary</p>
+                            @if (copy.HasMore)
+                            {
+                                <MudLink Href="/about" Class="marketing-hero-learn-more hero-wow-in">Learn more about us &rarr;</MudLink>
+                            }
+                        </div>
                     }
 
                     @if (_nextSlot is { } phoneSlot)
@@ -60,6 +70,17 @@
                             }
                         </ul>
                     }
+
+                    @if (_slides.Count > 1)
+                    {
+                        <div class="hero-wow-dots" role="group" aria-label="Hero slides">
+                            @for (var i = 0; i < _slides.Count; i++)
+                            {
+                                <button type="button" class="@($"hero-wow-dot {(i == 0 ? "active" : "")}")" data-hero-dot="@i"
+                                        aria-label="@($"Show slide {i + 1}")" aria-current="@(i == 0 ? "true" : "false")"></button>
+                            }
+                        </div>
+                    }
                 </div>
 
                 @if (_nextSlot is { } slot)
@@ -86,12 +107,9 @@
 @code {
     private const int DaysToSearch = 5;
 
-    private HeroSlideResponse? _slide;
+    private List<HeroSlideResponse> _slides = [];
+    private List<(string Lead, string Accent, string? Summary, bool HasMore)> _copies = [];
     private string? _phone;
-    private string? _summary;
-    private bool _hasMoreToRead;
-    private string _titleLead = string.Empty;
-    private string _titleAccent = string.Empty;
     private string? _categoryLine;
     private AvailableSlotResponse? _nextSlot;
     private int _openThatDay;
@@ -110,16 +128,13 @@
         await Task.WhenAll(slidesTask, contactTask, categoriesTask, servicesTask, areasTask, reviewsTask, slotTask);
 
         var slides = await slidesTask;
-        _slide = slides.IsSuccessful ? slides.ResultData?.OrderBy(s => s.DisplayOrder).FirstOrDefault() : null;
-        if (_slide is null)
+        _slides = slides.IsSuccessful && slides.ResultData is not null ? [.. slides.ResultData.OrderBy(s => s.DisplayOrder)] : [];
+        if (_slides.Count == 0)
         {
             return;
         }
 
-        var paragraphs = _slide.Description.Split("\n\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        _summary = paragraphs.FirstOrDefault();
-        _hasMoreToRead = paragraphs.Length > 1;
-        (_titleLead, _titleAccent) = SplitTitle(_slide.Title);
+        _copies = [.. _slides.Select(ToCopy)];
 
         var contact = await contactTask;
         _phone = contact.IsSuccessful ? contact.ResultData?.Phone : null;
@@ -146,6 +161,14 @@
         }
 
         (_nextSlot, _openThatDay) = await slotTask;
+    }
+
+    /// <summary>Headline split for the gold accent, plus the first paragraph and whether more follows on /about.</summary>
+    private static (string Lead, string Accent, string? Summary, bool HasMore) ToCopy(HeroSlideResponse slide)
+    {
+        var paragraphs = slide.Description.Split("\n\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var (lead, accent) = SplitTitle(slide.Title);
+        return (lead, accent, paragraphs.FirstOrDefault(), paragraphs.Length > 1);
     }
 
     /// <summary>Earliest open booking time over the next few days, with how many slots are open that day; (null, 0) when none.</summary>

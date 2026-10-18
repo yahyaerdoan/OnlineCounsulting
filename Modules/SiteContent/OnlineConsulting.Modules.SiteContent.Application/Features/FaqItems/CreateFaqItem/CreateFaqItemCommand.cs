@@ -8,7 +8,7 @@ using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.SiteContent.Application.Features.FaqItems.CreateFaqItem;
 
-public record CreateFaqItemCommand(Guid ServiceId, string Question, string Answer, int DisplayOrder = 0) : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
+public record CreateFaqItemCommand(Guid? ServiceId, string Question, string Answer, int DisplayOrder = 0) : IRequest<OperationDataResult<Guid>>, ISecureAddRequest
 {
     public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Add];
 }

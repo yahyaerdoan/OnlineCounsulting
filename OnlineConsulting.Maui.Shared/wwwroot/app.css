@@ -49,6 +49,12 @@
 .tone-berry { --tone: #C239B3; }
 .tone-cornflower { --tone: #4F6BED; }
 
+/* Default tone; :where (zero specificity) lets any tone-* class win. */
+:where(.how-step, .provide-tab, .provide-panel, .footer-links .footer-popular-item, .category-explorer-tab, .category-explorer-panel,
+       .promo, .gallery-tile, .partner, .svc-card, .svc-chip, .order-card, .order-hero, .equipment-card) {
+    --tone: var(--mud-palette-primary);
+}
+
 /* Mixing with the theme's text color darkens the tone on light surfaces and lightens it on dark ones, so the icon keeps its contrast in both modes. */
 .tone-bubble {
     display: inline-grid;
@@ -161,6 +167,38 @@ a.tone-bubble:hover {
     filter: saturate(1.15) contrast(1.06);
     transform: scale(1.08);
     animation: hero-drift 24s ease-in-out infinite alternate;
+}
+
+/* Stacked slide photos cross-fade; only the active one shows. */
+.hero-wow-bg {
+    opacity: 0;
+    transition: opacity 1.2s ease;
+}
+
+.hero-wow-bg.active {
+    opacity: 1;
+}
+
+.hero-wow-dots {
+    display: flex;
+    gap: 8px;
+    margin-top: 28px;
+}
+
+.hero-wow-dot {
+    width: 10px;
+    height: 10px;
+    padding: 0;
+    border: none;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .45);
+    cursor: pointer;
+    transition: width var(--motion-fast), background var(--motion-fast);
+}
+
+.hero-wow-dot.active {
+    width: 28px;
+    background: #ffffff;
 }
 
 @keyframes hero-drift {
@@ -581,6 +619,13 @@ a.tone-bubble:hover {
     overflow: hidden;
 }
 
+.about-cover-image {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
 /* Pins the video while a long description scrolls past. Desktop only - mobile stacks them, so sticky would trap it on screen. */
 @media (min-width: 960px) {
     .marketing-video-embed-sticky {
@@ -706,7 +751,6 @@ a.tone-bubble:hover {
 }
 
 .how-step {
-    --tone: var(--mud-palette-primary);
     position: relative;
     display: flex;
     flex-direction: column;
@@ -946,7 +990,6 @@ a.tone-bubble:hover {
 }
 
 .provide-tab {
-    --tone: var(--mud-palette-primary);
     position: relative;
     display: flex;
     align-items: flex-start;
@@ -1034,7 +1077,6 @@ a.tone-bubble:hover {
 }
 
 .provide-panel {
-    --tone: var(--mud-palette-primary);
     position: relative;
     grid-area: 1 / 1;
     display: flex;
@@ -1968,7 +2010,6 @@ a.tone-bubble:hover {
 }
 
 .footer-links .footer-popular-item {
-    --tone: var(--mud-palette-primary);
     display: flex;
     align-items: center;
     gap: 10px;
@@ -3559,7 +3600,6 @@ button.step-indicator-button {
 }
 
 .category-explorer-tab {
-    --tone: var(--mud-palette-primary);
     display: flex;
     align-items: center;
     gap: 12px;
@@ -3637,7 +3677,6 @@ button.step-indicator-button {
 }
 
 .category-explorer-panel {
-    --tone: var(--mud-palette-primary);
     border-radius: 20px;
     overflow: hidden;
     background: var(--mud-palette-surface);
@@ -3937,8 +3976,11 @@ button.step-indicator-button {
     display: none;
 }
 
-.mobile-only {
-    display: none;
+/* !important like .hide-on-phone, so a component's display can't re-show it. */
+@media (min-width: 960px) {
+    .mobile-only {
+        display: none !important;
+    }
 }
 
 @media (max-width: 959.98px) {
@@ -4256,7 +4298,6 @@ button.step-indicator-button {
 }
 
 .promo {
-    --tone: var(--mud-palette-primary);
     position: relative;
     display: grid;
     grid-template-columns: 104px minmax(0, 1fr);
@@ -4646,7 +4687,6 @@ a.footer-reach-item:hover .footer-reach-value {
 }
 
 .gallery-tile {
-    --tone: var(--mud-palette-primary);
     position: relative;
     display: block;
     width: 100%;
@@ -4955,7 +4995,6 @@ a.footer-reach-item:hover .footer-reach-value {
 }
 
 .partner {
-    --tone: var(--mud-palette-primary);
     display: flex;
     flex-direction: column;
     border: 1px solid var(--mud-palette-lines-default);
@@ -5452,7 +5491,6 @@ a.footer-reach-item:hover .footer-reach-value {
 }
 
 .svc-card {
-    --tone: var(--mud-palette-primary);
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -5669,7 +5707,6 @@ a.footer-reach-item:hover .footer-reach-value {
 }
 
 .svc-chip {
-    --tone: var(--mud-palette-primary);
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -6534,7 +6571,6 @@ a.footer-reach-item:hover .footer-reach-value {
 }
 
 .order-card {
-    --tone: var(--mud-palette-primary);
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto auto auto;
     align-items: center;
@@ -6678,7 +6714,6 @@ a.footer-reach-item:hover .footer-reach-value {
 }
 
 .order-hero {
-    --tone: var(--mud-palette-primary);
     display: flex;
     flex-direction: column;
     gap: 16px;
@@ -10755,7 +10790,6 @@ div.order-card:hover {
 }
 
 .equipment-card {
-    --tone: var(--mud-palette-primary);
     display: flex;
     flex-direction: column;
     gap: 14px;

@@ -6,7 +6,7 @@ public class CreateFaqItemValidator : AbstractValidator<CreateFaqItemCommand>
 {
     public CreateFaqItemValidator()
     {
-        _ = RuleFor(x => x.ServiceId).NotEmpty();
+        _ = RuleFor(x => x.ServiceId).NotEqual(Guid.Empty).When(x => x.ServiceId is not null);
         _ = RuleFor(x => x.Question).NotEmpty().MaximumLength(300);
         _ = RuleFor(x => x.Answer).NotEmpty().MaximumLength(2000);
     }

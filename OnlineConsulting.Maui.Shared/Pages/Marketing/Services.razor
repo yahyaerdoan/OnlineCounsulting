@@ -26,7 +26,7 @@
             {
                 var isActive = CategoryId == category.Id;
                 <a href="@($"/services?category={category.Id}")" class="@($"svc-chip {AccentTone.For(category.Id)} {(isActive ? "active" : "")}")"
-                   aria-current="@(isActive ? "page" : null)">
+                   style="@AccentTone.Override(category.IconColor)" aria-current="@(isActive ? "page" : null)">
                     <MudIcon Icon="@category.Icon" Size="Size.Small" />@category.Title
                 </a>
             }

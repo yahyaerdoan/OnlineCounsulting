@@ -1,6 +1,7 @@
 @page "/admin/site-content/faq-items"
 @attribute [Authorize(Roles = "Admin,Super Admin,Member")]
 @using OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent
+@using OnlineConsulting.Maui.Shared.Pages.Admin.SiteContent.FaqItemModels
 @inject IApiClient ApiClient
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
@@ -8,7 +9,7 @@
 
 <PageTitle>FAQ Items</PageTitle>
 
-<PageHeroBanner Title="FAQ Items" Subtitle="Frequently asked questions shown on each service's page.">
+<PageHeroBanner Title="FAQ Items" Subtitle="General questions plus questions shown on each service's page.">
     <ActionContent>
         <MudButton Variant="Variant.Outlined" Color="Color.Inherit" StartIcon="@Icons.Material.Outlined.Add"
                    OnClick="@(() => Navigation.NavigateTo(AppRoutes.AdminHome + "/site-content/faq-items/new"))">New FAQ Item</MudButton>
@@ -21,12 +22,14 @@
                  SearchPlaceholder="Search question or answer" OnLoadError="@(message => _loadError = message)">
     <HeaderContent>
         <MudTh>Question</MudTh>
+        <MudTh>Shown on</MudTh>
         <MudTh>Answer</MudTh>
         <MudTh Class="mud-table-cell-align-right">Order</MudTh>
         <MudTh>Actions</MudTh>
     </HeaderContent>
     <RowTemplate Context="item">
         <MudTd DataLabel="Question" Class="cell-primary">@item.Question</MudTd>
+        <MudTd DataLabel="Shown on">@ScopeLabel(item.ServiceId)</MudTd>
         <MudTd DataLabel="Answer">@item.Answer</MudTd>
         <MudTd DataLabel="Order" Class="mud-table-cell-align-right">@item.DisplayOrder</MudTd>
         <MudTd DataLabel="Actions">
@@ -41,6 +44,17 @@
 @code {
     private ServerDataTable<FaqItemResponse> _table = default!;
     private string? _loadError;
+    private Dictionary<Guid, string> _serviceTitles = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        // /api/v1/services is paginated - a large-enough page for title lookup, same idiom as the form page.
+        var services = await ApiClient.GetAsync<PaginatedResponse<ServiceResponse>>($"{ApiRoutes.Services.Base}?size=100");
+        _serviceTitles = services.IsSuccessful && services.ResultData is not null ? services.ResultData.Items.ToDictionary(s => s.Id, s => s.Title) : [];
+    }
+
+    private string ScopeLabel(Guid? serviceId) =>
+        serviceId is { } id ? _serviceTitles.GetValueOrDefault(id, string.Empty) : FaqScopeLabels.General;
 
     private async Task DeleteAsync(FaqItemResponse item)
     {
