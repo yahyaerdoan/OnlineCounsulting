@@ -24,6 +24,9 @@
     [Parameter]
     public bool Disabled { get; set; }
 
+    [Parameter]
+    public UserPickerAudience Audience { get; set; } = UserPickerAudience.All;
+
     private UserResponse? _selected;
 
     protected override async Task OnParametersSetAsync()
@@ -49,7 +52,7 @@
                 [new DynamicFilter(nameof(UserResponse.LastName), "contains", term.Trim()), new DynamicFilter(nameof(UserResponse.Email), "contains", term.Trim())]);
         var query = new DynamicQuery([new DynamicSort(nameof(UserResponse.FirstName), "asc")], filter);
 
-        var result = await ApiClient.QueryAsync<PaginatedResponse<UserResponse>>(ApiRoutes.Paged(ApiRoutes.Users.All, 0, PageSize), query, cancellationToken);
+        var result = await ApiClient.QueryAsync<PaginatedResponse<UserResponse>>(AudienceRoute(), query, cancellationToken);
         return result.IsSuccessful && result.ResultData is not null ? result.ResultData.Items : [];
     }
 
@@ -57,6 +60,17 @@
     {
         _selected = user;
         await ValueChanged.InvokeAsync(user?.Id);
+    }
+
+    private string AudienceRoute()
+    {
+        var route = ApiRoutes.Paged(ApiRoutes.Users.All, 0, PageSize);
+        return Audience switch
+        {
+            UserPickerAudience.Staff => $"{route}&staffOnly=true",
+            UserPickerAudience.Customers => $"{route}&role={AppRoles.User}",
+            _ => route,
+        };
     }
 
     private static string Display(UserResponse? user) => user is null ? string.Empty : $"{user.FirstName} {user.LastName} ({user.Email})";

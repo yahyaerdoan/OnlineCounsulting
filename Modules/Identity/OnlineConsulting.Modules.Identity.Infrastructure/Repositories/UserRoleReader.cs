@@ -2,6 +2,7 @@ using Core.PersistenceLayer.MultiTenancy;
 using Microsoft.EntityFrameworkCore;
 using OnlineConsulting.Modules.Identity.Application.Features.Users.Abstractions;
 using OnlineConsulting.Modules.Identity.Infrastructure.Persistence;
+using OnlineConsulting.SharedKernel.Authorization;
 
 namespace OnlineConsulting.Modules.Identity.Infrastructure.Repositories;
 
@@ -12,6 +13,14 @@ public class UserRoleReader(AppIdentityDbContext context) : IUserRoleReader
                join role in context.Roles on userRole.RoleId equals role.Id
                where role.Name == roleName
                select userRole.UserId)
+            .ToListAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<Guid>> GetStaffUserIdsAsync(CancellationToken cancellationToken = default) =>
+        await (from userRole in context.UserRoles
+               join role in context.Roles on userRole.RoleId equals role.Id
+               where role.Name != GlobalOperationClaims.User
+               select userRole.UserId)
+            .Distinct()
             .ToListAsync(cancellationToken);
 
     public async Task<ILookup<Guid, string>> GetRoleNamesAsync(IReadOnlyCollection<Guid> userIds, CancellationToken cancellationToken = default)

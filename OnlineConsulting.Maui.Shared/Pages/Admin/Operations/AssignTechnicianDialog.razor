@@ -10,7 +10,7 @@
     </TitleContent>
     <DialogContent>
         <EditForm EditContext="@Form.EditContext">
-            <UserPicker Label="Technician" Required="true" Value="@_model.TechnicianUserId" ValueChanged="@((Guid? id) => _model.TechnicianUserId = id ?? Guid.Empty)" />
+            <UserPicker Label="Technician" Audience="UserPickerAudience.Staff" Required="true" Value="@_model.TechnicianUserId" ValueChanged="@((Guid? id) => _model.TechnicianUserId = id ?? Guid.Empty)" />
         </EditForm>
     </DialogContent>
     <DialogActions>

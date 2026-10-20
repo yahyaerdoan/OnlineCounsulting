@@ -7,6 +7,9 @@ public interface IUserRoleReader
     /// <summary>Ids of every user holding the role, across tenants; narrow the result with a tenant-filtered user query.</summary>
     Task<IReadOnlyList<Guid>> GetUserIdsInRoleAsync(string roleName, CancellationToken cancellationToken = default);
 
+    /// <summary>Ids of users holding any role besides User, across tenants.</summary>
+    Task<IReadOnlyList<Guid>> GetStaffUserIdsAsync(CancellationToken cancellationToken = default);
+
     /// <summary>Role names per user for the given users.</summary>
     Task<ILookup<Guid, string>> GetRoleNamesAsync(IReadOnlyCollection<Guid> userIds, CancellationToken cancellationToken = default);
 

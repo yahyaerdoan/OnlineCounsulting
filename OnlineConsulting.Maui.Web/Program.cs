@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Components.Server.Circuits;
 using MudBlazor.Services;
 using OnlineConsulting.Maui.Shared;
 using OnlineConsulting.Maui.Shared.Infrastructure.Api;
@@ -55,6 +56,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     });
 builder.Services.AddAuthorization();
 
+builder.Services.AddSingleton<IRotatedTokenStore, MemoryRotatedTokenStore>();
 builder.Services.AddScoped<IAccessTokenProvider, ServerAccessTokenProvider>();
 builder.Services.AddScoped<IAuthSession, WebAuthSession>();
 builder.Services.AddScoped<CookiePrincipalRefresher>();
@@ -69,10 +71,11 @@ builder.Services.AddMemoryCache();
 builder.Services.AddTransient<TenantHostHandler>();
 builder.Services.AddHttpClient(ApiHttpClientNames.Anonymous, client => client.BaseAddress = new Uri(apiBaseUrl))
     .AddHttpMessageHandler<TenantHostHandler>();
-builder.Services.AddTransient<GuestIdHandler>();
-builder.Services.AddHttpClient<IApiClient, ApiClient>(client => client.BaseAddress = new Uri(apiBaseUrl))
-    .AddHttpMessageHandler<TenantHostHandler>()
-    .AddHttpMessageHandler<GuestIdHandler>();
+// From BrowserRequestContext, not HttpContext: a circuit outlives its request.
+builder.Services.AddScoped<BrowserRequestContext>();
+builder.Services.AddScoped<IBrowserRequestForwarder>(sp => sp.GetRequiredService<BrowserRequestContext>());
+builder.Services.AddScoped<CircuitHandler, BrowserRequestCircuitHandler>();
+builder.Services.AddHttpClient<IApiClient, ApiClient>(client => client.BaseAddress = new Uri(apiBaseUrl));
 
 var app = builder.Build();
 
@@ -95,6 +98,9 @@ app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+// After authentication, so it captures the signed-in user too.
+app.UseMiddleware<BrowserRequestMiddleware>();
 app.UseAntiforgery();
 
 app.MapStaticAssets();

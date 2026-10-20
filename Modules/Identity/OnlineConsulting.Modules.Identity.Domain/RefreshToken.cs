@@ -2,7 +2,7 @@ using Core.PersistenceLayer.Repositories.Entities;
 
 namespace OnlineConsulting.Modules.Identity.Domain;
 
-/// <summary>One active row per user; IssueAsync overwrites it in place, which is what gives token rotation.</summary>
+/// <summary>One row per sign-in session; refreshing rewrites only that row, so other devices stay signed in.</summary>
 public class RefreshToken : SequentialGuidEntity
 {
     public required Guid UserId { get; set; }

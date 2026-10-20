@@ -1,42 +1,44 @@
 ﻿using Core.SecurityLayer.Hashings;
 using Core.SecurityLayer.JsonWebTokens.Abstractions;
+using Microsoft.EntityFrameworkCore;
 using OnlineConsulting.Modules.Identity.Application.Features.Auth.Abstractions;
 using OnlineConsulting.Modules.Identity.Domain;
-using System.Security.Cryptography;
 
 namespace OnlineConsulting.Modules.Identity.Infrastructure.Security;
 
+/// <summary>A row per session, found by the token's hash; rotation rewrites only that row.</summary>
 public class RefreshTokenService(IRefreshTokenRepository repository, IJwtTokenHelper jwtTokenHelper) : IRefreshTokenService
 {
     public async Task<(string RawToken, DateTime ExpiresAt)> IssueAsync(User user, CancellationToken cancellationToken = default)
     {
-        var refreshToken = jwtTokenHelper.CreateRefreshToken();
+        // Drop this user's dead sessions so rows don't pile up.
+        _ = await repository.Query().Where(rt => rt.UserId == user.Id && rt.ExpiresAt < DateTime.UtcNow).ExecuteDeleteAsync(cancellationToken);
 
-        var existing = await repository.GetAsync(rt => rt.UserId == user.Id, cancellationToken: cancellationToken);
-        if (existing is not null)
+        var refreshToken = jwtTokenHelper.CreateRefreshToken();
+        _ = await repository.AddAsync(new RefreshToken
         {
-            existing.TokenHash = refreshToken.HashedToken;
-            existing.ExpiresAt = refreshToken.Expires;
-            _ = await repository.UpdateAsync(existing, cancellationToken: cancellationToken);
-        }
-        else
-        {
-            _ = await repository.AddAsync(new RefreshToken
-            {
-                UserId = user.Id,
-                TokenHash = refreshToken.HashedToken,
-                ExpiresAt = refreshToken.Expires,
-            }, cancellationToken: cancellationToken);
-        }
+            UserId = user.Id,
+            TokenHash = refreshToken.HashedToken,
+            ExpiresAt = refreshToken.Expires,
+        }, cancellationToken: cancellationToken);
 
         return (refreshToken.RawToken, refreshToken.Expires);
     }
 
-    /// <summary>Validates a refresh token using a constant-time hash compare, to avoid a timing side-channel.</summary>
-    public async Task<bool> ValidateAsync(User user, string rawToken, CancellationToken cancellationToken = default)
+    public async Task<(string RawToken, DateTime ExpiresAt)?> RotateAsync(User user, string rawToken, CancellationToken cancellationToken = default)
     {
-        var stored = await repository.GetAsync(rt => rt.UserId == user.Id, cancellationToken: cancellationToken);
+        var hash = TokenHashingHelper.Hash(rawToken);
+        var session = await repository.GetAsync(rt => rt.UserId == user.Id && rt.TokenHash == hash && rt.ExpiresAt >= DateTime.UtcNow, cancellationToken: cancellationToken);
+        if (session is null)
+        {
+            return null;
+        }
 
-        return stored is not null && stored.ExpiresAt >= DateTime.UtcNow && CryptographicOperations.FixedTimeEquals(Convert.FromHexString(TokenHashingHelper.Hash(rawToken)), Convert.FromHexString(stored.TokenHash));
+        var refreshToken = jwtTokenHelper.CreateRefreshToken();
+        session.TokenHash = refreshToken.HashedToken;
+        session.ExpiresAt = refreshToken.Expires;
+        _ = await repository.UpdateAsync(session, cancellationToken: cancellationToken);
+
+        return (refreshToken.RawToken, refreshToken.Expires);
     }
 }

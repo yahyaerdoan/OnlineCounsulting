@@ -3,7 +3,8 @@
 namespace OnlineConsulting.Maui.Shared.Infrastructure.Auth;
 
 /// <summary>Refreshes a near-expiry token set, single-flight (concurrent callers share one call).</summary>
-public class TokenRefresher(IHttpClientFactory httpClientFactory, IAccessTokenProvider tokenProvider)
+public class TokenRefresher(IHttpClientFactory httpClientFactory, IAccessTokenProvider tokenProvider, IRotatedTokenStore? rotatedTokens = null,
+    IBrowserRequestForwarder? browserForwarder = null)
 {
     private static readonly TimeSpan RefreshBuffer = TimeSpan.FromSeconds(30);
 
@@ -41,8 +42,20 @@ public class TokenRefresher(IHttpClientFactory httpClientFactory, IAccessTokenPr
 
     private async Task<TokenSet?> ExchangeAsync(TokenSet current, CancellationToken cancellationToken)
     {
+        // Another holder (the cookie, another tab) may already have rotated this token.
+        if (rotatedTokens?.FindLatest(current.RefreshToken) is { } newer)
+        {
+            await tokenProvider.SetTokenSetAsync(newer);
+            if (!newer.IsNearExpiry(RefreshBuffer))
+            {
+                return newer;
+            }
+
+            current = newer;
+        }
+
         var client = httpClientFactory.CreateClient(ApiHttpClientNames.Anonymous);
-        var api = new ApiClient(client);
+        var api = new ApiClient(client, browserForwarder: browserForwarder);
 
         var result = await api.PostAsync<AuthTokensResponse>(ApiRoutes.Auth.Refresh,
             new { accessToken = current.AccessToken, refreshToken = current.RefreshToken }, cancellationToken);
@@ -54,6 +67,7 @@ public class TokenRefresher(IHttpClientFactory httpClientFactory, IAccessTokenPr
 
         var refreshed = new TokenSet(result.ResultData.AccessToken, result.ResultData.RefreshToken, result.ResultData.AccessTokenExpiresAt);
 
+        rotatedTokens?.Record(current.RefreshToken, refreshed);
         await tokenProvider.SetTokenSetAsync(refreshed);
 
         return refreshed;

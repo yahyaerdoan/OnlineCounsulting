@@ -3,6 +3,7 @@ using Hateoas.AspNetCore;
 using OnlineConsulting.Api.Common.Hateoas;
 using OnlineConsulting.Modules.Equipment.Application.Features.EquipmentItems.Contracts;
 using OnlineConsulting.Modules.Equipment.Application.Features.EquipmentItems.DeleteEquipmentItem;
+using OnlineConsulting.Modules.Equipment.Application.Features.EquipmentItems.GetEquipmentItemById;
 using OnlineConsulting.Modules.Equipment.Application.Features.EquipmentItems.UpdateEquipmentItem;
 
 namespace OnlineConsulting.Api.Features.Equipment;
@@ -12,6 +13,7 @@ public sealed class EquipmentItemLinks : LinkProvider<EquipmentItemResponse>
 {
     protected override void AddLinks(EquipmentItemResponse resource, HateoasLinkBuilder links)
         => links
+            .AddIf(links.User.CanSend<GetEquipmentItemByIdQuery>(), LinkRelations.Self, "GetEquipmentItemById", HttpMethods.Get, new { id = resource.Id })
             .AddCustom(Rels.WorkOrders, "GetWorkOrdersByEquipmentId", HttpMethods.Get, new { equipmentId = resource.Id })
             .AddIf(links.User.CanSend<UpdateEquipmentItemCommand>(), LinkRelations.Edit, "UpdateEquipmentItem", HttpMethods.Put, new { id = resource.Id })
             .AddCustomIf(links.User.CanSend<DeleteEquipmentItemCommand>(), Rels.Delete, "DeleteEquipmentItem", HttpMethods.Delete, new { id = resource.Id });

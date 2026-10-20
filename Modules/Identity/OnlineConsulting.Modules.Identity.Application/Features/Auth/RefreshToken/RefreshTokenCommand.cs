@@ -24,7 +24,7 @@ public class RefreshTokenHandler(UserManager<User> userManager, RoleManager<Role
 
         var user = await userManager.FindByIdAsync(userId);
 
-        if (user is null || !await refreshTokenService.ValidateAsync(user, request.RefreshToken, cancellationToken))
+        if (user is null || await refreshTokenService.RotateAsync(user, request.RefreshToken, cancellationToken) is not { } rotated)
         {
             return Result.Unauthorized<AuthTokensResponse>("The refresh token is invalid or has expired.");
         }
@@ -34,8 +34,6 @@ public class RefreshTokenHandler(UserManager<User> userManager, RoleManager<Role
         var permissions = await RolePermissionResolver.ApplyUserOverridesAsync(userManager, user, rolePermissions);
 
         var (accessToken, accessTokenExpiresAt) = tokenService.CreateAccessToken(user, [.. roles], permissions);
-        var (newRefreshToken, _) = await refreshTokenService.IssueAsync(user, cancellationToken);
-
-        return Result.Success(new AuthTokensResponse(user.Id, accessToken, newRefreshToken, accessTokenExpiresAt), "Token refreshed successfully.");
+        return Result.Success(new AuthTokensResponse(user.Id, accessToken, rotated.RawToken, accessTokenExpiresAt), "Token refreshed successfully.");
     }
 }

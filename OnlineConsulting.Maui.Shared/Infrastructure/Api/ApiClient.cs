@@ -9,7 +9,8 @@ using System.Text.Json;
 namespace OnlineConsulting.Maui.Shared.Infrastructure.Api;
 
 /// <summary>Optional deps are null for the anonymous pre-auth client (Login, TokenRefresher).</summary>
-public class ApiClient(HttpClient httpClient, IAccessTokenProvider? tokenProvider = null, TokenRefresher? tokenRefresher = null, AuthenticationExpiredNotifier? expiredNotifier = null, PublicApiOrigin? publicOrigin = null) : IApiClient
+public class ApiClient(HttpClient httpClient, IAccessTokenProvider? tokenProvider = null, TokenRefresher? tokenRefresher = null, AuthenticationExpiredNotifier? expiredNotifier = null, PublicApiOrigin? publicOrigin = null,
+    IBrowserRequestForwarder? browserForwarder = null) : IApiClient
 {
     private const string NetworkErrorMessage = "Could not reach the server. Check your connection and try again.";
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
@@ -103,7 +104,12 @@ public class ApiClient(HttpClient httpClient, IAccessTokenProvider? tokenProvide
             }
         }
 
-        return await httpClient.SendAsync(request, cancellationToken);
+        browserForwarder?.Apply(request);
+
+        var response = await httpClient.SendAsync(request, cancellationToken);
+        browserForwarder?.Relay(response);
+
+        return response;
     }
 
     private void NotifyIfExpired(HttpResponseMessage response)
