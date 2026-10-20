@@ -17,14 +17,14 @@ public class ListUsers : IEndpoint
             .WithTags("Identity/Users")
             .RequireAuthorization()
             .WithName("ListUsers")
-            .WithDescription("Returns users, paginated (?index=&size=), optionally narrowed to one role (?role=) and filtered/sorted via a DynamicQuery body. POST rather than HTTP QUERY, since Swagger can't document that verb.")
+            .WithDescription("Returns users, paginated (?index=&size=), optionally narrowed to one role (?role=) or to active staff, i.e. not storefront customers (?staffOnly=true), and filtered/sorted via a DynamicQuery body. POST rather than HTTP QUERY, since Swagger can't document that verb.")
             .ProducesEnveloped<Paginate<UserResponse>>();
     }
 
     private static async Task<IResult> Handle(ISender sender, HttpContext httpContext, [AsParameters] ListQueryParameters query, [FromBody] DynamicQueryRequest? dynamicQuery,
-        [FromQuery] string? role = null)
+        [FromQuery] string? role = null, [FromQuery] bool staffOnly = false)
     {
-        var result = await sender.Send(new ListUsersQuery(query.ToPageRequest(), dynamicQuery?.ToDynamicQuery(), role));
+        var result = await sender.Send(new ListUsersQuery(query.ToPageRequest(), dynamicQuery?.ToDynamicQuery(), role, staffOnly));
 
         return result.ToEnvelopedResult(httpContext);
     }

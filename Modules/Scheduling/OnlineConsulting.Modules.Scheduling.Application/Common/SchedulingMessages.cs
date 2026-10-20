@@ -11,6 +11,7 @@ public static class SchedulingMessages
     public const string WorkOrderNotFoundForAppointmentFormat = "No work order was found for appointment {0}.";
     public const string WorkOrderAlreadyExistsForAppointment = "A work order already exists for this appointment.";
     public const string WorkOrderNotFoundFormat = "Work order {0} was not found.";
+    public const string TechnicianMustBeStaff = "Choose a member of your team. Customers can't be assigned as technicians.";
     public const string CannotAssignTechnicianToClosedAppointment = "Can't assign a technician to a cancelled or completed appointment.";
     public const string CannotRecordWorkOrderForCancelledAppointment = "Can't record a work order for a cancelled appointment.";
     public const string AppointmentAlreadyClosed = "This appointment is already closed.";

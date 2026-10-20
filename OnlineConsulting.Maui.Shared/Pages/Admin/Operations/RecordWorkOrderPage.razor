@@ -30,7 +30,7 @@ else
         <MudPaper Class="pa-4">
             <MudGrid Spacing="3">
                 <MudItem xs="12" md="6">
-                    <UserPicker Label="Technician" Required="true" Value="@_model.TechnicianUserId" ValueChanged="@((Guid? id) => _model.TechnicianUserId = id ?? Guid.Empty)" />
+                    <UserPicker Label="Technician" Audience="UserPickerAudience.Staff" Required="true" Value="@_model.TechnicianUserId" ValueChanged="@((Guid? id) => _model.TechnicianUserId = id ?? Guid.Empty)" />
                 </MudItem>
 
                 <MudItem xs="12">

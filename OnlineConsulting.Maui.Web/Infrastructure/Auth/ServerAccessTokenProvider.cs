@@ -1,11 +1,11 @@
 ﻿using OnlineConsulting.Maui.Shared.Infrastructure.Auth;
+using OnlineConsulting.Maui.Web.Infrastructure.Api;
 using System.Globalization;
 
 namespace OnlineConsulting.Maui.Web.Infrastructure.Auth;
 
-/// <summary>Seeds from the cookie's claims, then refreshes in-memory - can't rewrite the cookie
-/// mid-circuit (no live HTTP response to set it on).</summary>
-public class ServerAccessTokenProvider(IHttpContextAccessor httpContextAccessor) : IAccessTokenProvider
+/// <summary>Seeds from the cookie's claims (caught up to newer rotations), then refreshes in memory.</summary>
+public class ServerAccessTokenProvider(BrowserRequestContext browserRequest, IRotatedTokenStore rotatedTokens) : IAccessTokenProvider
 {
     private TokenSet? _current;
 
@@ -16,7 +16,7 @@ public class ServerAccessTokenProvider(IHttpContextAccessor httpContextAccessor)
             return Task.FromResult<TokenSet?>(_current);
         }
 
-        var user = httpContextAccessor.HttpContext?.User;
+        var user = browserRequest.User;
         var accessToken = user?.FindFirst(AuthClaimTypes.AccessToken)?.Value;
         var refreshToken = user?.FindFirst(AuthClaimTypes.RefreshToken)?.Value;
         var expiresAtClaim = user?.FindFirst(AuthClaimTypes.AccessTokenExpiresAt)?.Value;
@@ -27,7 +27,7 @@ public class ServerAccessTokenProvider(IHttpContextAccessor httpContextAccessor)
         }
 
         var expiresAt = DateTime.Parse(expiresAtClaim, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
-        _current = new TokenSet(accessToken, refreshToken, expiresAt);
+        _current = rotatedTokens.FindLatest(refreshToken) ?? new TokenSet(accessToken, refreshToken, expiresAt);
         return Task.FromResult<TokenSet?>(_current);
     }
 

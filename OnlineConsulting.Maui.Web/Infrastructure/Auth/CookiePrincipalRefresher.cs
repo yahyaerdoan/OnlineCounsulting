@@ -9,7 +9,7 @@ using System.Security.Claims;
 namespace OnlineConsulting.Maui.Web.Infrastructure.Auth;
 
 /// <summary>Keeps the sign-in cookie's role/IsSuperAdmin claims in sync with the Api's refresh-token flow, so they don't stay frozen at login-time values.</summary>
-public class CookiePrincipalRefresher(IHttpClientFactory httpClientFactory)
+public class CookiePrincipalRefresher(IHttpClientFactory httpClientFactory, IRotatedTokenStore rotatedTokens)
 {
     private static readonly TimeSpan RefreshBuffer = TimeSpan.FromSeconds(60);
 
@@ -27,14 +27,28 @@ public class CookiePrincipalRefresher(IHttpClientFactory httpClientFactory)
         }
 
         var expiresAt = DateTime.Parse(expiresAtClaim, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
-        if (!new TokenSet(accessToken, refreshToken, expiresAt).IsNearExpiry(RefreshBuffer))
+        var tokens = new TokenSet(accessToken, refreshToken, expiresAt);
+
+        // A circuit may have rotated the cookie's token; take its newer set instead of presenting a dead one.
+        if (rotatedTokens.FindLatest(refreshToken) is { } newer)
+        {
+            tokens = newer;
+            if (!tokens.IsNearExpiry(RefreshBuffer))
+            {
+                context.ReplacePrincipal(WithTokens(context.Principal, tokens));
+                context.ShouldRenew = true;
+                return;
+            }
+        }
+
+        if (!tokens.IsNearExpiry(RefreshBuffer))
         {
             return;
         }
 
         var refreshClient = httpClientFactory.CreateClient(ApiHttpClientNames.Anonymous);
         var refreshApi = new ApiClient(refreshClient);
-        var refreshResult = await refreshApi.PostAsync<AuthTokensResponse>(ApiRoutes.Auth.Refresh, new { accessToken, refreshToken });
+        var refreshResult = await refreshApi.PostAsync<AuthTokensResponse>(ApiRoutes.Auth.Refresh, new { accessToken = tokens.AccessToken, refreshToken = tokens.RefreshToken });
 
         if (!refreshResult.IsSuccessful || refreshResult.ResultData is null)
         {
@@ -42,6 +56,9 @@ public class CookiePrincipalRefresher(IHttpClientFactory httpClientFactory)
 
             return;
         }
+
+        var refreshed = new TokenSet(refreshResult.ResultData.AccessToken, refreshResult.ResultData.RefreshToken, refreshResult.ResultData.AccessTokenExpiresAt);
+        rotatedTokens.Record(tokens.RefreshToken, refreshed);
 
         var meClient = httpClientFactory.CreateClient(ApiHttpClientNames.Anonymous);
         meClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", refreshResult.ResultData.AccessToken);
@@ -54,16 +71,26 @@ public class CookiePrincipalRefresher(IHttpClientFactory httpClientFactory)
             return;
         }
 
-        List<Claim> claims =
-        [
-            .. UserClaimsFactory.BuildBaseClaims(userResult.ResultData),
-            new Claim(AuthClaimTypes.AccessToken, refreshResult.ResultData.AccessToken),
-            new Claim(AuthClaimTypes.RefreshToken, refreshResult.ResultData.RefreshToken),
-            new Claim(AuthClaimTypes.AccessTokenExpiresAt, refreshResult.ResultData.AccessTokenExpiresAt.ToString("O", CultureInfo.InvariantCulture)),
-        ];
+        List<Claim> claims = [.. UserClaimsFactory.BuildBaseClaims(userResult.ResultData), .. TokenClaims(refreshed)];
 
         context.ReplacePrincipal(new ClaimsPrincipal(new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme)));
         context.ShouldRenew = true;
+    }
+
+    private static Claim[] TokenClaims(TokenSet tokens) =>
+    [
+        new Claim(AuthClaimTypes.AccessToken, tokens.AccessToken),
+        new Claim(AuthClaimTypes.RefreshToken, tokens.RefreshToken),
+        new Claim(AuthClaimTypes.AccessTokenExpiresAt, tokens.AccessTokenExpiresAt.ToString("O", CultureInfo.InvariantCulture)),
+    ];
+
+    /// <summary>Same user claims, newer tokens.</summary>
+    private static ClaimsPrincipal WithTokens(ClaimsPrincipal? principal, TokenSet tokens)
+    {
+        string[] tokenClaimTypes = [AuthClaimTypes.AccessToken, AuthClaimTypes.RefreshToken, AuthClaimTypes.AccessTokenExpiresAt];
+        var userClaims = principal?.Claims.Where(c => !tokenClaimTypes.Contains(c.Type)) ?? [];
+
+        return new ClaimsPrincipal(new ClaimsIdentity([.. userClaims, .. TokenClaims(tokens)], CookieAuthenticationDefaults.AuthenticationScheme));
     }
 
     private static async Task RejectAsync(CookieValidatePrincipalContext context)

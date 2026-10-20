@@ -27,7 +27,7 @@
             @if (Id is null)
             {
                 <MudItem xs="12">
-                    <UserPicker Label="Customer" Required="true" @bind-Value="_model.UserId" />
+                    <UserPicker Label="Customer" Audience="UserPickerAudience.Customers" Required="true" @bind-Value="_model.UserId" />
                 </MudItem>
             }
             <MudItem xs="12" sm="6">

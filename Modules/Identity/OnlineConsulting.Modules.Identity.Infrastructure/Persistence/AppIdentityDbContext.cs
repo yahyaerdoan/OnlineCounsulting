@@ -30,6 +30,14 @@ public class AppIdentityDbContext(DbContextOptions<AppIdentityDbContext> options
             _ = builder.Property(u => u.DeletedDate).HasConversion(DateTimeOffsetConverters.Nullable);
         });
 
+        _ = modelBuilder.Entity<RefreshToken>(builder =>
+        {
+            // Sessions are found by hash; a user may hold several.
+            _ = builder.Property(r => r.TokenHash).HasMaxLength(128).IsRequired();
+            _ = builder.HasIndex(r => r.TokenHash).IsUnique();
+            _ = builder.HasIndex(r => r.UserId);
+        });
+
         _ = modelBuilder.Entity<DeviceToken>(builder =>
         {
             _ = builder.Property(d => d.Token).HasMaxLength(500).IsRequired();

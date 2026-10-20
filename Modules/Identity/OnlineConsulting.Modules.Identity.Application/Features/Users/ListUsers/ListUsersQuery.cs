@@ -22,8 +22,8 @@ using ResultHandler.Facade;
 
 namespace OnlineConsulting.Modules.Identity.Application.Features.Users.ListUsers;
 
-/// <summary>DynamicQuery carries filter+sort. Tenant scoping stays a separate .Where(), applied first. Role, when set, keeps only users holding it.</summary>
-public record ListUsersQuery(PageRequest PageRequest, DynamicQuery? DynamicQuery = null, string? Role = null) : IRequest<OperationDataResult<Paginate<UserResponse>>>, ISecureAddRequest, IDynamicListRequest
+/// <summary>DynamicQuery carries filter+sort. Tenant scoping stays a separate .Where(), applied first. Role keeps one role; StaffOnly keeps the team.</summary>
+public record ListUsersQuery(PageRequest PageRequest, DynamicQuery? DynamicQuery = null, string? Role = null, bool StaffOnly = false) : IRequest<OperationDataResult<Paginate<UserResponse>>>, ISecureAddRequest, IDynamicListRequest
 {
     public static IReadOnlySet<string> QueryableFields { get; } = new HashSet<string>([nameof(User.FirstName), nameof(User.LastName), nameof(User.Email), nameof(User.IsActive), nameof(User.CreatedDate)]);
 
@@ -59,6 +59,12 @@ public class ListUsersHandler(UserManager<User> userManager, RoleManager<Role> r
         {
             var roleUserIds = await userRoleReader.GetUserIdsInRoleAsync(request.Role, cancellationToken);
             usersQuery = usersQuery.Where(u => roleUserIds.Contains(u.Id));
+        }
+
+        if (request.StaffOnly)
+        {
+            var staffUserIds = await userRoleReader.GetStaffUserIdsAsync(cancellationToken);
+            usersQuery = usersQuery.Where(u => staffUserIds.Contains(u.Id) && u.IsActive);
         }
 
         var pagedUsers = await usersQuery.ToDynamicPaginateAsync(request, defaultOrderBy: u => u.LastName, tieBreaker: u => u.Id, cancellationToken: cancellationToken);

@@ -1,10 +1,12 @@
 ﻿using FluentValidation;
+using OnlineConsulting.Modules.Scheduling.Application.Common;
+using OnlineConsulting.SharedKernel.Identity;
 
 namespace OnlineConsulting.Modules.Scheduling.Application.Features.WorkOrders.CreateWorkOrder;
 
 public class CreateWorkOrderValidator : AbstractValidator<CreateWorkOrderCommand>
 {
-    public CreateWorkOrderValidator()
+    public CreateWorkOrderValidator(IStaffMemberReader staffReader)
     {
         _ = RuleForEach(x => x.Charges).ChildRules(charge =>
         {
@@ -14,7 +16,8 @@ public class CreateWorkOrderValidator : AbstractValidator<CreateWorkOrderCommand
             _ = charge.RuleFor(c => c.TaxRate).InclusiveBetween(0, 100);
         });
         _ = RuleFor(x => x.AppointmentId).NotEmpty();
-        _ = RuleFor(x => x.TechnicianUserId).NotEmpty();
+        _ = RuleFor(x => x.TechnicianUserId).Cascade(CascadeMode.Stop).NotEmpty()
+            .MustAsync(staffReader.IsStaffAsync).WithMessage(SchedulingMessages.TechnicianMustBeStaff);
         _ = RuleFor(x => x.PartsUsed).MaximumLength(2000);
         _ = RuleFor(x => x.TechnicianNotes).MaximumLength(2000);
     }
