@@ -17,7 +17,11 @@
 <PageTitle>Sign in</PageTitle>
 
 <AuthCard Subtitle="@($"Sign in to your {Brand.Name} account")">
-    <LoginErrorSnackbar ErrorMessage="@_errorMessage" GoodbyeToken="@Goodbye" Notice="@Notice" />
+    @* Only with a message: the island opens a circuit. *@
+    @if (HasToast)
+    {
+        <LoginErrorSnackbar ErrorMessage="@_errorMessage" GoodbyeToken="@Goodbye" Notice="@Notice" />
+    }
 
     <EditForm EditContext="@Form.EditContext" method="post" OnValidSubmit="SubmitAsync" FormName="login" autocomplete="off">
         <AuthTextField Label="Username or email" Icon="@Icons.Material.Outlined.Person"
@@ -76,6 +80,8 @@
     }
 
     private string? _errorMessage;
+
+    private bool HasToast => !string.IsNullOrEmpty(_errorMessage) || !string.IsNullOrEmpty(Goodbye) || !string.IsNullOrEmpty(Notice);
 
     protected override async Task OnInitializedAsync()
     {
