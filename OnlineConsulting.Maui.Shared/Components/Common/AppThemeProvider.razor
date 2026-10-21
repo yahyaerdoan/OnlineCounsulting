@@ -1,40 +1,47 @@
 @* MudThemeProvider that follows ThemeModeState: a fixed light/dark choice, or the OS setting (live) when the user picked System.
-   In the native app it also restyles the phone's status/navigation bars to match. *@
+   In the native app it also restyles the phone's status/navigation bars to match. theme-mode.js keeps the page hidden until the
+   right palette is drawn, so it never flashes light first. *@
 @using Microsoft.Extensions.DependencyInjection
 @using OnlineConsulting.Maui.Shared.Theme
 @implements IDisposable
 @inject ThemeModeState ThemeModeState
 @inject IServiceProvider Services
+@inject IJSRuntime JsRuntime
 
 <MudThemeProvider @ref="_provider" Theme="Theme" IsDarkMode="_isDarkMode" />
 
 @code {
     private MudThemeProvider? _provider;
     private bool _isDarkMode;
-    private bool _systemIsDark;
     private bool? _barsDarkMode;
 
     [Parameter, EditorRequired]
     public MudTheme Theme { get; set; } = new();
 
-    protected override void OnInitialized() => ThemeModeState.Changed += OnModeChangedAsync;
+    protected override void OnInitialized()
+    {
+        ThemeModeState.Changed += OnModeChangedAsync;
+
+        // A layout opened later in the session starts with the palette already known.
+        _isDarkMode = ThemeModeState.IsDark ?? false;
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender || _provider is null)
+        if (firstRender && _provider is not null)
         {
-            return;
-        }
+            await ThemeModeState.LoadAsync();
+            ThemeModeState.SystemIsDark ??= await _provider.GetSystemDarkModeAsync();
+            await _provider.WatchSystemDarkModeAsync(OnSystemDarkModeChangedAsync);
 
-        await ThemeModeState.LoadAsync();
-        _systemIsDark = await _provider.GetSystemDarkModeAsync();
-        await _provider.WatchSystemDarkModeAsync(OnSystemDarkModeChangedAsync);
-        Apply();
+            Apply();
+            await JsRuntime.InvokeVoidAsync("comfortProTheme.reveal", _isDarkMode);
+        }
     }
 
     private Task OnSystemDarkModeChangedAsync(bool isDark)
     {
-        _systemIsDark = isDark;
+        ThemeModeState.SystemIsDark = isDark;
         return InvokeAsync(Apply);
     }
 
@@ -42,13 +49,7 @@
 
     private void Apply()
     {
-        var isDark = ThemeModeState.Mode switch
-        {
-            ThemeMode.Dark => true,
-            ThemeMode.Light => false,
-            _ => _systemIsDark,
-        };
-
+        var isDark = ThemeModeState.IsDark ?? false;
         if (isDark != _isDarkMode)
         {
             _isDarkMode = isDark;

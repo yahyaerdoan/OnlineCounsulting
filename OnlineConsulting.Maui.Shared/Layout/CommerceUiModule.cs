@@ -1,4 +1,5 @@
 using MudBlazor;
+using OnlineConsulting.Maui.Shared.Infrastructure.Auth;
 
 namespace OnlineConsulting.Maui.Shared.Layout;
 
@@ -11,8 +12,8 @@ public class CommerceUiModule : IUiModule
     [
         new NavSection("Commerce", Icons.Material.Outlined.ShoppingCart, Color.Primary,
         [
-            new NavItem("Orders", $"{AdminPrefix}/commerce/orders", Icons.Material.Outlined.Receipt),
-            new NavItem("Invoices", $"{AdminPrefix}/commerce/invoices", Icons.Material.Outlined.RequestQuote),
+            new NavItem("Orders", $"{AdminPrefix}/commerce/orders", Icons.Material.Outlined.Receipt, RequiredPermission: PermissionAreas.Commerce),
+            new NavItem("Invoices", $"{AdminPrefix}/commerce/invoices", Icons.Material.Outlined.RequestQuote, RequiredPermission: PermissionAreas.Commerce),
         ]),
     ];
 }

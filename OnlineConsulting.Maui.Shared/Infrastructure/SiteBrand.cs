@@ -25,6 +25,11 @@ public sealed class SiteBrand(IApiClient apiClient)
     /// <summary>True on the platform's own site; pricing and signup exist only there.</summary>
     public bool IsPlatform { get; private set; } = true;
 
+    /// <summary>True only when the brand loaded and says platform; hides storefront features without guessing on a failed load.</summary>
+    public bool IsConfirmedPlatform => _loaded && IsPlatform;
+
+    private bool _loaded;
+
     /// <summary>The platform's own name, the same on every site (footer credit).</summary>
     public string PlatformName { get; private set; } = string.Empty;
 
@@ -55,6 +60,7 @@ public sealed class SiteBrand(IApiClient apiClient)
             {
                 Name = brand.Name;
                 IsPlatform = brand.IsPlatform;
+                _loaded = true;
                 _platformUrl = brand.PlatformUrl;
                 PlatformName = brand.PlatformName;
                 LogoUrl = brand.LogoMediaAssetId is Guid logoId ? await MediaUploadHelper.GetUrlAsync(apiClient, logoId) : null;

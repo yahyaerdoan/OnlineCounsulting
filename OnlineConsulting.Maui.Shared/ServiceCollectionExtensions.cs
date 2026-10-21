@@ -31,6 +31,7 @@ public static class ServiceCollectionExtensions
         _ = services.AddScoped<ThemeModeState>();
         _ = services.AddScoped<TokenRefresher>();
         _ = services.AddScoped<BreadcrumbState>();
+        _ = services.AddScoped<DraftStore>();
         _ = services.AddScoped<DataChangeNotifier>();
         _ = services.AddScoped<LiveUpdatesConnection>();
         _ = services.AddScoped<PushRegistration>();

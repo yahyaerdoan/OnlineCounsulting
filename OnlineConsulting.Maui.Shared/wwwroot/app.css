@@ -2,6 +2,16 @@
     outline: none;
 }
 
+/* App start (theme-mode.js): app hidden until AppThemeProvider draws the real palette. The dark background comes from
+   BrandPalette via App.razor (web) and index.html (native). */
+html[data-theme-boot="dark"] {
+    color-scheme: dark;
+}
+
+html[data-theme-boot] .mud-layout {
+    visibility: hidden;
+}
+
 /* ---- Shared text utilities ---- */
 
 .text-strong {
@@ -2544,10 +2554,11 @@ a.tone-bubble:hover {
     backdrop-filter: saturate(1.4) blur(6px);
 }
 
-/* Desktop rail only - on .nav-drawer-mobile this clips the Temporary overlay's open/close transform. */
+/* Desktop rail only - on .nav-drawer-mobile this clips the Temporary overlay's open/close transform.
+   Top-level menu only: a group's inner menu would become a scroll box (overscroll: contain) and trap the wheel. */
 .nav-drawer,
 .nav-drawer .mud-drawer-content,
-.nav-drawer .mud-navmenu {
+.nav-drawer .mud-drawer-content > .mud-navmenu {
     overflow-x: hidden;
 }
 
@@ -10484,27 +10495,28 @@ a.address-card {
         display: none;
     }
 
-    /* Customer inbox scrolls with the page; the message box sticks above the bottom nav */
-    .inbox--flow,
-    .inbox--flow.inbox--open {
+    /* Customer conversation list scrolls with the page */
+    .inbox--flow {
         height: auto;
         min-height: 0;
         overflow: visible;
     }
 
-    .inbox--flow .inbox-messages {
-        overflow: visible;
+    /* Open conversation fills the screen like a messaging app: messages scroll inside, the message box stays at the bottom */
+    .inbox--flow.inbox--open {
+        position: fixed;
+        inset: 0;
+        z-index: 1350;
+        height: auto;
+        min-height: 0;
+        overflow: hidden;
+        border: 0;
+        border-radius: 0;
+        padding-top: env(safe-area-inset-top);
     }
 
-    .inbox--flow .inbox-compose-body {
-        min-height: 30dvh;
-    }
-
-    .inbox--flow .inbox-composer {
-        position: sticky;
-        bottom: calc(60px + env(safe-area-inset-bottom));
-        z-index: 2;
-        background: var(--mud-palette-surface);
+    .inbox--flow.inbox--open .inbox-composer {
+        padding-bottom: calc(8px + env(safe-area-inset-bottom));
     }
 }
 

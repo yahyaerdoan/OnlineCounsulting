@@ -11,4 +11,7 @@ public static class AuthClaimTypes
     public const string AccessTokenExpiresAt = "onlineconsulting:access_token_expires_at";
 
     public const string IsSuperAdmin = "onlineconsulting:is_super_admin";
+
+    /// <summary>A module the user holds any permission in (the part before the dot, e.g. "scheduling").</summary>
+    public const string PermissionArea = "onlineconsulting:permission_area";
 }

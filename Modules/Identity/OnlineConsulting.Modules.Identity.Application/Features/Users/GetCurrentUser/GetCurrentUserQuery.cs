@@ -36,7 +36,8 @@ public class GetCurrentUserHandler(ICurrentUserAccessor currentUserAccessor, Use
         }
 
         var roles = await userManager.GetRolesAsync(user);
-        var permissions = RolePermissionResolver.ExpandForDisplay(await RolePermissionResolver.ResolvePermissionsAsync(roleManager, roles), permissionCatalog);
+        var rolePermissions = await RolePermissionResolver.ResolvePermissionsAsync(roleManager, roles);
+        var permissions = RolePermissionResolver.ExpandForDisplay(await RolePermissionResolver.ApplyUserOverridesAsync(userManager, user, rolePermissions), permissionCatalog);
 
         var response = new UserResponse
         {

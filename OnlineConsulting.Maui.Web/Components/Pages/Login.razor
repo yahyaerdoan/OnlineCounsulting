@@ -64,7 +64,9 @@
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
 
-    private string RegisterHref => string.IsNullOrEmpty(ReturnUrl) ? "/register" : $"/register?ReturnUrl={Uri.EscapeDataString(ReturnUrl)}";
+    // The platform has no customer accounts; businesses sign up instead.
+    private string RegisterHref => Brand.IsConfirmedPlatform ? AppRoutes.Signup
+        : string.IsNullOrEmpty(ReturnUrl) ? "/register" : $"/register?ReturnUrl={Uri.EscapeDataString(ReturnUrl)}";
 
     [SupplyParameterFromQuery]
     private string? Goodbye { get; set; }

@@ -10,6 +10,7 @@
 @inject NavigationManager Navigation
 @inject DataChangeNotifier Notifier
 @inject FormState<NewMessageModel> Form
+@inject DraftStore Drafts
 
 <PageTitle>Messages</PageTitle>
 
@@ -66,12 +67,12 @@
                 </MudStack>
 
                 <div class="inbox-compose-body">
-                    <MudTextField @bind-Value="_model.Subject" For="@(() => _model.Subject)" Label="Subject" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                    <MudTextField @bind-Value="_model.Subject" @bind-Value:after="SaveSubjectDraftAsync" Immediate="true" For="@(() => _model.Subject)" Label="Subject" Variant="Variant.Outlined" Margin="Margin.Dense" />
                     <MudText Typo="Typo.caption" Class="inbox-muted mt-2">We usually reply within one business day. You'll also get our reply by email.</MudText>
                 </div>
 
                 <div class="inbox-composer">
-                    <MudTextField @bind-Value="_model.Description" For="@(() => _model.Description)" Immediate="true" OnKeyDown="OnComposerKeyDown"
+                    <MudTextField @bind-Value="_model.Description" @bind-Value:after="SaveBodyDraftAsync" For="@(() => _model.Description)" Immediate="true" OnKeyDown="OnComposerKeyDown"
                                   Placeholder="Write your message" Variant="Variant.Outlined" Margin="Margin.Dense"
                                   Lines="1" MaxLines="8" Sizing="InputSizing.Auto" Class="inbox-composer-field" />
                     <MudTooltip Text="Send (Ctrl+Enter)">
@@ -100,7 +101,7 @@
 
             @if (thread.Links.Find(LinkRels.Reply) is { } reply)
             {
-                <MessageComposer @key="thread.Id" Placeholder="Write a reply"
+                <MessageComposer @key="thread.Id" ConversationId="thread.Id" Placeholder="Write a reply"
                                  Send="@(body => ApiClient.FollowAsync(reply, new { replyBody = body }))" OnSent="RefreshAsync" />
             }
         }
@@ -111,6 +112,8 @@
     private const string ListUrl = "/user/messages";
     private const string NewSegment = "new";
     private const string NewUrl = ListUrl + "/" + NewSegment;
+    private const string SubjectDraftKey = "new-message:subject";
+    private const string BodyDraftKey = "new-message:body";
 
     /// <summary>"new" or a conversation id; a parameter so switching between them re-renders.</summary>
     [Parameter]
@@ -136,6 +139,23 @@
         _liveUpdates = Notifier.Subscribe(() => InvokeAsync(async () => { await RefreshAsync(); StateHasChanged(); }), DataTopic.Messages);
         await LoadListAsync();
     }
+
+    // Unsent new message, kept until the app closes.
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        _model.Subject = await Drafts.GetAsync(SubjectDraftKey) ?? _model.Subject;
+        _model.Description = await Drafts.GetAsync(BodyDraftKey) ?? _model.Description;
+        StateHasChanged();
+    }
+
+    private async Task SaveSubjectDraftAsync() => await Drafts.SaveAsync(SubjectDraftKey, _model.Subject);
+
+    private async Task SaveBodyDraftAsync() => await Drafts.SaveAsync(BodyDraftKey, _model.Description);
 
     protected override async Task OnParametersSetAsync()
     {
@@ -216,6 +236,8 @@
         Snackbar.ShowSuccess(result.DisplayMessage);
         _model = new();
         Form.Bind(_model);
+        await Drafts.RemoveAsync(SubjectDraftKey);
+        await Drafts.RemoveAsync(BodyDraftKey);
         await LoadListAsync();
         Navigation.NavigateTo(MessageUrl(message.Id));
     });

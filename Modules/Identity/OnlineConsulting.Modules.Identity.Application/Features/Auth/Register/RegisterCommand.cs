@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using OnlineConsulting.Modules.Identity.Application.Common;
 using OnlineConsulting.Modules.Identity.Application.Common.Templates;
+using OnlineConsulting.Modules.Identity.Application.Features.Auth.Rules;
 using OnlineConsulting.Modules.Identity.Domain;
 using OnlineConsulting.SharedKernel.Authorization;
 using OnlineConsulting.SharedKernel.Notifications;
@@ -20,6 +21,11 @@ public class RegisterHandler(UserManager<User> userManager, IEmailOutboxWriter<I
 {
     public async Task<OperationResult> Handle(RegisterCommand request, CancellationToken cancellationToken)
     {
+        if (tenantProvider.TenantId == TenantDefaults.DefaultTenantId)
+        {
+            return AuthBusinessRules.PlatformRegistrationClosed();
+        }
+
         var user = new User
         {
             UserName = request.UserName,

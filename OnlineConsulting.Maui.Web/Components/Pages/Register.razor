@@ -6,6 +6,7 @@
 @inject IHttpClientFactory HttpClientFactory
 @inject NavigationManager Navigation
 @inject FormState<RegisterModel> Form
+@inject OnlineConsulting.Maui.Shared.Infrastructure.SiteBrand Brand
 
 <PageTitle>Create account</PageTitle>
 
@@ -71,7 +72,17 @@
     private string? _errorMessage;
     private string? _successMessage;
 
-    protected override void OnInitialized() => Form.Bind(_model);
+    protected override async Task OnInitializedAsync()
+    {
+        Form.Bind(_model);
+
+        // The platform has no customer accounts; businesses sign up instead.
+        await Brand.EnsureLoadedAsync();
+        if (Brand.IsConfirmedPlatform)
+        {
+            Navigation.NavigateTo(AppRoutes.Signup);
+        }
+    }
 
     private Task SubmitAsync() => Form.SubmitAsync(async () =>
     {

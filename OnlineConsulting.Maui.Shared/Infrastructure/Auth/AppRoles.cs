@@ -7,6 +7,9 @@ public static class AppRoles
     /// <summary>Storefront user - the role every self-registered account gets.</summary>
     public const string User = "User";
 
+    /// <summary>Business owner - full access inside its own tenant.</summary>
+    public const string Admin = "Admin";
+
     /// <summary>Cross-tenant platform authority - has a global bypass, ignores per-module permission toggles.</summary>
     public const string SuperAdmin = "Super Admin";
 }

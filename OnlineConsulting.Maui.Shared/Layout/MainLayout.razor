@@ -48,7 +48,9 @@
             <MudMainContent>
                 <MudContainer MaxWidth="MaxWidth.False" Class="pa-4 page-shell">
                     <PageBreadcrumbs />
-                    @Body
+                    <AdminPageGuard User="context.User">
+                        @Body
+                    </AdminPageGuard>
                 </MudContainer>
             </MudMainContent>
         </MudLayout>

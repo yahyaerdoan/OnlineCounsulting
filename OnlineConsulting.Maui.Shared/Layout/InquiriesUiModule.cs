@@ -1,4 +1,5 @@
 using MudBlazor;
+using OnlineConsulting.Maui.Shared.Infrastructure.Auth;
 
 namespace OnlineConsulting.Maui.Shared.Layout;
 
@@ -11,9 +12,9 @@ public class InquiriesUiModule : IUiModule
     [
         new NavSection("Inquiries", Icons.Material.Outlined.MarkEmailUnread, Color.Info,
         [
-            new NavItem("Contact Info", $"{AdminPrefix}/inquiries/contact", Icons.Material.Outlined.ContactMail),
-            new NavItem("Messages", $"{AdminPrefix}/inquiries/messages", Icons.Material.Outlined.Message),
-            new NavItem("Newsletter", $"{AdminPrefix}/inquiries/newsletter", Icons.Material.Outlined.Mail),
+            new NavItem("Messages", $"{AdminPrefix}/inquiries/messages", Icons.Material.Outlined.Message, RequiredPermission: PermissionAreas.Messages),
+            new NavItem("Newsletter", $"{AdminPrefix}/inquiries/newsletter", Icons.Material.Outlined.Mail, RequiredPermission: PermissionAreas.Newsletter),
+            new NavItem("Contact Info", $"{AdminPrefix}/inquiries/contact", Icons.Material.Outlined.ContactMail, RequiredPermission: PermissionAreas.Contact),
         ]),
     ];
 }

@@ -1,4 +1,5 @@
 using MudBlazor;
+using OnlineConsulting.Maui.Shared.Infrastructure.Auth;
 
 namespace OnlineConsulting.Maui.Shared.Layout;
 
@@ -11,8 +12,8 @@ public class CatalogUiModule : IUiModule
     [
         new NavSection("Catalog", Icons.Material.Outlined.Storefront, Color.Primary,
         [
-            new NavItem("Categories", $"{AdminPrefix}/catalog/categories", Icons.Material.Outlined.Category),
-            new NavItem("Services", $"{AdminPrefix}/catalog/services", Icons.Material.Outlined.Handyman),
+            new NavItem("Categories", $"{AdminPrefix}/catalog/categories", Icons.Material.Outlined.Category, RequiredPermission: PermissionAreas.Categories),
+            new NavItem("Services", $"{AdminPrefix}/catalog/services", Icons.Material.Outlined.Handyman, RequiredPermission: PermissionAreas.Services),
         ]),
     ];
 }

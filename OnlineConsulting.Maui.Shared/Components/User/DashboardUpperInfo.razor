@@ -6,6 +6,7 @@
 @inject IApiClient ApiClient
 @inject CartState CartState
 @inject DataChangeNotifier Notifier
+@inject SiteBrand Brand
 
 <MudPaper Class="dashboard-upper-info mb-4" Outlined="true">
     <div class="dashboard-upper-identity">
@@ -41,6 +42,9 @@
     </div>
 
     <nav class="dashboard-upper-actions" aria-label="Shortcuts">
+        @* The platform sells no services: no visits or basket there. *@
+        @if (!Brand.IsConfirmedPlatform)
+        {
         <a href="/appointment" class="dashboard-upper-action">
             <span class="tone-bubble tone-bubble-sm @AccentTone.Blue"><MudIcon Icon="@Icons.Material.Outlined.EventAvailable" Size="Size.Small" /></span>
             <span>Book a visit</span>
@@ -55,6 +59,7 @@
             </span>
             <span>Basket</span>
         </a>
+        }
         <a href="/contact" class="dashboard-upper-action">
             <span class="tone-bubble tone-bubble-sm @AccentTone.Green"><MudIcon Icon="@Icons.Material.Outlined.SupportAgent" Size="Size.Small" /></span>
             <span>Support</span>
@@ -90,6 +95,7 @@
     protected override async Task OnInitializedAsync()
     {
         CartState.Changed += OnCartChanged;
+        await Brand.EnsureLoadedAsync();
         _liveUpdates = Notifier.Subscribe(() => InvokeAsync(async () => { await LoadAsync(); StateHasChanged(); }),
             DataTopic.Membership, DataTopic.Profile, DataTopic.Summary);
 

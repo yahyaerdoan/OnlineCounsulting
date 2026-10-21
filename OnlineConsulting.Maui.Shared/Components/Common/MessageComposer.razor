@@ -1,10 +1,11 @@
-@* Reply box under a conversation; Ctrl+Enter sends. *@
+@* Reply box under a conversation; Ctrl+Enter sends. Unsent text is kept per conversation until the app closes. *@
 @using OnlineConsulting.Maui.Shared.Infrastructure.Forms
 @inject FormState<ReplyModel> Form
 @inject ISnackbar Snackbar
+@inject DraftStore Drafts
 
 <EditForm EditContext="@Form.EditContext" OnSubmit="SendAsync" class="inbox-composer">
-    <MudTextField @bind-Value="_model.ReplyBody" For="@(() => _model.ReplyBody)" Immediate="true" OnKeyDown="OnKeyDown"
+    <MudTextField @bind-Value="_model.ReplyBody" @bind-Value:after="SaveDraftAsync" For="@(() => _model.ReplyBody)" Immediate="true" OnKeyDown="OnKeyDown"
                   Placeholder="@Placeholder" Variant="Variant.Outlined" Margin="Margin.Dense"
                   Lines="1" MaxLines="6" Sizing="InputSizing.Auto" Class="inbox-composer-field" />
     <MudTooltip Text="Send (Ctrl+Enter)">
@@ -24,9 +25,26 @@
     [Parameter]
     public EventCallback OnSent { get; set; }
 
+    /// <summary>Conversation id; the unsent reply is kept under it.</summary>
+    [Parameter, EditorRequired]
+    public Guid ConversationId { get; set; }
+
+    private string DraftKey => $"reply:{ConversationId}";
+
     private readonly ReplyModel _model = new();
 
     protected override void OnInitialized() => Form.Bind(_model);
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && await Drafts.GetAsync(DraftKey) is { Length: > 0 } draft)
+        {
+            _model.ReplyBody = draft;
+            StateHasChanged();
+        }
+    }
+
+    private async Task SaveDraftAsync() => await Drafts.SaveAsync(DraftKey, _model.ReplyBody);
 
     private async Task OnKeyDown(KeyboardEventArgs args)
     {
@@ -51,6 +69,7 @@
         }
 
         _model.ReplyBody = string.Empty;
+        await Drafts.RemoveAsync(DraftKey);
         Snackbar.ShowSuccess(result.DisplayMessage);
         await OnSent.InvokeAsync();
     });

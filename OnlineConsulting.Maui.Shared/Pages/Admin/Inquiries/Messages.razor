@@ -92,7 +92,7 @@
 
             @if (thread.Links.Find(LinkRels.Reply) is { } reply)
             {
-                <MessageComposer @key="thread.Id" Placeholder="@($"Reply to {NameCase(thread.FirstName)}")"
+                <MessageComposer @key="thread.Id" ConversationId="thread.Id" Placeholder="@($"Reply to {NameCase(thread.FirstName)}")"
                                  Send="@(body => ApiClient.FollowAsync(reply, new { replyBody = body }))" OnSent="@(() => LoadThreadAsync(thread.Id))" />
             }
         }

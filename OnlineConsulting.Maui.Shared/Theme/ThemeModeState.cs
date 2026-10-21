@@ -19,6 +19,12 @@ public sealed class ThemeModeState(IJSRuntime jsRuntime)
 
     public ThemeMode Mode { get; private set; } = ThemeMode.System;
 
+    /// <summary>The OS setting, once the first theme provider has read it; null until then.</summary>
+    public bool? SystemIsDark { get; set; }
+
+    /// <summary>The look to draw; known once SystemIsDark is, so a later layout starts with the right palette.</summary>
+    public bool? IsDark => SystemIsDark is { } systemIsDark ? Mode == ThemeMode.Dark || (Mode == ThemeMode.System && systemIsDark) : null;
+
     public event Func<Task>? Changed;
 
     /// <summary>Reads the saved choice once per app lifetime; migrates the old boolean dark-mode key.</summary>

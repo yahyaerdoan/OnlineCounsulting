@@ -4,11 +4,13 @@
 @using OnlineConsulting.Maui.Shared.Infrastructure.Api
 @using OnlineConsulting.Maui.Shared.Infrastructure.Auth
 @using OnlineConsulting.Maui.Shared.Infrastructure.Forms
+@using OnlineConsulting.Maui.Shared.Layout
 @inject IApiClient ApiClient
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
 @inject FormState<RegisterModel> Form
+@inject OnlineConsulting.Maui.Shared.Infrastructure.SiteBrand Brand
 
 <PageTitle>Create account</PageTitle>
 
@@ -65,6 +67,14 @@
         if (authState.User.Identity?.IsAuthenticated is true)
         {
             Navigation.NavigateTo(SignInRedirect.Target(authState.User, ReturnUrl), replace: true);
+            return;
+        }
+
+        // The platform has no customer accounts; businesses sign up instead.
+        await Brand.EnsureLoadedAsync();
+        if (Brand.IsConfirmedPlatform)
+        {
+            Navigation.NavigateTo(AppRoutes.Signup, replace: true);
         }
     }
 

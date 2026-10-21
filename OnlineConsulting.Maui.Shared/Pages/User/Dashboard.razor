@@ -6,6 +6,7 @@
 @layout OnlineConsulting.Maui.Shared.Layout.DashboardLayout
 @inject IApiClient ApiClient
 @inject DataChangeNotifier Notifier
+@inject SiteBrand Brand
 @implements IDisposable
 
 <PageTitle>Dashboard</PageTitle>
@@ -20,6 +21,9 @@
     }
     else
     {
+        @* The platform sells no services: no orders, visits or equipment there. *@
+        @if (!Brand.IsConfirmedPlatform)
+        {
         <MudGrid Class="mb-6">
             <MudItem xs="6" md="2">
                 <DashboardStatCard Label="Total Orders" Color="Color.Primary">@_totalOrders</DashboardStatCard>
@@ -37,8 +41,18 @@
                 <DashboardStatCard Label="Total Spent">@CurrencyFormat.Format(_totalSpent)</DashboardStatCard>
             </MudItem>
         </MudGrid>
+        }
 
         <MudGrid>
+            @if (_isStaff)
+            {
+                <MudItem xs="12" sm="6" md="4">
+                    <DashboardActionCard Icon="@Icons.Material.Outlined.AdminPanelSettings" Color="Color.Primary" Title="Admin Panel"
+                                          Description="Manage bookings, services, site content and settings." Href="@AppRoutes.AdminHome" ButtonText="Open Admin Panel" />
+                </MudItem>
+            }
+            @if (!Brand.IsConfirmedPlatform)
+            {
             <MudItem xs="12" sm="6" md="4">
                 <DashboardActionCard Icon="@Icons.Material.Outlined.ShoppingBag" Color="Color.Primary" Title="Recent Orders"
                                       Description="View and track your latest orders." Href="/user/orders" ButtonText="View Orders" />
@@ -47,10 +61,13 @@
                 <DashboardActionCard Icon="@Icons.Material.Outlined.LocationOn" Color="Color.Success" Title="Manage Addresses"
                                       Description="Update your shipping and billing addresses." Href="/user/addresses" ButtonText="Edit Addresses" />
             </MudItem>
+            }
             <MudItem xs="12" sm="6" md="4">
                 <DashboardActionCard Icon="@Icons.Material.Outlined.PersonOutline" Color="Color.Warning" Title="Account Settings"
                                       Description="View your profile details." Href="/user/profile" ButtonText="Edit Profile" />
             </MudItem>
+            @if (!Brand.IsConfirmedPlatform)
+            {
             <MudItem xs="12" sm="6" md="4">
                 <DashboardActionCard Icon="@Icons.Material.Outlined.Build" Color="Color.Info" Title="My Equipment"
                                       Description="Check your installed equipment and service history." Href="/user/equipment" ButtonText="View Equipment" />
@@ -59,6 +76,7 @@
                 <DashboardActionCard Icon="@Icons.Material.Outlined.CalendarMonth" Color="Color.Secondary" Title="Book an Appointment"
                                       Description="Schedule a service visit." Href="/appointment" ButtonText="Book Now" />
             </MudItem>
+            }
             <MudItem xs="12" sm="6" md="4">
                 <DashboardActionCard Icon="@Icons.Material.Outlined.SupportAgent" Color="Color.Error" Title="Support"
                                       Description="Need help? Get in touch with us." Href="/contact" ButtonText="Contact Support" />
@@ -78,11 +96,25 @@
     private decimal _totalSpent => _orders.Where(o => o.PaymentStatus == "Paid").Sum(o => o.TotalPrice);
 
     private IDisposable? _liveUpdates;
+    private bool _isStaff;
 
-    protected override Task OnInitializedAsync()
+    [CascadingParameter]
+    private Task<AuthenticationState>? AuthenticationState { get; set; }
+
+    protected override async Task OnInitializedAsync()
     {
+        var authState = AuthenticationState ?? Task.FromResult(new AuthenticationState(new()));
+        await Task.WhenAll(Brand.EnsureLoadedAsync(), authState);
+        _isStaff = (await authState).User.IsStaff();
+
+        if (Brand.IsConfirmedPlatform)
+        {
+            _loading = false;
+            return;
+        }
+
         _liveUpdates = Notifier.Subscribe(() => InvokeAsync(async () => { await LoadOrdersAsync(); StateHasChanged(); }), DataTopic.Orders);
-        return LoadOrdersAsync();
+        await LoadOrdersAsync();
     }
 
     private async Task LoadOrdersAsync()

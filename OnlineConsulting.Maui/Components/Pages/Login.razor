@@ -4,6 +4,7 @@
 @using OnlineConsulting.Maui.Shared.Infrastructure.Api
 @using OnlineConsulting.Maui.Shared.Infrastructure.Auth
 @using OnlineConsulting.Maui.Shared.Infrastructure.Forms
+@using OnlineConsulting.Maui.Shared.Layout
 @inject IApiClient ApiClient
 @inject SecureStorageAccessTokenProvider TokenProvider
 @inject MauiAuthenticationStateProvider AuthStateProvider
@@ -39,7 +40,9 @@
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
 
-    private string RegisterHref => string.IsNullOrEmpty(ReturnUrl) ? "/register" : $"/register?ReturnUrl={Uri.EscapeDataString(ReturnUrl)}";
+    // The platform has no customer accounts; businesses sign up instead.
+    private string RegisterHref => Brand.IsConfirmedPlatform ? AppRoutes.Signup
+        : string.IsNullOrEmpty(ReturnUrl) ? "/register" : $"/register?ReturnUrl={Uri.EscapeDataString(ReturnUrl)}";
 
     protected override async Task OnInitializedAsync()
     {

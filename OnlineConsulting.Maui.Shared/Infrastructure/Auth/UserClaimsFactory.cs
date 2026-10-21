@@ -15,5 +15,6 @@ public static class UserClaimsFactory
         new Claim(ClaimTypes.Email, user.Email),
         .. user.Roles.Select(role => new Claim(ClaimTypes.Role, role)),
         .. user.IsSuperAdmin ? [new Claim(AuthClaimTypes.IsSuperAdmin, "true")] : Array.Empty<Claim>(),
+        .. user.Permissions.Select(permission => permission.Split('.')[0]).Distinct().Select(area => new Claim(AuthClaimTypes.PermissionArea, area)),
     ];
 }

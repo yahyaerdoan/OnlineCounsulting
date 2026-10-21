@@ -1,4 +1,5 @@
 ﻿using MudBlazor;
+using OnlineConsulting.Maui.Shared.Infrastructure.Auth;
 
 namespace OnlineConsulting.Maui.Shared.Layout;
 
@@ -16,18 +17,18 @@ public class CoreUiModule : IUiModule
 
         new NavSection("Operations", Icons.Material.Outlined.EventNote, Color.Warning,
         [
-            new NavItem("Appointments", $"{AdminPrefix}/operations/appointments", Icons.Material.Outlined.Event),
-            new NavItem("Equipment", $"{AdminPrefix}/operations/equipment", Icons.Material.Outlined.Build),
-            new NavItem("Availability Rules", $"{AdminPrefix}/operations/availability-rules", Icons.Material.Outlined.Schedule),
+            new NavItem("Appointments", $"{AdminPrefix}/operations/appointments", Icons.Material.Outlined.Event, RequiredPermission: PermissionAreas.Scheduling),
+            new NavItem("Equipment", $"{AdminPrefix}/operations/equipment", Icons.Material.Outlined.Build, RequiredPermission: PermissionAreas.Equipment),
+            new NavItem("Availability Rules", $"{AdminPrefix}/operations/availability-rules", Icons.Material.Outlined.Schedule, RequiredPermission: PermissionAreas.Scheduling),
         ]),
 
         new NavSection("Growth", Icons.Material.Outlined.TrendingUp, Color.Success,
         [
-            new NavItem("Memberships", $"{AdminPrefix}/growth/memberships", Icons.Material.Outlined.CardMembership),
-            new NavItem("Promo Codes", $"{AdminPrefix}/growth/promo-codes", Icons.Material.Outlined.Sell),
-            new NavItem("Membership Subscribers", $"{AdminPrefix}/growth/membership-subscribers", Icons.Material.Outlined.Groups),
-            new NavItem("Referrals", $"{AdminPrefix}/growth/referrals", Icons.Material.Outlined.Diversity3),
-            new NavItem("Promotions", $"{AdminPrefix}/growth/promotions", Icons.Material.Outlined.LocalOffer),
+            new NavItem("Memberships", $"{AdminPrefix}/growth/memberships", Icons.Material.Outlined.CardMembership, RequiredPermission: PermissionAreas.Memberships),
+            new NavItem("Promo Codes", $"{AdminPrefix}/growth/promo-codes", Icons.Material.Outlined.Sell, RequiredPermission: PermissionAreas.Memberships),
+            new NavItem("Membership Subscribers", $"{AdminPrefix}/growth/membership-subscribers", Icons.Material.Outlined.Groups, RequiredPermission: PermissionAreas.Memberships),
+            new NavItem("Referrals", $"{AdminPrefix}/growth/referrals", Icons.Material.Outlined.Diversity3, RequiredPermission: PermissionAreas.Referrals),
+            new NavItem("Promotions", $"{AdminPrefix}/growth/promotions", Icons.Material.Outlined.LocalOffer, RequiredPermission: PermissionAreas.SiteContent),
         ]),
 
         new NavSection("Platform", Icons.Material.Outlined.Business, Color.Secondary,
@@ -40,12 +41,12 @@ public class CoreUiModule : IUiModule
 
         new NavSection("Settings", Icons.Material.Outlined.Settings, Color.Tertiary,
         [
-            new NavItem("Users", $"{AdminPrefix}/settings/users", Icons.Material.Outlined.People),
-            new NavItem("Invites", $"{AdminPrefix}/settings/invites", Icons.Material.Outlined.MarkEmailUnread),
+            new NavItem("Users", $"{AdminPrefix}/settings/users", Icons.Material.Outlined.People, RequiredPermission: PermissionAreas.Users),
+            new NavItem("Invites", $"{AdminPrefix}/settings/invites", Icons.Material.Outlined.MarkEmailUnread, RequiredPermission: PermissionAreas.Invites),
             new NavItem("Roles", $"{AdminPrefix}/settings/roles", Icons.Material.Outlined.AdminPanelSettings, SuperAdminOnly: true),
             new NavItem("Permissions", $"{AdminPrefix}/settings/permissions", Icons.Material.Outlined.Security, SuperAdminOnly: true),
-            new NavItem("Feature Flags", $"{AdminPrefix}/settings/feature-flags", Icons.Material.Outlined.Flag),
-            new NavItem("My Subscription", $"{AdminPrefix}/settings/my-subscription", Icons.Material.Outlined.CreditCard),
+            new NavItem("Feature Flags", $"{AdminPrefix}/settings/feature-flags", Icons.Material.Outlined.Flag, RequiredPermission: PermissionAreas.FeatureFlags),
+            new NavItem("My Subscription", $"{AdminPrefix}/settings/my-subscription", Icons.Material.Outlined.CreditCard, AdminOnly: true),
         ]),
     ];
 }
