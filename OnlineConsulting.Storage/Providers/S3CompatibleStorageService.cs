@@ -53,6 +53,8 @@ public class S3CompatibleStorageService : IStorageService
             InputStream = buffer,
             ContentType = contentType,
             AutoCloseStream = false,
+            // R2 rejects streaming (chunked) payload signing; the body still travels over TLS.
+            DisablePayloadSigning = true,
         }, cancellationToken);
 
         var url = $"{_options.PublicBaseUrl.TrimEnd('/')}/{storageKey}";
