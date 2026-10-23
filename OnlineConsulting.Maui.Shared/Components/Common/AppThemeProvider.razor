@@ -54,6 +54,7 @@
         {
             _isDarkMode = isDark;
             StateHasChanged();
+            _ = JsRuntime.InvokeVoidAsync("comfortProTheme.setStatusBar", isDark).AsTask();
         }
 
         if (isDark != _barsDarkMode && Services.GetService<ISystemBarsStyler>() is { } barsStyler)

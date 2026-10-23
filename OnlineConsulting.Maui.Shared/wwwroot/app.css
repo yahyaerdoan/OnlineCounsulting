@@ -12,6 +12,24 @@ html[data-theme-boot] .mud-layout {
     visibility: hidden;
 }
 
+/* ---- Touch: native-feeling taps (mobile-native skill) ---- */
+
+/* No gray flash on tap; MudBlazor's ripple and :active states are the press feedback. */
+html {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+}
+
+/* No 300ms double-tap wait, and a long press doesn't select a control's label. */
+.mud-button-root,
+.mud-nav-link,
+.mud-tab,
+.mud-chip {
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
 /* ---- Shared text utilities ---- */
 
 .text-strong {
@@ -1281,6 +1299,46 @@ a.tone-bubble:hover {
     gap: 12px;
 }
 
+/* Rich text inside an admin table cell: the editor's formatting at table scale. */
+.admin-rich-text > :first-child {
+    margin-top: 0;
+}
+
+.admin-rich-text > :last-child {
+    margin-bottom: 0;
+}
+
+.admin-rich-text p,
+.admin-rich-text ul,
+.admin-rich-text ol {
+    margin: 0 0 .4rem;
+}
+
+.admin-rich-text ul,
+.admin-rich-text ol {
+    padding-left: 1.2rem;
+}
+
+.admin-rich-text h1,
+.admin-rich-text h2,
+.admin-rich-text h3 {
+    margin: .6rem 0 .2rem;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.admin-rich-text .ql-align-center {
+    text-align: center;
+}
+
+.admin-rich-text .ql-align-right {
+    text-align: right;
+}
+
+.admin-rich-text .ql-align-justify {
+    text-align: justify;
+}
+
 /* Baseline "prose" styling for CMS rich-text output (MudExRichTextEdit) - without this, injected
    h1/h2/ul render at the theme's raw browser/global heading sizes, wildly oversized next to the
    surrounding body copy. */
@@ -2226,6 +2284,7 @@ a.tone-bubble:hover {
     display: grid;
     grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
     min-height: 100vh;
+    min-height: 100dvh; /* phones: the visible height, not the height with the URL bar hidden */
     width: 100%;
 }
 
@@ -2283,6 +2342,7 @@ a.tone-bubble:hover {
 
 .auth-page-container {
     min-height: 100vh;
+    min-height: 100dvh;
 }
 
 .auth-panel {
@@ -2296,7 +2356,7 @@ a.tone-bubble:hover {
 .auth-card {
     width: 100%;
     max-width: 26rem;
-    border-radius: 20px !important;
+    border-radius: var(--mud-default-borderradius) !important;
     padding: 2.75rem 2.5rem !important;
     box-shadow: 0 1px 2px rgba(16, 16, 32, 0.04), 0 24px 48px -12px rgba(16, 16, 32, 0.14) !important;
 }
@@ -2501,7 +2561,7 @@ a.tone-bubble:hover {
 }
 
 .stat-card {
-    border-radius: 12px !important;
+    border-radius: var(--mud-default-borderradius) !important;
     padding: .9rem 1.1rem !important;
     display: flex;
     align-items: flex-start;
@@ -2510,13 +2570,16 @@ a.tone-bubble:hover {
     transition: transform .15s ease, box-shadow .15s ease;
 }
 
-.stat-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 24px -10px rgba(16, 16, 32, 0.14) !important;
+/* Mouse only: on touch a tap would leave the card lifted. */
+@media (hover: hover) and (pointer: fine) {
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 24px -10px rgba(16, 16, 32, 0.14) !important;
+    }
 }
 
 .roadmap-card {
-    border-radius: 12px !important;
+    border-radius: var(--mud-default-borderradius) !important;
     padding: 1.1rem 1.25rem !important;
 }
 
@@ -2576,7 +2639,7 @@ a.tone-bubble:hover {
 /* padding-left tightened so top-level icons line up with the AppBar hamburger icon. */
 .nav-drawer .mud-nav-link,
 .nav-drawer-mobile .mud-nav-link {
-    border-radius: 10px;
+    border-radius: var(--mud-default-borderradius);
     margin: 2px 8px;
     padding-left: 6px;
     transition: background-color .12s ease;
@@ -2642,7 +2705,7 @@ a.tone-bubble:hover {
     margin-left: auto;
     margin-right: auto;
     padding: 0 !important;
-    border-radius: 10px;
+    border-radius: var(--mud-default-borderradius);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2663,7 +2726,7 @@ a.tone-bubble:hover {
 }
 
 .user-dashboard-nav .mud-nav-link {
-    border-radius: 8px;
+    border-radius: var(--mud-default-borderradius);
     margin: 2px 4px;
     padding: 8px 12px;
     transition: background-color .12s ease, color .12s ease;
@@ -2693,10 +2756,13 @@ a.tone-bubble:hover {
     transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
 }
 
-.dashboard-action-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-    border-color: var(--mud-palette-primary);
+/* Mouse only: on touch a tap would leave the card lifted. */
+@media (hover: hover) and (pointer: fine) {
+    .dashboard-action-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+        border-color: var(--mud-palette-primary);
+    }
 }
 
 .page-shell {
@@ -3220,7 +3286,7 @@ button.step-indicator-button {
 .landing-tabs .mud-tab {
     margin: 6px 4px;
     min-height: 40px;
-    border-radius: 8px;
+    border-radius: var(--mud-default-borderradius);
     text-transform: none;
     transition: background-color 0.15s ease, color 0.15s ease;
 }
@@ -5932,7 +5998,7 @@ a.footer-reach-item:hover .footer-reach-value {
 .checkout-card {
     padding: 22px;
     border: 1px solid var(--mud-palette-lines-default);
-    border-radius: 18px;
+    border-radius: var(--mud-default-borderradius);
     background: var(--mud-palette-surface);
 }
 
@@ -5966,7 +6032,7 @@ a.footer-reach-item:hover .footer-reach-value {
     gap: 12px;
     padding: 12px;
     border: 1px solid var(--mud-palette-lines-default);
-    border-radius: 14px;
+    border-radius: var(--mud-default-borderradius);
 }
 
 .checkout-address-row + .checkout-address-row {
@@ -6048,7 +6114,7 @@ a.footer-reach-item:hover .footer-reach-value {
     margin: 24px auto;
     padding: 36px 24px;
     border: 1px solid color-mix(in srgb, #13A10E 35%, var(--mud-palette-lines-default));
-    border-radius: 22px;
+    border-radius: var(--mud-default-borderradius);
     background: linear-gradient(180deg, color-mix(in srgb, #13A10E 10%, var(--mud-palette-surface)) 0%, var(--mud-palette-surface) 60%);
     text-align: center;
 }
@@ -6094,7 +6160,7 @@ a.footer-reach-item:hover .footer-reach-value {
 .checkout-mini-summary {
     margin-bottom: 14px;
     border: 1px solid var(--mud-palette-lines-default);
-    border-radius: 14px;
+    border-radius: var(--mud-default-borderradius);
     background: var(--mud-palette-surface);
     overflow: hidden;
 }
@@ -6235,7 +6301,7 @@ a.footer-reach-item:hover .footer-reach-value {
     grid-template-columns: 104px minmax(0, 1fr);
     gap: 16px;
     padding: 14px;
-    border-radius: 16px;
+    border-radius: var(--mud-default-borderradius);
     background: var(--mud-palette-surface);
     border: 1px solid var(--mud-palette-lines-default);
     transition: border-color var(--motion-fast), box-shadow var(--motion-fast);
@@ -6261,7 +6327,7 @@ a.footer-reach-item:hover .footer-reach-value {
     place-items: center;
     width: 104px;
     height: 104px;
-    border-radius: 12px;
+    border-radius: var(--mud-default-borderradius);
     overflow: hidden;
     background: var(--mud-palette-background-gray);
     color: var(--mud-palette-text-disabled);
@@ -6423,7 +6489,7 @@ a.footer-reach-item:hover .footer-reach-value {
     margin: 24px auto;
     padding: 36px 24px;
     border: 1px dashed var(--mud-palette-lines-default);
-    border-radius: 20px;
+    border-radius: var(--mud-default-borderradius);
     background: var(--mud-palette-surface);
     text-align: center;
 }
@@ -6461,7 +6527,7 @@ a.footer-reach-item:hover .footer-reach-value {
     .cart-empty {
         margin: 8px auto 16px;
         padding: 28px 18px;
-        border-radius: 18px;
+        border-radius: var(--mud-default-borderradius);
     }
 
     .cart-empty-actions {
@@ -6533,7 +6599,7 @@ a.footer-reach-item:hover .footer-reach-value {
     min-width: 120px;
     padding: 12px 16px;
     border: 1px solid var(--mud-palette-lines-default);
-    border-radius: 14px;
+    border-radius: var(--mud-default-borderradius);
     background: var(--mud-palette-surface);
     color: var(--mud-palette-text-primary);
     font: inherit;
@@ -6609,7 +6675,7 @@ a.footer-reach-item:hover .footer-reach-value {
     place-items: center;
     width: 42px;
     height: 42px;
-    border-radius: 12px;
+    border-radius: var(--mud-default-borderradius);
     background: color-mix(in srgb, var(--tone) 14%, transparent);
     color: color-mix(in srgb, var(--tone) 85%, var(--mud-palette-text-primary));
 }
@@ -7058,7 +7124,7 @@ a.footer-reach-item:hover .footer-reach-value {
     justify-content: space-between;
     gap: 16px;
     padding: 14px 16px;
-    border-radius: 12px !important;
+    border-radius: var(--mud-default-borderradius) !important;
 }
 
 .dashboard-upper-identity {
@@ -7119,7 +7185,7 @@ a.footer-reach-item:hover .footer-reach-value {
     gap: 8px;
     min-height: 40px;
     padding: 4px 12px 4px 4px;
-    border-radius: 999px;
+    border-radius: var(--mud-default-borderradius);
     border: 1px solid var(--mud-palette-lines-default);
     color: var(--mud-palette-text-primary);
     font-size: 14px;
@@ -7180,7 +7246,7 @@ a.footer-reach-item:hover .footer-reach-value {
         gap: 6px;
         min-height: 72px;
         padding: 10px 4px;
-        border-radius: 12px;
+        border-radius: var(--mud-default-borderradius);
         border-color: transparent;
         background: var(--mud-palette-background-gray);
         font-size: 13px;
@@ -7252,7 +7318,7 @@ a.footer-reach-item:hover .footer-reach-value {
 }
 
 .notification-popover {
-    border-radius: 12px !important;
+    border-radius: var(--mud-default-borderradius) !important;
     overflow: hidden;
 }
 
@@ -7386,7 +7452,7 @@ a.footer-reach-item:hover .footer-reach-value {
 }
 
 .notifications-list {
-    border-radius: 12px;
+    border-radius: var(--mud-default-borderradius);
     overflow: hidden;
     background: var(--mud-palette-surface);
     border: 1px solid var(--mud-palette-lines-default);
@@ -8318,7 +8384,7 @@ a.footer-reach-item:hover .footer-reach-value {
     align-items: center;
     gap: 8px;
     padding: 8px 8px 8px 12px;
-    border-radius: 12px;
+    border-radius: var(--mud-default-borderradius);
     background: color-mix(in srgb, var(--mud-palette-success) 12%, transparent);
     color: var(--mud-palette-success);
 }
@@ -9115,7 +9181,7 @@ a.footer-reach-item:hover .footer-reach-value {
 
 .address-dialog {
     width: min(720px, calc(100vw - 32px));
-    border-radius: 20px !important;
+    border-radius: var(--mud-default-borderradius) !important;
 }
 
 .address-dialog-head {
@@ -9345,7 +9411,7 @@ a.address-card {
 
 .invoice-doc {
     padding: 20px;
-    border-radius: 16px;
+    border-radius: var(--mud-default-borderradius);
     border: 1px solid var(--mud-palette-lines-default);
     background: var(--mud-palette-surface);
 }
@@ -10253,7 +10319,7 @@ a.address-card {
 
 .admin-table.mud-table {
     border: 1px solid var(--mud-palette-lines-default);
-    border-radius: 16px;
+    border-radius: var(--mud-default-borderradius);
     overflow: hidden;
     box-shadow: none;
 }
@@ -10658,7 +10724,7 @@ a.address-card {
 .member-fact {
     padding: 12px 14px;
     border: 1px solid var(--mud-palette-lines-default);
-    border-radius: 12px;
+    border-radius: var(--mud-default-borderradius);
     background: var(--mud-palette-surface);
 }
 
@@ -10746,7 +10812,7 @@ div.order-card:hover {
     gap: 12px;
     padding: 16px;
     border: 1px solid var(--mud-palette-lines-default);
-    border-radius: 16px;
+    border-radius: var(--mud-default-borderradius);
     background: var(--mud-palette-surface);
 }
 
@@ -10808,7 +10874,7 @@ div.order-card:hover {
     padding: 18px 20px;
     border: 1px solid var(--mud-palette-lines-default);
     border-left: 5px solid var(--tone);
-    border-radius: 16px;
+    border-radius: var(--mud-default-borderradius);
     background: var(--mud-palette-surface);
 }
 
@@ -10849,7 +10915,7 @@ div.order-card:hover {
     gap: 8px;
     margin: 0;
     padding: 10px 12px;
-    border-radius: 10px;
+    border-radius: var(--mud-default-borderradius);
     background: color-mix(in srgb, var(--tone) 7%, var(--mud-palette-surface));
     font-size: 14px;
     color: var(--mud-palette-text-secondary);
@@ -10991,7 +11057,7 @@ div.order-card:hover {
         margin-bottom: 12px;
         padding: 12px 14px 6px;
         border: 1px solid var(--mud-palette-lines-default);
-        border-radius: 14px;
+        border-radius: var(--mud-default-borderradius);
         background: var(--mud-palette-surface);
     }
 
@@ -11673,7 +11739,7 @@ div.order-card:hover {
     align-items: center;
     gap: 16px;
     padding: 20px;
-    border-radius: 12px;
+    border-radius: var(--mud-default-borderradius);
     background: var(--brand-gradient);
     color: #ffffff;
 }
@@ -11715,7 +11781,7 @@ div.order-card:hover {
 
 .profile-list {
     border: 1px solid var(--mud-palette-lines-default);
-    border-radius: 12px;
+    border-radius: var(--mud-default-borderradius);
     overflow: hidden;
     background: var(--mud-palette-surface);
 }

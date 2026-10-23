@@ -13,6 +13,16 @@ window.comfortProTheme = (function () {
     var systemIsDark = !!window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
     var isDark = mode ? mode === 'Dark' || (mode === 'System' && systemIsDark) : legacy ? legacy === 'true' : systemIsDark;
 
+    // Phone status bar follows the app bar color (App.razor puts both colors on the tag).
+    function setStatusBar(dark) {
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) {
+            meta.setAttribute('content', meta.getAttribute(dark ? 'data-dark' : 'data-light'));
+        }
+    }
+
+    setStatusBar(isDark);
+
     if (root.hasAttribute('data-app-interactive')) {
         root.setAttribute('data-theme-boot', isDark ? 'dark' : 'light');
     }
@@ -37,5 +47,5 @@ window.comfortProTheme = (function () {
     // Never leave the app hidden if Blazor fails to start.
     setTimeout(show, 5000);
 
-    return { reveal: reveal };
+    return { reveal: reveal, setStatusBar: setStatusBar };
 })();

@@ -14,7 +14,7 @@ public record UpdateAboutUsCommand(Guid Id, string Title, string Description, st
     public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Update];
 }
 
-public class UpdateAboutUsHandler(IAboutUsRepository repository, IStorageService storageService) : IRequestHandler<UpdateAboutUsCommand, OperationResult>
+public class UpdateAboutUsHandler(IAboutUsRepository repository, IStorageService storageService, IRichTextSanitizer sanitizer) : IRequestHandler<UpdateAboutUsCommand, OperationResult>
 {
     public async Task<OperationResult> Handle(UpdateAboutUsCommand request, CancellationToken cancellationToken)
     {
@@ -25,7 +25,7 @@ public class UpdateAboutUsHandler(IAboutUsRepository repository, IStorageService
         }
 
         entity.Title = request.Title;
-        entity.Description = request.Description;
+        entity.Description = sanitizer.Sanitize(request.Description);
         entity.CoverImage = storageService.ToStoredUrl(request.CoverImage);
         entity.VideoUrl = request.VideoUrl;
         entity.DisplayOrder = request.DisplayOrder;

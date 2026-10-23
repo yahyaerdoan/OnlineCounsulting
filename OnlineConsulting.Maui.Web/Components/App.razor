@@ -5,6 +5,8 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    @* Phone status bar matches the app bar; theme-mode.js picks light or dark. *@
+    <meta name="theme-color" content="@BrandPalette.AppbarLight" data-light="@BrandPalette.AppbarLight" data-dark="@BrandPalette.AppbarDark" />
     <base href="/" />
     <ResourcePreloader />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -16,7 +18,7 @@
     <ImportMap />
     <script src="_content/OnlineConsulting.Maui.Shared/theme-mode.js"></script>
     @* Dark start background straight from the palette, so it can never drift from the theme. *@
-    <style>html[data-theme-boot=dark], html[data-theme-boot=dark] body { background: @OnlineConsulting.Maui.Shared.Theme.BrandPalette.DarkBackground; }</style>
+    <style>html[data-theme-boot=dark], html[data-theme-boot=dark] body { background: @BrandPalette.DarkBackground; }</style>
     <HeadOutlet @rendermode="PageRenderMode" />
 </head>
 

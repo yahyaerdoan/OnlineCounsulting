@@ -14,14 +14,14 @@ public record CreateAboutUsCommand(string Title, string Description, string? Cov
     public string[] Roles => [SiteContentOperationClaims.Admin, SiteContentOperationClaims.Write, SiteContentOperationClaims.Add];
 }
 
-public class CreateAboutUsHandler(IAboutUsRepository repository, IStorageService storageService) : IRequestHandler<CreateAboutUsCommand, OperationDataResult<Guid>>
+public class CreateAboutUsHandler(IAboutUsRepository repository, IStorageService storageService, IRichTextSanitizer sanitizer) : IRequestHandler<CreateAboutUsCommand, OperationDataResult<Guid>>
 {
     public async Task<OperationDataResult<Guid>> Handle(CreateAboutUsCommand request, CancellationToken cancellationToken)
     {
         var entity = new AboutUs
         {
             Title = request.Title,
-            Description = request.Description,
+            Description = sanitizer.Sanitize(request.Description),
             CoverImage = storageService.ToStoredUrl(request.CoverImage),
             VideoUrl = request.VideoUrl,
             DisplayOrder = request.DisplayOrder,
