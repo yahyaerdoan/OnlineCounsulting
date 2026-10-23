@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Http.Resilience;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
@@ -25,7 +26,8 @@ public static class Extensions
 
         _ = builder.Services.ConfigureHttpClientDefaults(http =>
         {
-            _ = http.AddStandardResilienceHandler();
+            // No automatic retry of POST/PUT/PATCH/DELETE: a retry could apply a change twice, and a streamed body can't be re-read.
+            _ = http.AddStandardResilienceHandler(options => options.Retry.DisableForUnsafeHttpMethods());
             _ = http.AddServiceDiscovery();
         });
 
