@@ -32,7 +32,8 @@
             }
         </MudTd>
         <MudTd DataLabel="Title" Class="cell-primary">@entry.Title</MudTd>
-        <MudTd DataLabel="Description">@PlainTextPreview(entry.Description)</MudTd>
+        @* Sanitized on save (IRichTextSanitizer), so it renders as the editor shows it. *@
+        <MudTd DataLabel="Description"><div class="admin-rich-text">@((MarkupString)entry.Description)</div></MudTd>
         <MudTd DataLabel="Actions">
             <RowActions Actions="@([
                 new RowAction("Edit", Icons.Material.Outlined.EditNote) { Href = EditUrl(entry), Disabled = !entry.Can(LinkRels.Edit) },
@@ -71,14 +72,5 @@
 
         Snackbar.ShowSuccess(result.DisplayMessage);
         await _table.ReloadAsync();
-    }
-
-    /// <summary>Description is rich-text HTML (MudExRichTextEdit) - the list is a compact preview,
-    /// not a rendered view, so tags are stripped and the result trimmed to one readable line.</summary>
-    private static string PlainTextPreview(string html)
-    {
-        var text = System.Net.WebUtility.HtmlDecode(System.Text.RegularExpressions.Regex.Replace(html, "<.*?>", " "));
-        text = System.Text.RegularExpressions.Regex.Replace(text, @"\s+", " ").Trim();
-        return text.Length > 100 ? text[..100] + "..." : text;
     }
 }

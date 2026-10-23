@@ -19,11 +19,14 @@ public class S3CompatibleStorageService : IStorageService
     {
         _options = options.Value.S3;
 
+        // Checksums only when required: SDK 4.x adds trailing checksums by default, which R2 and some S3-compatible backends reject.
         var config = new AmazonS3Config
         {
             ServiceURL = _options.ServiceUrl,
             AuthenticationRegion = _options.Region,
             ForcePathStyle = true,
+            RequestChecksumCalculation = RequestChecksumCalculation.WHEN_REQUIRED,
+            ResponseChecksumValidation = ResponseChecksumValidation.WHEN_REQUIRED,
         };
 
         _client = new AmazonS3Client(new BasicAWSCredentials(_options.AccessKey, _options.SecretKey), config);

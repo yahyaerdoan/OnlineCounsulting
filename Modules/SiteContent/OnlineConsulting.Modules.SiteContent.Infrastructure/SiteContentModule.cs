@@ -82,6 +82,8 @@ public static class SiteContentModule
         });
         _ = services.AddScoped<ICityGeocoder, Geocoding.CityGeocoder>();
         _ = services.AddHostedService<Geocoding.ServiceAreaCoordinatesBackfill>();
+        _ = services.AddSingleton<IRichTextSanitizer, RichText.RichTextSanitizer>();
+        _ = services.AddHostedService<RichText.AboutUsHtmlBackfill>();
         _ = services.AddScoped<IFaqItemRepository, FaqItemRepository>();
         _ = services.AddScoped<IPromotionRepository, PromotionRepository>();
 

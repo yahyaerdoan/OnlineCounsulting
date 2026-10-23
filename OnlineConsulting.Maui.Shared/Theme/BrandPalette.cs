@@ -13,6 +13,10 @@ public static class BrandPalette
     /// <summary>Dark page background; also painted by App.razor before the app loads.</summary>
     public const string DarkBackground = "#141414";
 
+    /// <summary>App bar backgrounds; also the phone status bar color (theme-color).</summary>
+    public const string AppbarLight = "#FFFFFF";
+    public const string AppbarDark = "#1F1F1F";
+
     /// <summary>Segoe UI on Windows, the platform UI font elsewhere - the same stack Microsoft's own sites fall back through.</summary>
     public static readonly string[] FontStack =
         ["Segoe UI Variable Text", "Segoe UI", "-apple-system", "BlinkMacSystemFont", "Roboto", "Helvetica Neue", "Arial", "sans-serif"];
@@ -23,7 +27,7 @@ public static class BrandPalette
         Primary = Brand,
         Secondary = MutedText,
         Tertiary = "#0E7C7B",
-        AppbarBackground = "#FFFFFF",
+        AppbarBackground = AppbarLight,
         AppbarText = "#242424",
         Background = background,
         BackgroundGray = "#F5F5F5",
@@ -50,7 +54,7 @@ public static class BrandPalette
         Primary = BrandOnDark,
         Secondary = MutedTextOnDark,
         Tertiary = "#2DD4BF",
-        AppbarBackground = "#1F1F1F",
+        AppbarBackground = AppbarDark,
         AppbarText = "#FFFFFF",
         Background = DarkBackground,
         BackgroundGray = "#1F1F1F",

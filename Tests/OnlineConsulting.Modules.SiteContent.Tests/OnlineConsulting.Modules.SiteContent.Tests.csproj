@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Modules\SiteContent\OnlineConsulting.Modules.SiteContent.Domain\OnlineConsulting.Modules.SiteContent.Domain.csproj" />
+    <ProjectReference Include="..\..\Modules\SiteContent\OnlineConsulting.Modules.SiteContent.Infrastructure\OnlineConsulting.Modules.SiteContent.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
